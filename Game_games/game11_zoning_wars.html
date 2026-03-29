@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zoning Wars</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0f23;color:#fff;font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center;overflow:hidden}
+h1{font-size:1.4rem;letter-spacing:3px;color:#4fffb0;margin-bottom:4px}
+.sub{font-size:0.75rem;color:#888;margin-bottom:10px}
+#hud{display:flex;gap:28px;margin-bottom:8px;font-size:0.85rem}
+.stat{display:flex;flex-direction:column;align-items:center}
+.stat span{font-size:1.2rem;font-weight:700;color:#4fffb0}
+.stat label{font-size:0.65rem;color:#666;letter-spacing:1px}
+#gameCanvas{border:1px solid #1a1a3e;cursor:pointer}
+#zone-picker{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.zone-btn{padding:6px 14px;border-radius:6px;border:2px solid transparent;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s}
+.zone-btn.active{border-color:#fff;transform:scale(1.08)}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+#overlay.hidden{display:none}
+.card{background:#12122a;border:1px solid #2a2a5a;border-radius:12px;padding:28px 36px;max-width:380px;text-align:center}
+.card h2{font-size:1.5rem;color:#4fffb0;margin-bottom:8px}
+.card p{color:#aaa;font-size:0.85rem;margin-bottom:18px;line-height:1.6}
+.score-big{font-size:3rem;font-weight:900;color:#f72585;margin:10px 0}
+button{background:#4fffb0;color:#0f0f23;border:none;border-radius:8px;padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+button:hover{opacity:0.85}
+.lb-row{display:flex;justify-content:space-between;font-size:0.82rem;padding:3px 0;border-bottom:1px solid #1a1a3a}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{color:#f72585;font-weight:700}
+.lb-score{color:#4fffb0;font-weight:600}
+#flash{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#4fffb0;color:#0f0f23;padding:7px 18px;border-radius:20px;font-size:0.8rem;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:20}
+#flash.show{opacity:1}
+</style>
+</head>
+<body>
+<h1>ZONING WARS</h1>
+<div class="sub">Build smart. Zone carefully. Every adjacency has consequences.</div>
+<div id="hud">
+<div class="stat"><span id="score-val">0</span><label>SCORE</label></div>
+<div class="stat"><span id="time-val">60</span><label>TIME</label></div>
+<div class="stat"><span id="violations-val">0</span><label>VIOLATIONS</label></div>
+</div>
+<canvas id="gameCanvas" width="360" height="420"></canvas>
+<div id="zone-picker"></div>
+<div id="flash"></div>
+<div id="overlay">
+<div class="card" id="start-card">
+<h2>ZONING WARS</h2>
+<p>Place zones on the city grid before time runs out.<br>Industrial next to Residential = violation (-25pts).<br>Parks next to anything = bonus (+5pts each).<br>3+ same-type cluster = COMBO (+20pts).<br><br><strong style="color:#4fffb0">Select a zone type, then click the grid.</strong></p>
+<button onclick="startGame()">ZONE IT</button>
+</div>
+<div class="card" id="end-card" style="display:none;margin-top:12px">
+<h2>PLANNING SESSION CLOSED</h2>
+<p id="end-msg">The city has been zoned.</p>
+<div class="score-big" id="end-score">0</div>
+<p style="color:#666;font-size:0.75rem;margin-bottom:14px">final score</p>
+<button onclick="startGame()">REZONE</button>
+</div>
+<div style="background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:14px 20px;margin-top:12px;min-width:280px">
+<div style="font-size:0.65rem;letter-spacing:2px;color:#666;margin-bottom:6px">TOP PLANNERS</div>
+<div id="lb-rows"><div class="lb-row"><span>—</span><span>none yet</span></div></div>
+</div>
+</div>
+<script>
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+const COLS=12,ROWS=14,CELL=30;
+const ZONES=[
+{id:'R1',label:'R1',color:'#4fffb0',name:'Residential Low'},
+{id:'R2',label:'R2',color:'#00d4ff',name:'Residential High'},
+{id:'C1',label:'C1',color:'#f9c74f',name:'Commercial'},
+{id:'C2',label:'C2',color:'#ff6b35',name:'Office'},
+{id:'IN',label:'IND',color:'#f72585',name:'Industrial'},
+{id:'PK',label:'PARK',color:'#4361ee',name:'Park'},
+];
+const leaderboard=[];let state,timer,eggBuf='',violations=0;
+function newState(){return{grid:Array.from({length:ROWS},()=>Array(COLS).fill(null)),selected:ZONES[0],score:0,time:60,running:false};}
+function flash(msg){const el=document.getElementById('flash');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);}
+function buildPicker(){const p=document.getElementById('zone-picker');p.innerHTML='';ZONES.forEach(z=>{const b=document.createElement('button');b.className='zone-btn'+(state&&state.selected.id===z.id?' active':'');b.style.background=z.color;b.style.color='#0f0f23';b.textContent=z.label;b.onclick=()=>{if(state)state.selected=z;document.querySelectorAll('.zone-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');};p.appendChild(b);});}
+function calcScore(grid){let score=0,viol=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const z=grid[r][c];if(!z)continue;const neighbors=[[0,1],[0,-1],[1,0],[-1,0]].map(([dr,dc])=>grid[r+dr]?.[c+dc]).filter(Boolean);neighbors.forEach(n=>{if(z.id==='IN'&&(n.id==='R1'||n.id==='R2')){score-=25;viol++;}else if((z.id==='C1'||z.id==='C2')&&(n.id==='R1'||n.id==='R2')){score-=10;}if(n.id==='PK'){score+=5;}});if(z.id==='PK'){score+=3;}}
+// combo check
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const z=grid[r][c];if(!z)continue;const same=[[0,1],[1,0]].every(([dr,dc])=>grid[r+dr]?.[c+dc]?.id===z.id);if(same)score+=20;}
+const filled=grid.flat().filter(Boolean).length;score+=filled*2;return{score,viol};}
+function draw(){ctx.fillStyle='#0a0a1a';ctx.fillRect(0,0,COLS*CELL,ROWS*CELL);ctx.strokeStyle='#1a1a3a';ctx.lineWidth=0.5;for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*CELL);ctx.lineTo(COLS*CELL,r*CELL);ctx.stroke();}for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*CELL,0);ctx.lineTo(c*CELL,ROWS*CELL);ctx.stroke();}state.grid.forEach((row,r)=>row.forEach((z,c)=>{if(z){ctx.fillStyle=z.color+'cc';ctx.fillRect(c*CELL+1,r*CELL+1,CELL-2,CELL-2);ctx.fillStyle='rgba(0,0,0,0.6)';ctx.font='bold 9px Inter';ctx.textAlign='center';ctx.fillText(z.label,c*CELL+CELL/2,r*CELL+CELL/2+3);}}));ctx.textAlign='left';}
+canvas.addEventListener('click',e=>{if(!state||!state.running)return;const rect=canvas.getBoundingClientRect();const c=Math.floor((e.clientX-rect.left)/CELL),r=Math.floor((e.clientY-rect.top)/CELL);if(c<0||c>=COLS||r<0||r>=ROWS)return;state.grid[r][c]=state.selected;const{score,viol}=calcScore(state.grid);state.score=Math.max(0,score);violations=viol;document.getElementById('score-val').textContent=state.score;document.getElementById('violations-val').textContent=violations;draw();});
+function startGame(){document.getElementById('overlay').classList.add('hidden');document.getElementById('start-card').style.display='block';document.getElementById('end-card').style.display='none';if(timer)clearInterval(timer);state=newState();state.running=true;violations=0;buildPicker();draw();document.getElementById('score-val').textContent=0;document.getElementById('violations-val').textContent=0;timer=setInterval(()=>{state.time--;document.getElementById('time-val').textContent=state.time;if(state.time<=0){clearInterval(timer);endGame();}},1000);}
+function endGame(){state.running=false;clearInterval(timer);leaderboard.push(state.score);leaderboard.sort((a,b)=>b-a);leaderboard.splice(5);document.getElementById('end-score').textContent=state.score;document.getElementById('end-msg').textContent=`${violations} violations | ${state.grid.flat().filter(Boolean).length} zones placed`;renderLB();document.getElementById('start-card').style.display='none';document.getElementById('end-card').style.display='block';const ov=document.getElementById('overlay');ov.style.display='flex';ov.classList.remove('hidden');}
+function renderLB(){const el=document.getElementById('lb-rows');if(!leaderboard.length){el.innerHTML='<div class="lb-row"><span>—</span><span>none</span></div>';return;}el.innerHTML=leaderboard.map((s,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-score">${s}pts</span></div>`).join('');}
+document.addEventListener('keydown',e=>{eggBuf+=e.key.toUpperCase();if(eggBuf.length>8)eggBuf=eggBuf.slice(-8);if(eggBuf.includes('ZONING')){eggBuf='';if(state&&state.running){violations=0;flash('CHEAT CODE: All violations cleared!');document.getElementById('violations-val').textContent=0;}}});
+renderLB();
+</script>
+</body>
+</html>

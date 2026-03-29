@@ -3,319 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XLMX — Herramientas y Juegos para Negocios | Saltillo | Monterrey</title>
-<meta name="description" content="XLMX: herramientas gratuitas para negocios, juegos de construccion y extensiones de productividad. Hecho en Saltillo, disponible en toda Mexico y USA. XLMX tools, XLMX games, XLMX Saltillo, XLMX Monterrey.">
-<meta name="keywords" content="XLMX, XLMX Saltillo, XLMX Monterrey, XLMX tools, XLMX games, herramientas gratis negocios Mexico, calculadora propinas, auditoria SAT, menu engineering, vending analytics, juegos arquitectura, browser extensions, BIM XL">
-<meta name="author" content="XLMX — BIM XL LLC">
-<meta name="robots" content="index, follow">
-<meta property="og:title" content="XLMX — Herramientas y Juegos para Negocios">
-<meta property="og:description" content="Herramientas gratuitas para negocios, juegos de arquitectura y extensiones de productividad. Hecho en Saltillo, Mexico.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://bimxl.github.io/xlmx/">
-<meta property="og:image" content="https://bimxl.github.io/xlmx/og-image.png">
-<link rel="canonical" href="https://bimxl.github.io/xlmx/">
+<title>XLMX — Sistemas de Datos para Negocios</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.5}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
 a{color:#111;text-decoration:none}
-
-/* HEADER */
-header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid #e5e5e5;position:sticky;top:0;background:#fff;z-index:100}
-.logo{font-size:26px;font-weight:800;letter-spacing:3px}
-.logo span{font-weight:300;font-size:13px;margin-left:8px;color:#666;letter-spacing:0}
-nav{display:flex;gap:4px}
-nav a{font-size:12px;color:#666;padding:5px 10px;border-radius:4px;transition:background .15s}
-nav a:hover{background:#f5f5f5;color:#111}
-.nav-cta{background:#111!important;color:#fff!important;border-radius:4px;padding:5px 12px!important}
-.nav-cta:hover{opacity:.85!important;background:#111!important}
-
-/* HERO */
-.hero{max-width:700px;margin:60px auto 20px;padding:0 32px;text-align:center}
-.hero h1{font-size:36px;font-weight:800;letter-spacing:1px;margin-bottom:12px;line-height:1.15}
-.hero h1 span{color:#666;font-weight:300}
-.hero p{font-size:15px;color:#555;max-width:560px;margin:0 auto 16px}
-.hero-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.badge{font-size:11px;padding:4px 10px;border:1px solid #e5e5e5;border-radius:12px;color:#666}
-
-/* STATS BAR */
-.stats{display:flex;justify-content:center;gap:40px;padding:20px 32px;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;margin-bottom:40px}
-.stat{text-align:center}
-.stat .num{font-size:24px;font-weight:700}
-.stat .lbl{font-size:11px;color:#888;margin-top:2px}
-
-/* SECTION */
-.section{max-width:880px;margin:0 auto 48px;padding:0 32px}
-.section-header{display:flex;align-items:baseline;gap:10px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid #e5e5e5}
-.section-header h2{font-size:16px;font-weight:700}
-.section-header .count{font-size:12px;color:#888}
-.section-header .anchor-link{font-size:12px;color:#888;margin-left:auto}
-
-/* CARDS */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-.card{border:1px solid #e5e5e5;border-radius:7px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;transition:box-shadow .2s,border-color .2s}
-.card:hover{box-shadow:0 3px 14px rgba(0,0,0,.07);border-color:#ccc}
-.card-top h3{font-size:14px;font-weight:600;margin-bottom:5px}
-.card-top p{font-size:12px;color:#666;line-height:1.5}
-.card-bottom{margin-top:12px;display:flex;align-items:center;justify-content:space-between}
-.tag{font-size:10px;padding:2px 7px;border-radius:3px;background:#f5f5f5;color:#666}
-.tag-new{background:#dcfce7;color:#166534}
-.tag-game{background:#dbeafe;color:#1e3a8a}
-.tag-ext{background:#fef9c3;color:#713f12}
-.tag-dev{background:#fce7f3;color:#9d174d}
-.card-arrow{font-size:18px;color:#ccc}
-.card:hover .card-arrow{color:#111}
-
-/* FUTURE SECTION */
-.future-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-.future-card{border:1px dashed #e5e5e5;border-radius:7px;padding:16px;opacity:.7;transition:opacity .2s}
-.future-card:hover{opacity:1;border-color:#999}
-.future-card .fc-title{font-size:13px;font-weight:600;margin-bottom:4px}
-.future-card .fc-desc{font-size:11px;color:#888;line-height:1.5}
-.future-card .fc-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:#fce7f3;color:#9d174d;display:inline-block;margin-top:6px}
-
-/* SERVICES */
-.services{max-width:880px;margin:0 auto 48px;padding:0 32px}
-.svc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+nav a{font-size:13px;color:#666;margin-left:20px}nav a:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:600px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.section{max-width:840px;margin:0 auto;padding:32px}
+.section h2{font-size:16px;font-weight:600;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid #e5e5e5}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid #e5e5e5;border-radius:6px;padding:24px;display:flex;justify-content:space-between;align-items:flex-start;transition:box-shadow .2s}
+.card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.card p{font-size:12px;color:#666;margin:0}
+.card .arrow{font-size:18px;color:#999;margin-left:12px;flex-shrink:0}
+.card .lang{font-size:10px;color:#888;margin-top:4px}
+.card .client{font-size:10px;color:#1565c0;margin-top:6px;font-weight:600}
+.card .free-tag{font-size:9px;color:#558b2f;background:#f1f8e9;padding:2px 6px;border-radius:3px;display:inline-block;margin-top:6px}
+.services{max-width:840px;margin:0 auto;padding:32px}
+.services h2{font-size:16px;font-weight:600;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid #e5e5e5}
+.svc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 @media(max-width:700px){.svc-grid{grid-template-columns:1fr}}
-.svc{border:1px solid #e5e5e5;border-radius:7px;padding:22px;text-align:center}
-.svc h3{font-size:14px;font-weight:600;margin-bottom:6px}
-.svc .price{font-size:22px;font-weight:700;margin:6px 0}
+.svc{border:1px solid #e5e5e5;border-radius:6px;padding:24px;text-align:center}
+.svc h3{font-size:14px;font-weight:600;margin-bottom:8px}
+.svc .price{font-size:22px;font-weight:700;margin:8px 0}
 .svc .detail{font-size:11px;color:#666;line-height:1.5}
-.svc .stag{font-size:10px;color:#fff;background:#111;padding:3px 10px;border-radius:3px;display:inline-block;margin-top:10px}
-.svc .stag.hot{background:#e65100}
-
-/* CTA */
-.cta{text-align:center;padding:48px 32px;background:#111;color:#fff;margin-top:60px}
-.cta h2{font-size:22px;font-weight:700;margin-bottom:8px}
-.cta p{font-size:13px;color:#aaa;margin-bottom:20px}
-.cta a{display:inline-block;padding:12px 32px;background:#fff;color:#111;border-radius:5px;font-size:13px;font-weight:600}
-.cta a:hover{opacity:.9}
-
-/* FOOTER */
-.footer{background:#111;color:#666;padding:20px 32px;display:flex;justify-content:space-between;font-size:12px;border-top:1px solid #222}
-.footer a{color:#888}
-.footer a:hover{color:#fff}
-
-/* SCHEMA BREADCRUMB */
-.breadcrumb{max-width:880px;margin:12px auto 0;padding:0 32px;font-size:11px;color:#999}
-.breadcrumb a{color:#999}
-
-@media(max-width:600px){
-  header{padding:12px 16px}
-  .hero{margin-top:32px;padding:0 16px}
-  .hero h1{font-size:26px}
-  .stats{gap:20px;padding:16px}
-  .section,.services{padding:0 16px}
-  nav{display:none}
-}
+.svc .tag{font-size:10px;font-weight:600;color:#fff;background:#111;padding:3px 10px;border-radius:3px;display:inline-block;margin-top:10px}
+.svc .tag-premium{background:#e65100}
+.how{max-width:840px;margin:0 auto;padding:32px}
+.how h2{font-size:16px;font-weight:600;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid #e5e5e5}
+.steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;text-align:center}
+@media(max-width:600px){.steps{grid-template-columns:1fr}}
+.step .num{font-size:28px;font-weight:800;color:#ddd}
+.step h3{font-size:13px;font-weight:600;margin:8px 0 4px}
+.step p{font-size:12px;color:#666}
+.pitch{max-width:720px;margin:0 auto;padding:32px;text-align:center}
+.pitch p{font-size:14px;color:#444;max-width:560px;margin:0 auto}
+.cta-bar{text-align:center;padding:32px;margin:0 auto;max-width:600px}
+.cta-btn{display:inline-block;padding:14px 40px;background:#111;color:#fff;border-radius:6px;font-size:14px;font-weight:600;letter-spacing:0.5px}
+.cta-btn:hover{background:#333}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="logo">XLMX<span>Data Systems</span></div>
-  <nav>
-    <a href="#tools">Herramientas</a>
-    <a href="#games">Juegos</a>
-    <a href="#extensions">Extensions</a>
-    <a href="#proximamente">Proximos</a>
-    <a href="#services">Servicios</a>
-    <a href="mailto:info@bimxl.com" class="nav-cta">Contacto</a>
-  </nav>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<nav><a href="#tools">Herramientas</a><a href="#browser-tools">Extensions</a><a href="#games">Games</a><a href="#arcade-games">Arcade</a><a href="#services">Servicios</a><a href="#contact">Contacto</a></nav>
 </header>
 
-<div class="breadcrumb">
-  <a href="/">XLMX</a> &rsaquo; Herramientas y Juegos &rsaquo; Saltillo, Mexico
-</div>
-
 <div class="hero">
-  <h1>Herramientas que <span>funcionan</span><br>desde el primer clic</h1>
-  <p>XLMX construye sistemas de datos y herramientas operativas para negocios reales. Prueba gratis. Si lo necesitas a tu medida, lo construimos.</p>
-  <div class="hero-badges">
-    <span class="badge">Hecho en Saltillo, Coahuila</span>
-    <span class="badge">Sin registro requerido</span>
-    <span class="badge">Mexico + USA</span>
-    <span class="badge">Espanol / English</span>
-  </div>
+<h1>XLMX</h1>
+<p>Sistemas de datos y herramientas operativas para negocios. Prueba gratis, y si necesitas algo a la medida de tu operacion, lo programamos para ti.</p>
+<div class="sub">Mexico + USA — Espanol / English</div>
 </div>
 
-<div class="stats">
-  <div class="stat"><div class="num">20</div><div class="lbl">Juegos activos</div></div>
-  <div class="stat"><div class="num">16</div><div class="lbl">Herramientas</div></div>
-  <div class="stat"><div class="num">10</div><div class="lbl">Extensions</div></div>
-  <div class="stat"><div class="num">20</div><div class="lbl">En desarrollo</div></div>
-</div>
-
-<!-- TOOLS SECTION -->
 <div class="section" id="tools">
-  <div class="section-header">
-    <h2>Herramientas Gratuitas</h2>
-    <span class="count">16 herramientas</span>
-  </div>
-  <div class="cards">
-    <a href="Tool_auditor/" class="card"><div class="card-top"><h3>AuditorSAT</h3><p>Auditoria fiscal automatizada. Sube XMLs CFDI, detecta discrepancias en IVA y totales, genera reportes mensuales.</p></div><div class="card-bottom"><span class="tag">ES / EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_menu/" class="card"><div class="card-top"><h3>Menu Engineering</h3><p>Analisis de rentabilidad por platillo. Clasifica en Stars, Plowhorses, Puzzles y Dogs con matriz Boston.</p></div><div class="card-bottom"><span class="tag">ES / EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_vending/" class="card"><div class="card-top"><h3>Vending Analytics</h3><p>Dashboard por maquina: ventas, margen, inventario y alertas de reabastecimiento en tiempo real.</p></div><div class="card-bottom"><span class="tag">ES / EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_whatsapp/" class="card"><div class="card-top"><h3>WhatsApp Orders</h3><p>Menu digital con carrito. El cliente arma su pedido y lo envia directo por WhatsApp con total y detalle.</p></div><div class="card-bottom"><span class="tag">ES / EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_reglamento/" class="card"><div class="card-top"><h3>Gestor de Reglamento</h3><p>Administra articulos de reglamento condominial. Busqueda, prioridades, sanciones y reportes.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_solar/" class="card"><div class="card-top"><h3>Calculadora Solar MX</h3><p>Dimensiona tu sistema fotovoltaico. Paneles, inversion, ROI y payback con tarifas CFE actualizadas.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_rentavcompra/" class="card"><div class="card-top"><h3>Rentar vs Comprar</h3><p>Compara el costo real de rentar contra comprar en Mexico. Hipoteca, plusvalia y ROI a 10 anos.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_propinas/" class="card"><div class="card-top"><h3>Calculadora de Propinas</h3><p>Divide la cuenta, calcula la propina y comparte por WhatsApp. Sin discusiones en la mesa.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_nombres/" class="card"><div class="card-top"><h3>Generador de Nombres</h3><p>Nombres creativos para tu negocio, marca o proyecto. Filtra por estilo, idioma y giro.</p></div><div class="card-bottom"><span class="tag">ES / EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_business-name-gen/" class="card"><div class="card-top"><h3>Business Name Gen (EN)</h3><p>Industry, keywords, style, language filter. Generates up to 20 name candidates, save and copy.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_cold-email-builder/" class="card"><div class="card-top"><h3>Cold Email Builder</h3><p>3-email outreach sequence (Day 1/4/10) with subjects and copy. Pre-seeded with AEC context.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_meeting-cost/" class="card"><div class="card-top"><h3>Meeting Cost Calculator</h3><p>Real-time ticking clock showing the dollar cost of your meeting. Paste the invite, add salaries, press start.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_freelance-rate/" class="card"><div class="card-top"><h3>Freelance Rate Calculator</h3><p>What should you charge? Income goal, hours, taxes and overhead → your minimum hourly and project rate.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_salary-negotiation/" class="card"><div class="card-top"><h3>Salary Negotiation Prep</h3><p>Build your negotiation script. Market rate, leverage points, BATNA, and counteroffer strategy.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_subscription-graveyard/" class="card"><div class="card-top"><h3>Subscription Graveyard</h3><p>List all your subscriptions, flag unused ones, and see your annual burn. The audit your bank account needs.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_password-audit/" class="card"><div class="card-top"><h3>Password Audit</h3><p>Score the strength of your password inventory. Flags reused, weak, and critical accounts. 100% local.</p></div><div class="card-bottom"><span class="tag">EN</span><span class="card-arrow">→</span></div></a>
-  </div>
+<h2>Herramientas Gratuitas</h2>
+<div class="cards">
+<a href="auditor/" class="card">
+<div>
+<h3>AuditorSAT</h3>
+<p>Auditoria fiscal automatizada. Sube tus XMLs CFDI, detecta discrepancias en IVA y totales, genera reportes mensuales.</p>
+<div class="lang">ES / EN</div>
+<div class="client">Para: contadores, despachos fiscales, PyMEs</div>
+<div class="free-tag">5 auditorias gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="menu/" class="card">
+<div>
+<h3>Menu Engineering</h3>
+<p>Analisis de rentabilidad por platillo. Clasifica tu menu en Stars, Plowhorses, Puzzles y Dogs con la matriz Boston.</p>
+<div class="lang">ES / EN</div>
+<div class="client">Para: restauranteros, cadenas de alimentos, food trucks</div>
+<div class="free-tag">5 analisis gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="vending/" class="card">
+<div>
+<h3>Vending Analytics</h3>
+<p>Dashboard por maquina: ventas mensuales, margen, inventario y alertas de reabastecimiento en tiempo real.</p>
+<div class="lang">ES / EN</div>
+<div class="client">Para: operadores de vending, franquicias, puntos de venta</div>
+<div class="free-tag">5 maquinas gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="whatsapp/" class="card">
+<div>
+<h3>WhatsApp Orders</h3>
+<p>Menu digital con carrito de compras. Tu cliente arma su pedido y lo envia directo por WhatsApp con total y detalle.</p>
+<div class="lang">ES / EN</div>
+<div class="client">Para: restaurantes, cafeterias, negocios de comida</div>
+<div class="free-tag">5 pedidos gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="reglamento/" class="card">
+<div>
+<h3>Gestor de Reglamento</h3>
+<p>Administra articulos de reglamento condominial. Busqueda, prioridades, sanciones y reportes por categoria.</p>
+<div class="lang">ES</div>
+<div class="client">Para: administradores de condominios, HOAs, desarrolladores</div>
+<div class="free-tag">5 articulos gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="solar/" class="card">
+<div>
+<h3>Calculadora Solar MX</h3>
+<p>Dimensiona tu sistema fotovoltaico. Calcula paneles, inversion, ROI y payback con tarifas CFE actualizadas.</p>
+<div class="lang">ES</div>
+<div class="client">Para: instaladores solares, integradores, propietarios</div>
+<div class="free-tag">5 calculos gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="bolsa/" class="card">
+<div>
+<h3>Bolsa MX</h3>
+<p>Juego estilo Dope Wars en Wall Street mexicano. Compra acciones, dolares y sobrevive al PRN de 1982 al 2000.</p>
+<div class="lang">ES</div>
+<div class="client">Para: empresas, eventos, capacitacion financiera, marketing</div>
+<div class="free-tag">5 partidas gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="ninos/" class="card">
+<div>
+<h3>Que Hacemos Hoy?</h3>
+<p>Recomendador de actividades para ninos segun clima, ciudad y objetivo. Chistoso, practico, para mamas.</p>
+<div class="lang">ES</div>
+<div class="client">Para: guarderias, escuelas, centros de entretenimiento</div>
+<div class="free-tag">5 busquedas gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="parras/" class="card">
+<div>
+<h3>Parras — Guia de Fin de Semana</h3>
+<p>Vinedos, hoteles, restaurantes y experiencias en Parras de la Fuente con mapa interactivo y planificador.</p>
+<div class="lang">ES</div>
+<div class="client">Para: hoteles, vinedos, tours, agencias de viaje</div>
+<div class="free-tag">5 itinerarios gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="cuentos/" class="card">
+<div>
+<h3>Cuentos Magicos</h3>
+<p>Historias interactivas donde tu hijo es el protagonista. Elige tema, personajes y toma decisiones en la aventura.</p>
+<div class="lang">ES</div>
+<div class="client">Para: escuelas, guarderias, editoriales, apps educativas</div>
+<div class="free-tag">5 cuentos gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="propinas/" class="card">
+<div>
+<h3>Calculadora de Propinas</h3>
+<p>Divide la cuenta, calcula la propina y comparte por WhatsApp. Sin discusiones en la mesa.</p>
+<div class="lang">ES</div>
+<div class="client">Para: restaurantes, bares, apps de delivery</div>
+<div class="free-tag">5 calculos gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="nombres/" class="card">
+<div>
+<h3>Generador de Nombres</h3>
+<p>Genera nombres creativos para tu negocio, marca o proyecto. Filtra por estilo, idioma y giro.</p>
+<div class="lang">ES / EN</div>
+<div class="client">Para: emprendedores, agencias de branding, startups</div>
+<div class="free-tag">5 listas gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="rentavcompra/" class="card">
+<div>
+<h3>Rentar vs Comprar</h3>
+<p>Compara el costo real de rentar contra comprar propiedad en Mexico. Hipoteca, plusvalia, ROI a 10 anos.</p>
+<div class="lang">ES</div>
+<div class="client">Para: inmobiliarias, desarrolladores, asesores hipotecarios</div>
+<div class="free-tag">5 comparaciones gratis</div>
+</div>
+<span class="arrow">→</span>
+</a>
+</div>
 </div>
 
-<!-- FAMILY & FUN TOOLS -->
-<div class="section" id="family">
-  <div class="section-header">
-    <h2>Familia y Vida</h2>
-    <span class="count">3 herramientas</span>
-  </div>
-  <div class="cards">
-    <a href="Tool_ninos/" class="card"><div class="card-top"><h3>Que Hacemos Hoy?</h3><p>Recomendador de actividades para ninos segun clima, edad y objetivo. Sin pantallas, sin drama.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_cuentos/" class="card"><div class="card-top"><h3>Cuentos Magicos</h3><p>Historias interactivas donde tu hijo es el protagonista. Elige tema y toma decisiones en la aventura.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Tool_parras/" class="card"><div class="card-top"><h3>Parras — Guia de Fin de Semana</h3><p>Vinedos, hoteles, restaurantes y atracciones en Parras de la Fuente con filtros por categoria.</p></div><div class="card-bottom"><span class="tag">ES</span><span class="card-arrow">→</span></div></a>
-  </div>
-</div>
-
-<!-- GAMES SECTION -->
 <div class="section" id="games">
-  <div class="section-header">
-    <h2>Builder Games — Free to Play</h2>
-    <span class="count">20 juegos</span>
-  </div>
-  <div class="cards">
-    <a href="Game_games/brutalist-tetris.html" class="card"><div class="card-top"><h3>Brutalist Tetris</h3><p>Stack cantilevers, columns, slabs. Center of mass determines if the tower stands. One bad placement and it tips.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/zoning-puzzle.html" class="card"><div class="card-top"><h3>Zoning Puzzle</h3><p>Urban planning on a grid. Place residential, commercial, and industrial zones. Industry poisons housing.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/path-of-least-resistance.html" class="card"><div class="card-top"><h3>Path of Least Resistance</h3><p>Place parks, shops, and homes. Watch 600 agents navigate and carve desire lines revealing where sidewalks should go.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/floor-plan-optimizer.html" class="card"><div class="card-top"><h3>Floor Plan Optimizer</h3><p>Pack rooms into a building envelope without dead hallways. Beat the computer's rival layout on circulation efficiency.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/bridge-builder.html" class="card"><div class="card-top"><h3>Bridge Builder</h3><p>Connect nodes with steel, wood, and cable. Hit Test and watch a truck cross — stress colors show what's about to snap.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/passive-house.html" class="card"><div class="card-top"><h3>Passive House Challenge</h3><p>Paint insulation, concrete, and south windows onto a building. Survive 72 hours of deep freeze — no furnace allowed.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/zen-garden.html" class="card"><div class="card-top"><h3>Zen Garden</h3><p>Compose an isometric zen garden. AI critic scores your layout on balance, golden ratio, odd-number groupings.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/modular-colony.html" class="card"><div class="card-top"><h3>Modular Colony</h3><p>Build a Mars colony on a hex grid. Connect habitats, O₂ generators, and solar arrays — or pods go dark.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/structural-integrity.html" class="card"><div class="card-top"><h3>Structural Integrity</h3><p>Build trusses with a real finite element solver. Apply loads, run analysis — stress colormap shows where you yield.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/bolsa-mx.html" class="card"><div class="card-top"><h3>La Bolsa — Mexico 1982-1994</h3><p>Dope Wars meets el apocalipsis financiero mexicano. PEMEX, CONASUPO, la Crisis del Peso y el FOBAPROA.</p></div><div class="card-bottom"><span class="tag tag-game">Game ES</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game1_inheritance_tax.html" class="card"><div class="card-top"><h3>Inheritance Tax</h3><p>Manage a dying relative's estate while navigating legal loopholes, family drama, and government forms.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game2_algorithms_puppet.html" class="card"><div class="card-top"><h3>Algorithms Puppet</h3><p>You are the content algorithm. Feed outrage, keep users engaged. Watch society slowly collapse.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game3_gentrification_puzzle.html" class="card"><div class="card-top"><h3>Gentrification Puzzle</h3><p>Develop a neighborhood. Every upgrade displaces someone. Can you build value without destroying community?</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game4_zero_sum_marriage.html" class="card"><div class="card-top"><h3>Zero Sum Marriage</h3><p>Negotiate shared finances, time, and ambition with a partner. No one wins unless both win.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game6_hoa_dictator.html" class="card"><div class="card-top"><h3>HOA Dictator</h3><p>Run the homeowners association. Issue fines, approve paint colors, survive neighbor wars and recall elections.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game7_ethical_ai_trainer.html" class="card"><div class="card-top"><h3>Ethical AI Trainer</h3><p>Label training data for an AI system. Your choices shape its bias. Watch it deployed in the real world.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game8_budget_surgeon.html" class="card"><div class="card-top"><h3>Budget Surgeon</h3><p>Cut a city budget by 20% without triggering riots, service collapse, or losing the next election.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game9_dark_pattern_designer.html" class="card"><div class="card-top"><h3>Dark Pattern Designer</h3><p>Design a SaaS cancellation flow. Make it as confusing as possible. See if regulators catch you.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game10_doomsday_prepper.html" class="card"><div class="card-top"><h3>Doomsday Prepper</h3><p>Allocate resources for the apocalypse. Water, shelter, skills, community — every choice has a tradeoff.</p></div><div class="card-bottom"><span class="tag tag-game">Game</span><span class="card-arrow">→</span></div></a>
-    <a href="Game_games/game11_mexicrush.html" class="card"><div class="card-top"><h3>MexiCrush</h3><p>Candy Crush pero con iconos mexicanos: chiles, tortas, micheladas. Sin pay-to-win, sin notificaciones.</p></div><div class="card-bottom"><span class="tag tag-game">Game ES</span><span class="card-arrow">→</span></div></a>
-  </div>
+<h2>Builder Games — Free to Play</h2>
+<div class="cards">
+<a href="games/brutalist-tetris.html" class="card">
+<div>
+<h3>Brutalist Tetris</h3>
+<p>Stack architectural elements — cantilevers, columns, slabs. Center of mass determines if the tower stands. One bad placement and everything tips.</p>
+<div class="lang">EN</div>
+<div class="client">Para: arquitectos, ingenieros, diseñadores</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/zoning-puzzle.html" class="card">
+<div>
+<h3>Zoning Puzzle</h3>
+<p>Urban planning on a grid. Place residential, commercial, and industrial zones. Industry poisons housing — find the layout that maximizes desirability.</p>
+<div class="lang">EN</div>
+<div class="client">Para: urbanistas, desarrolladores, planeadores</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/path-of-least-resistance.html" class="card">
+<div>
+<h3>Path of Least Resistance</h3>
+<p>Place parks, shops, and homes. Watch 600 agents navigate your city and carve desire lines — revealing where the sidewalks should actually go.</p>
+<div class="lang">EN</div>
+<div class="client">Para: urbanistas, arquitectos, estudiantes de diseño</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/floor-plan-optimizer.html" class="card">
+<div>
+<h3>Floor Plan Optimizer</h3>
+<p>Pack rooms into a building envelope without dead hallways. Beat the computer's rival layout on circulation efficiency.</p>
+<div class="lang">EN</div>
+<div class="client">Para: arquitectos, diseñadores de interiores, estudiantes</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/bridge-builder.html" class="card">
+<div>
+<h3>Bridge Builder</h3>
+<p>Connect nodes with steel, wood, and cable. Hit Test and watch a truck cross — stress colors show which beams are about to snap.</p>
+<div class="lang">EN</div>
+<div class="client">Para: ingenieros, arquitectos, estudiantes de estructuras</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/passive-house.html" class="card">
+<div>
+<h3>Passive House Challenge</h3>
+<p>Paint insulation, concrete, and south windows onto a building. Survive 72 hours of deep freeze — no furnace allowed.</p>
+<div class="lang">EN</div>
+<div class="client">Para: arquitectos, ingenieros sustentables, estudiantes</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/zen-garden.html" class="card">
+<div>
+<h3>Zen Garden</h3>
+<p>Compose an isometric zen garden. An AI critic scores your layout on balance, golden ratio placement, odd-number groupings, and emptiness.</p>
+<div class="lang">EN</div>
+<div class="client">Para: arquitectos, diseñadores, estudiantes de composición</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/modular-colony.html" class="card">
+<div>
+<h3>Modular Colony</h3>
+<p>Build a Mars colony on a hex grid. Connect habitats, O₂ generators, and solar arrays via tunnels — every pod needs power and oxygen or goes dark.</p>
+<div class="lang">EN</div>
+<div class="client">Para: arquitectos, ingenieros, urbanistas</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/structural-integrity.html" class="card">
+<div>
+<h3>Structural Integrity</h3>
+<p>Build trusses with a real finite element solver. Apply loads and run the analysis — stress colormap shows where your structure is about to yield.</p>
+<div class="lang">EN</div>
+<div class="client">Para: ingenieros estructurales, arquitectos, estudiantes</div>
+<div class="free-tag">Free — no registro</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/bolsa-mx.html" class="card">
+<div>
+<h3>La Bolsa — México 1982-1994</h3>
+<p>Dope Wars meets el apocalipsis financiero mexicano. Invierte en Modelo, PEMEX y CONASUPO. Súbete al PRI antes de que llegue la Crisis del Peso, los Zapatistas y FOBAPROA.</p>
+<div class="lang">ES</div>
+<div class="client">Para: todo México que vivió esto</div>
+<div class="free-tag">Free — sátira histórica</div>
+</div>
+<span class="arrow">→</span>
+</a>
+</div>
 </div>
 
-<!-- EXTENSIONS SECTION -->
-<div class="section" id="extensions">
-  <div class="section-header">
-    <h2>Browser Extensions — Prototypes</h2>
-    <span class="count">10 extensions</span>
-  </div>
-  <div class="cards">
-    <a href="Extension_ghost-login/" class="card"><div class="card-top"><h3>Ghost Login</h3><p>Open isolated browser sessions with own cookie jar. Check client dashboards without logging out.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_receipt-scraper/" class="card"><div class="card-top"><h3>Receipt Scraper</h3><p>Drag any invoice PDF or image. Instantly extracts Merchant, Date, Total, Tax into CSV or Notion.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_screenshot-redactor/" class="card"><div class="card-top"><h3>Screenshot Redactor</h3><p>Auto-blur emails, card numbers, and balances before sharing. 100% local — nothing uploaded.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_compare-anything/" class="card"><div class="card-top"><h3>Compare Anything</h3><p>Highlight text from two tabs — two apartments, two SaaS tools — get an instant side-by-side table.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_do-later/" class="card"><div class="card-top"><h3>Do Later</h3><p>Not a bookmark. A micro-task stash for the 2-minute things: pay this bill, reply to that comment.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_contextual-clipboard/" class="card"><div class="card-top"><h3>Contextual Clipboard</h3><p>Copy a hex code and see the color. Copy a Unix timestamp and see the date. Clipboard that knows.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_deep-work/" class="card"><div class="card-top"><h3>Door Hanger</h3><p>Deep work timer that turns distracting sites grayscale — not blocked, just drained of dopamine.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_tos-flagger/" class="card"><div class="card-top"><h3>ToS Red-Flagger</h3><p>Paste any Terms of Service. Get only the scary clauses: data grabs, auto-renewals, binding arbitration.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_tab-janitor/" class="card"><div class="card-top"><h3>Tab Janitor</h3><p>Automated "are you still using this?" for your 50+ open tabs. Classifies utility vs stale, suggests closures.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-    <a href="Extension_human-check/" class="card"><div class="card-top"><h3>Human Check</h3><p>Paste Amazon or Yelp reviews. AI filters out bot-farm slop, leaving only reviews from actual humans.</p></div><div class="card-bottom"><span class="tag tag-ext">Extension</span><span class="card-arrow">→</span></div></a>
-  </div>
+<div class="section" id="arcade-games">
+<h2>Arcade Games — Architecture &amp; Design</h2>
+<div class="cards">
+<a href="games/game11_zoning_wars.html" class="card">
+<div>
+<h3>Zoning Wars</h3>
+<p>Place zones on a city grid before the timer runs out. Industrial next to residential is a lawsuit. Parks are your best friend. Score combos with smart cluster planning.</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, urban planners, real estate developers</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game12_permit_hell.html" class="card">
+<div>
+<h3>Permit Hell</h3>
+<p>Permits flood your desk. Approve, deny, or hold — fast. Wrong call on an illegal structure costs double. The queue never stops. Level up until the city buries you.</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, contractors, developers who've been there</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game13_bim_merge.html" class="card">
+<div>
+<h3>BIM Merge</h3>
+<p>2048 with Level of Development. Merge LOD 100s into LOD 200s, all the way to BIM GOD. Arrow keys or swipe. Reach LOD 500 and ascend.</p>
+<div class="lang">EN</div>
+<div class="client">For: BIM managers, VDC coordinators, anyone who knows what LOD means</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game14_far_fighter.html" class="card">
+<div>
+<h3>FAR Fighter</h3>
+<p>Fly your tower upward. Collect floor plates to build height. Dodge FAR violation notices fired by the planning department. Grab variances for extra headroom.</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, developers, anyone who's fought a zoning board</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game15_site_tetris.html" class="card">
+<div>
+<h3>Site Tetris</h3>
+<p>Stack building floor plates — Studio, 1-Bed, Penthouse, Office — on your site plan. Clear rows to collect FAR. Multi-row structural combos score big.</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, developers, anyone who's stared at a section cut</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game16_client_mood.html" class="card">
+<div>
+<h3>Client Mood</h3>
+<p>Navigate your design through an endless client review. Tap to float up. Collect APPROVED stamps. Avoid REVISION requests. Client mood drains constantly. Survive.</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, designers, anyone who's lost a project to vibes</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game17_code_violations.html" class="card">
+<div>
+<h3>Code Violations</h3>
+<p>16 cards, 8 pairs. Match each building code violation to its correct fix — IBC, ADA, NFPA, NEC. Timed. Wrong pairs burn your clock. How many rounds can you pass?</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, engineers, building officials, students</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game18_grid_city.html" class="card">
+<div>
+<h3>Grid City</h3>
+<p>You're a city planner laying roads. Eat zone parcels to grow your grid — Residential, Commercial, Industrial, Park, Mixed-Use. Three of the same type in a row = density combo.</p>
+<div class="lang">EN</div>
+<div class="client">For: urban planners, developers, smart growth enthusiasts</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game19_blueprint_rush.html" class="card">
+<div>
+<h3>Blueprint Rush</h3>
+<p>Drawing fragments fall from above. Click the one matching the target sheet label before the deadline bar runs out. Streak bonuses. Sheet after sheet. Beat the deadline.</p>
+<div class="lang">EN</div>
+<div class="client">For: architects, BIM managers, anyone who's issued a drawing set at 2am</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="games/game20_seismic_panic.html" class="card">
+<div>
+<h3>Seismic Panic</h3>
+<p>The big one hit. Structural failures flash across your building — column buckling, soft story, beam-column joints. Click fast to apply emergency fixes before the building collapses.</p>
+<div class="lang">EN</div>
+<div class="client">For: structural engineers, architects, anyone in a seismic zone</div>
+<div class="free-tag">Free — leaderboard</div>
+</div>
+<span class="arrow">→</span>
+</a>
+</div>
 </div>
 
-<!-- COMING SOON SECTION -->
-<div class="section" id="proximamente">
-  <div class="section-header">
-    <h2>En Desarrollo — Proximamente</h2>
-    <span class="count">20 en pipeline</span>
-  </div>
-  <div class="future-grid">
-    <div class="future-card"><div class="fc-title">Simulador de Negocio MX</div><div class="fc-desc">Pon a prueba tu modelo de negocio: costos, clientes, precios y punto de equilibrio en tiempo real.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">Factura CFDI Generator</div><div class="fc-desc">Genera facturas CFDI validas para Mexico desde el navegador. Sin SAT-Online, sin colas, sin errores de XML.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">Buro de Credito Simulator</div><div class="fc-desc">Simula como tus decisiones financieras afectan tu score crediticio. Educacion financiera practica.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">Nómina Express MX</div><div class="fc-desc">Calcula nomina, IMSS, ISR y deducciones para empleados en Mexico. Para PyMEs y despachos contables.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">Flip the Property</div><div class="fc-desc">Buy a distressed property, renovate under budget, sell before the market shifts. Realistic cash flow sim.</div><span class="fc-tag">Game EN</span></div>
-    <div class="future-card"><div class="fc-title">Ciudad de Cero</div><div class="fc-desc">Funda una ciudad desde terreno baldio. Agua, energia, transporte, gobernanza. Sin recursos infinitos.</div><span class="fc-tag">Game ES</span></div>
-    <div class="future-card"><div class="fc-title">Startup Roulette</div><div class="fc-desc">You have $50K and 18 months. Every decision wheel spins random market events. Pivot or die.</div><span class="fc-tag">Game EN</span></div>
-    <div class="future-card"><div class="fc-title">El Constructor</div><div class="fc-desc">Diriges una constructora en Mexico desde los 80s hasta hoy. Licitaciones, materiales, sindicatos y sexenios.</div><span class="fc-tag">Game ES</span></div>
-    <div class="future-card"><div class="fc-title">Email Thread Cleaner</div><div class="fc-desc">Paste a chaotic email chain. AI extracts the 3 actual decisions, open items, and next owner. One click.</div><span class="fc-tag">Extension EN</span></div>
-    <div class="future-card"><div class="fc-title">Meeting Agenda Timer</div><div class="fc-desc">Paste your agenda. Each item gets a countdown. Gavel sounds when time is up. No more runaway discussions.</div><span class="fc-tag">Extension EN</span></div>
-    <div class="future-card"><div class="fc-title">Mortgage Heatmap MX</div><div class="fc-desc">Visualiza cuanto de tu hipoteca en Mexico es interes vs capital mes a mes. El dolor en formato visual.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">Cotizador Rapido</div><div class="fc-desc">Genera cotizaciones profesionales en PDF en menos de 2 minutos. Logo, lineas de servicio, IVA, firma.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">The Negotiation</div><div class="fc-desc">You want a raise. Your boss has a budget. Text-based negotiation sim that teaches BATNA and anchoring.</div><span class="fc-tag">Game EN</span></div>
-    <div class="future-card"><div class="fc-title">Deforestation Tycoon</div><div class="fc-desc">You run a logging company. Profit vs planet. Regulators watch. Indigenous communities resist. Quarterly earnings call.</div><span class="fc-tag">Game EN</span></div>
-    <div class="future-card"><div class="fc-title">Linea de Tiempo Familiar</div><div class="fc-desc">Crea una linea de tiempo interactiva de tu familia. Fotos, eventos, generaciones. Para impresion o pantalla.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">LinkedIn Roast & Rewrite</div><div class="fc-desc">Paste your LinkedIn headline. AI scores buzzword density, rewrite it so humans want to hire you.</div><span class="fc-tag">Extension EN</span></div>
-    <div class="future-card"><div class="fc-title">Crypto Autopsy</div><div class="fc-desc">Enter your past crypto trades. The tool performs a forensic post-mortem on every bad decision.</div><span class="fc-tag">Herramienta EN</span></div>
-    <div class="future-card"><div class="fc-title">Neighborhood Matchmaker MX</div><div class="fc-desc">Responde 10 preguntas sobre tu estilo de vida. La herramienta te dice en que colonia de Mexico deberiias vivir.</div><span class="fc-tag">Herramienta ES</span></div>
-    <div class="future-card"><div class="fc-title">The Interview Simulator</div><div class="fc-desc">Pick a job, pick the interviewer's mood. Live text-based mock interview with real-time feedback on your answers.</div><span class="fc-tag">Game EN</span></div>
-    <div class="future-card"><div class="fc-title">Contador de Palabras de Relleno</div><div class="fc-desc">Pega tu presentacion o correo. Detecta y cuenta "basicamente", "definitivamente", "en terminos de". El espejo incómodo.</div><span class="fc-tag">Extension ES</span></div>
-  </div>
+<div class="section" id="browser-tools">
+<h2>Browser Extensions — Privacy &amp; Productivity</h2>
+<div class="cards">
+<a href="ghost-login/" class="card">
+<div>
+<h3>Ghost Login</h3>
+<p>Open isolated browser sessions with their own cookie jar. Check a client dashboard without logging out of your own account. No profile switching.</p>
+<div class="lang">EN</div>
+<div class="client">Para: developers, agencies, multi-account users</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="receipt-scraper/" class="card">
+<div>
+<h3>Receipt Scraper</h3>
+<p>Drag any invoice PDF or image. Instantly extracts Merchant, Date, Total, and Tax into CSV or direct-to-Notion. No more Tax Season Doom.</p>
+<div class="lang">EN</div>
+<div class="client">Para: freelancers, small business, accountants</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="screenshot-redactor/" class="card">
+<div>
+<h3>Screenshot Redactor</h3>
+<p>Snap a screenshot and auto-blur emails, credit card numbers, and balances before sharing. One click to clipboard. 100% local — nothing uploaded.</p>
+<div class="lang">EN</div>
+<div class="client">Para: remote workers, designers, support teams</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="compare-anything/" class="card">
+<div>
+<h3>Compare Anything</h3>
+<p>Highlight text from two different tabs — two vacuums, two apartments, two SaaS tools — and get an instant side-by-side comparison table.</p>
+<div class="lang">EN</div>
+<div class="client">Para: shoppers, researchers, product managers</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="do-later/" class="card">
+<div>
+<h3>Do Later</h3>
+<p>Not a bookmark, not a task manager. A micro-task stash for the 2-minute things: pay this bill, reply to that comment, update this one field.</p>
+<div class="lang">EN</div>
+<div class="client">Para: knowledge workers, PMs, remote teams</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="contextual-clipboard/" class="card">
+<div>
+<h3>Contextual Clipboard</h3>
+<p>Copy a hex code and see the color. Copy a Unix timestamp and see the date. Copy a tracking number and see the status. Clipboard that knows what it holds.</p>
+<div class="lang">EN</div>
+<div class="client">Para: developers, designers, logistics teams</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="deep-work/" class="card">
+<div>
+<h3>Door Hanger</h3>
+<p>Deep work timer that turns distracting sites grayscale — not blocked, just drained of dopamine. Twitter still works. It just stops being fun.</p>
+<div class="lang">EN</div>
+<div class="client">Para: professionals, students, remote workers</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="tos-flagger/" class="card">
+<div>
+<h3>ToS Red-Flagger</h3>
+<p>Paste any Terms of Service and get only the scary clauses: data ownership grabs, binding arbitration, auto-renewals, location tracking. In plain English.</p>
+<div class="lang">EN</div>
+<div class="client">Para: consumers, startup founders, legal teams</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="tab-janitor/" class="card">
+<div>
+<h3>Tab Janitor</h3>
+<p>Automated "are you still using this?" for your 50+ open tabs. Local AI classifies utility vs. stale tabs and suggests exactly which ones to close.</p>
+<div class="lang">EN</div>
+<div class="client">Para: power users, developers, researchers</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+<a href="human-check/" class="card">
+<div>
+<h3>Human Check</h3>
+<p>Paste Amazon reviews or Yelp comments. AI filters out bot-farm slop and AI-generated filler, leaving only the reviews written by actual frustrated or happy humans.</p>
+<div class="lang">EN</div>
+<div class="client">Para: shoppers, marketers, product researchers</div>
+<div class="free-tag">Extension prototype</div>
+</div>
+<span class="arrow">→</span>
+</a>
+</div>
 </div>
 
-<!-- SERVICES -->
 <div class="services" id="services">
-  <div class="section-header">
-    <h2>Servicios a la Medida</h2>
-  </div>
-  <p style="font-size:13px;color:#666;margin-bottom:4px">Cada herramienta se personaliza para tu negocio: tu logo, tu marca, tus datos, en tu pagina web. Entrega en 48 horas.</p>
-  <div class="svc-grid">
-    <div class="svc"><h3>Basico</h3><div class="price">$5,000 MXN</div><div class="detail">Personalizacion de herramienta existente con tu marca y datos.<br>Entrega: 48 hrs. Hosting 1 ano incluido.</div><span class="stag">48 hrs</span></div>
-    <div class="svc"><h3>Profesional</h3><div class="price">$10–20K MXN</div><div class="detail">Desarrollo ad hoc de herramienta nueva o integracion avanzada.<br>Entrega: 1-2 semanas. Hosting + soporte 30 dias.</div><span class="stag">1-2 sem</span></div>
-    <div class="svc"><h3>Expedito</h3><div class="price">Precio premium</div><div class="detail">Mismo dia. Para cuando necesitas la solucion hoy.<br>Disponibilidad limitada — escribe primero.</div><span class="stag hot">Hoy</span></div>
-  </div>
+<h2>Servicios a la Medida</h2>
+<p style="font-size:13px;color:#666;margin-bottom:20px">Cada herramienta se puede personalizar y programar especificamente para tu negocio. La instalamos en tu pagina web o en una nuestra con tu marca.</p>
+<div class="svc-grid">
+<div class="svc">
+<h3>Basico</h3>
+<div class="price">$5,000 MXN</div>
+<div class="detail">
+Personalizacion de una herramienta existente con tu marca, colores y datos.<br>
+Entrega: 48 horas.<br>
+Incluye hosting por 1 ano.
+</div>
+<div class="tag">48 hrs</div>
+</div>
+<div class="svc">
+<h3>Profesional</h3>
+<div class="price">$10-20K MXN</div>
+<div class="detail">
+Desarrollo ad hoc de herramienta nueva o integracion avanzada para tu operacion.<br>
+Entrega: 1-2 semanas.<br>
+Incluye hosting, soporte 30 dias.
+</div>
+<div class="tag">1-2 sem</div>
+</div>
+<div class="svc">
+<h3>Expedito</h3>
+<div class="price">Precio premium</div>
+<div class="detail">
+Mismo dia. Para cuando necesitas la solucion funcionando hoy.<br>
+Entrega: el mismo dia.<br>
+Disponibilidad limitada.
+</div>
+<div class="tag tag-premium">Mismo dia</div>
+</div>
+</div>
 </div>
 
-<!-- CTA -->
-<div class="cta" id="contact">
-  <h2>Necesitas algo especifico?</h2>
-  <p>Lo construimos. Desde $5,000 MXN, entrega en 48 horas.</p>
-  <a href="mailto:info@bimxl.com?subject=XLMX — Proyecto a la Medida">Contactar — info@bimxl.com</a>
+<div class="how">
+<h2>Como Funciona</h2>
+<div class="steps">
+<div class="step">
+<div class="num">1</div>
+<h3>Prueba gratis</h3>
+<p>Usa cualquier herramienta sin registro. Evalua si resuelve tu problema.</p>
+</div>
+<div class="step">
+<div class="num">2</div>
+<h3>Contactanos</h3>
+<p>Dinos que necesitas. Personalizamos la herramienta a tu negocio y marca.</p>
+</div>
+<div class="step">
+<div class="num">3</div>
+<h3>Entrega rapida</h3>
+<p>Recibe tu sistema listo en tu pagina web o en una nuestra. Desde 48 horas.</p>
+</div>
+</div>
 </div>
 
-<div class="footer">
-  <span>XLMX — Data Systems | Saltillo, Coahuila | BIM XL LLC</span>
-  <span><a href="mailto:info@bimxl.com">info@bimxl.com</a> &nbsp;·&nbsp; <a href="https://bimxl.com">bimxl.com</a></span>
+<div class="pitch" id="about">
+<p>Herramientas de operacion que funcionan desde el primer clic. Sin instalaciones, sin curva de aprendizaje. Si tu negocio necesita algo especifico, lo construimos.</p>
 </div>
 
-<!-- STRUCTURED DATA / SCHEMA.ORG -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "XLMX",
-  "url": "https://bimxl.github.io/xlmx/",
-  "description": "Herramientas gratuitas para negocios, juegos de arquitectura y extensiones de productividad. Hecho en Saltillo, Mexico.",
-  "publisher": {
-    "@type": "Organization",
-    "name": "BIM XL LLC",
-    "url": "https://bimxl.com",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Saltillo",
-      "addressRegion": "Coahuila",
-      "addressCountry": "MX"
-    }
-  },
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://bimxl.github.io/xlmx/?q={search_term_string}",
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>
+<div class="cta-bar" id="contact">
+<a href="mailto:info@bimxl.com" class="cta-btn">Contactar — info@bimxl.com</a>
+</div>
 
+<div style="height:60px"></div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contactanos</a></div>
 </body>
 </html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Site Tetris</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f0f23;color:#fff;font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center;overflow:hidden}h1{font-size:1.4rem;letter-spacing:3px;color:#00d4ff;margin-bottom:4px}.sub{font-size:0.75rem;color:#888;margin-bottom:10px}#layout{display:flex;gap:16px;align-items:flex-start}#gameCanvas{border:1px solid #1a1a3e;background:#0a0a1a}#sidebar{width:140px}.panel{background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:10px;margin-bottom:8px}.panel h3{font-size:0.65rem;letter-spacing:2px;color:#666;margin-bottom:8px}.stat-val{font-size:1.4rem;font-weight:700;color:#00d4ff}#next-canvas{display:block;margin:0 auto}.lb-row{display:flex;justify-content:space-between;font-size:0.75rem;padding:3px 0;border-bottom:1px solid #1a1a3a}.lb-row:last-child{border-bottom:none}.lb-rank{color:#f72585;font-weight:700}.lb-score{color:#00d4ff;font-weight:600}#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}#overlay.hidden{display:none}.card{background:#12122a;border:1px solid #2a2a5a;border-radius:12px;padding:28px 36px;max-width:360px;text-align:center}.card h2{font-size:1.5rem;color:#00d4ff;margin-bottom:8px}.card p{color:#aaa;font-size:0.85rem;margin-bottom:18px;line-height:1.6}.big{font-size:2.8rem;font-weight:900;color:#f72585;margin:8px 0}button{background:#00d4ff;color:#0f0f23;border:none;border-radius:8px;padding:11px 26px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}#flash{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#00d4ff;color:#0f0f23;padding:7px 18px;border-radius:20px;font-size:0.8rem;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:20}#flash.show{opacity:1}</style></head>
+<body>
+<h1>SITE TETRIS</h1><div class="sub">Stack floor plates. Clear the site. Don't violate setbacks.</div>
+<div id="layout">
+<canvas id="gameCanvas" width="200" height="400"></canvas>
+<div id="sidebar">
+<div class="panel"><h3>SCORE</h3><div class="stat-val" id="score-val">0</div></div>
+<div class="panel"><h3>LEVEL</h3><div class="stat-val" id="level-val">1</div></div>
+<div class="panel"><h3>LINES</h3><div class="stat-val" id="lines-val">0</div></div>
+<div class="panel"><h3>NEXT</h3><canvas id="next-canvas" width="80" height="80"></canvas></div>
+<div class="panel"><h3>TOP</h3><div id="lb-rows"></div></div>
+</div>
+</div>
+<div id="flash"></div>
+<div id="overlay">
+<div class="card" id="start-card"><h2>SITE TETRIS</h2><p>Stack building floor plates on the site plan.<br>Clear full rows to collect FAR units.<br>Structural bonus: clear 2+ rows at once.<br><br><strong style="color:#00d4ff">Arrow keys to move/rotate. Space to drop.</strong></p><button onclick="startGame()">BREAK GROUND</button></div>
+<div class="card" id="end-card" style="display:none;margin-top:12px"><h2>SITE FULL.</h2><p id="end-msg">No more space.</p><div class="big" id="end-score">0</div><p style="color:#666;font-size:0.75rem;margin-bottom:14px">total score</p><button onclick="startGame()">NEW SITE</button></div>
+</div>
+<script>
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+const nCanvas=document.getElementById('next-canvas'),nCtx=nCanvas.getContext('2d');
+const COLS=10,ROWS=20,CELL=20;
+const leaderboard=[];let state,animId,lastTime=0,eggBuf='';
+const PIECES=[
+{name:'STUDIO',color:'#4fffb0',shape:[[1,1,1,1]]},
+{name:'1-BED',color:'#00d4ff',shape:[[1,1],[1,1]]},
+{name:'2-BED',color:'#4361ee',shape:[[1,1,0],[0,1,1]]},
+{name:'3-BED',color:'#f72585',shape:[[0,1,1],[1,1,0]]},
+{name:'PENTHOUSE',color:'#f9c74f',shape:[[1,0,0],[1,1,1]]},
+{name:'OFFICE',color:'#ff6b35',shape:[[0,0,1],[1,1,1]]},
+{name:'LOBBY',color:'#b5179e',shape:[[0,1,0],[1,1,1]]},
+];
+function rndPiece(){const p=PIECES[Math.floor(Math.random()*PIECES.length)];return{...p,shape:p.shape.map(r=>[...r]),x:Math.floor(COLS/2)-1,y:0};}
+function flash(msg){const el=document.getElementById('flash');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);}
+function rotate(s){return s[0].map((_,i)=>s.map(r=>r[i]).reverse());}
+function valid(board,shape,ox,oy){for(let r=0;r<shape.length;r++)for(let c=0;c<shape[r].length;c++){if(!shape[r][c])continue;const x=ox+c,y=oy+r;if(x<0||x>=COLS||y>=ROWS)return false;if(y>=0&&board[y][x])return false;}return true;}
+function lock(s){const{board,current}=s;current.shape.forEach((r,ri)=>r.forEach((v,ci)=>{if(v&&current.y+ri>=0)board[current.y+ri][current.x+ci]=current.color;}));let cleared=0;for(let r=ROWS-1;r>=0;r--){if(board[r].every(c=>c)){board.splice(r,1);board.unshift(Array(COLS).fill(null));cleared++;r++;}}
+if(cleared){const pts=[0,100,300,700,1500][cleared]*s.level;s.score+=pts;s.lines+=cleared;s.level=1+Math.floor(s.lines/10);s.dropInterval=Math.max(80,600-s.level*50);if(cleared>=2)flash(`STRUCTURAL BONUS! ${cleared} floors = +${pts}pts`);}
+s.current=s.next;s.next=rndPiece();if(!valid(board,s.current.shape,s.current.x,s.current.y))endGame();updateHUD();}
+function updateHUD(){document.getElementById('score-val').textContent=state.score;document.getElementById('level-val').textContent=state.level;document.getElementById('lines-val').textContent=state.lines;}
+function drawBoard(){ctx.fillStyle='#0a0a1a';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#1a1a3a';ctx.lineWidth=0.5;for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*CELL);ctx.lineTo(COLS*CELL,r*CELL);ctx.stroke();}for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*CELL,0);ctx.lineTo(c*CELL,ROWS*CELL);ctx.stroke();}
+state.board.forEach((row,r)=>row.forEach((col,c)=>{if(col){ctx.fillStyle=col;ctx.fillRect(c*CELL+1,r*CELL+1,CELL-2,CELL-2);}}));
+const s=state.current;let ghostY=s.y;while(valid(state.board,s.shape,s.x,ghostY+1))ghostY++;
+s.shape.forEach((r,ri)=>r.forEach((v,ci)=>{if(v){ctx.fillStyle=s.color+'44';ctx.fillRect((s.x+ci)*CELL+1,(ghostY+ri)*CELL+1,CELL-2,CELL-2);}}));
+s.shape.forEach((r,ri)=>r.forEach((v,ci)=>{if(v&&s.y+ri>=0){ctx.fillStyle=s.color;ctx.fillRect((s.x+ci)*CELL+1,(s.y+ri)*CELL+1,CELL-2,CELL-2);}}));
+nCtx.fillStyle='#0a0a1a';nCtx.fillRect(0,0,80,80);const ns=state.next;const ox=(4-ns.shape[0].length)*5,oy=(4-ns.shape.length)*5;ns.shape.forEach((r,ri)=>r.forEach((v,ci)=>{if(v){nCtx.fillStyle=ns.color;nCtx.fillRect(ox+ci*18+1,oy+ri*18+1,16,16);}}));}
+function loop(ts){if(!state.running)return;if(ts-lastTime>state.dropInterval){lastTime=ts;const s=state.current;if(valid(state.board,s.shape,s.x,s.y+1))s.y++;else lock(state);}drawBoard();animId=requestAnimationFrame(loop);}
+function startGame(){document.getElementById('overlay').classList.add('hidden');document.getElementById('start-card').style.display='block';document.getElementById('end-card').style.display='none';state={board:Array.from({length:ROWS},()=>Array(COLS).fill(null)),current:rndPiece(),next:rndPiece(),score:0,lines:0,level:1,running:true,dropInterval:600};lastTime=0;if(animId)cancelAnimationFrame(animId);animId=requestAnimationFrame(loop);updateHUD();}
+function endGame(){state.running=false;cancelAnimationFrame(animId);leaderboard.push(state.score);leaderboard.sort((a,b)=>b-a);leaderboard.splice(5);document.getElementById('end-score').textContent=state.score;document.getElementById('end-msg').textContent=`Level ${state.level} | ${state.lines} rows cleared`;document.getElementById('start-card').style.display='none';document.getElementById('end-card').style.display='block';renderLB();const ov=document.getElementById('overlay');ov.style.display='flex';ov.classList.remove('hidden');}
+function renderLB(){const el=document.getElementById('lb-rows');if(!leaderboard.length){el.innerHTML='<div class="lb-row"><span>—</span><span>none</span></div>';return;}el.innerHTML=leaderboard.map((s,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-score">${s}</span></div>`).join('');}
+document.addEventListener('keydown',e=>{if(!state||!state.running)return;const s=state.current;if(e.key==='ArrowLeft'&&valid(state.board,s.shape,s.x-1,s.y)){s.x--;e.preventDefault();}else if(e.key==='ArrowRight'&&valid(state.board,s.shape,s.x+1,s.y)){s.x++;e.preventDefault();}else if(e.key==='ArrowDown'){if(valid(state.board,s.shape,s.x,s.y+1))s.y++;else lock(state);e.preventDefault();}else if(e.key==='ArrowUp'){const rot=rotate(s.shape);if(valid(state.board,rot,s.x,s.y))s.shape=rot;e.preventDefault();}else if(e.key===' '){while(valid(state.board,s.shape,s.x,s.y+1))s.y++;lock(state);e.preventDefault();}
+eggBuf+=e.key.toUpperCase();if(eggBuf.length>8)eggBuf=eggBuf.slice(-8);if(eggBuf.includes('SETBACK')){eggBuf='';state.score+=500;flash('SETBACK WAIVER GRANTED. +500pts.');updateHUD();}});
+renderLB();
+</script></body></html>

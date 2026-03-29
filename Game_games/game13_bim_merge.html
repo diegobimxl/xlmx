@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>BIM Merge</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f0f23;color:#fff;font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center;overflow:hidden}h1{font-size:1.4rem;letter-spacing:3px;color:#f9c74f;margin-bottom:4px}.sub{font-size:0.75rem;color:#888;margin-bottom:8px}#layout{display:flex;gap:16px;align-items:flex-start}#gameCanvas{border:1px solid #1a1a3e;background:#0a0a1a}#sidebar{width:120px}.panel{background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:10px;margin-bottom:8px}.panel h3{font-size:0.6rem;letter-spacing:2px;color:#666;margin-bottom:6px}.stat-val{font-size:1.3rem;font-weight:700;color:#f9c74f}#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}#overlay.hidden{display:none}.card{background:#12122a;border:1px solid #2a2a5a;border-radius:12px;padding:28px 36px;max-width:360px;text-align:center}.card h2{font-size:1.5rem;color:#f9c74f;margin-bottom:8px}.card p{color:#aaa;font-size:0.85rem;margin-bottom:18px;line-height:1.6}.big{font-size:2.8rem;font-weight:900;color:#f72585;margin:8px 0}button{background:#f9c74f;color:#0f0f23;border:none;border-radius:8px;padding:11px 26px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}.lb-row{display:flex;justify-content:space-between;font-size:0.75rem;padding:3px 0;border-bottom:1px solid #1a1a3a}.lb-row:last-child{border-bottom:none}.lb-rank{color:#f72585;font-weight:700}.lb-score{color:#f9c74f;font-weight:600}#flash{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#f9c74f;color:#0f0f23;padding:7px 18px;border-radius:20px;font-size:0.8rem;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:20}#flash.show{opacity:1}</style></head>
+<body>
+<h1>BIM MERGE</h1><div class="sub">Merge LODs. Reach BIM GOD.</div>
+<div id="layout">
+<canvas id="gameCanvas" width="240" height="240"></canvas>
+<div id="sidebar">
+<div class="panel"><h3>SCORE</h3><div class="stat-val" id="score-val">0</div></div>
+<div class="panel"><h3>BEST</h3><div class="stat-val" id="best-val">0</div></div>
+<div class="panel"><h3>NEXT</h3><div id="next-val" style="font-size:1.4rem;text-align:center;padding:4px">📐</div></div>
+<div class="panel" style="font-size:0.7rem;color:#888;line-height:1.6">LOD100→200→300→350→400→500→GOD</div>
+<div class="panel"><h3>TOP</h3><div id="lb-rows2"></div></div>
+</div>
+</div>
+<div id="flash"></div>
+<div id="overlay">
+<div class="card" id="start-card"><h2>BIM MERGE</h2><p>Merge matching LODs to build up to BIM GOD.<br>Arrow keys to slide tiles. Same LOD merges into the next.<br>Board fills up = game over.<br><br><strong style="color:#f9c74f">Arrow keys to play.</strong></p><button onclick="startGame()">INITIATE MODEL</button></div>
+<div class="card" id="end-card" style="display:none;margin-top:12px"><h2 id="end-title">MODEL CORRUPT.</h2><p id="end-msg">No more moves.</p><div class="big" id="end-score">0</div><p style="color:#666;font-size:0.75rem;margin-bottom:14px">final score</p><button onclick="startGame()">REOPEN MODEL</button></div>
+<div style="background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:14px 20px;margin-top:12px;min-width:260px"><div style="font-size:0.65rem;letter-spacing:2px;color:#666;margin-bottom:6px">TOP LOD</div><div id="lb-rows"></div></div>
+</div>
+<script>
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+const N=4,CELL=60;
+const PIECES=[
+{v:1,icon:'📐',label:'LOD 100',color:'#1a1a4a'},
+{v:2,icon:'📋',label:'LOD 200',color:'#1a3a4a'},
+{v:4,icon:'🔧',label:'LOD 300',color:'#1a4a3a'},
+{v:8,icon:'⚙️',label:'LOD 350',color:'#4a3a1a'},
+{v:16,icon:'🏗️',label:'LOD 400',color:'#4a1a1a'},
+{v:32,icon:'🏛️',label:'LOD 500',color:'#3a1a4a'},
+{v:64,icon:'🧠',label:'BIM GOD',color:'#f9c74f'},
+{v:128,icon:'🌐',label:'OMNIBIM',color:'#ff6b35'},
+];
+const leaderboard=[];let board,score,bestScore=0,running=false,eggBuf='',konamiSeq=[],konamiIdx=0;
+const KONAMI=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight'];
+function getPiece(v){return PIECES.find(p=>p.v===v)||PIECES[PIECES.length-1];}
+function rndPiece(){return Math.random()<0.85?1:2;}
+function newBoard(){return Array.from({length:N},()=>Array(N).fill(0));}
+function addTile(b){const empty=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!b[r][c])empty.push([r,c]);if(!empty.length)return;const[r,c]=empty[Math.floor(Math.random()*empty.length)];b[r][c]=rndPiece();}
+function flash(msg){const el=document.getElementById('flash');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);}
+function slide(row){const f=row.filter(x=>x);const merged=[];let skip=false;for(let i=0;i<f.length;i++){if(!skip&&i+1<f.length&&f[i]===f[i+1]){const nv=f[i]*2;merged.push(nv);score+=nv;skip=true;}else if(!skip){merged.push(f[i]);}else skip=false;}while(merged.length<N)merged.push(0);return merged;}
+function move(dir){if(!running)return;let moved=false;let b=board.map(r=>[...r]);if(dir==='left'){b=b.map(r=>{const s=slide(r);if(s.join()!==r.join())moved=true;return s;});}else if(dir==='right'){b=b.map(r=>{const rev=slide([...r].reverse()).reverse();if(rev.join()!==r.join())moved=true;return rev;});}else if(dir==='up'){for(let c=0;c<N;c++){const col=b.map(r=>r[c]);const s=slide(col);if(s.join()!==col.join())moved=true;s.forEach((v,r)=>b[r][c]=v);}}else if(dir==='down'){for(let c=0;c<N;c++){const col=b.map(r=>r[c]);const s=slide([...col].reverse()).reverse();if(s.join()!==col.join())moved=true;s.forEach((v,r)=>b[r][c]=v);}}
+if(moved){board=b;addTile(board);if(score>bestScore){bestScore=score;document.getElementById('best-val').textContent=bestScore;}const maxV=Math.max(...board.flat());if(maxV>=64)flash('BIM GOD ACHIEVED!');draw();checkGameOver();}}
+function checkGameOver(){for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!board[r][c])return;if(c+1<N&&board[r][c]===board[r][c+1])return;if(r+1<N&&board[r][c]===board[r+1][c])return;}endGame();}
+function draw(){ctx.fillStyle='#0a0a1a';ctx.fillRect(0,0,N*CELL,N*CELL);board.forEach((row,r)=>row.forEach((v,c)=>{const p=v?getPiece(v):null;ctx.fillStyle=p?p.color:'#12122a';ctx.fillRect(c*CELL+2,r*CELL+2,CELL-4,CELL-4);ctx.strokeStyle='#1a1a3a';ctx.lineWidth=1;ctx.strokeRect(c*CELL+2,r*CELL+2,CELL-4,CELL-4);if(p){ctx.font='22px serif';ctx.textAlign='center';ctx.fillText(p.icon,c*CELL+CELL/2,r*CELL+CELL/2+4);ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='7px Inter';ctx.fillText(p.label,c*CELL+CELL/2,r*CELL+CELL-6);}ctx.textAlign='left';}));document.getElementById('score-val').textContent=score;}
+function startGame(){document.getElementById('overlay').classList.add('hidden');document.getElementById('start-card').style.display='block';document.getElementById('end-card').style.display='none';board=newBoard();score=0;running=true;addTile(board);addTile(board);draw();}
+function endGame(){running=false;leaderboard.push(score);leaderboard.sort((a,b)=>b-a);leaderboard.splice(5);document.getElementById('end-score').textContent=score;const maxV=Math.max(...board.flat());document.getElementById('end-title').textContent=maxV>=64?'BIM GOD REACHED!':'MODEL CORRUPT.';document.getElementById('end-msg').textContent=`Highest LOD: ${getPiece(maxV).label}`;renderLB();document.getElementById('start-card').style.display='none';document.getElementById('end-card').style.display='block';const ov=document.getElementById('overlay');ov.style.display='flex';ov.classList.remove('hidden');}
+function renderLB(){['lb-rows','lb-rows2'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(!leaderboard.length){el.innerHTML='<div class="lb-row"><span>—</span><span>none</span></div>';return;}el.innerHTML=leaderboard.map((s,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-score">${s}</span></div>`).join('');});}
+document.addEventListener('keydown',e=>{const dirs={'ArrowLeft':'left','ArrowRight':'right','ArrowUp':'up','ArrowDown':'down'};if(dirs[e.key]){move(dirs[e.key]);e.preventDefault();}
+eggBuf+=e.key.toUpperCase();if(eggBuf.length>8)eggBuf=eggBuf.slice(-8);
+if(e.key===KONAMI[konamiIdx]){konamiIdx++;if(konamiIdx===KONAMI.length){konamiIdx=0;if(running){for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!board[r][c])board[r][c]=1;draw();flash('KONAMI: Flood filled with LOD 100!');}};}else konamiIdx=0;});
+renderLB();
+</script></body></html>
