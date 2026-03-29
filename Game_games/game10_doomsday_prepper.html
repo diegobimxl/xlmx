@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Doomsday Prepper</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #6b4226; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 980px; margin: 0 auto; padding: 20px 16px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 5px; background: #e9ecef; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 14px; }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .news-ticker { background: #1a1a2e; color: #fff; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .ticker-label { font-size: 10px; font-weight: 700; color: #f39c12; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .ticker-item { font-size: 13px; color: #e9ecef; line-height: 1.5; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .ticker-item:last-child { border-bottom: none; }
+  .ticker-threat { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-left: 6px; }
+  .t-flood { background: #1a6bc9; } .t-fire { background: #e74c3c; } .t-virus { background: #2ecc71; color: #1a1a2e; }
+  .t-war { background: #f39c12; color: #1a1a2e; } .t-grid { background: #6b4226; } .t-quake { background: #555; }
+  .bunker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+  .bunker-room { border: 2px solid #e9ecef; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.15s; }
+  .bunker-room.upgraded { border-color: #6b4226; background: #fdf6f0; }
+  .room-icon { font-size: 24px; margin-bottom: 4px; }
+  .room-name { font-size: 12px; font-weight: 600; }
+  .room-level { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .room-threats { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 4px; }
+  .threat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .upgrade-item { border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .up-name { font-size: 13px; font-weight: 600; }
+  .up-meta { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .up-threats { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .threat-tag { padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+  .up-btn { padding: 5px 12px; border-radius: 6px; background: #6b4226; color: #fff; border: none; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .up-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #6b4226; color: #fff; width: 100%; }
+  .btn-secondary { background: #f1f3f4; color: #1a1a2e; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .event-banner { background: #ffeaea; border: 1px solid #e74c3c; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .event-banner h4 { font-size: 14px; font-weight: 700; color: #e74c3c; margin-bottom: 4px; }
+  .event-banner p { font-size: 13px; color: #555; }
+  .log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; }
+  .log-entry { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+  .log-entry.crisis { color: #e74c3c; font-weight: 600; }
+  .log-entry.survive { color: #2ecc71; font-weight: 600; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .hidden { display: none; }
+  .week-badge { display: inline-flex; background: #fdf6f0; color: #6b4226; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  @media (max-width: 700px) { .kpi-row { grid-template-columns: 1fr 1fr; } .main-grid { grid-template-columns: 1fr; } .bunker-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>The Doomsday Prepper</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">Build the perfect bunker. Survive the right disaster.</div>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Weeks Survived</div><div class="kpi-val" id="weeks-val" style="color:#6b4226;">0</div><div class="kpi-sub">Target: 52 (1 year)</div><div class="bar-wrap"><div class="bar-fill" id="weeks-bar" style="width:0%;background:#6b4226;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Resources</div><div class="kpi-val" id="resources-val" style="color:#2ecc71;">$24,000</div><div class="kpi-sub">Prep budget</div></div>
+    <div class="kpi"><div class="kpi-label">Bunker Readiness</div><div class="kpi-val" id="readiness-val">22%</div><div class="bar-wrap"><div class="bar-fill" id="readiness-bar" style="width:22%;background:#f39c12;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Runs This Session</div><div class="kpi-val" id="runs-val">1</div><div class="kpi-sub">Keep going</div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <span class="week-badge">Week <span id="week-display">0</span></span>
+    <span style="display:inline-flex;background:#f0fff4;color:#2ecc71;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">$<span id="res-display">24,000</span></span>
+    <button class="btn btn-secondary" onclick="advanceWeek()" id="week-btn" style="margin-left:auto;">Survive Week →</button>
+  </div>
+  <div id="event-container"></div>
+  <div class="main-grid">
+    <div>
+      <div class="news-ticker">
+        <div class="ticker-label">📡 Emergency Alert Feed</div>
+        <div id="news-feed"></div>
+      </div>
+      <div class="card">
+        <h2>Bunker Status</h2>
+        <div class="bunker-grid" id="bunker-grid"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h2>Procurement — Spend Resources</h2>
+        <div id="upgrade-list"></div>
+      </div>
+      <div class="card">
+        <h2>Survival Chronicle</h2>
+        <div class="log" id="game-log"><div class="log-entry survive">Week 0 — Bunker construction begins. The news is getting strange.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">You Didn't Make It</h2>
+    <p id="end-desc"></p>
+    <div style="background:#fdf6f0;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#6b4226;margin-bottom:6px;">BIAS REVEALED: Availability Heuristic</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You prepped for what felt most likely — based on what you'd heard about most recently. This is the Availability Heuristic: we judge the probability of events by how easily examples come to mind. The headlines made certain threats feel urgent. But the actual threat rolled a die. Human brains are terrible probability estimators.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Prep Again</button>
+  </div>
+</div>
+<script>
+const THREATS=[{id:'flood',label:'Flood',color:'#1a6bc9',tag:'t-flood',icon:'🌊',prob:0.18},{id:'fire',label:'Wildfire',color:'#e74c3c',tag:'t-fire',icon:'🔥',prob:0.15},{id:'virus',label:'Pandemic',color:'#2ecc71',tag:'t-virus',icon:'🦠',prob:0.20},{id:'war',label:'Conflict',color:'#f39c12',tag:'t-war',icon:'⚔️',prob:0.12},{id:'grid',label:'Grid Failure',color:'#6b4226',tag:'t-grid',icon:'⚡',prob:0.22},{id:'quake',label:'Earthquake',color:'#555',tag:'t-quake',icon:'🏔️',prob:0.13}];
+const BUNKER_ROOMS=[{id:'water',icon:'💧',name:'Water Supply',level:0,maxLevel:3,threatCoverage:['flood','grid','virus']},{id:'food',icon:'🥫',name:'Food Stores',level:0,maxLevel:3,threatCoverage:['virus','war','grid','quake']},{id:'medical',icon:'🏥',name:'Medical Bay',level:0,maxLevel:3,threatCoverage:['virus','quake','fire']},{id:'power',icon:'🔋',name:'Power System',level:0,maxLevel:3,threatCoverage:['grid','flood','quake']},{id:'comms',icon:'📻',name:'Communications',level:0,maxLevel:3,threatCoverage:['grid','war','virus']},{id:'defense',icon:'🛡️',name:'Defense',level:0,maxLevel:3,threatCoverage:['war','flood','fire']}];
+const UPGRADES=[{id:'water1',room:'water',level:1,name:'💧 Water Filtration',cost:2500,desc:'3-month water supply',threats:['flood','grid']},{id:'water2',room:'water',level:2,name:'💧 Rainwater Collection',cost:4000,desc:'Self-replenishing supply',threats:['flood','grid','virus']},{id:'food1',room:'food',level:1,name:'🥫 6-Month Rations',cost:3000,desc:'Freeze-dried emergency food',threats:['virus','war']},{id:'food2',room:'food',level:2,name:'🥫 Hydroponic Garden',cost:6000,desc:'Self-sustaining food source',threats:['virus','war','grid','quake']},{id:'medical1',room:'medical',level:1,name:'🏥 First Aid Station',cost:2000,desc:'Basic trauma care',threats:['quake','fire']},{id:'medical2',room:'medical',level:2,name:'🏥 Field Surgery Suite',cost:5500,desc:'Advanced medical care',threats:['virus','quake','fire']},{id:'power1',room:'power',level:1,name:'🔋 Solar Array',cost:4500,desc:'30-day power backup',threats:['grid']},{id:'power2',room:'power',level:2,name:'🔋 Nuclear Battery',cost:9000,desc:'Year-long power supply',threats:['grid','flood','quake']},{id:'comms1',room:'comms',level:1,name:'📻 Ham Radio',cost:800,desc:'Emergency communications',threats:['grid','war']},{id:'comms2',room:'comms',level:2,name:'📻 Satellite Uplink',cost:3500,desc:'All-frequency communications',threats:['grid','war','virus']},{id:'defense1',room:'defense',level:1,name:'🛡️ Reinforced Door',cost:3000,desc:'Blast and flood resistant',threats:['flood','war']},{id:'defense2',room:'defense',level:2,name:'🛡️ Full Perimeter System',cost:7500,desc:'Fire, flood, and threat defense',threats:['war','flood','fire']}];
+const NEWS_TEMPLATES={flood:['Rising rivers threaten coastal communities nationwide','Dam failures reported in three states','Unprecedented rainfall breaks century records'],fire:['Wildfire season begins early amid drought conditions','Wind-driven fires consume thousands of acres','Evacuation orders issued for mountain communities'],virus:['New respiratory variant detected in major cities','Health officials urge stockpiling of medications','Hospital capacity strained across the region'],war:['Regional tensions escalate over disputed territory','Military exercises near major population centers','Supply chains disrupted by geopolitical conflict'],grid:['Power grid vulnerabilities exposed in government report','Rolling blackouts hit three major metros','Solar storm threatens electrical infrastructure'],quake:['Seismologists warn of elevated earthquake risk','Minor tremors felt along major fault line','Emergency drills ordered for quake-prone regions']};
+let runCount=1;
+let state={week:0,resources:24000,readiness:22,gameOver:false,purchasedUpgrades:[],currentThreatFocus:null};
+function generateNews(){const feed=document.getElementById('news-feed');feed.innerHTML='';if(!state.currentThreatFocus||Math.random()<0.3)state.currentThreatFocus=THREATS[Math.floor(Math.random()*THREATS.length)].id;const focus=state.currentThreatFocus;const newsItems=[{threat:focus,headline:NEWS_TEMPLATES[focus][Math.floor(Math.random()*3)]},{threat:focus,headline:NEWS_TEMPLATES[focus][Math.floor(Math.random()*3)]}];const other=THREATS.filter(t=>t.id!==focus)[Math.floor(Math.random()*5)];newsItems.push({threat:other.id,headline:NEWS_TEMPLATES[other.id][Math.floor(Math.random()*3)]});newsItems.forEach(item=>{const t=THREATS.find(th=>th.id===item.threat);const div=document.createElement('div');div.className='ticker-item';div.innerHTML=`${item.headline} <span class="ticker-threat ${t.tag}">${t.icon} ${t.label}</span>`;feed.appendChild(div);});}
+function renderBunker(){const grid=document.getElementById('bunker-grid');grid.innerHTML='';BUNKER_ROOMS.forEach(room=>{const div=document.createElement('div');div.className='bunker-room'+(room.level>0?' upgraded':'');const dots=room.threatCoverage.map(tid=>{const t=THREATS.find(th=>th.id===tid);return`<div class="threat-dot" style="background:${t.color};"></div>`;}).join('');div.innerHTML=`<div class="room-icon">${room.icon}</div><div class="room-name">${room.name}</div><div class="room-level">Level ${room.level}/${room.maxLevel}</div><div class="room-threats">${dots}</div>`;grid.appendChild(div);});}
+function renderUpgrades(){const c=document.getElementById('upgrade-list');c.innerHTML='';UPGRADES.forEach(u=>{if(state.purchasedUpgrades.includes(u.id))return;const room=BUNKER_ROOMS.find(r=>r.id===u.room);if(room.level>=u.level)return;const div=document.createElement('div');div.className='upgrade-item';const tags=u.threats.map(tid=>{const t=THREATS.find(th=>th.id===tid);return`<span class="threat-tag ${t.tag}">${t.icon}</span>`;}).join('');div.innerHTML=`<div style="flex:1;"><div class="up-name">${u.name}</div><div class="up-meta">${u.desc} | $${u.cost.toLocaleString()}</div><div class="up-threats">${tags}</div></div><button class="up-btn" ${state.resources<u.cost?'disabled':''} onclick="buyUpgrade('${u.id}')">Buy</button>`;c.appendChild(div);});}
+function buyUpgrade(uid){const u=UPGRADES.find(up=>up.id===uid);if(!u||state.purchasedUpgrades.includes(uid)||state.resources<u.cost)return;state.purchasedUpgrades.push(uid);state.resources-=u.cost;const room=BUNKER_ROOMS.find(r=>r.id===u.room);room.level=u.level;addLog(`Purchased: ${u.name}. Resources remaining: $${state.resources.toLocaleString()}`,'survive');updateDashboard();renderBunker();renderUpgrades();}
+function computeReadiness(){const total=BUNKER_ROOMS.reduce((s,r)=>s+r.level,0);const max=BUNKER_ROOMS.reduce((s,r)=>s+r.maxLevel,0);return Math.round((total/max)*100);}
+function threatReadiness(tid){const rel=BUNKER_ROOMS.filter(r=>r.threatCoverage.includes(tid)&&r.level>0).length;const tot=BUNKER_ROOMS.filter(r=>r.threatCoverage.includes(tid)).length;return rel/tot;}
+function advanceWeek(){if(state.gameOver)return;state.week++;const gain=Math.floor(200+Math.random()*400);state.resources+=gain;addLog(`Week ${state.week}: +$${gain} in resources.`);const roll=Math.random();let cum=0,activeThreat=null;for(const t of THREATS){cum+=t.prob;if(roll<cum){activeThreat=t;break;}}if(activeThreat){const readiness=threatReadiness(activeThreat.id);const survives=Math.random()<readiness;if(!survives){const sev=['Minor','Major','Catastrophic'][Math.floor(Math.random()*3)];const msg=`${sev} ${activeThreat.icon} ${activeThreat.label} strikes. Bunker readiness: ${Math.round(readiness*100)}%.`;document.getElementById('event-container').innerHTML=`<div class="event-banner"><h4>💥 Disaster Strikes — Week ${state.week}</h4><p>${msg}</p></div>`;setTimeout(()=>document.getElementById('event-container').innerHTML='',5000);addLog(`CRISIS: ${msg}`,'crisis');if(readiness<0.25){endGame(activeThreat,readiness);return;}}else{addLog(`${activeThreat.icon} ${activeThreat.label} event — Bunker held. Readiness: ${Math.round(readiness*100)}%.`,'survive');}}else{addLog(`Week ${state.week} — Quiet. The news keeps talking about ${state.currentThreatFocus}.`);}generateNews();state.readiness=computeReadiness();updateDashboard();renderUpgrades();if(state.week>=52)endGame(null,1);}
+function updateDashboard(){document.getElementById('weeks-val').textContent=state.week;document.getElementById('weeks-bar').style.width=(state.week/52*100)+'%';document.getElementById('resources-val').textContent='$'+state.resources.toLocaleString();document.getElementById('res-display').textContent=state.resources.toLocaleString();document.getElementById('week-display').textContent=state.week;document.getElementById('readiness-val').textContent=state.readiness+'%';document.getElementById('readiness-bar').style.width=state.readiness+'%';document.getElementById('readiness-bar').style.background=state.readiness>60?'#2ecc71':state.readiness>30?'#f39c12':'#e74c3c';}
+function endGame(threat,readiness){state.gameOver=true;document.getElementById('week-btn').disabled=true;let title,desc;if(!threat){title='🏆 One Year Survived';desc=`52 weeks. You made it. Final readiness: ${state.readiness}%. The news kept warning about ${state.currentThreatFocus} — whether that was the actual threat or just luck, you're alive.`;}else{title=`💥 ${threat.icon} ${threat.label} Ended It`;desc=`Week ${state.week}. The ${threat.label} hit when your bunker was only ${Math.round(readiness*100)}% ready. The news had focused on ${state.currentThreatFocus}. You prepped for what felt likely, not what was likely.`;}document.getElementById('end-title').textContent=title;document.getElementById('end-desc').textContent=desc;document.getElementById('end-modal').classList.remove('hidden');}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const e=document.createElement('div');e.className='log-entry '+cls;e.textContent=msg;log.insertBefore(e,log.firstChild);}
+function restartGame(){runCount++;BUNKER_ROOMS.forEach(r=>r.level=0);state={week:0,resources:24000,readiness:22,gameOver:false,purchasedUpgrades:[],currentThreatFocus:null};document.getElementById('end-modal').classList.add('hidden');document.getElementById('week-btn').disabled=false;document.getElementById('runs-val').textContent=runCount;document.getElementById('game-log').innerHTML='<div class="log-entry survive">Week 0 — Bunker construction begins. The news is getting strange.</div>';document.getElementById('event-container').innerHTML='';generateNews();updateDashboard();renderBunker();renderUpgrades();}
+generateNews();updateDashboard();renderBunker();renderUpgrades();
+</script>
+</body>
+</html>

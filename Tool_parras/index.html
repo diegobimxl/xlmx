@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parras — Guia de Fin de Semana — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.main{max-width:800px;margin:32px auto;padding:0 32px}
+h2{font-size:18px;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:24px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.filter-btn{padding:7px 16px;border:1px solid #e5e5e5;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:all .15s}
+.filter-btn.active{background:#111;color:#fff;border-color:#111}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{border:1px solid #e5e5e5;border-radius:8px;padding:20px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.card .cat{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:6px}
+.card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.card p{font-size:12px;color:#666;line-height:1.5;margin-bottom:8px}
+.card .meta{display:flex;gap:6px;flex-wrap:wrap}
+.card .tag{font-size:10px;padding:2px 7px;border-radius:3px;background:#f5f5f5;color:#555}
+.card .price{font-size:12px;color:#111;font-weight:600;margin-top:6px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Parras de la Fuente</span></div>
+<a href="../" class="back">&larr; Portal</a>
+</header>
+<div class="main">
+<h2>Parras de la Fuente — Guia de Fin de Semana</h2>
+<p class="sub">Lo mejor de Parras, Coahuila. Vinedos, hospedaje, restaurantes y experiencias.</p>
+<div class="filters">
+<button class="filter-btn active" onclick="filter('all',this)">Todo</button>
+<button class="filter-btn" onclick="filter('vinedo',this)">Vinedos</button>
+<button class="filter-btn" onclick="filter('hotel',this)">Hospedaje</button>
+<button class="filter-btn" onclick="filter('resto',this)">Restaurantes</button>
+<button class="filter-btn" onclick="filter('atrac',this)">Atracciones</button>
+</div>
+<div class="cards" id="cards"></div>
+</div>
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Parras — XLMX</span><a href="mailto:info@bimxl.com">Contacto</a></div>
+<script>
+const places=[
+  {cat:'vinedo',name:'Casa Madero',desc:'La bodega mas antigua de America (1597). Tours, catas y una tienda increible. Reserva con anticipacion los fines de semana.',tags:['tours','catas','imperdible'],price:'Cata desde $350 MXN'},
+  {cat:'vinedo',name:'Bodegas Ferino',desc:'Ambiente familiar, vinos artesanales y un recorrido por los tuneles historicos de la hacienda.',tags:['familiar','historico','artesanal'],price:'Tour $200 MXN'},
+  {cat:'vinedo',name:'Casa Toklas',desc:'Produccion pequena de vinos de alta calidad. Solo visitantes por cita. La experiencia mas intima del pueblo.',tags:['boutique','cita previa','premium'],price:'Por cotizacion'},
+  {cat:'hotel',name:'Hotel Rincón del Montero',desc:'Hacienda del siglo XVIII convertida en hotel boutique. Alberca, jardin y desayuno incluido. Solicita cuartos con vista al vinedo.',tags:['boutique','hacienda','desayuno incluido'],price:'Desde $2,400/noche'},
+  {cat:'hotel',name:'Hotel La Siesta',desc:'Opcion economica en el centro historico. Limpio, comodo y a 2 cuadras de la plaza principal.',tags:['economico','central','familiar'],price:'Desde $800/noche'},
+  {cat:'hotel',name:'Casa Hacienda San Lorenzo',desc:'Propiedad privada disponible por Airbnb. Ideal para grupos. Alberca privada y acceso a vinas.',tags:['airbnb','grupos','privado'],price:'Desde $4,500/noche (grupo)'},
+  {cat:'resto',name:'Loncheria El Portal',desc:'El desayuno mas autentico de Parras. Gorditas, machaca con huevo y cafe de olla. Llega temprano, no hay reservaciones.',tags:['desayuno','local','economico'],price:'$80-150 MXN por persona'},
+  {cat:'resto',name:'Restaurante Quinta de la Huerta',desc:'Cocina regional coahuilense en un ambiente de jardin. Prueba el cabrito y el asado de boda.',tags:['regional','jardin','cabrito'],price:'$250-400 MXN por persona'},
+  {cat:'resto',name:'Bar El Parraleno',desc:'El mezcal bar del pueblo. Local autentico, musica en vivo los viernes y sabados. No lo busques en Google Maps.',tags:['mezcal','musica en vivo','nocturno'],price:'Mezcal desde $80 MXN'},
+  {cat:'atrac',name:'Templo de San Pedro Apostol',desc:'La iglesia del siglo XVII que da cara a la plaza. Arquitectura colonial impecable. Misa dominical muy concurrida.',tags:['colonial','historico','gratuito'],price:'Entrada libre'},
+  {cat:'atrac',name:'Alberca de Peces',desc:'Manantial natural de agua cristalina donde puedes nadar con peces. El spot mas fotografiado de Parras.',tags:['naturaleza','nadar','fotos'],price:'$50 MXN entrada'},
+  {cat:'atrac',name:'Museo de la Vid y el Vino',desc:'Historia del vino en Mexico desde la Colonia hasta hoy. Pequeño pero bien curado. 45 minutos bien invertidos.',tags:['museo','historia','educativo'],price:'$80 MXN entrada'}
+];
+let active='all';
+function filter(cat,btn){
+  active=cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function render(){
+  const list=active==='all'?places:places.filter(p=>p.cat===active);
+  document.getElementById('cards').innerHTML=list.map(p=>`
+    <div class="card">
+      <div class="cat">${{vinedo:'Vinedo',hotel:'Hospedaje',resto:'Restaurante',atrac:'Atraccion'}[p.cat]}</div>
+      <h3>${p.name}</h3>
+      <p>${p.desc}</p>
+      <div class="meta">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="price">${p.price}</div>
+    </div>`).join('');
+}
+render();
+</script>
+</body>
+</html>

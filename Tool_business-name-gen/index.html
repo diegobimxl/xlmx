@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Name Generator — XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#111;font-size:14px;padding-bottom:60px}
+header{padding:24px 32px 16px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:16px}
+header a{color:#111;text-decoration:none;font-size:13px;opacity:.5}
+header a:hover{opacity:1}
+header h1{font-size:18px;font-weight:600}
+.main{max-width:900px;margin:0 auto;padding:24px 32px}
+.config{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:600px){.config{grid-template-columns:1fr}}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:4px}
+.field input,.field select{width:100%;padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit;color:#111}
+.field input:focus,.field select:focus{outline:none;border-color:#999}
+.style-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{padding:5px 12px;border:1px solid #e5e5e5;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#666;transition:all .15s}
+.pill.active{background:#111;color:#fff;border-color:#111}
+.generate-btn{width:100%;padding:11px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:24px}
+.generate-btn:hover{opacity:.85}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:24px}
+.name-card{border:1px solid #e5e5e5;border-radius:8px;padding:16px;cursor:pointer;transition:all .15s;position:relative}
+.name-card:hover{border-color:#999;transform:translateY(-1px)}
+.name-card.saved{border-color:#111;background:#f9f9f9}
+.name-card .name{font-size:18px;font-weight:600;margin-bottom:4px}
+.name-card .tagline{font-size:12px;color:#666;margin-bottom:8px}
+.name-card .tags{display:flex;flex-wrap:wrap;gap:4px}
+.name-card .tag{padding:2px 6px;border-radius:4px;font-size:10px;background:#f0f0f0;color:#555}
+.name-card .save-btn{position:absolute;top:10px;right:10px;background:none;border:none;font-size:16px;cursor:pointer;opacity:.4}
+.name-card:hover .save-btn,.name-card.saved .save-btn{opacity:1}
+.saved-list{border:1px solid #e5e5e5;border-radius:8px;padding:16px}
+.saved-list h3{font-size:13px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.saved-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
+.saved-item:last-child{border-bottom:none}
+.saved-item .copy-btn{padding:4px 10px;border:1px solid #e5e5e5;border-radius:4px;background:#fff;font-size:12px;cursor:pointer;font-family:inherit}
+.saved-item .copy-btn:hover{background:#f5f5f5}
+.empty{color:#999;font-size:13px;text-align:center;padding:24px}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;padding:12px 32px;font-size:11px;color:#999;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<header>
+  <a href="../">← Back</a>
+  <h1>Business Name Generator</h1>
+</header>
+<div class="main">
+  <div class="config">
+    <div class="field"><label>Industry / niche</label>
+      <select id="industry" onchange="updateStyles()">
+        <option value="tech">Technology / SaaS</option>
+        <option value="aec" selected>Architecture / BIM / AEC</option>
+        <option value="realestate">Real Estate / Development</option>
+        <option value="consulting">Consulting / Advisory</option>
+        <option value="design">Design / Creative</option>
+        <option value="finance">Finance / Investment</option>
+        <option value="health">Health / Wellness</option>
+        <option value="logistics">Logistics / Operations</option>
+      </select>
+    </div>
+    <div class="field"><label>Keywords (comma-separated)</label>
+      <input type="text" id="keywords" value="BIM, digital, precision, build" placeholder="e.g. data, flow, smart">
+    </div>
+    <div class="field" style="grid-column:1/-1"><label>Name Style</label>
+      <div class="style-pills" id="stylePills"></div>
+    </div>
+    <div class="field"><label>Language Feel</label>
+      <select id="lang">
+        <option value="en">English</option>
+        <option value="es">Spanish</option>
+        <option value="bi">Bilingual (Spanglish)</option>
+        <option value="coined">Coined / Made-up</option>
+      </select>
+    </div>
+    <div class="field"><label>Count to generate</label>
+      <select id="count">
+        <option value="6">6 names</option>
+        <option value="12" selected>12 names</option>
+        <option value="20">20 names</option>
+      </select>
+    </div>
+  </div>
+  <button class="generate-btn" onclick="generate()">Generate Names</button>
+  <div class="results-grid" id="results"><div class="empty">Configure above and click Generate.</div></div>
+  <div class="saved-list" id="savedSection" style="display:none">
+    <h3>Saved Names</h3>
+    <div id="savedList"></div>
+  </div>
+</div>
+<footer>
+  <span>XLMX — Business Name Generator</span>
+  <span id="footerCount"></span>
+</footer>
+
+<script>
+const styleOptions=['Professional','Modern','Bold','Minimal','Technical','Friendly','Premium','Abstract'];
+let activeStyles=['Modern','Technical'];
+let saved=[];
+
+const nameData={
+  aec:{
+    en:['Voxel','Meridian','Apex','Axiom','Vertex','Strata','Nexus','Origin','Praxis','Codex','Zenith','Pillar','Datum','Scaffold','Forma','Lumen','Span','Grid','Arc','Base'],
+    es:['Cima','Trama','Eje','Vértice','Plano','Núcleo','Raíz','Esencia','Fuerza','Horizonte','Traza','Arco','Módulo','Marco','Nivel'],
+    bi:['UrbanTec','FormaBIM','DataArk','TecForma','BimFlow','ArqData','CimaDigital','NexoTec','VertexMX'],
+    coined:['Axovim','Struxi','Forvex','Bimato','Voxlio','Struvia','Techforma','Archix','Datavex','Formiq'],
+    styles:['precision','coordination','digital twin','BIM','LOD 400'],
+    tags:['BIM','AEC','Digital']
+  },
+  tech:{
+    en:['Nexus','Apex','Scalar','Vantage','Pivot','Cipher','Flux','Quantum','Vector','Stream','Core','Pulse','Orbit','Nova','Zenith'],
+    es:['Flujo','Núcleo','Escala','Vértice','Pulso'],
+    bi:['TechNúcleo','DataFlow','ScalarMX','NexoTech','PulsoDigital'],
+    coined:['Scalio','Vexa','Fluxia','Nexvio','Orbitiq','Pulsex','Coreva','Strova'],
+    styles:['automation','platform','AI','data','cloud'],
+    tags:['SaaS','Tech','AI']
+  },
+  realestate:{
+    en:['Meridian','Summit','Vantage','Sovereign','Pinnacle','Capital','Crest','Landmark','Pillar','Sterling','Domain','Heritage','Anchor','Keystone','Regal'],
+    es:['Cumbre','Capital','Cima','Pilar','Raíz','Horizonte','Fundación','Corona','Valle','Sierra'],
+    bi:['CapitalMX','SovereignRE','MeridianGroup','TierraCapital','CimaDev','UrbanSovereign'],
+    coined:['Avelio','Corevex','Terrovia','Dominia','Capitex','Pinnio'],
+    styles:['development','investment','asset management','capital'],
+    tags:['Real Estate','Development','Investment']
+  },
+  consulting:{
+    en:['Apex','Meridian','Vantage','Axiom','Praxis','Lumis','Stratagem','Keystone','Harbinger','Pinnacle','Focal','Fulcrum','Radius','Vertex'],
+    es:['Eje','Cima','Fuerza','Núcleo','Base','Esencia'],
+    bi:['ApexConsult','EjePraxis','FuerzaGroup','NexoAdvisory','CimaStrategy'],
+    coined:['Stravia','Axovia','Praximo','Konsultix','Stratovex'],
+    styles:['strategy','advisory','transformation','growth'],
+    tags:['Consulting','Advisory','Strategy']
+  },
+  design:{
+    en:['Forma','Lumen','Vivid','Prism','Canvas','Mosaic','Studio','Hue','Palette','Arcform','Shape','Glyph','Craft'],
+    es:['Forma','Luz','Trazo','Color','Brillo','Trama','Diseño'],
+    bi:['FormaStudio','LuzDesign','TrazoCreativo','BrilloArts','FormaViva'],
+    coined:['Formiq','Luminex','Vivova','Glyphio','Mosaika'],
+    styles:['visual','brand','creative','aesthetic'],
+    tags:['Design','Brand','Creative']
+  },
+  finance:{
+    en:['Apex','Sterling','Summit','Vantage','Capital','Crest','Meridian','Ledger','Arbor','Sequoia','Beacon','Keystone'],
+    es:['Capital','Cumbre','Cima','Base','Horizonte','Esencia'],
+    bi:['SterlingCapital','ApexFinance','CimeFunds','VerticeCapital'],
+    coined:['Capitix','Finovia','Arborvex','Sequovia','Ledgerio'],
+    styles:['wealth','capital','returns','growth'],
+    tags:['Finance','Investment','Wealth']
+  },
+  health:{
+    en:['Vitalis','Zenith','Summit','Beacon','Lumis','Flourish','Thrive','Renew','Pulse','Veritas'],
+    es:['Vida','Salud','Fuerza','Bienestar','Equilibrio'],
+    bi:['VitaMX','SaludPlus','ThriveVida','ZenithSalud'],
+    coined:['Vitalix','Flourivo','Pulseva','Thrivio'],
+    styles:['wellness','health','vitality','balance'],
+    tags:['Health','Wellness','Care']
+  },
+  logistics:{
+    en:['Apex','Vector','Flow','Relay','Nexus','Transit','Conduit','Cargo','Pulse','Axis'],
+    es:['Flujo','Eje','Ruta','Enlace','Cadena'],
+    bi:['FlujoPro','VectorMX','AxisFlow','RelayTec'],
+    coined:['Flowvex','Transitio','Nexovia','Relayiq'],
+    styles:['efficiency','speed','flow','coordination'],
+    tags:['Logistics','Operations','Supply Chain']
+  }
+};
+
+function updateStyles(){renderPills();}
+
+function renderPills(){
+  document.getElementById('stylePills').innerHTML=styleOptions.map(s=>
+    `<div class="pill${activeStyles.includes(s)?' active':''}" onclick="toggleStyle('${s}')">${s}</div>`
+  ).join('');
+}
+
+function toggleStyle(s){
+  if(activeStyles.includes(s))activeStyles=activeStyles.filter(x=>x!==s);
+  else activeStyles.push(s);
+  renderPills();
+}
+
+function generate(){
+  const industry=document.getElementById('industry').value;
+  const lang=document.getElementById('lang').value;
+  const count=parseInt(document.getElementById('count').value);
+  const kw=(document.getElementById('keywords').value||'').split(',').map(k=>k.trim().toLowerCase()).filter(Boolean);
+  const d=nameData[industry]||nameData.tech;
+
+  let pool=[];
+  if(lang==='en')pool=d.en;
+  else if(lang==='es')pool=d.es;
+  else if(lang==='bi')pool=[...d.bi,...d.en.slice(0,5)];
+  else pool=d.coined;
+
+  // Generate varied name forms
+  const suffixes=['Group','Labs','Studio','Works','Co','Hub','Solutions','Partners','Digital','Systems','Pro','Plus'];
+  const prefixes=['Pro','Next','Open','Smart','True','Pure','Core','Meta','Hyper'];
+  let names=[];
+
+  // Direct from pool
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  names.push(...shuffled.slice(0,Math.ceil(count*.4)));
+
+  // Pool + suffix
+  for(let i=0;i<Math.ceil(count*.3);i++){
+    const base=pool[Math.floor(Math.random()*pool.length)];
+    const suf=suffixes[Math.floor(Math.random()*suffixes.length)];
+    names.push(base+' '+suf);
+  }
+
+  // Keyword fusion
+  kw.forEach(k=>{
+    const cap=k.charAt(0).toUpperCase()+k.slice(1);
+    const base=pool[Math.floor(Math.random()*pool.length)];
+    names.push(cap+base);
+    names.push(base+cap);
+  });
+
+  // Prefix + pool
+  for(let i=0;i<3;i++){
+    const pre=prefixes[Math.floor(Math.random()*prefixes.length)];
+    const base=pool[Math.floor(Math.random()*pool.length)];
+    names.push(pre+base);
+  }
+
+  // Dedupe and trim
+  names=[...new Set(names)].sort(()=>Math.random()-.5).slice(0,count);
+
+  const tags=d.tags||[];
+  const styles=d.styles||[];
+
+  document.getElementById('results').innerHTML=names.map((name,i)=>{
+    const style=styles[i%styles.length]||'';
+    const tag=tags[i%tags.length]||'';
+    const isSaved=saved.some(s=>s===name);
+    return `<div class="name-card${isSaved?' saved':''}" id="card-${i}">
+      <button class="save-btn" onclick="toggleSave('${name}',${i})" title="Save">${isSaved?'★':'☆'}</button>
+      <div class="name">${name}</div>
+      <div class="tagline">${style} · ${activeStyles[0]||'Professional'} feel</div>
+      <div class="tags"><span class="tag">${tag}</span><span class="tag">${lang==='es'?'Spanish':lang==='bi'?'Bilingual':lang==='coined'?'Coined':'English'}</span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('footerCount').textContent=`${names.length} names generated`;
+}
+
+function toggleSave(name,cardIdx){
+  if(saved.includes(name))saved=saved.filter(s=>s!==name);
+  else saved.push(name);
+  renderSaved();
+  generate(); // re-render cards
+}
+
+function renderSaved(){
+  const sec=document.getElementById('savedSection');
+  if(saved.length===0){sec.style.display='none';return;}
+  sec.style.display='block';
+  document.getElementById('savedList').innerHTML=saved.map(name=>`
+    <div class="saved-item">
+      <span>${name}</span>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('${name}').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button>
+    </div>
+  `).join('');
+}
+
+renderPills();
+generate();
+</script>
+</body>
+</html>

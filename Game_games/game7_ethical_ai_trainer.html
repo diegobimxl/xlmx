@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ethical AI Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #3a0ca3; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+  .scenario-box { background: #f4f0ff; border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #3a0ca3; }
+  .scenario-label { font-size: 12px; font-weight: 700; color: #3a0ca3; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-text { font-size: 16px; font-weight: 500; line-height: 1.6; }
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .option-btn { padding: 16px; border-radius: 10px; border: 2px solid #e9ecef; background: #fff; cursor: pointer; text-align: left; transition: all 0.15s; font-family: 'Inter', sans-serif; }
+  .option-btn:hover { border-color: #3a0ca3; background: #f4f0ff; }
+  .option-btn.chosen { border-color: #3a0ca3; background: #f4f0ff; }
+  .option-label { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .option-desc { font-size: 12px; color: #6c757d; line-height: 1.4; }
+  .ai-panel { background: #f8f9fa; border-radius: 10px; padding: 16px; margin-top: 16px; }
+  .ai-label { font-size: 12px; font-weight: 700; color: #3a0ca3; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .ai-decision { font-size: 14px; color: #555; line-height: 1.5; font-style: italic; margin-bottom: 8px; }
+  .bias-flag { display: inline-flex; align-items: center; gap: 6px; background: #ffeaea; color: #e74c3c; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .consistent-flag { display: inline-flex; align-items: center; gap: 6px; background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .decision-log { background: #fff; border-radius: 8px; padding: 12px; border: 1px solid #e9ecef; max-height: 200px; overflow-y: auto; }
+  .dl-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f1f3f4; font-size: 12px; }
+  .dl-row:last-child { border-bottom: none; }
+  .dl-q { color: #555; max-width: 70%; }
+  .dl-a { font-weight: 600; color: #3a0ca3; }
+  .dl-flag { font-size: 10px; color: #e74c3c; font-weight: 600; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #3a0ca3; color: #fff; width: 100%; margin-top: 14px; }
+  .btn-primary:hover { background: #2c0890; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .hidden { display: none; }
+  .scenario-num { display: inline-flex; background: #f4f0ff; color: #3a0ca3; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  @media (max-width: 640px) { .options-grid { grid-template-columns: 1fr; } .kpi-row { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>The Ethical AI Trainer</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">You teach the AI right from wrong. But who taught you?</div>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Scenarios Completed</div><div class="kpi-val" id="scenarios-val" style="color:#3a0ca3;">0 / 12</div></div>
+    <div class="kpi"><div class="kpi-label">Bias Detected</div><div class="kpi-val" id="bias-val" style="color:#e74c3c;">0</div><div class="kpi-sub">Inconsistencies in your choices</div></div>
+    <div class="kpi"><div class="kpi-label">AI Confidence</div><div class="kpi-val" id="conf-val">High</div><div class="kpi-sub">In your ethical framework</div></div>
+  </div>
+  <div class="card">
+    <span class="scenario-num">Scenario <span id="sc-num">1</span> of 12</span>
+    <div class="scenario-box">
+      <div class="scenario-label" id="sc-cat">Trolley Problem Variant</div>
+      <div class="scenario-text" id="scenario-text">Loading...</div>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="ai-panel">
+      <div class="ai-label">🤖 AI Learning Log</div>
+      <div class="ai-decision" id="ai-decision">Awaiting your decision...</div>
+      <div id="consistency-flag"></div>
+    </div>
+    <button class="btn btn-primary" id="next-btn" disabled onclick="nextScenario()">Next Scenario →</button>
+  </div>
+  <div class="card">
+    <h2>Your Decision Log — The AI's Dataset</h2>
+    <div class="decision-log" id="decision-log"><div style="font-size:13px;color:#aaa;padding:8px 0;">No decisions yet.</div></div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">AI Training Complete</h2>
+    <p id="end-desc"></p>
+    <div id="bias-report" style="background:#ffeaea;border-radius:10px;padding:16px;margin:12px 0;"></div>
+    <div style="background:#f4f0ff;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#3a0ca3;margin-bottom:6px;">BIAS REVEALED: Confirmation Bias</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You believed you were applying a consistent ethical framework. But the AI's log shows you changed the answer based on who was involved. You weren't reasoning from principles; you were finding reasons to justify instincts. This is Confirmation Bias: the data you fed the AI was shaped by what you already believed was right. The AI learned your biases, not your values.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Retrain the AI</button>
+  </div>
+</div>
+<script>
+const SCENARIOS=[{id:1,category:'Classic Trolley',text:'A runaway trolley is heading toward 5 workers. You can pull a lever to divert it, killing 1 worker on the other track. Do you pull the lever?',options:[{label:'Pull the lever',desc:'Actively cause 1 death to save 5. Utilitarian.',value:'active-utilitarian'},{label:'Do nothing',desc:'Passive. 5 die but you didn\'t cause it directly. Deontological.',value:'passive-deontological'}],mirror:4},{id:2,category:'Footbridge Variant',text:'Same trolley, but now you must physically push a large man off a bridge to stop it, saving 5. Same math: 1 dies, 5 saved. Do you push?',options:[{label:'Push him',desc:'1 death prevents 5. Same utilitarian logic as the lever.',value:'active-utilitarian'},{label:'Don\'t push',desc:'Using a person as a means is categorically different.',value:'passive-deontological'}],mirror:1},{id:3,category:'Self-Sacrifice',text:'A doctor can use organs from 1 healthy patient to save 5 dying ones. The healthy patient has not consented. Should the doctor do it?',options:[{label:'Harvest organs',desc:'Pure utilitarian: 5 > 1.',value:'active-utilitarian'},{label:'Refuse',desc:'Rights of the individual override numbers.',value:'passive-deontological'}],mirror:1},{id:4,category:'Age Variable',text:'Same trolley. You can pull a lever. This time the 1 person on the side track is a child. The 5 on the main track are adults. Do you pull?',options:[{label:'Pull (save the 5 adults)',desc:'Numbers win. Utilitarian.',value:'active-utilitarian'},{label:'Don\'t pull (protect the child)',desc:'Children warrant special protection.',value:'passive-deontological'}],mirror:1},{id:5,category:'Corporate Ethics',text:'A company can release a product that will cause minor harm to millions of users but generate massive revenue to fund cures for serious diseases. Should they release it?',options:[{label:'Release it',desc:'Net positive outcome for humanity.',value:'active-utilitarian'},{label:'Don\'t release',desc:'You cannot consent millions to harm without their knowledge.',value:'passive-deontological'}],mirror:null},{id:6,category:'AI Decision',text:'An autonomous car must choose: swerve and hit 1 pedestrian (who ran a red light), or stay course and crash into 3 passengers inside. The pedestrian broke the law. What should the AI do?',options:[{label:'Swerve (hit 1, save 3)',desc:'Utilitarian. 1 < 3, regardless of fault.',value:'active-utilitarian'},{label:'Stay course',desc:'The car\'s mission is to protect its passengers.',value:'passive-deontological'}],mirror:null},{id:7,category:'The Famous Person',text:'Same trolley. The 1 person is a scientist who will cure cancer next year. The 5 are ordinary citizens. Do you pull the lever to kill the scientist?',options:[{label:'Pull lever (kill scientist, save 5)',desc:'Lives are equal. 5 > 1.',value:'active-utilitarian'},{label:'Don\'t pull (save scientist)',desc:'Future lives saved tip the utilitarian scale.',value:'passive-deontological'}],mirror:1},{id:8,category:'Privacy vs. Safety',text:'A government can monitor all citizens\' private messages to detect and prevent one terrorist attack per year, saving ~50 lives. No one will know. Should they?',options:[{label:'Yes — monitor everyone',desc:'50 lives per year. Clear utilitarian win.',value:'active-utilitarian'},{label:'No — privacy is inviolable',desc:'Consent and rights matter, not just outcomes.',value:'passive-deontological'}],mirror:5},{id:9,category:'Wealth Distribution',text:'You can secretly transfer $1M from a billionaire\'s account (who won\'t notice) to fund a school in a poor community. Is this justified?',options:[{label:'Transfer the funds',desc:'Net social good. He\'d barely notice.',value:'active-utilitarian'},{label:'Don\'t steal, even for good',desc:'The means matter regardless of outcome.',value:'passive-deontological'}],mirror:3},{id:10,category:'Racial Framing',text:'Same trolley, lever scenario. The 1 person on the side track is described as a convicted felon. The 5 are described as "law-abiding citizens." Do you pull?',options:[{label:'Pull (save law-abiding citizens)',desc:'Social utility favors those contributing more to society.',value:'active-utilitarian'},{label:'Don\'t pull',desc:'All lives have equal value regardless of criminal record.',value:'passive-deontological'}],mirror:1},{id:11,category:'Future Generations',text:'You can implement a policy that causes moderate suffering to people alive today but guarantees a flourishing world for 1000 future generations. Should you?',options:[{label:'Implement it',desc:'The math of 1000 generations dwarfs today\'s suffering.',value:'active-utilitarian'},{label:'Refuse',desc:'We cannot impose costs on the living for hypothetical futures.',value:'passive-deontological'}],mirror:null},{id:12,category:'The Mirror',text:'Based on your 11 decisions, the AI has modeled your ethics. It now faces: hit an elderly dog owner OR swerve into a family of 4. It applies YOUR training data. What do you want it to prioritize?',options:[{label:'Save the most lives (family of 4)',desc:'Utilitarian — consistent with lever choices.',value:'active-utilitarian'},{label:'Minimize active harm (don\'t swerve)',desc:'Deontological — avoid active killing even if fewer die.',value:'passive-deontological'}],mirror:null}];
+let state={currentIdx:0,decisions:[],biasCount:0,chosen:null,gameOver:false};
+function detectBias(choice){if(state.decisions.length<2)return false;const sc=SCENARIOS[state.currentIdx];if(!sc.mirror)return false;const mirrorDecision=state.decisions.find(d=>d.scenarioId===sc.mirror);if(!mirrorDecision)return false;return mirrorDecision.choice!==choice;}
+function renderScenario(){const sc=SCENARIOS[state.currentIdx];document.getElementById('sc-num').textContent=sc.id;document.getElementById('scenario-text').textContent=sc.text;document.getElementById('sc-cat').textContent=sc.category;state.chosen=null;const grid=document.getElementById('options-grid');grid.innerHTML='';sc.options.forEach(opt=>{const btn=document.createElement('button');btn.className='option-btn';btn.innerHTML=`<div class="option-label">${opt.label}</div><div class="option-desc">${opt.desc}</div>`;btn.onclick=(e)=>chooseOption(opt,e.currentTarget);grid.appendChild(btn);});document.getElementById('ai-decision').textContent='Awaiting your decision...';document.getElementById('consistency-flag').innerHTML='';document.getElementById('next-btn').disabled=true;}
+function chooseOption(opt,el){state.chosen=opt;document.querySelectorAll('.option-btn').forEach(b=>b.classList.remove('chosen'));el.classList.add('chosen');const isBiased=detectBias(opt.value);if(isBiased){state.biasCount++;document.getElementById('consistency-flag').innerHTML='<span class="bias-flag">⚠️ INCONSISTENCY DETECTED — This contradicts your earlier decision</span>';document.getElementById('ai-decision').textContent=`Training data conflict: Your answer here contradicts Scenario ${SCENARIOS[state.currentIdx].mirror}. The AI cannot form a consistent rule.`;}else{document.getElementById('consistency-flag').innerHTML='<span class="consistent-flag">✓ Consistent with prior decisions</span>';document.getElementById('ai-decision').textContent=`Decision logged: "${opt.label}." The AI is applying this as a rule: choose the ${opt.value==='active-utilitarian'?'utilitarian outcome':'deontological constraint'}.`;}document.getElementById('bias-val').textContent=state.biasCount;document.getElementById('conf-val').textContent=state.biasCount===0?'High':state.biasCount<3?'Medium':'Low';document.getElementById('scenarios-val').textContent=state.currentIdx+' / 12';document.getElementById('next-btn').disabled=false;addDecisionLog(SCENARIOS[state.currentIdx],opt,isBiased);}
+function addDecisionLog(sc,opt,biased){const log=document.getElementById('decision-log');if(log.querySelector('[style*="color:#aaa"]'))log.innerHTML='';const row=document.createElement('div');row.className='dl-row';row.innerHTML=`<div class="dl-q">Sc.${sc.id}: ${sc.text.substring(0,60)}...</div><div style="text-align:right;"><div class="dl-a">${opt.label}</div>${biased?'<div class="dl-flag">⚠️ BIAS</div>':''}</div>`;log.insertBefore(row,log.firstChild);}
+function nextScenario(){if(!state.chosen)return;state.decisions.push({scenarioId:SCENARIOS[state.currentIdx].id,choice:state.chosen.value});state.currentIdx++;if(state.currentIdx>=SCENARIOS.length){endGame();return;}renderScenario();}
+function endGame(){state.gameOver=true;const utilCount=state.decisions.filter(d=>d.choice==='active-utilitarian').length;const deontCount=12-utilCount;const dom=utilCount>deontCount?'Utilitarian':'Deontological';document.getElementById('end-title').textContent='🤖 AI Training Complete';document.getElementById('end-desc').textContent=`12 scenarios. ${state.biasCount} inconsistencies detected. Your AI learned a ${dom} framework — but with ${state.biasCount} contradictory data points it cannot reconcile.`;document.getElementById('bias-report').innerHTML=`<div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:8px;">YOUR BIAS PROFILE</div><div style="font-size:13px;color:#555;line-height:1.7;">Utilitarian choices: ${utilCount}/12<br>Deontological choices: ${deontCount}/12<br>Contradictions: ${state.biasCount}<br><br>${state.biasCount>=3?'The AI found significant inconsistency. You applied different rules to the same math depending on who was involved. The AI\'s log shows the pattern you couldn\'t see.':state.biasCount===0?'Remarkably consistent. Zero contradictions. But its biases are your biases, scaled to every decision it will ever make.':'Minor inconsistencies found. You\'re human. Multiply these by a billion AI decisions.'}</div>`;document.getElementById('end-modal').classList.remove('hidden');}
+function restartGame(){state={currentIdx:0,decisions:[],biasCount:0,chosen:null,gameOver:false};document.getElementById('end-modal').classList.add('hidden');document.getElementById('decision-log').innerHTML='<div style="font-size:13px;color:#aaa;padding:8px 0;">No decisions yet.</div>';document.getElementById('bias-val').textContent='0';document.getElementById('conf-val').textContent='High';document.getElementById('scenarios-val').textContent='0 / 12';renderScenario();}
+renderScenario();
+</script>
+</body>
+</html>

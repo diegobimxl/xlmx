@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Calculadora Solar Mexico</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px}
+h1{font-size:26px;font-weight:700;letter-spacing:-0.5px}
+.sub{font-size:14px;color:#888;margin:4px 0 28px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:8px}
+canvas{display:block;width:100%}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:28px}
+.card{border:1px solid #e0e0e0;padding:14px;cursor:pointer;transition:all 0.15s;border-radius:4px}
+.card:hover{border-color:#228b22;background:#f8fff8}
+.card h3{font-size:14px;font-weight:600;margin-bottom:2px}
+.card .st{font-size:11px;color:#888}
+.card .sun{font-size:12px;color:#228b22;margin-top:6px;font-weight:600}
+.card .pop{font-size:11px;color:#aaa;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Calculadora Solar</h1>
+<p class="sub">Top 40 ciudades de Mexico — selecciona tu ciudad para calcular tu ROI</p>
+<div class="lbl">Ranking de ROI — ciudades con retorno mas rapido primero (recibo CFE $5,000/mes)</div>
+<canvas id="barChart"></canvas>
+<div class="cards" id="cards"></div>
+<div style="font-size:11px;color:#aaa;margin-top:28px;border-top:1px solid #eee;padding-top:12px">
+Datos de irradiacion solar: NASA POWER / Global Solar Atlas / INEGI-CONAGUA promedios anuales.<br>
+ROI basado en CFE Tarifa DAC ($6.50 MXN/kWh), paneles 550Wp, $18 MXN/Wp instalado, 80% eficiencia del sistema.<br>
+<a href="metodologia.html" style="color:#228b22">Ver metodologia y fuentes cientificas</a>
+</div>
+</div>
+<script>
+var cities=[
+{name:'Hermosillo',state:'Sonora',pop:1.0,sun:6.6,lat:29.07},
+{name:'La Paz',state:'Baja California Sur',pop:0.3,sun:6.5,lat:24.14},
+{name:'Ciudad Juarez',state:'Chihuahua',pop:1.5,sun:6.4,lat:31.69},
+{name:'Mexicali',state:'Baja California',pop:1.0,sun:6.3,lat:32.66},
+{name:'Chihuahua',state:'Chihuahua',pop:0.9,sun:6.2,lat:28.63},
+{name:'Culiacan',state:'Sinaloa',pop:1.0,sun:6.0,lat:24.81},
+{name:'Durango',state:'Durango',pop:0.7,sun:6.0,lat:24.02},
+{name:'Mazatlan',state:'Sinaloa',pop:0.5,sun:5.9,lat:23.24},
+{name:'Torreon',state:'Coahuila',pop:1.3,sun:5.9,lat:25.54},
+{name:'San Luis Potosi',state:'San Luis Potosi',pop:1.2,sun:5.8,lat:22.15},
+{name:'Monterrey',state:'Nuevo Leon',pop:5.3,sun:5.8,lat:25.67},
+{name:'Aguascalientes',state:'Aguascalientes',pop:1.0,sun:5.7,lat:21.88},
+{name:'Zacatecas',state:'Zacatecas',pop:0.3,sun:5.7,lat:22.77},
+{name:'Tijuana',state:'Baja California',pop:2.0,sun:5.6,lat:32.51},
+{name:'Guadalajara',state:'Jalisco',pop:5.2,sun:5.6,lat:20.67},
+{name:'Colima',state:'Colima',pop:0.3,sun:5.6,lat:19.24},
+{name:'Saltillo',state:'Coahuila',pop:0.9,sun:5.5,lat:25.42},
+{name:'Queretaro',state:'Queretaro',pop:1.3,sun:5.5,lat:20.59},
+{name:'Tampico',state:'Tamaulipas',pop:0.9,sun:5.4,lat:22.25},
+{name:'Leon',state:'Guanajuato',pop:1.6,sun:5.4,lat:21.12},
+{name:'Guanajuato',state:'Guanajuato',pop:0.2,sun:5.4,lat:21.02},
+{name:'Morelia',state:'Michoacan',pop:0.9,sun:5.3,lat:19.70},
+{name:'Merida',state:'Yucatan',pop:1.3,sun:5.3,lat:20.97},
+{name:'Cancun',state:'Quintana Roo',pop:0.9,sun:5.3,lat:21.16},
+{name:'Cuernavaca',state:'Morelos',pop:0.8,sun:5.2,lat:18.92},
+{name:'Acapulco',state:'Guerrero',pop:0.8,sun:5.2,lat:16.86},
+{name:'Irapuato',state:'Guanajuato',pop:0.6,sun:5.3,lat:20.68},
+{name:'Celaya',state:'Guanajuato',pop:0.5,sun:5.3,lat:20.52},
+{name:'Pachuca',state:'Hidalgo',pop:0.6,sun:5.1,lat:20.12},
+{name:'Puebla',state:'Puebla',pop:3.2,sun:5.1,lat:19.04},
+{name:'Tuxtla Gutierrez',state:'Chiapas',pop:0.6,sun:5.1,lat:16.75},
+{name:'Veracruz',state:'Veracruz',pop:0.8,sun:5.0,lat:19.19},
+{name:'Oaxaca',state:'Oaxaca',pop:0.6,sun:5.0,lat:17.07},
+{name:'Reynosa',state:'Tamaulipas',pop:0.7,sun:5.5,lat:26.09},
+{name:'Villahermosa',state:'Tabasco',pop:0.7,sun:4.8,lat:17.99},
+{name:'Toluca',state:'Estado de Mexico',pop:2.4,sun:4.8,lat:19.29},
+{name:'Xalapa',state:'Veracruz',pop:0.6,sun:4.7,lat:19.54},
+{name:'Ciudad de Mexico',state:'CDMX',pop:21.8,sun:4.6,lat:19.43},
+{name:'Coatzacoalcos',state:'Veracruz',pop:0.3,sun:4.7,lat:18.14},
+{name:'Campeche',state:'Campeche',pop:0.3,sun:5.2,lat:19.84}
+];
+var D={wp:550,pa:2.58,eff:0.80,tar:6.50,cost:18};
+function calcROI(sun){
+  var bill=5000,mk=bill/D.tar,ak=mk*12,dk=ak/365;
+  var kw=dk/(sun*D.eff);
+  var raw=Math.ceil(kw*1000/D.wp);
+  var akw=raw*D.wp/1000;
+  var gen=akw*sun*365*D.eff;
+  var inv=akw*1000*D.cost;
+  var as2=gen*D.tar;
+  return as2>0?inv/as2:99;
+}
+cities.sort(function(a,b){return calcROI(a.sun)-calcROI(b.sun);});
+function fmt(n,d){d=d||0;return n.toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function drawBar(){
+  var c=document.getElementById('barChart');
+  var ctx=c.getContext('2d');
+  var W=c.parentElement.getBoundingClientRect().width;
+  if(W<100)W=800;
+  var barH=22,gap=3,pL=140,pR=180,pT=6,pB=6;
+  var H=pT+pB+cities.length*(barH+gap);
+  var dpr=window.devicePixelRatio||1;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var rois=[];
+  for(var i=0;i<cities.length;i++){rois.push(calcROI(cities[i].sun));}
+  var maxROI=Math.max.apply(null,rois)*1.15;
+  var cW=W-pL-pR;
+  for(var i=0;i<cities.length;i++){
+    var roi=rois[i];
+    var y=pT+i*(barH+gap);
+    var bw=(roi/maxROI)*cW;
+    var ratio=1-(roi/maxROI);
+    var shade=Math.round(20+ratio*60);
+    ctx.fillStyle='rgb('+shade+','+shade+','+shade+')';
+    ctx.fillRect(pL,y,bw,barH-1);
+    // City name
+    ctx.fillStyle='#111';ctx.font='11px -apple-system,sans-serif';ctx.textAlign='right';
+    ctx.fillText(cities[i].name,pL-8,y+barH/2+1);
+    // Stats after bar
+    ctx.fillStyle='#888';ctx.font='11px -apple-system,sans-serif';ctx.textAlign='left';
+    ctx.fillText(roi.toFixed(1)+' anos  |  '+cities[i].sun+' hrs sol  |  '+cities[i].state,pL+bw+8,y+barH/2+1);
+    // Value inside bar if wide enough
+    if(bw>50){
+      ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='bold 10px -apple-system,sans-serif';ctx.textAlign='right';
+      ctx.fillText(roi.toFixed(1)+'a',pL+bw-6,y+barH/2+1);
+    }
+  }
+}
+drawBar();
+window.addEventListener('resize',drawBar);
+var cardsEl=document.getElementById('cards');
+for(var i=0;i<cities.length;i++){
+  var ct=cities[i];
+  var roi=calcROI(ct.sun);
+  var d=document.createElement('div');
+  d.className='card';
+  d.innerHTML='<h3>'+ct.name+'</h3><div class="st">'+ct.state+'</div><div class="sun">'+ct.sun+' hrs sol/dia · ROI '+roi.toFixed(1)+' anos</div><div class="pop">Pob. '+ct.pop+'M · Lat '+ct.lat+'°N</div>';
+  d.setAttribute('data-idx',i);
+  d.addEventListener('click',function(){
+    var idx=Number(this.getAttribute('data-idx'));
+    var c2=cities[idx];
+    window.location.href='calc.html?city='+encodeURIComponent(c2.name)+'&state='+encodeURIComponent(c2.state)+'&sun='+c2.sun+'&lat='+c2.lat;
+  });
+  cardsEl.appendChild(d);
+}
+</script>
+</body>
+</html>

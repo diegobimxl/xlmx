@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vending Machine Analytics — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e5e5;padding:0 32px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#111;border-bottom-color:#111}
+.pn{display:none;padding:24px 32px}.pn.on{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.kpi{border:1px solid #e5e5e5;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:20px;font-weight:700}.kpi .lbl{font-size:10px;color:#666}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px;background:#f9f9f9;border-bottom:1px solid #e5e5e5;font-weight:600;color:#666;font-size:11px}
+td{padding:8px;border-bottom:1px solid #f0f0f0}tr:hover{background:#fafafa}
+.low-stock{color:#c62828;font-weight:600}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px}
+.form-grid label{font-size:12px;color:#666;display:flex;flex-direction:column;gap:4px}
+.form-grid input,.form-grid select{padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;margin-top:12px}
+canvas{width:100%;border:1px solid #e5e5e5;border-radius:6px;display:block;margin-bottom:16px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.alert{padding:10px 14px;border-radius:4px;margin-bottom:6px;font-size:12px;border-left:4px solid #c62828;background:#fce4ec;color:#c62828}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+@media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.chart-row,.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Vending Analytics</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;cursor:pointer;padding:4px 10px;border:1px solid #ddd;border-radius:4px" onclick="toggleLang()">ES / EN</span><a href="../" class="back">← Portal</a></div>
+</header>
+<div class="tabs">
+<div class="tab on" data-p="dashboard">Dashboard</div>
+<div class="tab" data-p="maquinas">Maquinas</div>
+<div class="tab" data-p="agregar">+ Agregar</div>
+<div class="tab" data-p="alertas">Alertas</div>
+</div>
+
+<div class="pn on" id="dashboard">
+<div class="kpi-grid" id="kpis"></div>
+<div class="chart-row">
+<div><h3 style="font-size:14px;margin-bottom:8px">Ventas por Maquina</h3><canvas id="chartSales" height="280"></canvas></div>
+<div><h3 style="font-size:14px;margin-bottom:8px">Margen por Maquina</h3><canvas id="chartMargin" height="280"></canvas></div>
+</div>
+</div>
+
+<div class="pn" id="maquinas">
+<div style="overflow-x:auto"><table>
+<thead><tr><th>Maquina</th><th>Ubicacion</th><th>Ventas/Mes</th><th>Revenue</th><th>Costo Producto</th><th>Margen</th><th>Margen %</th><th>Stock Actual</th><th>Capacidad</th><th></th></tr></thead>
+<tbody id="tBody"></tbody>
+</table></div>
+</div>
+<div class="pn" id="agregar">
+<h2 style="font-size:16px;margin-bottom:16px">Agregar Maquina</h2>
+<div class="form-grid">
+<label>Nombre Maquina<input id="aName" type="text"></label>
+<label>Ubicacion<input id="aLoc" type="text"></label>
+<label>Ventas/Mes<input id="aSales" type="number"></label>
+<label>Precio Promedio Venta<input id="aPrice" type="number" step="0.01"></label>
+<label>Costo Promedio Producto<input id="aCost" type="number" step="0.01"></label>
+<label>Stock Actual<input id="aStock" type="number"></label>
+<label>Capacidad Total<input id="aCap" type="number"></label>
+<label>Moneda<select id="aMoneda"><option>MXN</option><option>USD</option></select></label>
+</div>
+<button class="btn" onclick="addMachine()">Guardar</button>
+</div>
+
+<div class="pn" id="alertas">
+<h3 style="font-size:15px;margin-bottom:12px">Alertas de Reabastecimiento</h3>
+<div id="alertList"></div>
+</div>
+
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Vending Analytics — XLMX</span><a href="mailto:diego@bimxl.com">Contact</a></div>
+
+<script>
+let lang='es';let machines=JSON.parse(localStorage.getItem('xlmx_vending')||'[]');
+
+function toggleLang(){lang=lang==='es'?'en':'es';}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));  document.querySelectorAll('.pn').forEach(x=>x.classList.remove('on'));
+  this.classList.add('on');document.getElementById(this.dataset.p).classList.add('on');
+  if(this.dataset.p==='dashboard')drawDashboard();
+  if(this.dataset.p==='alertas')showAlerts();
+}));
+
+function render(){
+  const tb=document.getElementById('tBody');tb.innerHTML='';
+  machines.forEach((m,i)=>{
+    const rev=m.sales*m.price;const cost=m.sales*m.cost;const margin=rev-cost;
+    const marginPct=rev?Math.round(margin/rev*100):0;
+    const stockPct=m.cap?Math.round(m.stock/m.cap*100):0;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${m.name}</td><td>${m.loc}</td><td>${m.sales}</td><td>$${rev.toLocaleString()}</td><td>$${cost.toLocaleString()}</td><td>$${margin.toLocaleString()}</td><td>${marginPct}%</td><td class="${stockPct<25?'low-stock':''}">${m.stock} (${stockPct}%)</td><td>${m.cap}</td><td><span style="cursor:pointer;color:#c62828" onclick="machines.splice(${i},1);localStorage.setItem('xlmx_vending',JSON.stringify(machines));render();">x</span></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function addMachine(){
+  machines.push({
+    name:document.getElementById('aName').value,
+    loc:document.getElementById('aLoc').value,
+    sales:Number(document.getElementById('aSales').value)||0,
+    price:Number(document.getElementById('aPrice').value)||0,
+    cost:Number(document.getElementById('aCost').value)||0,
+    stock:Number(document.getElementById('aStock').value)||0,
+    cap:Number(document.getElementById('aCap').value)||0,
+    moneda:document.getElementById('aMoneda').value
+  });
+  localStorage.setItem('xlmx_vending',JSON.stringify(machines));
+  render();alert('Maquina guardada.');
+  document.querySelectorAll('.form-grid input').forEach(i=>i.value='');
+}
+function drawDashboard(){
+  const kp=document.getElementById('kpis');
+  const n=machines.length;
+  const totalRev=machines.reduce((s,m)=>s+m.sales*m.price,0);
+  const totalProfit=machines.reduce((s,m)=>s+m.sales*(m.price-m.cost),0);
+  const avgMargin=totalRev?Math.round(totalProfit/totalRev*100):0;
+  const lowStock=machines.filter(m=>m.cap&&m.stock/m.cap<0.25).length;
+  kp.innerHTML=`<div class="kpi"><div class="val">${n}</div><div class="lbl">Maquinas</div></div><div class="kpi"><div class="val">$${totalRev.toLocaleString()}</div><div class="lbl">Revenue/Mes</div></div><div class="kpi"><div class="val">$${totalProfit.toLocaleString()}</div><div class="lbl">Profit/Mes</div></div><div class="kpi"><div class="val">${avgMargin}%</div><div class="lbl">Margen Prom.</div></div><div class="kpi"><div class="val" style="color:${lowStock?'#c62828':'#558b2f'}">${lowStock}</div><div class="lbl">Stock Bajo</div></div>`;
+
+  // Sales chart
+  hBarChart('chartSales',machines.map(m=>m.name),machines.map(m=>m.sales*m.price));
+  // Margin chart
+  hBarChart('chartMargin',machines.map(m=>m.name),machines.map(m=>{const r=m.sales*m.price;return r?Math.round(m.sales*(m.price-m.cost)/r*100):0;}),true);
+}
+
+function hBarChart(id,labels,vals,isPct){
+  const c=document.getElementById(id);const ctx=c.getContext('2d');
+  c.width=c.offsetWidth*2;c.height=560;ctx.scale(2,2);
+  const W=c.offsetWidth,H=280,left=100,top=10,bh=22;
+  const max=Math.max(...vals,1);
+  ctx.clearRect(0,0,W,H);
+  labels.forEach((l,i)=>{
+    const y=top+i*(bh+6);const w=(vals[i]/max)*(W-left-50);
+    ctx.fillStyle='#11111122';ctx.fillRect(left,y,w,bh);
+    ctx.fillStyle='#111';ctx.fillRect(left,y,3,bh);
+    ctx.fillStyle='#444';ctx.font='11px sans-serif';ctx.textAlign='right';ctx.fillText(l.substring(0,14),left-6,y+15);
+    ctx.textAlign='left';ctx.fillText(isPct?vals[i]+'%':'$'+vals[i].toLocaleString(),left+w+6,y+15);
+  });
+}
+function showAlerts(){
+  const al=document.getElementById('alertList');al.innerHTML='';
+  const low=machines.filter(m=>m.cap&&m.stock/m.cap<0.25);
+  if(!low.length){al.innerHTML='<p style="color:#558b2f;font-size:13px">Todas las maquinas tienen stock suficiente.</p>';return;}
+  low.forEach(m=>{
+    const pct=Math.round(m.stock/m.cap*100);
+    al.innerHTML+=`<div class="alert">${m.name} (${m.loc}) — Stock: ${m.stock}/${m.cap} (${pct}%) — Reabastecer urgente</div>`;
+  });
+}
+
+render();drawDashboard();
+</script>
+</body>
+</html>

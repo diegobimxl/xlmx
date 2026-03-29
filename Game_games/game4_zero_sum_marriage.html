@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero-Sum Marriage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #e63946; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 6px; background: #e9ecef; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s; }
+  .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .energy-display { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .energy-dot { width: 32px; height: 32px; border-radius: 50%; background: #4361ee; border: 2px solid #3451d1; transition: all 0.3s; }
+  .energy-dot.used { background: #e9ecef; border-color: #dee2e6; }
+  .allocation-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f3f4; }
+  .allocation-row:last-child { border-bottom: none; }
+  .alloc-label { font-size: 14px; font-weight: 500; }
+  .alloc-controls { display: flex; align-items: center; gap: 8px; }
+  .alloc-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e9ecef; background: #f8f9fa; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .alloc-btn:hover { background: #4361ee; color: #fff; border-color: #4361ee; }
+  .alloc-val { font-size: 16px; font-weight: 700; min-width: 20px; text-align: center; }
+  .effect { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #e63946; color: #fff; width: 100%; margin-top: 14px; }
+  .btn-primary:hover { background: #c1121f; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .alex-card { background: #fff0f3; border-radius: 10px; padding: 16px; margin-bottom: 14px; border: 1px solid #ffc8c8; }
+  .alex-avatar { width: 48px; height: 48px; border-radius: 50%; background: #e63946; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 8px; }
+  .alex-mood { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+  .alex-msg { font-size: 13px; color: #555; line-height: 1.5; font-style: italic; }
+  .log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; }
+  .log-entry { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry.warn { color: #e63946; font-weight: 600; }
+  .log-entry.good { color: #2ecc71; font-weight: 600; }
+  .event-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .event-banner h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .event-banner p { font-size: 13px; color: #555; }
+  .hidden { display: none; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  @media (max-width: 700px) { .dashboard { grid-template-columns: 1fr 1fr; } .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>Zero-Sum Marriage</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">10 energy units. A lifetime to build. Choose carefully.</div>
+</div>
+<div class="container">
+  <div class="dashboard">
+    <div class="kpi"><div class="kpi-label">Day</div><div class="kpi-val" id="day-val">1</div><div class="kpi-sub">of 100</div><div class="bar-wrap"><div class="bar-fill" id="day-bar" style="width:1%;background:#4361ee;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Career Score</div><div class="kpi-val" id="career-val" style="color:#4361ee;">0</div><div class="kpi-sub">Target: 500</div><div class="bar-wrap"><div class="bar-fill" id="career-bar" style="width:0%;background:#4361ee;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Relationship</div><div class="kpi-val" id="rel-val" style="color:#e63946;">200</div><div class="kpi-sub">Target: 200</div><div class="bar-wrap"><div class="bar-fill" id="rel-bar" style="width:100%;background:#e63946;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Health</div><div class="kpi-val" id="health-val" style="color:#2ecc71;">100</div><div class="bar-wrap"><div class="bar-fill" id="health-bar" style="width:100%;background:#2ecc71;"></div></div></div>
+  </div>
+  <div id="event-container"></div>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Daily Energy Allocation — 10 Units Total</h2>
+      <div class="energy-display" id="energy-dots"></div>
+      <div id="alloc-rows"></div>
+      <button class="btn btn-primary" id="next-btn" onclick="nextDay()">End Day →</button>
+    </div>
+    <div>
+      <div class="alex-card">
+        <div class="alex-avatar">👤</div>
+        <div class="alex-mood" id="alex-mood">Alex is happy 😊</div>
+        <div class="alex-msg" id="alex-msg">"Good morning. Ready to take on the day together?"</div>
+      </div>
+      <div class="card">
+        <h2>Life Chronicle</h2>
+        <div class="log" id="game-log"><div class="log-entry good">Day 1 — A new life begins. 10 energy units to spend.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Life Complete</h2>
+    <p id="end-desc"></p>
+    <div style="background:#fff0f3;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#e63946;margin-bottom:6px;">BIAS REVEALED: Sunk Cost Fallacy</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You kept investing in a deteriorating relationship not because it was working — but because you already had so much in it. The sunk cost fallacy: past investment justified future sacrifice, even when the math didn't. Every "one more repair" felt rational in the moment. The energy spent recovering what was already lost was the real cost.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Live Again</button>
+  </div>
+</div>
+<script>
+const CATEGORIES=[{id:'career',label:'💼 Career',desc:'+8 career/unit, −3 relationship/unit'},{id:'relationship',label:'❤️ Relationship',desc:'+12 relationship/unit'},{id:'health',label:'🏃 Health',desc:'+6 health/unit'},{id:'kids',label:'👧 Kids/Family',desc:'+5 relationship, −2 career/unit'},{id:'personal',label:'🧠 Personal Growth',desc:'+3 career, +3 health/unit'}];
+const ALEX_MOODS=[{threshold:160,mood:'Alex is thriving 💕',msgs:['"This is exactly what I dreamed our life would be."','"I feel so close to you today."','"We make a great team."']},{threshold:100,mood:'Alex is content 🙂',msgs:['"Things are good. A bit busy, but good."','"I appreciate the time we had today."','"Let\'s try to have more moments like this."']},{threshold:60,mood:'Alex is distant 😐',msgs:['"You\'ve been pretty absent lately."','"I\'m starting to feel like a roommate."','"When was the last time we actually talked?"']},{threshold:20,mood:'Alex is frustrated 😤',msgs:['"I can\'t keep doing this. I need more."','"The career is great. The marriage is not."','"I\'m giving you one more chance to show up."']},{threshold:0,mood:'Alex has had enough 💔',msgs:['"I think we need to separate."','"I\'ve been unhappy for months. You didn\'t notice."','"I want a divorce."']}];
+const LIFE_EVENTS={10:{h:'📈 Promotion Opportunity',msg:'A promotion offered — needs 3+ career units daily for 10 days. Relationship −40 from stress.'},20:{h:'🎂 Anniversary',msg:'It\'s your anniversary. Alex is expecting something special. Allocate 4+ to relationship for +30 bonus.'},35:{h:'🤒 Family Illness',msg:'A family member is ill. Kids/Family allocation matters. Health −10 from stress.'},50:{h:'🧒 School Recital',msg:'The kids have a recital. Allocate 3+ to Kids today for +25 relationship bonus.'},65:{h:'💼 New Client',msg:'A major client opportunity. Allocate 4+ to career today for +80 career bonus.'},80:{h:'🏖️ Vacation Offer',msg:'A weekend trip — gives +50 relationship and +20 health automatically.'}};
+let state={day:1,career:0,relationship:200,health:100,alloc:{career:2,relationship:2,health:2,kids:2,personal:2},energyUsed:10,divorced:false,gameOver:false};
+function renderEnergy(){const dots=document.getElementById('energy-dots');dots.innerHTML='';for(let i=0;i<10;i++){const d=document.createElement('div');d.className='energy-dot'+(i<state.energyUsed?'':' used');dots.appendChild(d);}}
+function renderAlloc(){const container=document.getElementById('alloc-rows');container.innerHTML='';CATEGORIES.forEach(cat=>{const row=document.createElement('div');row.className='allocation-row';row.innerHTML=`<div><div class="alloc-label">${cat.label}</div><div class="effect">${cat.desc}</div></div><div class="alloc-controls"><div class="alloc-btn" onclick="adjust('${cat.id}',-1)">−</div><div class="alloc-val" id="av-${cat.id}">${state.alloc[cat.id]}</div><div class="alloc-btn" onclick="adjust('${cat.id}',1)">+</div></div>`;container.appendChild(row);});updateBtn();}
+function updateBtn(){const remaining=10-Object.values(state.alloc).reduce((a,b)=>a+b,0);state.energyUsed=10-remaining;renderEnergy();document.getElementById('next-btn').disabled=remaining!==0;document.getElementById('next-btn').textContent=remaining===0?'End Day →':`Allocate ${remaining} more units`;}
+function adjust(cat,delta){const total=Object.values(state.alloc).reduce((a,b)=>a+b,0);const newVal=state.alloc[cat]+delta;if(newVal<0)return;if(delta>0&&total>=10)return;state.alloc[cat]=newVal;document.getElementById('av-'+cat).textContent=newVal;updateBtn();}
+function nextDay(){if(state.gameOver)return;const a=state.alloc;state.career=Math.max(0,state.career+a.career*8+a.personal*3-a.kids*2);state.relationship=Math.min(400,Math.max(0,state.relationship+a.relationship*12+a.kids*5-a.career*3));state.health=Math.min(100,Math.max(0,state.health+a.health*6+a.personal*3-1));if(a.relationship<2)state.relationship=Math.max(0,state.relationship-8);if(LIFE_EVENTS[state.day]){const ev=LIFE_EVENTS[state.day];showEvent(ev);if(state.day===20&&a.relationship>=4){state.relationship+=30;addLog('Anniversary honored! +30 relationship.','good');}if(state.day===50&&a.kids>=3){state.relationship+=25;addLog('Attended recital. +25 relationship.','good');}if(state.day===65&&a.career>=4){state.career+=80;addLog('Landed the client! +80 career.','good');}if(state.day===80){state.relationship=Math.min(400,state.relationship+50);state.health=Math.min(100,state.health+20);addLog('Vacation taken! +50 relationship, +20 health.','good');}if(state.day===35)state.health=Math.max(0,state.health-10);}updateAlex();addLog(`Day ${state.day} — Career: ${Math.round(state.career)} | Rel: ${Math.round(state.relationship)} | Health: ${Math.round(state.health)}`);if(state.relationship<=0&&!state.divorced){state.divorced=true;state.career=Math.floor(state.career*0.5);addLog('DIVORCE. Career score halved to '+Math.round(state.career)+'.','warn');showEvent({h:'💔 Alex Filed for Divorce',msg:`Career score halved to ${Math.round(state.career)}. The sunk cost catches up.`});state.relationship=50;}state.day++;updateDashboard();if(state.day>100){endGame();return;}if(state.health<=0){endGame('health');return;}}
+function showEvent(ev){const c=document.getElementById('event-container');c.innerHTML=`<div class="event-banner"><h4>${ev.h}</h4><p>${ev.msg}</p></div>`;setTimeout(()=>{c.innerHTML='';},5000);}
+function updateAlex(){let mood=ALEX_MOODS[ALEX_MOODS.length-1];for(const m of ALEX_MOODS){if(state.relationship>=m.threshold){mood=m;break;}}document.getElementById('alex-mood').textContent=mood.mood;document.getElementById('alex-msg').textContent=mood.msgs[Math.floor(Math.random()*mood.msgs.length)];}
+function updateDashboard(){document.getElementById('day-val').textContent=state.day;document.getElementById('day-bar').style.width=(state.day/100*100)+'%';document.getElementById('career-val').textContent=Math.round(state.career);document.getElementById('career-bar').style.width=Math.min(100,(state.career/500)*100)+'%';document.getElementById('rel-val').textContent=Math.round(state.relationship);document.getElementById('rel-bar').style.width=Math.min(100,(state.relationship/400)*100)+'%';document.getElementById('rel-bar').style.background=state.relationship>100?'#e63946':'#999';document.getElementById('health-val').textContent=Math.round(state.health);document.getElementById('health-bar').style.width=state.health+'%';document.getElementById('health-bar').style.background=state.health>50?'#2ecc71':'#f39c12';}
+function endGame(reason){state.gameOver=true;document.getElementById('next-btn').disabled=true;const win=state.career>=500&&state.relationship>=200;let title,desc;if(reason==='health'){title='🏥 Health Collapsed';desc=`On Day ${state.day}, your health gave out. Career: ${Math.round(state.career)}, Relationship: ${Math.round(state.relationship)}.`;}else if(win){title='🏆 A Life Well Built';desc=`Day 100 reached. Career: ${Math.round(state.career)} ✓ | Relationship: ${Math.round(state.relationship)} ✓. ${state.divorced?'One divorce along the way.':'No divorces.'}`;}else{title='⚖️ Life Incomplete';desc=`Day 100. Career: ${Math.round(state.career)} ${state.career>=500?'✓':'✗'} | Relationship: ${Math.round(state.relationship)} ${state.relationship>=200?'✓':'✗'}. ${state.divorced?'The divorce set you back.':''}`;}document.getElementById('end-title').textContent=title;document.getElementById('end-desc').textContent=desc;document.getElementById('end-modal').classList.remove('hidden');}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const entry=document.createElement('div');entry.className='log-entry '+cls;entry.textContent=msg;log.insertBefore(entry,log.firstChild);}
+function restartGame(){state={day:1,career:0,relationship:200,health:100,alloc:{career:2,relationship:2,health:2,kids:2,personal:2},energyUsed:10,divorced:false,gameOver:false};document.getElementById('end-modal').classList.add('hidden');document.getElementById('event-container').innerHTML='';document.getElementById('game-log').innerHTML='<div class="log-entry good">Day 1 — A new life begins. 10 energy units to spend.</div>';updateDashboard();updateAlex();renderAlloc();}
+updateDashboard();updateAlex();renderAlloc();
+</script>
+</body>
+</html>

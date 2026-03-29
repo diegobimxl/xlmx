@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rentar vs Comprar — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.main{max-width:700px;margin:32px auto;padding:0 32px}
+h2{font-size:18px;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.panel{border:1px solid #e5e5e5;border-radius:6px;padding:20px}
+.panel h3{font-size:13px;font-weight:600;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em;color:#666}
+label{font-size:12px;color:#666;display:block;margin-bottom:10px}
+input{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-top:3px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;width:100%;margin-top:4px}
+.result{border:1px solid #e5e5e5;border-radius:6px;padding:20px;margin-top:20px;display:none}
+.result .kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{text-align:center;padding:12px;border:1px solid #e5e5e5;border-radius:6px}
+.kpi .val{font-size:20px;font-weight:700}
+.kpi .lbl{font-size:11px;color:#666;margin-top:2px}
+.verdict{padding:16px;border-radius:6px;text-align:center;font-size:15px;font-weight:600}
+.verdict.comprar{background:#dcfce7;color:#166534}
+.verdict.rentar{background:#dbeafe;color:#1e3a8a}
+.verdict.empate{background:#f5f5f5;color:#333}
+.row-detail{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Rentar vs Comprar</span></div>
+<a href="../" class="back">&larr; Portal</a>
+</header>
+<div class="main">
+<h2>Rentar vs Comprar en Mexico</h2>
+<p class="sub">Compara el costo real de rentar contra comprar propiedad. Hipoteca, plusvalia y ROI a 10 anos.</p>
+<div class="grid">
+<div class="panel">
+<h3>Escenario Renta</h3>
+<label>Renta mensual (MXN)<input type="number" id="renta" value="12000"></label>
+<label>Incremento anual de renta (%)<input type="number" id="rentaInc" value="5"></label>
+<label>Inversion inicial alternativa (MXN)<input type="number" id="invAlt" value="300000"></label>
+<label>Rendimiento inversion alternativa (%/ano)<input type="number" id="invRend" value="9"></label>
+</div>
+<div class="panel">
+<h3>Escenario Compra</h3>
+<label>Precio de la propiedad (MXN)<input type="number" id="precio" value="2500000"></label>
+<label>Enganche (%)<input type="number" id="enganche" value="20"></label>
+<label>Tasa hipotecaria anual (%)<input type="number" id="tasa" value="10.5"></label>
+<label>Plazo hipoteca (anos)<input type="number" id="plazo" value="20"></label>
+<label>Plusvalia anual (%)<input type="number" id="plusvalia" value="6"></label>
+<label>Gastos mantenimiento/ano (MXN)<input type="number" id="manto" value="24000"></label>
+</div>
+</div>
+<label style="margin-top:16px;font-size:12px;color:#666">Horizonte de analisis (anos)<input type="number" id="horizonte" value="10" style="max-width:120px;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-top:3px"></label>
+<button class="btn" onclick="calc()" style="margin-top:12px">Calcular</button>
+<div class="result" id="result"></div>
+</div>
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Rentar vs Comprar — XLMX</span><a href="mailto:info@bimxl.com">Contacto</a></div>
+<script>
+function fmt(n){return'$'+Math.round(n).toLocaleString('es-MX')}
+function calc(){
+  const renta=parseFloat(document.getElementById('renta').value)||0;
+  const rentaInc=parseFloat(document.getElementById('rentaInc').value)/100||0.05;
+  const invAlt=parseFloat(document.getElementById('invAlt').value)||0;
+  const invRend=parseFloat(document.getElementById('invRend').value)/100||0.09;
+  const precio=parseFloat(document.getElementById('precio').value)||0;
+  const engPct=parseFloat(document.getElementById('enganche').value)/100||0.2;
+  const tasa=parseFloat(document.getElementById('tasa').value)/100||0.105;
+  const plazo=parseFloat(document.getElementById('plazo').value)||20;
+  const plusvalia=parseFloat(document.getElementById('plusvalia').value)/100||0.06;
+  const manto=parseFloat(document.getElementById('manto').value)||0;
+  const h=parseInt(document.getElementById('horizonte').value)||10;
+
+  const enganche=precio*engPct;
+  const credito=precio-enganche;
+  const tasaMens=tasa/12;
+  const nPagos=plazo*12;
+  const mensualidad=credito*(tasaMens*Math.pow(1+tasaMens,nPagos))/(Math.pow(1+tasaMens,nPagos)-1);
+
+  // Costo total renta en horizonte
+  let totalRenta=0,r=renta;
+  for(let y=0;y<h;y++){totalRenta+=r*12;r*=(1+rentaInc);}
+  // Oportunidad: enganche invertido
+  const oportunidad=enganche*(Math.pow(1+invRend,h)-1);
+  // Inversion alternativa crece
+  const invFinal=invAlt*Math.pow(1+invRend,h);
+  const costoRentaTotal=totalRenta; // no incluye oportunidad para simplificar
+
+  // Costo total compra en horizonte
+  const totalHipoteca=mensualidad*12*h;
+  const totalManto=manto*h;
+  const costoCompraTotal=enganche+totalHipoteca+totalManto;
+
+  // Valor propiedad al final
+  const valorFinal=precio*Math.pow(1+plusvalia,h);
+  const gananciaPlus=valorFinal-precio;
+
+  // Patrimonio neto compra = valor final - saldo hipoteca pendiente
+  let saldo=credito;
+  for(let m=0;m<h*12;m++){saldo=saldo*(1+tasaMens)-mensualidad;}
+  const patrimonioNeto=valorFinal-Math.max(0,saldo);
+
+  const diff=costoCompraTotal-costoRentaTotal;
+  const netCompra=costoCompraTotal-gananciaPlus;
+  const netRenta=costoRentaTotal;
+
+  let veredicto='',verClass='';
+  if(netCompra<netRenta*0.9){veredicto='Comprar es mejor en '+h+' anos';verClass='comprar';}
+  else if(netRenta<netCompra*0.9){veredicto='Rentar es mejor en '+h+' anos';verClass='rentar';}
+  else{veredicto='Muy similar — depende de tu situacion';verClass='empate';}
+
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').innerHTML=`
+    <div class="verdict ${verClass}">${veredicto}</div>
+    <div class="kpi-row" style="margin-top:16px">
+      <div class="kpi"><div class="val">${fmt(costoRentaTotal)}</div><div class="lbl">Costo total renta ${h} anos</div></div>
+      <div class="kpi"><div class="val">${fmt(netCompra)}</div><div class="lbl">Costo neto compra (desc. plusvalia)</div></div>
+      <div class="kpi"><div class="val">${fmt(patrimonioNeto)}</div><div class="lbl">Patrimonio neto al ano ${h}</div></div>
+    </div>
+    <div class="row-detail"><span>Enganche</span><span>${fmt(enganche)}</span></div>
+    <div class="row-detail"><span>Mensualidad hipoteca</span><span>${fmt(mensualidad)}/mes</span></div>
+    <div class="row-detail"><span>Total pagado hipoteca ${h} anos</span><span>${fmt(totalHipoteca)}</span></div>
+    <div class="row-detail"><span>Plusvalia acumulada ${h} anos</span><span>${fmt(gananciaPlus)}</span></div>
+    <div class="row-detail"><span>Valor propiedad ano ${h}</span><span>${fmt(valorFinal)}</span></div>
+    <div class="row-detail"><span>Renta inicial</span><span>${fmt(renta)}/mes</span></div>
+    <div class="row-detail"><span>Renta ano ${h}</span><span>${fmt(renta*Math.pow(1+rentaInc,h-1))}/mes</span></div>
+  `;
+}
+</script>
+</body>
+</html>

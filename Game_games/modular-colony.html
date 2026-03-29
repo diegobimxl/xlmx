@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modular Colony — XLMX</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#e8e0d0; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; }
+h1 { font-size:1rem; letter-spacing:0.3em; text-transform:uppercase; color:#c8b89a; margin-bottom:3px; }
+.subtitle { font-size:0.6rem; color:#555; letter-spacing:0.2em; margin-bottom:14px; }
+.game-wrap { display:flex; gap:14px; align-items:flex-start; }
+.panel { border:1px solid #2a2a2a; background:#141414; padding:10px; }
+.panel-label { font-size:0.5rem; letter-spacing:0.25em; color:#555; text-transform:uppercase; margin-bottom:8px; }
+.left-panel { width:160px; display:flex; flex-direction:column; gap:8px; }
+.right-panel { width:160px; display:flex; flex-direction:column; gap:8px; }
+canvas { border:1px solid #2a2a2a; display:block; cursor:pointer; background:#060810; }
+.pod-btn { display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid #222; cursor:pointer; width:100%; font-family:'Courier New',monospace; font-size:0.58rem; color:#777; text-transform:uppercase; transition:all .15s; }
+.pod-btn:hover { border-color:#555; color:#c8b89a; }
+.pod-btn.active { border-color:#c8b89a; color:#c8b89a; background:#1a1a1a; }
+.pod-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+.pod-info { font-size:0.5rem; color:#555; line-height:1.4; }
+.pod-info strong { color:#888; display:block; }
+.btn { background:none; border:1px solid #444; color:#c8b89a; font-family:'Courier New',monospace; font-size:0.58rem; letter-spacing:.12em; padding:6px 10px; cursor:pointer; text-transform:uppercase; width:100%; margin-top:4px; }
+.btn:hover { border-color:#c8b89a; }
+.stat-row { display:flex; justify-content:space-between; font-size:0.58rem; margin-bottom:5px; }
+.stat-row span { color:#c8b89a; }
+.stat-row span.danger { color:#c04040; }
+.stat-row span.safe { color:#40a060; }
+.res-bar-wrap { height:5px; background:#1a1a1a; margin-bottom:7px; }
+.res-bar { height:100%; transition:width .4s, background .4s; }
+.big-stat { font-size:1.4rem; color:#c8b89a; text-align:center; }
+.level-desc { font-size:0.58rem; color:#666; line-height:1.7; }
+.level-desc strong { color:#c8b89a; }
+#msg { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border:1px solid #555; padding:28px 36px; text-align:center; z-index:100; display:none; min-width:290px; }
+#msg h2 { font-size:.9rem; letter-spacing:.3em; color:#c8b89a; margin-bottom:10px; }
+#msg p { font-size:.62rem; color:#666; margin-bottom:16px; line-height:1.9; }
+</style>
+</head>
+<body>
+<h1>Modular Colony</h1>
+<div class="subtitle">Build a self-sustaining Mars base. Don't run out of O₂.</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Pod Type</div></div>
+    <button class="pod-btn active" data-pod="habitat" onclick="setPod('habitat')"><div class="pod-dot" style="background:#5a7a9a"></div><div class="pod-info"><strong>Habitat</strong>Needs O₂ · $80</div></button>
+    <button class="pod-btn" data-pod="o2gen" onclick="setPod('o2gen')"><div class="pod-dot" style="background:#4a9a6a"></div><div class="pod-info"><strong>O₂ Generator</strong>Produces O₂ · $120</div></button>
+    <button class="pod-btn" data-pod="power" onclick="setPod('power')"><div class="pod-dot" style="background:#c8a030"></div><div class="pod-info"><strong>Solar Array</strong>Produces power · $100</div></button>
+    <button class="pod-btn" data-pod="greenhouse" onclick="setPod('greenhouse')"><div class="pod-dot" style="background:#6a9a4a"></div><div class="pod-info"><strong>Greenhouse</strong>Food + O₂ · $140</div></button>
+    <button class="pod-btn" data-pod="lab" onclick="setPod('lab')"><div class="pod-dot" style="background:#9a6a9a"></div><div class="pod-info"><strong>Research Lab</strong>Score pts · $160</div></button>
+    <button class="pod-btn" data-pod="tunnel" onclick="setPod('tunnel')"><div class="pod-dot" style="background:#6a6060"></div><div class="pod-info"><strong>Tunnel</strong>Connects pods · $30</div></button>
+    <button class="pod-btn" data-pod="erase" onclick="setPod('erase')"><div class="pod-dot" style="background:#1a1a1a;border:1px solid #444;border-radius:50%;"></div>Demolish</button>
+    <button class="btn" onclick="clearAll()">Clear Colony</button>
+    <button class="btn" onclick="nextLevel()" id="next-btn" style="display:none;">Next Level →</button>
+  </div>
+  <canvas id="canvas" width="500" height="460"></canvas>
+  <div class="right-panel">
+    <div class="panel"><div class="panel-label">Budget</div><div class="big-stat" id="budget-left">$500</div><div class="res-bar-wrap"><div class="res-bar" id="budget-bar" style="width:100%;background:#5a7a5a;"></div></div></div>
+    <div class="panel">
+      <div class="panel-label">Resources</div>
+      <div class="stat-row">O₂ Supply <span id="o2-supply">0</span></div>
+      <div class="res-bar-wrap"><div class="res-bar" id="o2-bar" style="width:0%;background:#4a9a6a;"></div></div>
+      <div class="stat-row">O₂ Demand <span id="o2-demand">0</span></div>
+      <div class="stat-row">Power <span id="power-stat">0 / 0</span></div>
+      <div class="res-bar-wrap"><div class="res-bar" id="power-bar" style="width:0%;background:#c8a030;"></div></div>
+      <div class="stat-row">Pods Alive <span id="pods-alive">0</span></div>
+      <div class="stat-row">Starving <span id="starving" class="safe">None</span></div>
+    </div>
+    <div class="panel"><div class="panel-label">Score</div><div class="big-stat" id="score-display">0</div></div>
+    <div class="panel"><div class="panel-label">Level</div><div class="level-desc" id="level-desc"></div></div>
+    <div class="panel" style="margin-top:2px;">
+      <div class="panel-label">O₂ Flow Key</div>
+      <div style="font-size:0.52rem;color:#555;line-height:1.9;"><span style="color:#4a9a6a">━</span> O₂ flowing<br><span style="color:#c04040">━</span> O₂ cut off<br>Pods need adjacent tunnel or direct neighbor</div>
+    </div>
+  </div>
+</div>
+<div id="msg"><h2 id="msg-title">Colony Stable</h2><p id="msg-body"></p><button class="btn" onclick="document.getElementById('msg').style.display='none'">Continue</button><button class="btn" style="margin-top:6px;" onclick="document.getElementById('msg').style.display='none';nextLevel()">Next Level →</button></div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const CW=500,CH=460;
+const HEX_R=26,HEX_W=HEX_R*Math.sqrt(3),HEX_H=HEX_R*2;
+const GRID_COLS=10,GRID_ROWS=8;
+const OFFSET_X=CW/2-(GRID_COLS*HEX_W)/2+HEX_W/2;
+const OFFSET_Y=CH/2-(GRID_ROWS*HEX_H*0.75)/2+HEX_R;
+function hexCenter(col,row){const x=OFFSET_X+col*HEX_W+(row%2===1?HEX_W/2:0);const y=OFFSET_Y+row*HEX_H*0.75;return{x,y};}
+function hexPath(cx,cy,r){ctx.beginPath();for(let i=0;i<6;i++){const angle=Math.PI/180*(60*i-30);const px=cx+r*Math.cos(angle),py=cy+r*Math.sin(angle);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.closePath();}
+function screenToHex(sx,sy){let best=null,bestD=Infinity;for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++){const{x,y}=hexCenter(c,r);const d=Math.sqrt((sx-x)**2+(sy-y)**2);if(d<bestD){bestD=d;best={c,r};}}return bestD<HEX_R*1.1?best:null;}
+function hexNeighbors(col,row){const odd=row%2===1;const dirs=odd?[[1,0],[-1,0],[0,-1],[1,-1],[0,1],[1,1]]:[[1,0],[-1,0],[0,-1],[-1,-1],[0,1],[-1,1]];return dirs.map(([dc,dr])=>({c:col+dc,r:row+dr})).filter(({c,r})=>c>=0&&c<GRID_COLS&&r>=0&&r<GRID_ROWS);}
+const PODS={habitat:{color:'#3a5a7a',glow:'#5a8ab0',cost:80,o2Need:2,o2Prod:0,power:1,score:0,label:'HAB'},o2gen:{color:'#2a7a4a',glow:'#4aaa6a',cost:120,o2Need:0,o2Prod:3,power:2,score:0,label:'O₂'},power:{color:'#9a7a10',glow:'#c8a030',cost:100,o2Need:0,o2Prod:0,power:-4,score:0,label:'PWR'},greenhouse:{color:'#4a7a2a',glow:'#7aaa4a',cost:140,o2Need:1,o2Prod:1,power:1,score:1,label:'GRN'},lab:{color:'#7a4a8a',glow:'#aa6ab0',cost:160,o2Need:2,o2Prod:0,power:2,score:5,label:'LAB'},tunnel:{color:'#4a3e3e',glow:'#6a5e5e',cost:30,o2Need:0,o2Prod:0,power:0,score:0,label:'TUN'}};
+const LEVELS=[{name:'Base Camp',budget:500,scoreTarget:5,desc:'Budget $500. Place an O₂ generator and connect a habitat. Score 5 pts.'},{name:'Expansion',budget:900,scoreTarget:20,desc:'Budget $900. Build 3+ habitats, 2+ O₂ sources. Score 20 pts.'},{name:'Autonomy',budget:1500,scoreTarget:50,desc:'Budget $1500. Full self-sustaining colony. Score 50 pts.'}];
+let currentLevel=0,grid={},currentPod='habitat',score=0,levelPassed=false;
+function key(c,r){return`${c},${r}`;}
+function setPod(p){currentPod=p;document.querySelectorAll('.pod-btn[data-pod]').forEach(b=>b.classList.toggle('active',b.dataset.pod===p));}
+function clearAll(){grid={};score=0;levelPassed=false;document.getElementById('next-btn').style.display='none';updateStats();render();}
+function initLevel(){grid={};score=0;levelPassed=false;document.getElementById('next-btn').style.display='none';const lv=LEVELS[currentLevel];document.getElementById('level-desc').innerHTML=`<strong>Level ${currentLevel+1}: ${lv.name}</strong><br>${lv.desc}`;updateStats();render();}
+function analyzeNetwork(){const podList=Object.entries(grid).map(([k,t])=>{const[c,r]=k.split(',').map(Number);return{c,r,type:t};});function connected(a,b){const visited=new Set();const queue=[a];while(queue.length){const cur=queue.shift();const k2=key(cur.c,cur.r);if(visited.has(k2))continue;visited.add(k2);const neighbors=hexNeighbors(cur.c,cur.r);for(const n of neighbors){const nk=key(n.c,n.r);const nType=grid[nk];if(!nType)continue;if(nk===key(b.c,b.r))return true;if(nType==='tunnel')queue.push({c:n.c,r:n.r});}}return false;}const o2Sources=podList.filter(p=>PODS[p.type].o2Prod>0);const powerSources=podList.filter(p=>PODS[p.type].power<0);const o2Reached=new Set();for(const src of o2Sources){o2Reached.add(key(src.c,src.r));for(const pod of podList){if(connected(src,pod))o2Reached.add(key(pod.c,pod.r));}}const powerReached=new Set();for(const src of powerSources){powerReached.add(key(src.c,src.r));for(const pod of podList){if(connected(src,pod))powerReached.add(key(pod.c,pod.r));}}return{o2Reached,powerReached,podList,o2Sources,powerSources};}
+function updateStats(){const lv=LEVELS[currentLevel];const{o2Reached,powerReached,podList}=analyzeNetwork();let o2Supply=0,o2Demand=0,powerSupply=0,powerDemand=0,podsAlive=0,starving=0;score=0;podList.forEach(p=>{const def=PODS[p.type];const k2=key(p.c,p.r);const hasO2=o2Reached.has(k2)||def.o2Need===0;const hasPower=powerReached.has(k2)||def.power===0;const alive=hasO2&&hasPower;if(alive){podsAlive++;o2Supply+=def.o2Prod;o2Demand+=def.o2Need;if(def.power>0)powerDemand+=def.power;else powerSupply+=Math.abs(def.power);score+=def.score;}else{starving++;}});const spent=podList.reduce((s,p)=>s+PODS[p.type].cost,0);const remaining=lv.budget-spent;document.getElementById('budget-left').textContent='$'+remaining;document.getElementById('budget-bar').style.width=Math.max(0,(remaining/lv.budget)*100)+'%';document.getElementById('budget-bar').style.background=remaining<0?'#a04040':'#5a7a5a';document.getElementById('o2-supply').textContent=o2Supply;document.getElementById('o2-demand').textContent=o2Demand;document.getElementById('o2-bar').style.width=o2Supply>0?Math.min(100,(o2Supply/Math.max(1,o2Demand))*100)+'%':'0%';document.getElementById('o2-bar').style.background=o2Supply>=o2Demand?'#4a9a6a':'#a04040';document.getElementById('power-stat').textContent=`${powerSupply} / ${powerDemand}`;document.getElementById('power-bar').style.width=powerSupply>0?Math.min(100,(powerSupply/Math.max(1,powerDemand))*100)+'%':'0%';document.getElementById('power-bar').style.background=powerSupply>=powerDemand?'#c8a030':'#a04040';document.getElementById('pods-alive').textContent=podsAlive;const stEl=document.getElementById('starving');stEl.textContent=starving>0?starving+' offline':'None';stEl.className=starving>0?'danger':'safe';document.getElementById('score-display').textContent=score;if(!levelPassed&&score>=lv.scoreTarget&&o2Supply>=o2Demand&&powerSupply>=powerDemand){levelPassed=true;document.getElementById('next-btn').style.display='block';document.getElementById('msg-title').textContent='Colony Stable';document.getElementById('msg-body').textContent=`Score ${score}/${lv.scoreTarget} achieved. All pods have O₂ and power.`;document.getElementById('msg').style.display='block';}}
+function render(){ctx.clearRect(0,0,CW,CH);ctx.fillStyle='#060810';ctx.fillRect(0,0,CW,CH);ctx.fillStyle='rgba(255,255,255,0.4)';for(let i=0;i<80;i++){const sx=(i*137)%CW,sy=(i*97)%CH;ctx.fillRect(sx,sy,1,1);}const{o2Reached,powerReached}=analyzeNetwork();const drawnEdges=new Set();for(let r=0;r<GRID_ROWS;r++)for(let c=0;c<GRID_COLS;c++){const k1=key(c,r);if(!grid[k1])continue;const{x:x1,y:y1}=hexCenter(c,r);hexNeighbors(c,r).forEach(({c:nc,r:nr})=>{const k2=key(nc,nr);if(!grid[k2])return;const edgeKey=[k1,k2].sort().join('|');if(drawnEdges.has(edgeKey))return;drawnEdges.add(edgeKey);const{x:x2,y:y2}=hexCenter(nc,nr);const bothO2=o2Reached.has(k1)&&o2Reached.has(k2);const isPower=grid[k1]==='power'||grid[k2]==='power';ctx.strokeStyle=isPower?'rgba(200,160,48,0.5)':bothO2?'rgba(74,154,106,0.5)':'rgba(192,64,64,0.3)';ctx.lineWidth=bothO2?2:1;ctx.setLineDash(bothO2?[]:[4,4]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);});}for(let r=0;r<GRID_ROWS;r++){for(let c=0;c<GRID_COLS;c++){const{x,y}=hexCenter(c,r);const k=key(c,r);const podType=grid[k];if(!podType){hexPath(x,y,HEX_R-1);ctx.fillStyle='rgba(255,255,255,0.02)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=0.5;ctx.stroke();continue;}const def=PODS[podType];const hasO2=o2Reached.has(k)||def.o2Need===0;const alive=hasO2;ctx.save();const grd=ctx.createRadialGradient(x,y,0,x,y,HEX_R);grd.addColorStop(0,def.glow+(alive?'44':'22'));grd.addColorStop(1,'transparent');hexPath(x,y,HEX_R*1.4);ctx.fillStyle=grd;ctx.fill();ctx.restore();hexPath(x,y,HEX_R-2);ctx.fillStyle=alive?def.color:def.color+'66';ctx.fill();ctx.strokeStyle=alive?def.glow:'#333';ctx.lineWidth=alive?1.5:0.5;ctx.stroke();ctx.fillStyle=alive?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.3)';ctx.font=`bold ${HEX_R*0.38}px Courier New`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(def.label,x,y);if(!hasO2&&def.o2Need>0){ctx.fillStyle='#c04040';ctx.font=`${HEX_R*0.28}px Courier New`;ctx.fillText('NO O₂',x,y+HEX_R*0.45);}ctx.textAlign='left';ctx.textBaseline='alphabetic';}}ctx.fillStyle='rgba(120,60,20,0.15)';ctx.fillRect(0,CH-20,CW,20);}
+canvas.addEventListener('click',e=>{const rect=canvas.getBoundingClientRect();const pos=screenToHex(e.clientX-rect.left,e.clientY-rect.top);if(!pos)return;const k=key(pos.c,pos.r);if(currentPod==='erase'){delete grid[k];}else{const lv=LEVELS[currentLevel];const spent=Object.values(grid).reduce((s,t)=>s+PODS[t].cost,0);const cost=PODS[currentPod].cost;if(spent+cost>lv.budget&&!grid[k])return;grid[k]=currentPod;}updateStats();render();});
+function nextLevel(){if(currentLevel<LEVELS.length-1){currentLevel++;initLevel();}}
+initLevel();
+</script>
+</body>
+</html>

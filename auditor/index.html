@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AuditorSAT — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e5e5;padding:0 32px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#111;border-bottom-color:#111}
+.pn{display:none;padding:24px 32px}.pn.on{display:block}
+.upload-zone{border:2px dashed #ddd;border-radius:8px;padding:48px;text-align:center;cursor:pointer;margin-bottom:20px}
+.upload-zone:hover{border-color:#888}
+.upload-zone p{color:#666;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px;background:#f9f9f9;border-bottom:1px solid #e5e5e5;font-weight:600;color:#666;font-size:11px}
+td{padding:8px;border-bottom:1px solid #f0f0f0}tr:hover{background:#fafafa}
+.alert{padding:12px 16px;border-radius:4px;margin-bottom:8px;font-size:13px;border-left:4px solid}
+.alert-warn{background:#fff3e0;border-color:#e65100;color:#e65100}
+.alert-ok{background:#f1f8e9;border-color:#558b2f;color:#558b2f}
+.alert-err{background:#fce4ec;border-color:#c62828;color:#c62828}
+canvas{width:100%;border:1px solid #e5e5e5;border-radius:6px;display:block;margin-bottom:16px}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{border:1px solid #e5e5e5;border-radius:6px;padding:16px;text-align:center}.stat-card .val{font-size:22px;font-weight:700}.stat-card .lbl{font-size:11px;color:#666}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px}
+.form-grid label{font-size:12px;color:#666;display:flex;flex-direction:column;gap:4px}
+.form-grid input,.form-grid select{padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;margin-top:12px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+.lang-toggle{font-size:12px;cursor:pointer;padding:4px 10px;border:1px solid #ddd;border-radius:4px}
+@media(max-width:600px){.stat-cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">AuditorSAT</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span class="lang-toggle" onclick="toggleLang()">ES / EN</span><a href="../" class="back">← Portal</a></div>
+</header>
+<div class="tabs">
+<div class="tab on" data-p="cargar">Cargar XMLs</div>
+<div class="tab" data-p="facturas">Facturas</div>
+<div class="tab" data-p="auditoria">Auditoria</div>
+<div class="tab" data-p="resumen">Resumen</div>
+</div>
+
+<div class="pn on" id="cargar">
+<div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+<p id="uploadText">Arrastra tus archivos XML aqui o haz clic para seleccionar</p>
+<p style="font-size:11px;color:#aaa;margin-top:8px">Acepta CFDIs 3.3 y 4.0</p>
+</div>
+<input type="file" id="fileInput" multiple accept=".xml" style="display:none" onchange="handleFiles(this.files)">
+<div id="fileList"></div>
+</div>
+<div class="pn" id="facturas">
+<div style="overflow-x:auto"><table>
+<thead><tr><th>UUID</th><th>Emisor</th><th>RFC Emisor</th><th>Receptor</th><th>Subtotal</th><th>IVA</th><th>Total</th><th>Fecha</th><th>Tipo</th></tr></thead>
+<tbody id="facBody"></tbody>
+</table></div>
+</div>
+
+<div class="pn" id="auditoria">
+<h3 style="font-size:15px;margin-bottom:12px" id="auditTitle">Resultados de Auditoria</h3>
+<div id="alertList"></div>
+</div>
+
+<div class="pn" id="resumen">
+<div class="stat-cards" id="stats"></div>
+<canvas id="chartMonth" height="280"></canvas>
+</div>
+
+<div style="height:60px"></div>
+<div class="footer-bar"><span>AuditorSAT — XLMX</span><a href="mailto:diego@bimxl.com">Contactanos</a></div>
+
+<script>
+let lang='es';
+let invoices=[];
+const t={es:{upload:'Arrastra tus archivos XML aqui o haz clic para seleccionar',facturas:'Facturas',audit:'Resultados de Auditoria',noIssues:'No se encontraron discrepancias.',duplicateUUID:'UUID duplicado detectado',missingIVA:'Factura sin IVA calculado',mismatchTotal:'Total no coincide con Subtotal + IVA',totalInvoices:'Facturas Totales',totalIncome:'Ingresos Totales',totalExpenses:'Gastos Totales',ivaBalance:'Balance IVA'},en:{upload:'Drag your XML files here or click to select',facturas:'Invoices',audit:'Audit Results',noIssues:'No discrepancies found.',duplicateUUID:'Duplicate UUID detected',missingIVA:'Invoice missing calculated IVA',mismatchTotal:'Total does not match Subtotal + IVA',totalInvoices:'Total Invoices',totalIncome:'Total Income',totalExpenses:'Total Expenses',ivaBalance:'IVA Balance'}};
+
+function toggleLang(){lang=lang==='es'?'en':'es';document.getElementById('uploadText').textContent=t[lang].upload;document.getElementById('auditTitle').textContent=t[lang].audit;}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pn').forEach(x=>x.classList.remove('on'));
+  this.classList.add('on');document.getElementById(this.dataset.p).classList.add('on');
+  if(this.dataset.p==='auditoria')runAudit();
+  if(this.dataset.p==='resumen')drawSummary();
+}));
+
+function handleFiles(files){
+  [...files].forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const parser=new DOMParser();
+        const xml=parser.parseFromString(e.target.result,'text/xml');
+        const comp=xml.querySelector('Comprobante')||xml.documentElement;
+        const emisor=comp.querySelector('Emisor');
+        const receptor=comp.querySelector('Receptor');
+        const timbre=comp.querySelector('TimbreFiscalDigital');
+        const inv={
+          uuid:timbre?timbre.getAttribute('UUID'):'N/A',
+          emisorNombre:emisor?emisor.getAttribute('Nombre'):'',
+          emisorRFC:emisor?emisor.getAttribute('Rfc'):'',
+          receptorNombre:receptor?receptor.getAttribute('Nombre'):'',
+          receptorRFC:receptor?receptor.getAttribute('Rfc'):'',
+          subtotal:parseFloat(comp.getAttribute('SubTotal'))||0,
+          total:parseFloat(comp.getAttribute('Total'))||0,
+          fecha:comp.getAttribute('Fecha')||'',
+          tipo:comp.getAttribute('TipoDeComprobante')||'',
+          moneda:comp.getAttribute('Moneda')||'MXN'        };
+        inv.iva=Math.round((inv.total-inv.subtotal)*100)/100;
+        invoices.push(inv);
+        renderInvoices();
+      }catch(err){console.log('Error parsing',f.name);}
+    };
+    reader.readAsText(f);
+  });
+  document.getElementById('fileList').innerHTML=`<p style="font-size:12px;color:#558b2f">${files.length} archivo(s) cargado(s)</p>`;
+}
+
+function renderInvoices(){
+  const tb=document.getElementById('facBody');tb.innerHTML='';
+  invoices.forEach(inv=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-size:10px">${inv.uuid}</td><td>${inv.emisorNombre}</td><td>${inv.emisorRFC}</td><td>${inv.receptorNombre}</td><td>$${inv.subtotal.toLocaleString()}</td><td>$${inv.iva.toLocaleString()}</td><td>$${inv.total.toLocaleString()}</td><td>${inv.fecha.split('T')[0]}</td><td>${inv.tipo}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function runAudit(){
+  const al=document.getElementById('alertList');al.innerHTML='';
+  if(!invoices.length){al.innerHTML=`<div class="alert alert-ok">${t[lang].noIssues}</div>`;return;}
+  const uuids={};let issues=0;
+  invoices.forEach(inv=>{
+    if(uuids[inv.uuid]){al.innerHTML+=`<div class="alert alert-err">${t[lang].duplicateUUID}: ${inv.uuid}</div>`;issues++;}
+    uuids[inv.uuid]=true;
+    const calcTotal=Math.round((inv.subtotal+inv.iva)*100)/100;
+    if(Math.abs(calcTotal-inv.total)>1){al.innerHTML+=`<div class="alert alert-warn">${t[lang].mismatchTotal}: ${inv.emisorNombre} — Calc: $${calcTotal.toLocaleString()} vs Total: $${inv.total.toLocaleString()}</div>`;issues++;}
+    if(inv.iva===0&&inv.subtotal>0){al.innerHTML+=`<div class="alert alert-warn">${t[lang].missingIVA}: ${inv.emisorNombre} ($${inv.subtotal.toLocaleString()})</div>`;issues++;}
+  });
+  if(!issues)al.innerHTML=`<div class="alert alert-ok">${t[lang].noIssues}</div>`;
+}
+function drawSummary(){
+  const st=document.getElementById('stats');
+  const income=invoices.filter(i=>i.tipo==='I').reduce((s,i)=>s+i.total,0);
+  const expenses=invoices.filter(i=>i.tipo==='E').reduce((s,i)=>s+i.total,0);
+  const ivaIn=invoices.filter(i=>i.tipo==='I').reduce((s,i)=>s+i.iva,0);
+  const ivaOut=invoices.filter(i=>i.tipo==='E').reduce((s,i)=>s+i.iva,0);
+  st.innerHTML=`<div class="stat-card"><div class="val">${invoices.length}</div><div class="lbl">${t[lang].totalInvoices}</div></div><div class="stat-card"><div class="val">$${Math.round(income).toLocaleString()}</div><div class="lbl">${t[lang].totalIncome}</div></div><div class="stat-card"><div class="val">$${Math.round(expenses).toLocaleString()}</div><div class="lbl">${t[lang].totalExpenses}</div></div><div class="stat-card"><div class="val">$${Math.round(ivaIn-ivaOut).toLocaleString()}</div><div class="lbl">${t[lang].ivaBalance}</div></div>`;
+
+  // Monthly chart
+  const months={};invoices.forEach(inv=>{
+    const m=inv.fecha.substring(0,7);if(!months[m])months[m]={in:0,out:0};
+    if(inv.tipo==='I')months[m].in+=inv.total;else months[m].out+=inv.total;
+  });
+  const labels=Object.keys(months).sort();
+  const c=document.getElementById('chartMonth');const ctx=c.getContext('2d');
+  c.width=c.offsetWidth*2;c.height=560;ctx.scale(2,2);
+  const W=c.offsetWidth,H=280,pad=50;
+  const max=Math.max(...labels.map(m=>Math.max(months[m].in,months[m].out)),1);
+  const gw=(W-pad*2)/Math.max(labels.length,1);const bw=gw*0.35;
+  ctx.clearRect(0,0,W,H);
+  labels.forEach((m,i)=>{
+    const x=pad+i*gw;
+    const hIn=(months[m].in/max)*(H-pad*2);
+    const hOut=(months[m].out/max)*(H-pad*2);
+    ctx.fillStyle='#111';ctx.fillRect(x,H-pad-hIn,bw,hIn);
+    ctx.fillStyle='#bbb';ctx.fillRect(x+bw+2,H-pad-hOut,bw,hOut);
+    ctx.fillStyle='#666';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText(m,x+bw,H-pad+14);
+  });
+  ctx.fillStyle='#111';ctx.fillRect(pad,10,12,12);ctx.fillStyle='#444';ctx.font='11px sans-serif';ctx.fillText('Ingresos',pad+18,20);
+  ctx.fillStyle='#bbb';ctx.fillRect(pad+90,10,12,12);ctx.fillStyle='#444';ctx.fillText('Egresos',pad+108,20);
+}
+</script>
+</body>
+</html>

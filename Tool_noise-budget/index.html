@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Noise Budget — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.result-banner{border-radius:8px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.result-banner.compliant{background:#e8f5e9;border:1px solid #a5d6a7}
+.result-banner.warning{background:#fff3e0;border:1px solid #ffcc80}
+.result-banner.fail{background:#ffebee;border:1px solid #ef9a9a}
+.banner-level{font-size:40px;font-weight:800;line-height:1}
+.banner-label{font-size:13px;font-weight:600;margin-top:2px}
+.banner-msg{font-size:13px;flex:1;min-width:180px}
+.banner-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:3px}
+.tag-ok{background:#2e7d32;color:#fff}
+.tag-warn{background:#e65100;color:#fff}
+.tag-fail{background:#c62828;color:#fff}
+.controls-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:500px){.controls-row{grid-template-columns:1fr}}
+.ctrl-card{border:1px solid #e5e5e5;border-radius:6px;padding:14px 16px}
+.ctrl-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.ctrl-card input,.ctrl-card select{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.sources-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center}
+.add-link{font-size:12px;color:#1565c0;cursor:pointer;font-weight:600}
+.source-row{display:grid;grid-template-columns:1fr 130px 110px 36px;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid #f0f0f0}
+.source-row:last-of-type{border:none}
+.src-name{font-size:13px;padding:6px 10px;border:1px solid #e5e5e5;border-radius:4px;width:100%;font-family:inherit}
+.src-db{font-size:13px;padding:6px 10px;border:1px solid #e5e5e5;border-radius:4px;width:100%;font-family:inherit;text-align:right}
+.src-type{font-size:12px;padding:6px 8px;border:1px solid #e5e5e5;border-radius:4px;width:100%;font-family:inherit}
+.remove-btn{background:none;border:none;font-size:18px;color:#ccc;cursor:pointer}
+.remove-btn:hover{color:#c62828}
+.combined-bar{margin-bottom:20px;background:#f5f5f5;border-radius:8px;overflow:hidden;border:1px solid #e5e5e5}
+.bar-label{padding:10px 16px;font-size:12px;font-weight:600;display:flex;justify-content:space-between}
+.bar-track{height:18px;background:#e5e5e5;margin:0 16px 14px;border-radius:9px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:9px;transition:width .3s}
+.bar-threshold{position:absolute;top:0;bottom:0;width:2px;background:#c62828}
+.ref-table{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.ref-row{display:grid;grid-template-columns:1fr 80px 1fr;padding:10px 16px;border-bottom:1px solid #f0f0f0;font-size:12px}
+.ref-row:last-child{border:none}
+.ref-row.header{background:#f5f5f5;font-weight:600;font-size:11px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Noise Budget</h1>
+<p>Configure your office noise sources — people, HVAC, equipment. See combined dB level and compliance against OSHA and productivity thresholds in real time.</p>
+<div class="badge">FREE TOOL</div>
+</div>
+<div class="app">
+<div class="result-banner compliant" id="resultBanner">
+<div><div class="banner-level" id="bannerDB">--</div><div class="banner-label">dB combined</div></div>
+<div class="banner-msg" id="bannerMsg">Add noise sources below to calculate your office noise level.</div>
+<span class="banner-tag tag-ok" id="bannerTag">CALCULATING</span>
+</div>
+<div class="controls-row">
+<div class="ctrl-card"><div class="ctrl-label">Threshold preset</div>
+<select id="thresholdPreset" onchange="applyPreset()">
+<option value="65">Open office / Productivity (65 dB)</option>
+<option value="70">Conference room (70 dB)</option>
+<option value="55">Focus work / Private office (55 dB)</option>
+<option value="85">OSHA 8-hour limit (85 dB)</option>
+</select>
+</div>
+<div class="ctrl-card"><div class="ctrl-label">Custom threshold (dB)</div>
+<input type="number" id="threshold" value="65" oninput="recalc()">
+</div>
+</div>
+<div class="sources-panel">
+<div class="panel-header">Noise Sources <span class="add-link" onclick="addSource()">+ Add source</span></div>
+<div id="sourceList"></div>
+</div>
+<div class="combined-bar">
+<div class="bar-label"><span>Combined level</span><span id="barPct">0%</span></div>
+<div class="bar-track">
+<div class="bar-fill" id="barFill" style="width:0%;background:#2e7d32"></div>
+<div class="bar-threshold" id="barThresh" style="left:70%"></div>
+</div>
+</div>
+<div class="ref-table">
+<div class="ref-row header"><span>Reference</span><span>Level</span><span>Effect</span></div>
+<div class="ref-row"><span>Library / whisper</span><span>30-40 dB</span><span>Deep concentration work</span></div>
+<div class="ref-row"><span>Private office</span><span>40-50 dB</span><span>Focus work, low fatigue</span></div>
+<div class="ref-row"><span>Open office (target)</span><span>50-65 dB</span><span>Acceptable productivity</span></div>
+<div class="ref-row"><span>Open office (typical)</span><span>65-75 dB</span><span>10-15% productivity loss</span></div>
+<div class="ref-row"><span>Restaurant / busy office</span><span>75-85 dB</span><span>High stress, poor recall</span></div>
+<div class="ref-row"><span>OSHA 8-hour limit</span><span>85 dB</span><span>Hearing damage risk</span></div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let sources=[];let srcId=0;
+const defaults=[
+  {name:'HVAC / air handling',db:45,type:'continuous'},
+  {name:'Keyboards & typing (8 people)',db:55,type:'intermittent'},
+  {name:'Phone conversations (3 active)',db:62,type:'intermittent'},
+  {name:'Printer / copier',db:55,type:'intermittent'},
+  {name:'Background music',db:50,type:'continuous'},
+];
+function combinedDB(dbs){
+  if(!dbs.length)return 0;
+  const sum=dbs.reduce((a,db)=>a+Math.pow(10,db/10),0);
+  return Math.round(10*Math.log10(sum)*10)/10;
+}
+function addSource(name,db,type){
+  sources.push({id:srcId++,name:name||'New source',db:db||60,type:type||'continuous'});
+  renderSources();
+}
+function removeSource(id){sources=sources.filter(s=>s.id!==id);renderSources();}
+function renderSources(){
+  const el=document.getElementById('sourceList');
+  el.innerHTML='';
+  sources.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='source-row';
+    div.innerHTML=`<input class="src-name" value="${s.name}" onchange="updateSource(${s.id},'name',this.value)">
+      <input class="src-db" type="number" value="${s.db}" min="20" max="120" onchange="updateSource(${s.id},'db',parseFloat(this.value))" title="dB level">
+      <select class="src-type" onchange="updateSource(${s.id},'type',this.value)">
+        <option value="continuous"${s.type==='continuous'?' selected':''}>Continuous</option>
+        <option value="intermittent"${s.type==='intermittent'?' selected':''}>Intermittent</option>
+      </select>
+      <button class="remove-btn" onclick="removeSource(${s.id})">×</button>`;
+    el.appendChild(div);
+  });
+  recalc();
+}
+function updateSource(id,key,val){
+  const s=sources.find(x=>x.id===id);
+  if(s){s[key]=val;recalc();}
+}
+function recalc(){
+  const threshold=parseFloat(document.getElementById('threshold').value)||65;
+  const dbs=sources.map(s=>s.type==='intermittent'?s.db-3:s.db);
+  const combined=dbs.length?combinedDB(dbs):0;
+  const pct=Math.min(100,(combined/threshold)*100);
+  const isOver=combined>threshold;
+  const isBorder=combined>threshold-5&&!isOver;
+  const banner=document.getElementById('resultBanner');
+  const barFill=document.getElementById('barFill');
+  const barPct=document.getElementById('barPct');
+  const thresh=document.getElementById('barThresh');
+  document.getElementById('bannerDB').textContent=dbs.length?combined.toFixed(1)+'':'--';
+  const threshPct=Math.min(98,Math.round((threshold/120)*100));
+  thresh.style.left=threshPct+'%';
+  barPct.textContent=dbs.length?combined.toFixed(1)+' dB':'--';
+  const fillPct=Math.min(100,Math.round((combined/120)*100));
+  barFill.style.width=fillPct+'%';
+  if(!dbs.length){banner.className='result-banner compliant';document.getElementById('bannerMsg').textContent='Add sources to calculate.';document.getElementById('bannerTag').textContent='—';barFill.style.background='#e5e5e5';return;}
+  if(isOver){banner.className='result-banner fail';document.getElementById('bannerMsg').textContent=`${(combined-threshold).toFixed(1)} dB over the ${threshold} dB threshold. Reduce continuous sources or add acoustic panels.`;document.getElementById('bannerTag').textContent='OVER LIMIT';document.getElementById('bannerTag').className='banner-tag tag-fail';barFill.style.background='#c62828';}
+  else if(isBorder){banner.className='result-banner warning';document.getElementById('bannerMsg').textContent=`Within ${(threshold-combined).toFixed(1)} dB of limit. Marginally acceptable — watch for additional noise events.`;document.getElementById('bannerTag').textContent='BORDERLINE';document.getElementById('bannerTag').className='banner-tag tag-warn';barFill.style.background='#e65100';}
+  else{banner.className='result-banner compliant';document.getElementById('bannerMsg').textContent=`${(threshold-combined).toFixed(1)} dB below the ${threshold} dB target. Within compliant range.`;document.getElementById('bannerTag').textContent='COMPLIANT';document.getElementById('bannerTag').className='banner-tag tag-ok';barFill.style.background='#2e7d32';}
+}
+function applyPreset(){
+  document.getElementById('threshold').value=document.getElementById('thresholdPreset').value;
+  recalc();
+}
+defaults.forEach(d=>addSource(d.name,d.db,d.type));
+</script>
+</body>
+</html>

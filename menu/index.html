@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Menu Engineering Calculator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e5e5;padding:0 32px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#111;border-bottom-color:#111}
+.pn{display:none;padding:24px 32px}.pn.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px;background:#f9f9f9;border-bottom:1px solid #e5e5e5;font-weight:600;color:#666;font-size:11px}
+td{padding:8px;border-bottom:1px solid #f0f0f0}tr:hover{background:#fafafa}
+.cat-star{color:#558b2f;font-weight:700}.cat-plow{color:#1565c0;font-weight:700}
+.cat-puzzle{color:#e65100;font-weight:700}.cat-dog{color:#c62828;font-weight:700}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:end}
+.form-row label{font-size:12px;color:#666;display:flex;flex-direction:column;gap:4px}
+.form-row input{padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:120px}
+.btn{padding:8px 20px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer}
+.btn-sm{padding:6px 14px;font-size:12px}
+canvas{width:100%;border:1px solid #e5e5e5;border-radius:6px;display:block;margin-bottom:16px}
+.matrix{position:relative;width:100%;max-width:500px;height:400px;border:1px solid #e5e5e5;border-radius:6px;margin:0 auto}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}.stat-card{border:1px solid #e5e5e5;border-radius:6px;padding:16px;text-align:center}
+.stat-card .val{font-size:22px;font-weight:700}.stat-card .lbl{font-size:11px;color:#666}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+@media(max-width:600px){.stat-cards{grid-template-columns:1fr 1fr}.form-row input{width:90px}}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Menu Engineering</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;cursor:pointer;padding:4px 10px;border:1px solid #ddd;border-radius:4px" onclick="toggleLang()">ES / EN</span><a href="../" class="back">← Portal</a></div>
+</header>
+<div class="tabs">
+<div class="tab on" data-p="items">Platillos / Items</div>
+<div class="tab" data-p="matrix">Matriz / Matrix</div>
+<div class="tab" data-p="resumen">Resumen / Summary</div>
+</div>
+
+<div class="pn on" id="items">
+<div class="form-row">
+<label>Nombre<input id="iName" type="text" placeholder="Ej. Hamburguesa"></label>
+<label>Precio Venta<input id="iPrice" type="number" step="0.01"></label>
+<label>Costo<input id="iCost" type="number" step="0.01"></label>
+<label>Unidades Vendidas<input id="iQty" type="number"></label>
+<button class="btn" onclick="addItem()">Agregar</button>
+</div>
+<div style="overflow-x:auto"><table>
+<thead><tr><th>Platillo</th><th>Precio</th><th>Costo</th><th>Margen</th><th>Margen %</th><th>Qty</th><th>Revenue</th><th>Profit</th><th>Mix %</th><th>Categoria</th><th></th></tr></thead>
+<tbody id="tBody"></tbody>
+</table></div>
+</div>
+<div class="pn" id="matrix">
+<h3 style="font-size:14px;margin-bottom:12px;text-align:center">Menu Engineering Matrix</h3>
+<canvas id="matrixCanvas" height="420"></canvas>
+<div style="display:flex;justify-content:center;gap:24px;font-size:12px;color:#666">
+<span><span style="color:#558b2f;font-weight:700">Star</span> = High Profit + High Pop.</span>
+<span><span style="color:#1565c0;font-weight:700">Plowhorse</span> = Low Profit + High Pop.</span>
+<span><span style="color:#e65100;font-weight:700">Puzzle</span> = High Profit + Low Pop.</span>
+<span><span style="color:#c62828;font-weight:700">Dog</span> = Low Profit + Low Pop.</span>
+</div>
+</div>
+
+<div class="pn" id="resumen">
+<div class="stat-cards" id="stats"></div>
+<canvas id="chartCat" height="280"></canvas>
+</div>
+
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Menu Engineering — XLMX</span><a href="mailto:diego@bimxl.com">Contact</a></div>
+
+<script>
+let lang='es';let items=JSON.parse(localStorage.getItem('xlmx_menu')||'[]');
+
+function toggleLang(){lang=lang==='es'?'en':'es';}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pn').forEach(x=>x.classList.remove('on'));
+  this.classList.add('on');document.getElementById(this.dataset.p).classList.add('on');
+  if(this.dataset.p==='matrix')drawMatrix();
+  if(this.dataset.p==='resumen')drawSummary();
+}));
+function classify(){
+  const totalQty=items.reduce((s,i)=>s+i.qty,0)||1;
+  const avgMargin=items.reduce((s,i)=>s+i.margin,0)/Math.max(items.length,1);
+  const avgMix=100/Math.max(items.length,1)*0.7;
+  items.forEach(i=>{
+    i.mix=(i.qty/totalQty)*100;
+    i.revenue=i.price*i.qty;
+    i.profit=i.margin*i.qty;
+    const highProfit=i.margin>=avgMargin;
+    const highPop=i.mix>=avgMix;
+    if(highProfit&&highPop)i.cat='Star';
+    else if(!highProfit&&highPop)i.cat='Plowhorse';
+    else if(highProfit&&!highPop)i.cat='Puzzle';
+    else i.cat='Dog';
+  });
+}
+
+function render(){
+  classify();
+  const tb=document.getElementById('tBody');tb.innerHTML='';
+  items.forEach((item,idx)=>{
+    const cls={'Star':'cat-star','Plowhorse':'cat-plow','Puzzle':'cat-puzzle','Dog':'cat-dog'}[item.cat];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${item.name}</td><td>$${item.price.toFixed(2)}</td><td>$${item.cost.toFixed(2)}</td><td>$${item.margin.toFixed(2)}</td><td>${item.marginPct.toFixed(1)}%</td><td>${item.qty}</td><td>$${item.revenue.toLocaleString()}</td><td>$${item.profit.toLocaleString()}</td><td>${item.mix.toFixed(1)}%</td><td class="${cls}">${item.cat}</td><td><span style="cursor:pointer;color:#c62828" onclick="removeItem(${idx})">x</span></td>`;
+    tb.appendChild(tr);
+  });
+  localStorage.setItem('xlmx_menu',JSON.stringify(items));
+}
+
+function addItem(){
+  const name=document.getElementById('iName').value;
+  const price=Number(document.getElementById('iPrice').value)||0;  const cost=Number(document.getElementById('iCost').value)||0;
+  const qty=Number(document.getElementById('iQty').value)||0;
+  if(!name||!price)return alert('Ingresa nombre y precio.');
+  items.push({name,price,cost,qty,margin:price-cost,marginPct:price?(price-cost)/price*100:0});
+  render();
+  document.getElementById('iName').value='';document.getElementById('iPrice').value='';
+  document.getElementById('iCost').value='';document.getElementById('iQty').value='';
+}
+
+function removeItem(i){items.splice(i,1);render();}
+
+function drawMatrix(){
+  classify();
+  const c=document.getElementById('matrixCanvas');const ctx=c.getContext('2d');
+  c.width=c.offsetWidth*2;c.height=840;ctx.scale(2,2);
+  const W=c.offsetWidth,H=420,pad=60;
+  ctx.clearRect(0,0,W,H);
+
+  const avgMargin=items.reduce((s,i)=>s+i.margin,0)/Math.max(items.length,1);
+  const avgMix=100/Math.max(items.length,1)*0.7;
+  const maxMargin=Math.max(...items.map(i=>i.margin),avgMargin*2);
+  const maxMix=Math.max(...items.map(i=>i.mix),avgMix*2);
+
+  // Quadrant backgrounds
+  const cx=pad+((avgMargin/maxMargin)*(W-pad*2));
+  const cy=H-pad-((avgMix/maxMix)*(H-pad*2));
+  ctx.fillStyle='#f1f8e922';ctx.fillRect(cx,pad,W-pad-cx,cy-pad);// Star
+  ctx.fillStyle='#e3f2fd22';ctx.fillRect(pad,pad,cx-pad,cy-pad);// Plowhorse
+  ctx.fillStyle='#fff3e022';ctx.fillRect(cx,cy,W-pad-cx,H-pad-cy);// Puzzle
+  ctx.fillStyle='#fce4ec22';ctx.fillRect(pad,cy,cx-pad,H-pad-cy);// Dog
+  // Axes
+  ctx.strokeStyle='#e5e5e5';ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(cx,pad);ctx.lineTo(cx,H-pad);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad,cy);ctx.lineTo(W-pad,cy);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.font='10px sans-serif';ctx.fillStyle='#888';
+  ctx.fillText('Margen →',W-pad-50,H-pad+20);
+  ctx.save();ctx.translate(pad-20,pad+30);ctx.rotate(-Math.PI/2);ctx.fillText('Popularidad →',0,0);ctx.restore();
+  ctx.fillStyle='#558b2f';ctx.font='11px sans-serif';ctx.fillText('STAR',W-pad-40,pad+14);
+  ctx.fillStyle='#1565c0';ctx.fillText('PLOWHORSE',pad+4,pad+14);
+  ctx.fillStyle='#e65100';ctx.fillText('PUZZLE',W-pad-40,H-pad-6);
+  ctx.fillStyle='#c62828';ctx.fillText('DOG',pad+4,H-pad-6);
+
+  const catColors={'Star':'#558b2f','Plowhorse':'#1565c0','Puzzle':'#e65100','Dog':'#c62828'};
+  items.forEach(item=>{
+    const x=pad+((item.margin/maxMargin)*(W-pad*2));
+    const y=H-pad-((item.mix/maxMix)*(H-pad*2));
+    ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);
+    ctx.fillStyle=catColors[item.cat];ctx.fill();
+    ctx.font='10px sans-serif';ctx.fillText(item.name,x+10,y+3);
+  });
+}
+
+function drawSummary(){
+  classify();
+  const st=document.getElementById('stats');
+  const totalRev=items.reduce((s,i)=>s+i.revenue,0);  const totalProfit=items.reduce((s,i)=>s+i.profit,0);
+  const avgMargin=items.length?items.reduce((s,i)=>s+i.marginPct,0)/items.length:0;
+  const stars=items.filter(i=>i.cat==='Star').length;
+  st.innerHTML=`<div class="stat-card"><div class="val">${items.length}</div><div class="lbl">Platillos</div></div><div class="stat-card"><div class="val">$${totalRev.toLocaleString()}</div><div class="lbl">Revenue Total</div></div><div class="stat-card"><div class="val">$${totalProfit.toLocaleString()}</div><div class="lbl">Profit Total</div></div><div class="stat-card"><div class="val">${stars}</div><div class="lbl">Stars</div></div>`;
+
+  const cats={'Star':0,'Plowhorse':0,'Puzzle':0,'Dog':0};
+  items.forEach(i=>{cats[i.cat]=(cats[i.cat]||0)+1;});
+  const c=document.getElementById('chartCat');const ctx=c.getContext('2d');
+  c.width=c.offsetWidth*2;c.height=560;ctx.scale(2,2);
+  const W=c.offsetWidth,H=280,pad=40;
+  const labels=Object.keys(cats);const vals=Object.values(cats);
+  const max=Math.max(...vals,1);const bw=60;
+  const colors=['#558b2f','#1565c0','#e65100','#c62828'];
+  ctx.clearRect(0,0,W,H);
+  labels.forEach((l,i)=>{
+    const x=pad+i*((W-pad*2)/4)+20;
+    const h=(vals[i]/max)*(H-pad*2-20);
+    ctx.fillStyle=colors[i];ctx.fillRect(x,H-pad-h,bw,h);
+    ctx.fillStyle='#666';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(l,x+bw/2,H-pad+16);
+    ctx.fillStyle='#111';ctx.fillText(vals[i],x+bw/2,H-pad-h-8);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Vending Machine Analytics</title>
+<style>
+:root{--bg:#fff;--text:#111;--dim:#888;--border:#e0e0e0;--hover:#f5f5f5;--ok:#2e7d32;--warn:#b8860b;--alert:#c00}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);max-width:960px;margin:0 auto;padding:16px}
+h1{font-size:1.4em;margin-bottom:4px}.sub{color:var(--dim);font-size:.85em;margin-bottom:16px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 16px;cursor:pointer;border:none;background:none;font-size:.9em;color:var(--dim);border-bottom:2px solid transparent}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:600}
+.panel{display:none}.panel.active{display:block}
+label{display:block;font-size:.85em;color:var(--dim);margin-bottom:4px;margin-top:10px}
+input,select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:4px;font-size:.9em}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0}
+.kpi-card{padding:10px;border:1px solid var(--border);border-radius:6px;text-align:center}
+.kpi-val{font-size:1.3em;font-weight:700}.kpi-label{font-size:.72em;color:var(--dim)}
+table{width:100%;border-collapse:collapse;font-size:.82em;margin-top:8px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{font-weight:600;background:var(--hover)}
+td.num{text-align:right}
+button{padding:6px 14px;border:1px solid var(--border);border-radius:4px;background:var(--text);color:var(--bg);cursor:pointer;font-size:.82em;margin-top:8px}
+.btn-sm{padding:4px 8px;font-size:.75em;background:var(--bg);color:var(--text);margin:0 2px}
+.good{color:var(--ok)}.bad{color:var(--alert)}.mid{color:var(--warn)}
+</style>
+</head>
+<body>
+<h1>Vending Machine Analytics</h1>
+<p class="sub">Track inventory, revenue, and performance across vending machine locations</p>
+
+<div class="tabs">
+<button class="tab active" onclick="showTab('dash')">Dashboard</button>
+<button class="tab" onclick="showTab('machines')">Machines</button>
+<button class="tab" onclick="showTab('products')">Products</button>
+<button class="tab" onclick="showTab('restock')">Restock Plan</button>
+</div>
+
+<div id="dash" class="panel active">
+<div class="kpi" id="kpis"></div>
+<h3 style="font-size:.95em;margin-bottom:8px">Top Performing Machines</h3>
+<table id="topTable"></table>
+</div>
+
+<div id="machines" class="panel">
+<button onclick="addMachine()">+ Add Machine</button>
+<table id="machTable"></table>
+</div>
+
+<div id="products" class="panel">
+<button onclick="addProduct()">+ Add Product</button>
+<table id="prodTable"></table>
+</div>
+
+<div id="restock" class="panel">
+<h3 style="font-size:.95em;margin-bottom:8px">Items Below Restock Threshold (30%)</h3>
+<table id="restockTable"></table>
+<button onclick="exportRestock()">Export Restock CSV</button>
+</div>
+
+<script>
+const fmt=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+let machines=[
+{id:1,name:'Office Lobby A',location:'Saltillo HQ',type:'Snacks & Drinks',capacity:120,stocked:95,revenue:2840,cost:1420,lastService:'2026-03-20'},
+{id:2,name:'Gym Entrance',location:'Saltillo Sport Center',type:'Drinks Only',capacity:80,stocked:42,revenue:1920,cost:880,lastService:'2026-03-18'},
+{id:3,name:'University Cafeteria',location:'Tec Saltillo',type:'Snacks & Drinks',capacity:150,stocked:110,revenue:4200,cost:2100,lastService:'2026-03-22'},
+{id:4,name:'Hospital Waiting',location:'Hospital Universitario',type:'Snacks & Drinks',capacity:100,stocked:28,revenue:3100,cost:1550,lastService:'2026-03-15'},
+{id:5,name:'Gas Station Eagle Pass',location:'Eagle Pass TX',type:'Drinks Only',capacity:60,stocked:55,revenue:1650,cost:750,lastService:'2026-03-24'},
+];
+let products=[
+{name:'Coca-Cola 600ml',cost:8,price:20,sold:340,category:'Drinks'},
+{name:'Sabritas Original',cost:6,price:18,sold:280,category:'Snacks'},
+{name:'Agua Ciel 1L',cost:5,price:15,sold:420,category:'Drinks'},
+{name:'Gansito',cost:7,price:20,sold:190,category:'Snacks'},
+{name:'Red Bull',cost:22,price:45,sold:95,category:'Energy'},
+{name:'Barra Nature Valley',cost:10,price:22,sold:150,category:'Snacks'},
+{name:'Powerade 600ml',cost:10,price:22,sold:180,category:'Drinks'},
+{name:'Doritos Nacho',cost:6,price:18,sold:260,category:'Snacks'},
+];
+
+function addMachine(){
+const id=machines.length+1;
+machines.push({id,name:'New Machine '+id,location:'TBD',type:'Snacks & Drinks',capacity:100,stocked:100,revenue:0,cost:0,lastService:new Date().toISOString().split('T')[0]});
+renderAll();
+}
+function addProduct(){
+products.push({name:'New Product',cost:10,price:20,sold:0,category:'Other'});
+renderAll();
+}
+function removeMachine(i){machines.splice(i,1);renderAll();}
+function removeProduct(i){products.splice(i,1);renderAll();}
+
+function renderDash(){
+const totalRev=machines.reduce((s,m)=>s+m.revenue,0);
+const totalCost=machines.reduce((s,m)=>s+m.cost,0);
+const totalProfit=totalRev-totalCost;
+const avgUtil=machines.length?(machines.reduce((s,m)=>s+(m.stocked/m.capacity),0)/machines.length*100):0;
+const lowStock=machines.filter(m=>m.stocked/m.capacity<0.3).length;
+document.getElementById('kpis').innerHTML=`
+<div class="kpi-card"><div class="kpi-val">${machines.length}</div><div class="kpi-label">Machines</div></div>
+<div class="kpi-card"><div class="kpi-val">${fmt(totalRev)}</div><div class="kpi-label">Total Revenue</div></div>
+<div class="kpi-card"><div class="kpi-val">${fmt(totalProfit)}</div><div class="kpi-label">Gross Profit</div></div>
+<div class="kpi-card"><div class="kpi-val">${((totalProfit/totalRev)*100).toFixed(1)}%</div><div class="kpi-label">Margin</div></div>
+<div class="kpi-card"><div class="kpi-val">${avgUtil.toFixed(0)}%</div><div class="kpi-label">Avg Stock Level</div></div>
+<div class="kpi-card"><div class="kpi-val ${lowStock>0?'bad':'good'}">${lowStock}</div><div class="kpi-label">Need Restock</div></div>`;
+const sorted=[...machines].sort((a,b)=>b.revenue-a.revenue);
+let h='<tr><th>Machine</th><th>Location</th><th>Revenue</th><th>Profit</th><th>Margin</th><th>Stock %</th></tr>';
+sorted.forEach(m=>{
+const profit=m.revenue-m.cost;const margin=(profit/m.revenue*100).toFixed(1);
+const stockPct=(m.stocked/m.capacity*100).toFixed(0);
+const sc=stockPct<30?'bad':stockPct<60?'mid':'good';
+h+=`<tr><td>${m.name}</td><td>${m.location}</td><td class="num">${fmt(m.revenue)}</td><td class="num">${fmt(profit)}</td><td class="num">${margin}%</td><td class="num ${sc}">${stockPct}%</td></tr>`;
+});
+document.getElementById('topTable').innerHTML=h;
+}
+
+function renderMachines(){
+let h='<tr><th>Name</th><th>Location</th><th>Type</th><th>Capacity</th><th>Stocked</th><th>Revenue</th><th>Last Service</th><th></th></tr>';
+machines.forEach((m,i)=>{
+h+=`<tr><td>${m.name}</td><td>${m.location}</td><td>${m.type}</td><td class="num">${m.capacity}</td><td class="num">${m.stocked}</td><td class="num">${fmt(m.revenue)}</td><td>${m.lastService}</td><td><button class="btn-sm" onclick="removeMachine(${i})">X</button></td></tr>`;
+});
+document.getElementById('machTable').innerHTML=h;
+}
+
+function renderProducts(){
+let h='<tr><th>Product</th><th>Category</th><th>Cost</th><th>Price</th><th>Margin</th><th>Units Sold</th><th>Revenue</th><th></th></tr>';
+products.forEach((p,i)=>{
+const margin=((p.price-p.cost)/p.price*100).toFixed(1);
+const rev=p.sold*p.price;
+h+=`<tr><td>${p.name}</td><td>${p.category}</td><td class="num">${fmt(p.cost)}</td><td class="num">${fmt(p.price)}</td><td class="num">${margin}%</td><td class="num">${p.sold}</td><td class="num">${fmt(rev)}</td><td><button class="btn-sm" onclick="removeProduct(${i})">X</button></td></tr>`;
+});
+document.getElementById('prodTable').innerHTML=h;
+}
+
+function renderRestock(){
+const low=machines.filter(m=>m.stocked/m.capacity<0.3);
+let h='<tr><th>Machine</th><th>Location</th><th>Current Stock</th><th>Capacity</th><th>Need to Fill</th><th>Last Service</th></tr>';
+low.forEach(m=>{
+const need=m.capacity-m.stocked;
+h+=`<tr><td>${m.name}</td><td>${m.location}</td><td class="num bad">${m.stocked}</td><td class="num">${m.capacity}</td><td class="num">${need}</td><td>${m.lastService}</td></tr>`;
+});
+if(!low.length)h+='<tr><td colspan="6" style="text-align:center;color:var(--ok)">All machines above 30% stock level</td></tr>';
+document.getElementById('restockTable').innerHTML=h;
+}
+
+function exportRestock(){
+const low=machines.filter(m=>m.stocked/m.capacity<0.3);
+let csv='Machine,Location,Current Stock,Capacity,Need to Fill,Last Service\n';
+low.forEach(m=>{csv+=`"${m.name}","${m.location}",${m.stocked},${m.capacity},${m.capacity-m.stocked},"${m.lastService}"\n`;});
+const blob=new Blob([csv],{type:'text/csv'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='restock_plan.csv';a.click();
+}
+
+function renderAll(){renderDash();renderMachines();renderProducts();renderRestock();}
+function showTab(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelector(`[onclick="showTab('${id}')"]`).classList.add('active');
+}
+renderAll();
+</script>
+<div id="pro-gate" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center"><div style="background:#fff;padding:32px;border-radius:8px;max-width:420px;width:90%;text-align:center"><h2 style="font-size:1.2em;margin-bottom:8px">Enjoying the tool?</h2><p style="font-size:.85em;color:#888;margin-bottom:16px">Sign up to save your data, access from any device, and get updates.</p><input id="pro-email" type="email" placeholder="you@email.com" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:4px;font-size:.9em;margin-bottom:8px"><button onclick="proUnlock()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:4px;font-size:.9em;cursor:pointer">Continue Free</button><button onclick="document.getElementById('pro-gate').style.display='none';document.body.style.overflow='auto'" style="width:100%;padding:8px;background:none;border:none;color:#aaa;font-size:.8em;cursor:pointer;margin-top:4px">Not now</button></div></div>
+<div style="position:fixed;bottom:0;left:0;width:100%;background:#111;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:.82em;z-index:999"><span>Free version. <strong>Pro</strong>: cloud sync, teams, and API access.</span><a href="#" onclick="document.getElementById('pro-gate').style.display='flex';document.body.style.overflow='hidden';return false" style="background:#fff;color:#111;padding:6px 16px;border-radius:4px;text-decoration:none;font-weight:600;white-space:nowrap">Upgrade to Pro</a></div>
+<script>(function(){const key='app_uses_'+location.pathname;let uses=parseInt(localStorage.getItem(key)||'0');uses++;localStorage.setItem(key,uses);if(!localStorage.getItem('pro_email')&&uses>=5){document.getElementById('pro-gate').style.display='flex';document.body.style.overflow='hidden';}document.body.style.paddingBottom='50px';})();function proUnlock(){const e=document.getElementById('pro-email').value;if(e&&e.includes('@'))localStorage.setItem('pro_email',e);document.getElementById('pro-gate').style.display='none';document.body.style.overflow='auto';}</script>
+</body>
+</html>

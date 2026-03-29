@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WhatsApp Order System — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e5e5;padding:0 32px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#111;border-bottom-color:#111}
+.pn{display:none;padding:24px 32px}.pn.on{display:block}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.menu-item{border:1px solid #e5e5e5;border-radius:6px;padding:16px;text-align:center;cursor:pointer;transition:box-shadow .2s}
+.menu-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.menu-item h3{font-size:14px;margin-bottom:4px}.menu-item .price{font-size:16px;font-weight:700}
+.menu-item .desc{font-size:11px;color:#666}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.cart-item .qty-ctrl{display:flex;align-items:center;gap:8px}
+.cart-item .qty-ctrl button{width:28px;height:28px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px}
+.form-grid label{font-size:12px;color:#666;display:flex;flex-direction:column;gap:4px}
+.form-grid input,.form-grid select{padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;margin-top:12px}
+.btn-wa{background:#25d366;color:#fff;font-size:14px;padding:12px 32px;border-radius:6px;display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer}table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px;background:#f9f9f9;border-bottom:1px solid #e5e5e5;font-weight:600;color:#666;font-size:11px}
+td{padding:8px;border-bottom:1px solid #f0f0f0}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{border:1px solid #e5e5e5;border-radius:6px;padding:16px;text-align:center}
+.stat-card .val{font-size:22px;font-weight:700}.stat-card .lbl{font-size:11px;color:#666}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+@media(max-width:600px){.menu-grid{grid-template-columns:1fr 1fr}.stat-cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">WhatsApp Orders</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;cursor:pointer;padding:4px 10px;border:1px solid #ddd;border-radius:4px" onclick="toggleLang()">ES / EN</span><a href="../" class="back">← Portal</a></div>
+</header>
+<div class="tabs">
+<div class="tab on" data-p="menu">Menu</div>
+<div class="tab" data-p="carrito">Carrito (<span id="cartCount">0</span>)</div>
+<div class="tab" data-p="config">Configuracion</div>
+<div class="tab" data-p="historial">Historial</div>
+</div>
+
+<div class="pn on" id="menu">
+<p style="font-size:13px;color:#666;margin-bottom:16px">Selecciona platillos para agregar al carrito. Al confirmar, se genera un mensaje de WhatsApp con tu pedido.</p>
+<div class="menu-grid" id="menuGrid"></div>
+</div>
+
+<div class="pn" id="carrito">
+<h3 style="font-size:15px;margin-bottom:12px">Tu Pedido</h3>
+<div id="cartItems"></div>
+<div style="margin-top:16px;padding:16px 0;border-top:2px solid #111;display:flex;justify-content:space-between;align-items:center">
+<div><span style="font-size:13px;color:#666">Total:</span><span style="font-size:22px;font-weight:700;margin-left:8px" id="cartTotal">$0</span></div><button class="btn-wa" onclick="sendWA()">Enviar por WhatsApp</button>
+</div>
+</div>
+
+<div class="pn" id="config">
+<h3 style="font-size:15px;margin-bottom:16px">Configurar Menu y Negocio</h3>
+<div class="form-grid">
+<label>Numero WhatsApp (con codigo pais)<input id="waNumber" type="text" placeholder="521XXXXXXXXXX" value=""></label>
+<label>Nombre del Negocio<input id="bizName" type="text" placeholder="Mi Restaurante"></label>
+<label>Moneda<select id="bizCurrency"><option>MXN</option><option>USD</option></select></label>
+</div>
+<h4 style="font-size:14px;margin:20px 0 12px">Agregar Platillo al Menu</h4>
+<div class="form-grid">
+<label>Nombre<input id="mName" type="text"></label>
+<label>Precio<input id="mPrice" type="number" step="0.01"></label>
+<label>Descripcion<input id="mDesc" type="text"></label>
+<label>Categoria<input id="mCat" type="text" placeholder="ej. Bebidas, Platos Fuertes"></label>
+</div>
+<button class="btn" onclick="addMenuItem()">Agregar al Menu</button>
+</div>
+
+<div class="pn" id="historial">
+<div class="stat-cards" id="stats"></div>
+<table><thead><tr><th>Pedido #</th><th>Items</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="histBody"></tbody></table>
+</div>
+
+<div style="height:60px"></div>
+<div class="footer-bar"><span>WhatsApp Orders — XLMX</span><a href="mailto:diego@bimxl.com">Contact</a></div>
+
+<script>
+let lang='es';
+let menuItems=JSON.parse(localStorage.getItem('xlmx_wa_menu')||'[{"name":"Hamburguesa Clasica","price":120,"desc":"Carne 200g, queso, lechuga, tomate","cat":"Platos"},{"name":"Tacos (3)","price":85,"desc":"Pastor, cebolla, cilantro, salsa","cat":"Platos"},{"name":"Ensalada Caesar","price":95,"desc":"Lechuga, parmesano, crutones, aderezo","cat":"Platos"},{"name":"Limonada","price":35,"desc":"Natural con hielo","cat":"Bebidas"},{"name":"Agua Mineral","price":25,"desc":"600ml","cat":"Bebidas"},{"name":"Cerveza","price":55,"desc":"Nacional 355ml","cat":"Bebidas"}]');let cart=[];
+let orders=JSON.parse(localStorage.getItem('xlmx_wa_orders')||'[]');
+
+function toggleLang(){lang=lang==='es'?'en':'es';}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pn').forEach(x=>x.classList.remove('on'));
+  this.classList.add('on');document.getElementById(this.dataset.p).classList.add('on');
+  if(this.dataset.p==='historial')renderHistory();
+}));
+
+function renderMenu(){
+  const grid=document.getElementById('menuGrid');grid.innerHTML='';
+  const cats=[...new Set(menuItems.map(m=>m.cat))];
+  cats.forEach(cat=>{
+    const items=menuItems.filter(m=>m.cat===cat);
+    items.forEach(item=>{
+      const div=document.createElement('div');div.className='menu-item';
+      div.innerHTML=`<div class="desc">${cat}</div><h3>${item.name}</h3><div class="price">$${item.price}</div><div class="desc">${item.desc}</div>`;
+      div.onclick=()=>addToCart(item);
+      grid.appendChild(div);
+    });
+  });
+}
+
+function addToCart(item){
+  const existing=cart.find(c=>c.name===item.name);
+  if(existing)existing.qty++;
+  else cart.push({...item,qty:1});
+  updateCartCount();
+}
+
+function updateCartCount(){
+  document.getElementById('cartCount').textContent=cart.reduce((s,c)=>s+c.qty,0);
+}
+function renderCart(){
+  const div=document.getElementById('cartItems');div.innerHTML='';
+  if(!cart.length){div.innerHTML='<p style="color:#888;font-size:13px">Tu carrito esta vacio. Selecciona platillos del menu.</p>';document.getElementById('cartTotal').textContent='$0';return;}
+  cart.forEach((item,i)=>{
+    const el=document.createElement('div');el.className='cart-item';
+    el.innerHTML=`<div><strong>${item.name}</strong><br><span style="color:#666;font-size:12px">$${item.price} c/u</span></div><div class="qty-ctrl"><button onclick="changeQty(${i},-1)">-</button><span>${item.qty}</span><button onclick="changeQty(${i},1)">+</button><span style="font-weight:700">$${item.price*item.qty}</span></div>`;
+    div.appendChild(el);
+  });
+  document.getElementById('cartTotal').textContent='$'+cart.reduce((s,c)=>s+c.price*c.qty,0).toLocaleString();
+}
+
+function changeQty(i,d){
+  cart[i].qty+=d;
+  if(cart[i].qty<=0)cart.splice(i,1);
+  updateCartCount();renderCart();
+}
+
+function sendWA(){
+  if(!cart.length)return alert('Agrega items al carrito.');
+  const biz=document.getElementById('bizName').value||'';
+  const num=document.getElementById('waNumber').value||'';
+  const cur=document.getElementById('bizCurrency').value;
+  let msg=`Pedido${biz?' — '+biz:''}\n\n`;
+  cart.forEach(c=>{msg+=`${c.qty}x ${c.name} — $${c.price*c.qty} ${cur}\n`;});
+  msg+=`\nTotal: $${cart.reduce((s,c)=>s+c.price*c.qty,0).toLocaleString()} ${cur}`;
+  // Save order
+  orders.push({items:[...cart],total:cart.reduce((s,c)=>s+c.price*c.qty,0),date:new Date().toISOString()});
+  localStorage.setItem('xlmx_wa_orders',JSON.stringify(orders));
+  const url=`https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+  cart=[];updateCartCount();renderCart();
+}
+function addMenuItem(){
+  const name=document.getElementById('mName').value;
+  const price=Number(document.getElementById('mPrice').value)||0;
+  if(!name||!price)return alert('Ingresa nombre y precio.');
+  menuItems.push({name,price,desc:document.getElementById('mDesc').value,cat:document.getElementById('mCat').value||'General'});
+  localStorage.setItem('xlmx_wa_menu',JSON.stringify(menuItems));
+  renderMenu();alert('Platillo agregado.');
+  document.getElementById('mName').value='';document.getElementById('mPrice').value='';document.getElementById('mDesc').value='';
+}
+
+function renderHistory(){
+  const st=document.getElementById('stats');
+  const n=orders.length;const totalRev=orders.reduce((s,o)=>s+o.total,0);
+  const avgOrder=n?Math.round(totalRev/n):0;
+  const totalItems=orders.reduce((s,o)=>s+o.items.reduce((a,i)=>a+i.qty,0),0);
+  st.innerHTML=`<div class="stat-card"><div class="val">${n}</div><div class="lbl">Pedidos</div></div><div class="stat-card"><div class="val">$${totalRev.toLocaleString()}</div><div class="lbl">Revenue Total</div></div><div class="stat-card"><div class="val">$${avgOrder.toLocaleString()}</div><div class="lbl">Ticket Promedio</div></div><div class="stat-card"><div class="val">${totalItems}</div><div class="lbl">Items Vendidos</div></div>`;
+  const tb=document.getElementById('histBody');tb.innerHTML='';
+  orders.slice().reverse().forEach((o,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>#${orders.length-i}</td><td>${o.items.map(i=>i.qty+'x '+i.name).join(', ')}</td><td>$${o.total.toLocaleString()}</td><td>${o.date.split('T')[0]}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// Tab: carrito needs manual render
+document.querySelectorAll('.tab').forEach(t=>{
+  const orig=t.onclick;
+  t.addEventListener('click',function(){if(this.dataset.p==='carrito')renderCart();});
+});
+
+renderMenu();
+</script>
+</body>
+</html>

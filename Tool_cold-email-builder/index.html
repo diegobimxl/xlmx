@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cold Email Sequence Builder — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:900px;margin:0 auto;padding:0 32px 80px}
+.config-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.config-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0}
+@media(max-width:600px){.config-grid{grid-template-columns:1fr}}
+.cfg-field{padding:12px 16px;border-right:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0}
+.cfg-field:last-child{border-right:none}
+.cfg-field label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.cfg-field input,.cfg-field select,.cfg-field textarea{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.cfg-field textarea{min-height:60px;resize:vertical}
+.btn-row{padding:12px 16px;border-top:1px solid #e5e5e5;display:flex;gap:10px}
+.btn{padding:9px 20px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}
+.sequence{display:flex;flex-direction:column;gap:16px}
+.email-card{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.email-card-header{background:#f9f9f9;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e5e5}
+.email-step{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+.email-timing{font-size:11px;color:#888}
+.email-body{padding:16px}
+.email-subject-row{margin-bottom:12px}
+.email-subject-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.email-subject{font-size:14px;font-weight:700;color:#111}
+.email-body-text{font-size:13px;color:#333;line-height:1.7;white-space:pre-wrap;background:#f9f9f9;padding:12px;border-radius:4px}
+.copy-btn{font-size:11px;background:none;border:1px solid #e5e5e5;padding:4px 10px;border-radius:3px;cursor:pointer;color:#555;margin-top:10px}
+.copy-btn:hover{background:#f5f5f5}
+.tips-box{background:#f0f7ff;border:1px solid #bbdefb;border-radius:6px;padding:14px 18px;font-size:12px;color:#1565c0;margin-bottom:20px;line-height:1.7}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero">
+<h1>Cold Email Sequence Builder</h1>
+<p>Fill in your context and get a complete 3-email outreach sequence — initial, follow-up, and break-up — with subject lines and body copy ready to send.</p>
+<div class="badge">FREE TOOL</div>
+</div>
+<div class="app">
+<div class="config-panel">
+<div class="panel-header">Your Sequence Parameters</div>
+<div class="config-grid">
+<div class="cfg-field"><label>Your name / company</label><input id="cSender" value="Diego Rodriguez, BIMXL"></div>
+<div class="cfg-field"><label>Target: role / company type</label><input id="cTarget" value="Principal Architect at Gensler"></div>
+<div class="cfg-field"><label>Your core offer (1 line)</label><input id="cOffer" value="High-fidelity BIM production at LOD 400"></div>
+<div class="cfg-field" style="grid-column:1/-1"><label>Key proof point / credibility hook</label><textarea id="cProof">We've delivered 800K sqft of Revit documentation for firms like Hoefer Welker — on time, fully coordinated.</textarea></div>
+<div class="cfg-field"><label>Industry / niche</label>
+<select id="cIndustry"><option>Architecture / AEC</option><option>SaaS / Tech</option><option>Real Estate</option><option>Consulting / Services</option><option>Manufacturing</option><option>Finance / Investment</option></select></div>
+<div class="cfg-field"><label>Tone</label>
+<select id="cTone"><option>Direct / Confident</option><option>Warm / Conversational</option><option>Formal / Executive</option><option>Challenger / Provocative</option></select></div>
+<div class="cfg-field"><label>CTA (what you want them to do)</label><input id="cCTA" value="15-min call this week"></div>
+</div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="generate()">Generate Sequence</button>
+<button class="btn btn-secondary" onclick="generate()">Regenerate</button>
+</div>
+</div>
+<div class="tips-box">Keep subject lines under 50 characters. Personalize the first line of each email with something specific to them. Never pitch in email 1 — lead with a hook or observation. The break-up email (email 3) often gets the highest response rate.</div>
+<div class="sequence" id="sequenceOutput"></div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+function generate(){
+  const sender=document.getElementById('cSender').value;
+  const target=document.getElementById('cTarget').value;
+  const offer=document.getElementById('cOffer').value;
+  const proof=document.getElementById('cProof').value;
+  const cta=document.getElementById('cCTA').value;
+  const tone=document.getElementById('cTone').value;
+  const name=target.split(' ')[target.split(' ').length>2?target.split(' ').length-1:0]||'[First Name]';
+  const emails=[
+    {step:'Email 1',timing:'Day 1 — Initial outreach',
+     subject:`Quick question, ${name}`,
+     body:`Hi ${name},\n\nI noticed ${target.includes('Gensler')||target.includes('firm')?'your firm is doing incredible work on large-scale mixed-use':'your work in the space'} — impressive what you\'re building.\n\nMost ${target.split(' at ')[1]||'firms like yours'} tell us their biggest friction point is BIM production capacity: models that aren\'t coordination-ready, teams stretched thin on documentation, or LOD that doesn\'t survive clash detection.\n\n${proof}\n\nWorth a ${cta}? Happy to keep it focused on your specific workflow.\n\n— ${sender}`},
+    {step:'Email 2',timing:'Day 4 — Follow-up',
+     subject:`Re: Quick question, ${name}`,
+     body:`${name},\n\nFollowing up in case my last message got buried.\n\nOne thing I\'ll add: ${offer} — what that means operationally is your team spends zero time on documentation rework. We own the model standards and deliver construction-ready files.\n\nIf now isn\'t the right time, totally fine. But if you\'re carrying a project right now where production is behind or coordination is painful, that\'s exactly where we add value fastest.\n\nIs a ${cta} realistic this week?\n\n— ${sender}`},
+    {step:'Email 3',timing:'Day 10 — Break-up',
+     subject:`Closing the loop`,
+     body:`${name},\n\nI won\'t keep following up after this — I know your inbox is busy.\n\nI\'ll leave you with one question: if your production team had unlimited capacity and zero coordination issues on your next project, what would you do differently?\n\nThat\'s the problem we solve. If it becomes relevant down the road, you know where to find me.\n\nAll the best,\n${sender}\n\nP.S. — If someone else on your team is the right contact for this, I\'d appreciate the intro.`},
+  ];
+  const container=document.getElementById('sequenceOutput');
+  container.innerHTML='';
+  emails.forEach((e,i)=>{
+    const card=document.createElement('div');card.className='email-card';
+    card.innerHTML=`<div class="email-card-header">
+      <span class="email-step">${e.step}</span>
+      <span class="email-timing">${e.timing}</span>
+    </div>
+    <div class="email-body">
+      <div class="email-subject-row">
+        <div class="email-subject-label">Subject</div>
+        <div class="email-subject">${e.subject}</div>
+      </div>
+      <div class="email-body-text">${e.body}</div>
+      <button class="copy-btn" onclick="copyEmail(${i})">Copy email ${i+1}</button>
+    </div>`;
+    container.appendChild(card);
+  });
+  window._emails=emails;
+}
+function copyEmail(i){
+  const e=window._emails[i];
+  const txt=`Subject: ${e.subject}\n\n${e.body}`;
+  navigator.clipboard.writeText(txt).then(()=>alert(`Email ${i+1} copied to clipboard.`)).catch(()=>alert(txt));
+}
+generate();
+</script>
+</body></html>

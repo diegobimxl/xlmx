@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Inheritance Tax</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+  .badge { background: #4361ee; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .big-number { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+  .sub { font-size: 12px; color: #6c757d; margin-top: 2px; }
+  .green { color: #2ecc71; } .red { color: #e74c3c; }
+  .assets-section { margin-top: 16px; }
+  .asset-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f3f4; }
+  .asset-row:last-child { border-bottom: none; }
+  .asset-name { font-weight: 500; font-size: 14px; }
+  .asset-value { font-weight: 700; font-size: 15px; }
+  .asset-growth { font-size: 12px; margin-top: 2px; }
+  .btn { padding: 10px 20px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #4361ee; color: #fff; } .btn-primary:hover { background: #3451d1; }
+  .btn-secondary { background: #f1f3f4; color: #1a1a2e; } .btn-secondary:hover { background: #e2e6ea; }
+  .btn-danger { background: #e74c3c; color: #fff; } .btn-danger:hover { background: #c0392b; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .event-panel { background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .event-panel.danger { background: #ffeaea; border-color: #e74c3c; }
+  .event-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .event-panel p { font-size: 14px; color: #555; margin-bottom: 12px; }
+  .loophole-card { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
+  .loophole-card:hover { border-color: #4361ee; background: #f0f4ff; }
+  .loophole-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .loophole-card p { font-size: 12px; color: #6c757d; }
+  .loophole-cost { font-size: 12px; font-weight: 600; color: #4361ee; margin-top: 6px; }
+  .progress-bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .log { background: #f8f9fa; border-radius: 10px; padding: 16px; max-height: 200px; overflow-y: auto; }
+  .log-entry { font-size: 13px; color: #555; padding: 4px 0; border-bottom: 1px solid #eee; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry.highlight { color: #4361ee; font-weight: 600; }
+  .log-entry.danger { color: #e74c3c; font-weight: 600; }
+  .puzzle-area { background: #f0f4ff; border-radius: 10px; padding: 20px; margin-top: 12px; }
+  .puzzle-area h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .puzzle-opts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .puzzle-opt { padding: 8px 16px; border-radius: 8px; border: 2px solid #e9ecef; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+  .puzzle-opt:hover { border-color: #4361ee; }
+  .puzzle-opt.correct { border-color: #2ecc71; background: #eafaf1; color: #2ecc71; }
+  .puzzle-opt.wrong { border-color: #e74c3c; background: #ffeaea; color: #e74c3c; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 16px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .year-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0f4ff; color: #4361ee; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .strategy-pts { display: inline-flex; align-items: center; gap: 6px; background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .hidden { display: none; }
+  @media (max-width: 640px) { .grid-3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;"><h1>The Inheritance Tax</h1><span class="badge">XLMX Games</span></div>
+    <div style="font-size:12px;color:#6c757d;margin-top:2px;">Build a family legacy. Survive the government.</div>
+  </div>
+</div>
+<div class="container" id="game-screen">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+    <span class="year-badge">Year <span id="year-display">1</span></span>
+    <span class="strategy-pts"><span id="sp-display">3</span> Strategy Points</span>
+    <div style="margin-left:auto;"><button class="btn btn-secondary" onclick="advanceYear()" id="advance-btn">Advance Year</button></div>
+  </div>
+  <div id="event-banner" class="hidden"></div>
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="card"><h2>Net Legacy</h2><div class="big-number" id="net-legacy">$850,000</div><div class="sub">Target: $5,000,000</div><div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="legacy-progress" style="width:17%;background:#4361ee;"></div></div></div>
+    <div class="card"><h2>Total Assets</h2><div class="big-number" id="total-assets">$850,000</div><div class="sub green" id="growth-rate">Growing +4.2% / yr</div></div>
+    <div class="card"><h2>Taxes Paid</h2><div class="big-number red" id="taxes-paid">$0</div><div class="sub" id="loopholes-used">0 loopholes used</div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <h2>Family Estate</h2>
+    <div class="assets-section">
+      <div class="asset-row"><div><div class="asset-name">Business Holdings</div><div class="asset-growth green" id="biz-growth">+3.8% last year</div></div><div class="asset-value" id="biz-val">$350,000</div></div>
+      <div class="asset-row"><div><div class="asset-name">Real Estate</div><div class="asset-growth green" id="re-growth">+5.1% last year</div></div><div class="asset-value" id="re-val">$320,000</div></div>
+      <div class="asset-row"><div><div class="asset-name">Investments</div><div class="asset-growth green" id="inv-growth">+4.2% last year</div></div><div class="asset-value" id="inv-val">$180,000</div></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="investAsset('biz')">Reinvest Business (1 SP)</button>
+      <button class="btn btn-secondary" onclick="investAsset('re')">Buy Property (1 SP)</button>
+      <button class="btn btn-secondary" onclick="investAsset('inv')">Invest (1 SP)</button>
+    </div>
+  </div>
+  <div class="card"><h2>Estate Chronicle</h2><div class="log" id="game-log"><div class="log-entry highlight">Year 1 — Your family legacy begins. Build wisely.</div></div></div>
+</div>
+<div class="modal-overlay hidden" id="loophole-modal">
+  <div class="modal">
+    <h2 id="lm-title">Tax Event!</h2>
+    <p id="lm-desc">A 35% inheritance tax has been levied on your estate.</p>
+    <div id="lm-loopholes"></div>
+    <button class="btn btn-danger" onclick="acceptTax()">Accept the Tax</button>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Legacy Complete</h2>
+    <p id="end-desc"></p>
+    <div style="background:#f0f4ff;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#4361ee;margin-bottom:6px;">BIAS REVEALED: Endowment Effect & Loss Aversion</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You felt the tax as a personal attack. The loopholes felt urgent not because they were rational — but because the assets felt like an extension of yourself. This is the Endowment Effect: we value what we own more than its market price. Loss Aversion doubled the pain: losing $200K felt twice as bad as gaining $200K felt good.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Build Another Legacy</button>
+  </div>
+</div>
+<script>
+const WIN_TARGET=5000000,LOSS_FLOOR=100000;
+let state={year:1,biz:350000,re:320000,inv:180000,sp:3,taxesPaid:0,loopholesUsed:0,pendingTax:0,pendingTaxRate:0,gameOver:false};
+function fmt(n){return'$'+Math.round(n).toLocaleString();}
+function total(){return state.biz+state.re+state.inv;}
+function updateUI(){const t=total();document.getElementById('net-legacy').textContent=fmt(t);document.getElementById('total-assets').textContent=fmt(t);document.getElementById('taxes-paid').textContent=fmt(state.taxesPaid);document.getElementById('sp-display').textContent=state.sp;document.getElementById('year-display').textContent=state.year;document.getElementById('loopholes-used').textContent=state.loopholesUsed+' loopholes used';document.getElementById('biz-val').textContent=fmt(state.biz);document.getElementById('re-val').textContent=fmt(state.re);document.getElementById('inv-val').textContent=fmt(state.inv);const pct=Math.min(100,(t/WIN_TARGET)*100);document.getElementById('legacy-progress').style.width=pct+'%';}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const entry=document.createElement('div');entry.className='log-entry '+cls;entry.textContent=msg;log.insertBefore(entry,log.firstChild);}
+function growthRate(){return 0.02+Math.random()*0.06;}
+function advanceYear(){if(state.gameOver)return;state.year++;const rBiz=growthRate(),rRe=growthRate(),rInv=growthRate();state.biz*=(1+rBiz);state.re*=(1+rRe);state.inv*=(1+rInv);document.getElementById('biz-growth').textContent='+'+(rBiz*100).toFixed(1)+'% this year';document.getElementById('re-growth').textContent='+'+(rRe*100).toFixed(1)+'% this year';document.getElementById('inv-growth').textContent='+'+(rInv*100).toFixed(1)+'% this year';document.getElementById('growth-rate').textContent='Growing +'+((rBiz+rRe+rInv)/3*100).toFixed(1)+'% avg';state.sp=Math.min(state.sp+2,10);addLog('Year '+state.year+' grew to '+fmt(total())+'. +2 Strategy Points.','highlight');const inf=0.02+Math.random()*0.02;state.biz*=(1-inf);state.re*=(1-inf);state.inv*=(1-inf);addLog('Inflation eroded '+(inf*100).toFixed(1)+'% of purchasing power.');if(state.year%5===0){triggerTaxEvent();}else{updateUI();checkGameState();}}
+function triggerTaxEvent(){const rate=0.20+Math.random()*0.35;state.pendingTaxRate=rate;state.pendingTax=total()*rate;const banner=document.getElementById('event-banner');banner.className='event-panel danger';banner.innerHTML='<h3>Estate Tax Notice Year '+state.year+'</h3><p>A '+(rate*100).toFixed(0)+'% estate tax threatens '+fmt(state.pendingTax)+'.</p>';banner.classList.remove('hidden');showLoopholeModal(rate);}
+function showLoopholeModal(rate){document.getElementById('lm-title').textContent='Estate Tax Year '+state.year;document.getElementById('lm-desc').textContent='A '+(rate*100).toFixed(0)+'% tax threatens '+fmt(state.pendingTax)+'. Use a loophole to reduce the hit.';const loopholes=[{name:'Family LLC',desc:'Reduces tax 40%.',cost:2,reduction:0.40,puzzle:'seq'},{name:'Charitable Trust',desc:'Reduces 30%, lose 5% assets.',cost:1,reduction:0.30,puzzle:'choice'},{name:'Generation-Skip Trust',desc:'Reduces 60%.',cost:3,reduction:0.60,puzzle:'match'}];const container=document.getElementById('lm-loopholes');container.innerHTML='';loopholes.forEach((l,i)=>{const div=document.createElement('div');div.className='loophole-card';div.innerHTML='<h4>'+l.name+'</h4><p>'+l.desc+'</p><div class="loophole-cost">Costs '+l.cost+' SP'+(state.sp<l.cost?' — Not enough SP':'')+'</div>';if(state.sp>=l.cost){div.onclick=()=>startPuzzle(l,i);}else{div.style.opacity='0.5';div.style.cursor='default';}container.appendChild(div);});document.getElementById('loophole-modal').classList.remove('hidden');}
+let activePuzzle=null;
+function startPuzzle(loophole,idx){activePuzzle=loophole;const container=document.getElementById('lm-loopholes');if(loophole.puzzle==='seq'){const sequences=[{q:'Complete: 2, 4, 8, 16, __',ans:'32',opts:['24','32','28','18']},{q:'Complete: 3, 6, 12, 24, __',ans:'48',opts:['36','48','42','30']},{q:'Complete: 5, 10, 20, 40, __',ans:'80',opts:['60','80','70','50']}];const s=sequences[Math.floor(Math.random()*sequences.length)];container.innerHTML='<div class="puzzle-area"><h4>Legal Puzzle</h4><p style="font-size:13px;margin-bottom:12px;">'+s.q+'</p><div class="puzzle-opts" id="puzzle-opts"></div></div>';const optsDiv=document.getElementById('puzzle-opts');s.opts.sort(()=>Math.random()-0.5).forEach(o=>{const btn=document.createElement('div');btn.className='puzzle-opt';btn.textContent=o;btn.onclick=()=>{document.querySelectorAll('.puzzle-opt').forEach(b=>b.style.pointerEvents='none');if(o===s.ans){btn.classList.add('correct');setTimeout(()=>applyLoophole(loophole),800);}else{btn.classList.add('wrong');document.querySelectorAll('.puzzle-opt').forEach(b=>{if(b.textContent===s.ans)b.classList.add('correct');});setTimeout(()=>acceptTax(),1200);}};optsDiv.appendChild(btn);});}else if(loophole.puzzle==='choice'){container.innerHTML='<div class="puzzle-area"><h4>Which clause protects your family?</h4><div class="puzzle-opts" id="puzzle-opts"></div></div>';const optsDiv=document.getElementById('puzzle-opts');[{text:'Irrevocable Family Trust',correct:true},{text:'Revocable Donor Fund',correct:false},{text:'Public Charitable Gift',correct:false}].sort(()=>Math.random()-0.5).forEach(o=>{const btn=document.createElement('div');btn.className='puzzle-opt';btn.textContent=o.text;btn.onclick=()=>{document.querySelectorAll('.puzzle-opt').forEach(b=>b.style.pointerEvents='none');if(o.correct){btn.classList.add('correct');setTimeout(()=>applyLoophole(loophole),800);}else{btn.classList.add('wrong');setTimeout(()=>acceptTax(),1200);}};optsDiv.appendChild(btn);});}else{container.innerHTML='<div class="puzzle-area"><h4>Which is a valid skip-generation clause?</h4><div class="puzzle-opts" id="puzzle-opts"></div></div>';const optsDiv=document.getElementById('puzzle-opts');[{text:'Dynasty Trust Transfer',correct:true},{text:'Spousal Rollover Clause',correct:false},{text:'Step-Up Basis Gift',correct:false},{text:'Direct Inheritance Deed',correct:false}].sort(()=>Math.random()-0.5).forEach(o=>{const btn=document.createElement('div');btn.className='puzzle-opt';btn.textContent=o.text;btn.onclick=()=>{document.querySelectorAll('.puzzle-opt').forEach(b=>b.style.pointerEvents='none');if(o.correct){btn.classList.add('correct');setTimeout(()=>applyLoophole(loophole),800);}else{btn.classList.add('wrong');setTimeout(()=>acceptTax(),1200);}};optsDiv.appendChild(btn);});}
+document.querySelector('#loophole-modal .btn-danger').style.display='none';}
+function applyLoophole(loophole){state.sp-=loophole.cost;const saved=state.pendingTax*loophole.reduction;const actualTax=state.pendingTax-saved;const totalNow=total();const frac=actualTax/totalNow;state.biz-=state.biz*frac;state.re-=state.re*frac;state.inv-=state.inv*frac;if(loophole.puzzle==='choice'){state.biz*=0.95;state.re*=0.95;state.inv*=0.95;}state.taxesPaid+=actualTax;state.loopholesUsed++;addLog('Loophole: '+loophole.name+' saved '+fmt(saved)+'. Paid '+fmt(actualTax)+'.','highlight');closeLoopholeModal();}
+function acceptTax(){const totalNow=total();const frac=state.pendingTax/totalNow;state.biz-=state.biz*frac;state.re-=state.re*frac;state.inv-=state.inv*frac;state.taxesPaid+=state.pendingTax;addLog('Tax paid: '+fmt(state.pendingTax)+'. Legacy reduced.','danger');closeLoopholeModal();}
+function closeLoopholeModal(){document.getElementById('loophole-modal').classList.add('hidden');document.getElementById('event-banner').classList.add('hidden');document.querySelector('#loophole-modal .btn-danger').style.display='';updateUI();checkGameState();}
+function investAsset(type){if(state.sp<1){addLog('Not enough Strategy Points.','danger');return;}state.sp--;const bonus=0.05+Math.random()*0.10;if(type==='biz'){state.biz*=(1+bonus);addLog('Business reinvestment: +'+(bonus*100).toFixed(1)+'%','highlight');}if(type==='re'){state.re*=(1+bonus);addLog('Property purchase: +'+(bonus*100).toFixed(1)+'%','highlight');}if(type==='inv'){state.inv*=(1+bonus);addLog('Investment boost: +'+(bonus*100).toFixed(1)+'%','highlight');}updateUI();}
+function checkGameState(){const t=total();if(t>=WIN_TARGET){endGame(true);}else if(t<LOSS_FLOOR){endGame(false);}}
+function endGame(win){state.gameOver=true;document.getElementById('advance-btn').disabled=true;document.getElementById('end-title').textContent=win?'Legacy Secured!':'Legacy Lost';document.getElementById('end-desc').textContent=win?'After '+state.year+' years, your estate reached '+fmt(total())+'. Used '+state.loopholesUsed+' loopholes, paid '+fmt(state.taxesPaid)+' in taxes.':'After '+state.year+' years, your estate collapsed to '+fmt(total())+'. The next generation starts from scratch.';document.getElementById('end-modal').classList.remove('hidden');}
+function restartGame(){state={year:1,biz:350000,re:320000,inv:180000,sp:3,taxesPaid:0,loopholesUsed:0,pendingTax:0,pendingTaxRate:0,gameOver:false};document.getElementById('end-modal').classList.add('hidden');document.getElementById('advance-btn').disabled=false;document.getElementById('game-log').innerHTML='<div class="log-entry highlight">Year 1 — Your family legacy begins. Build wisely.</div>';updateUI();}
+updateUI();
+</script>
+</body>
+</html>

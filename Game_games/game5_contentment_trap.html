@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Contentment Trap</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #f77f00; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+  .lifespan-bar { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .lifespan-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .lifespan-label span { font-size: 13px; font-weight: 600; }
+  .bar-wrap { height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .project-item { border: 2px solid #e9ecef; border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; }
+  .project-item:hover { border-color: #f77f00; background: #fff8f0; }
+  .project-item.instant { border-left: 4px solid #f77f00; }
+  .project-item.delayed { border-left: 4px solid #4361ee; }
+  .proj-header { display: flex; align-items: center; justify-content: space-between; }
+  .proj-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .proj-pts { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .pts-instant { background: #fff3cd; color: #856404; }
+  .pts-delayed { background: #e8f4f8; color: #0c5460; }
+  .proj-turns { font-size: 12px; color: #6c757d; margin-top: 4px; }
+  .queue-slot { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+  .queue-progress { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .queue-progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .queue-empty { font-size: 13px; color: #aaa; text-align: center; padding: 20px; }
+  .score-big { font-size: 36px; font-weight: 700; color: #f77f00; text-align: center; }
+  .score-label { font-size: 12px; color: #6c757d; text-align: center; margin-top: 2px; }
+  .stats-row { display: flex; justify-content: space-around; margin-top: 16px; }
+  .stat-val { font-size: 20px; font-weight: 700; text-align: center; }
+  .stat-lbl { font-size: 11px; color: #6c757d; text-align: center; }
+  .lb-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #f1f3f4; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #f77f00; color: #fff; width: 100%; margin-top: 14px; }
+  .btn-primary:hover { background: #d66a00; }
+  .hidden { display: none; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .turn-badge { display: inline-flex; align-items: center; background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; gap: 6px; }
+  @media (max-width: 640px) { .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>The Contentment Trap</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">Build fast or build forever. The clock doesn't wait.</div>
+</div>
+<div class="container">
+  <div class="lifespan-bar">
+    <div class="lifespan-label"><span>⏳ Lifespan Remaining</span><span id="lifespan-pct" style="color:#f77f00;">100%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" id="lifespan-fill" style="width:100%;background:#f77f00;"></div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+    <span class="turn-badge">Turn <span id="turn-display">1</span></span>
+    <div style="margin-left:auto;"><button class="btn btn-primary" style="width:auto;padding:8px 20px;" onclick="advanceTurn()" id="turn-btn">Next Turn →</button></div>
+  </div>
+  <div class="main-grid">
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h2>Choose a Project</h2>
+        <div id="project-list"></div>
+      </div>
+      <div class="card">
+        <div class="score-big" id="score-val">0</div>
+        <div class="score-label">Total Score</div>
+        <div class="stats-row">
+          <div><div class="stat-val" id="completed-val">0</div><div class="stat-lbl">Completed</div></div>
+          <div><div class="stat-val" id="lost-val">0</div><div class="stat-lbl">Lost</div></div>
+          <div><div class="stat-val" id="run-val">1</div><div class="stat-lbl">Run #</div></div>
+        </div>
+        <div id="leaderboard" style="margin-top:12px;"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Build Queue</h2>
+      <div id="build-queue"><div class="queue-empty">No active projects. Select one to start.</div></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Time Expired</h2>
+    <p id="end-desc"></p>
+    <div style="background:#fff8f0;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#f77f00;margin-bottom:6px;">⚠️ THE CLOCK WAS RIGGED</div>
+      <p id="accel-msg" style="font-size:13px;color:#555;line-height:1.6;"></p>
+    </div>
+    <div style="background:#f0f4ff;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#4361ee;margin-bottom:6px;">BIAS REVEALED: Hyperbolic Discounting</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You consistently overvalued the immediate reward (quick buildings) and undervalued the future reward (cathedrals). Even when you chose the big project, anxiety about the lifespan meter made you second-guess it. This is Hyperbolic Discounting: the future feels unreal compared to the present.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Build Again</button>
+  </div>
+</div>
+<script>
+const PROJECTS=[{id:'cottage',name:'Cottage',icon:'🏠',type:'instant',turns:2,pts:10},{id:'shop',name:'Shop',icon:'🏪',type:'instant',turns:3,pts:25},{id:'cafe',name:'Café',icon:'☕',type:'instant',turns:4,pts:40},{id:'library',name:'Library',icon:'📚',type:'delayed',turns:15,pts:200},{id:'cathedral',name:'Cathedral',icon:'⛪',type:'delayed',turns:25,pts:600},{id:'university',name:'University',icon:'🎓',type:'delayed',turns:35,pts:1500}];
+let sessionBest=[],runCount=0;
+let state={turn:1,lifespan:100,score:0,completed:0,lost:0,queue:[],gameOver:false};
+function getLifespanDecay(){let base=2;if(state.queue.some(q=>q.project.type==='delayed'))base+=0.4;return base;}
+function renderProjects(){const c=document.getElementById('project-list');c.innerHTML='';PROJECTS.forEach(p=>{const inQueue=state.queue.some(q=>q.project.id===p.id);if(inQueue)return;const div=document.createElement('div');div.className='project-item '+p.type;div.innerHTML=`<div class="proj-header"><div class="proj-name">${p.icon} ${p.name}<span class="proj-pts ${p.type==='instant'?'pts-instant':'pts-delayed'}">${p.pts} pts</span></div><span style="font-size:11px;color:#6c757d;">${p.type==='instant'?'Quick':'Legacy'}</span></div><div class="proj-turns">${p.turns} turns · ${p.pts} pts</div>`;div.onclick=()=>addToQueue(p);c.appendChild(div);});}
+function addToQueue(project){if(state.queue.length>=3||state.queue.some(q=>q.project.id===project.id))return;state.queue.push({project,turnsLeft:project.turns,totalTurns:project.turns});renderProjects();renderQueue();}
+function renderQueue(){const c=document.getElementById('build-queue');if(!state.queue.length){c.innerHTML='<div class="queue-empty">No active projects. Select one to start.</div>';return;}c.innerHTML='';state.queue.forEach(q=>{const pct=((q.totalTurns-q.turnsLeft)/q.totalTurns)*100;const slot=document.createElement('div');slot.className='queue-slot';slot.innerHTML=`<div style="font-size:13px;font-weight:600;margin-bottom:4px;">${q.project.icon} ${q.project.name} <span style="font-size:11px;color:#6c757d;">${q.turnsLeft} turns left</span></div><div style="font-size:12px;color:#aaa;">+${q.project.pts} pts on completion</div><div class="queue-progress"><div class="queue-progress-fill" style="width:${pct}%;background:${q.project.type==='instant'?'#f77f00':'#4361ee'};"></div></div>`;c.appendChild(slot);});}
+function advanceTurn(){if(state.gameOver)return;state.turn++;state.lifespan=Math.max(0,state.lifespan-getLifespanDecay());const stillRunning=[];state.queue.forEach(q=>{q.turnsLeft--;if(q.turnsLeft<=0){state.score+=q.project.pts;state.completed++;}else{stillRunning.push(q);}});state.queue=stillRunning;document.getElementById('turn-display').textContent=state.turn;document.getElementById('score-val').textContent=state.score;document.getElementById('completed-val').textContent=state.completed;const lp=Math.max(0,state.lifespan);document.getElementById('lifespan-fill').style.width=lp+'%';document.getElementById('lifespan-pct').textContent=Math.round(lp)+'%';document.getElementById('lifespan-fill').style.background=lp>50?'#f77f00':lp>20?'#e74c3c':'#8b0000';renderProjects();renderQueue();if(state.lifespan<=0)endGame();}
+function endGame(){state.gameOver=true;document.getElementById('turn-btn').disabled=true;state.queue.forEach(()=>state.lost++);document.getElementById('lost-val').textContent=state.lost;runCount++;sessionBest.push({run:runCount,score:state.score,turns:state.turn-1});sessionBest.sort((a,b)=>b.score-a.score);renderLeaderboard();document.getElementById('end-title').textContent=state.score>=600?'🏛️ Legacy Built':'⏳ Time\'s Up';document.getElementById('end-desc').textContent=`Run ${runCount} — Score: ${state.score} pts | Completed: ${state.completed} | Lost mid-build: ${state.lost} | Survived ${state.turn-1} turns.`;document.getElementById('accel-msg').textContent=`Your lifespan drained at an accelerating rate. Base was 2% per turn — but having a Legacy project in queue added an invisible 0.4% anxiety tax per turn. In ${state.turn-1} turns, that compounded beyond the baseline. The game never told you. It never does.`;document.getElementById('end-modal').classList.remove('hidden');}
+function renderLeaderboard(){const lb=document.getElementById('leaderboard');if(!sessionBest.length){lb.innerHTML='';return;}lb.innerHTML='<div style="font-size:12px;font-weight:600;color:#6c757d;margin-bottom:6px;">SESSION LEADERBOARD</div>';sessionBest.slice(0,5).forEach((r,i)=>{const row=document.createElement('div');row.className='lb-row';row.innerHTML=`<span>#${i+1} Run ${r.run}</span><span>${r.score} pts / ${r.turns} turns</span>`;lb.appendChild(row);});}
+function restartGame(){state={turn:1,lifespan:100,score:0,completed:0,lost:0,queue:[],gameOver:false};document.getElementById('end-modal').classList.add('hidden');document.getElementById('turn-btn').disabled=false;document.getElementById('turn-display').textContent=1;document.getElementById('score-val').textContent=0;document.getElementById('completed-val').textContent=0;document.getElementById('run-val').textContent=runCount+1;document.getElementById('lifespan-fill').style.width='100%';document.getElementById('lifespan-fill').style.background='#f77f00';document.getElementById('lifespan-pct').textContent='100%';renderProjects();renderQueue();renderLeaderboard();}
+renderProjects();renderQueue();
+</script>
+</body>
+</html>

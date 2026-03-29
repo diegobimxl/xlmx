@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Isometric Zen Garden — XLMX</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#e8e0d0; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; }
+h1 { font-size:1rem; letter-spacing:0.3em; text-transform:uppercase; color:#c8b89a; margin-bottom:3px; }
+.subtitle { font-size:0.6rem; color:#555; letter-spacing:0.2em; margin-bottom:14px; }
+.game-wrap { display:flex; gap:14px; align-items:flex-start; }
+.panel { border:1px solid #2a2a2a; background:#141414; padding:10px; }
+.panel-label { font-size:0.5rem; letter-spacing:0.25em; color:#555; text-transform:uppercase; margin-bottom:8px; }
+.left-panel { width:155px; display:flex; flex-direction:column; gap:8px; }
+.right-panel { width:200px; display:flex; flex-direction:column; gap:8px; }
+canvas { border:1px solid #2a2a2a; display:block; cursor:pointer; }
+.tool-btn { display:flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid #222; cursor:pointer; width:100%; font-family:'Courier New',monospace; font-size:0.6rem; color:#777; text-transform:uppercase; transition:all .15s; }
+.tool-btn:hover { border-color:#555; color:#c8b89a; }
+.tool-btn.active { border-color:#c8b89a; color:#c8b89a; background:#1a1a1a; }
+.tool-swatch { width:14px; height:14px; border-radius:2px; flex-shrink:0; }
+.btn { background:none; border:1px solid #444; color:#c8b89a; font-family:'Courier New',monospace; font-size:0.6rem; letter-spacing:.12em; padding:7px 10px; cursor:pointer; text-transform:uppercase; width:100%; margin-top:4px; }
+.btn:hover { border-color:#c8b89a; }
+.btn.judge { border-color:#9a7a3a; color:#c8b89a; background:#1a1410; }
+.score-big { font-size:2rem; color:#c8b89a; text-align:center; line-height:1; }
+.score-label { font-size:0.5rem; color:#555; text-align:center; letter-spacing:.2em; text-transform:uppercase; margin-top:2px; }
+.critique { font-size:0.6rem; color:#888; line-height:1.8; font-style:italic; min-height:80px; padding:8px; border:1px solid #1e1e1e; background:#0e0e0e; margin-top:4px; }
+.sub-score { display:flex; justify-content:space-between; font-size:0.55rem; margin-bottom:4px; color:#666; }
+.sub-score span { color:#c8b89a; }
+.score-bar-wrap { height:3px; background:#1a1a1a; margin-bottom:7px; }
+.score-bar { height:100%; background:#c8b89a; transition:width .6s; }
+</style>
+</head>
+<body>
+<h1>Isometric Zen Garden</h1>
+<div class="subtitle">Compose. The AI critic is watching.</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Elements</div></div>
+    <button class="tool-btn active" data-tool="sand" onclick="setTool('sand')"><div class="tool-swatch" style="background:#c8b060"></div>Sand / Gravel</button>
+    <button class="tool-btn" data-tool="rock_large" onclick="setTool('rock_large')"><div class="tool-swatch" style="background:#7a7a7a"></div>Rock — Large</button>
+    <button class="tool-btn" data-tool="rock_small" onclick="setTool('rock_small')"><div class="tool-swatch" style="background:#9a9a9a"></div>Rock — Small</button>
+    <button class="tool-btn" data-tool="water" onclick="setTool('water')"><div class="tool-swatch" style="background:#3a6a9a"></div>Water / Pool</button>
+    <button class="tool-btn" data-tool="moss" onclick="setTool('moss')"><div class="tool-swatch" style="background:#4a7a4a"></div>Moss / Plant</button>
+    <button class="tool-btn" data-tool="rake" onclick="setTool('rake')"><div class="tool-swatch" style="background:#a09060;border-radius:50%"></div>Rake Lines</button>
+    <button class="tool-btn" data-tool="erase" onclick="setTool('erase')"><div class="tool-swatch" style="background:#1a1a1a;border:1px solid #444"></div>Erase</button>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">Design Hints</div>
+      <div style="font-size:0.52rem;color:#555;line-height:1.9;">Odd numbers of rocks<br>Asymmetric balance<br>Rule of thirds<br>Empty space = breath<br>Water near rocks</div>
+    </div>
+    <button class="btn" onclick="clearGarden()">Clear Garden</button>
+  </div>
+  <canvas id="canvas" width="500" height="460"></canvas>
+  <div class="right-panel">
+    <div class="panel">
+      <div class="score-label">Aesthetic Score</div>
+      <div class="score-big" id="total-score">—</div>
+      <div style="font-size:0.52rem;color:#555;text-align:center;margin-top:3px;">Press Judge to evaluate</div>
+    </div>
+    <button class="btn judge" onclick="judge()">Judge My Garden</button>
+    <div class="panel">
+      <div class="panel-label">Critique</div>
+      <div class="critique" id="critique-text">Place elements in the garden, then summon the critic.</div>
+    </div>
+    <div class="panel" id="score-detail" style="display:none;">
+      <div class="panel-label">Breakdown</div>
+      <div class="sub-score">Balance <span id="s-balance">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-balance" style="width:0%"></div></div>
+      <div class="sub-score">Golden Ratio <span id="s-golden">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-golden" style="width:0%"></div></div>
+      <div class="sub-score">Odd Numbers <span id="s-odd">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-odd" style="width:0%"></div></div>
+      <div class="sub-score">Emptiness <span id="s-empty">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-empty" style="width:0%"></div></div>
+      <div class="sub-score">Variety <span id="s-variety">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-variety" style="width:0%"></div></div>
+      <div class="sub-score">Rake Harmony <span id="s-rake">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-rake" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const CW=500,CH=460,COLS=20,ROWS=18;
+const ISO_TW=28,ISO_TH=14,ORIGIN_X=CW/2,ORIGIN_Y=60;
+let grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+let currentTool='sand',isPainting=false,judgeScore=null;
+const ELEMENTS={sand:{color:'#c8b060',h:2,label:'Sand'},rock_large:{color:'#7a7a7a',h:24,label:'Rock L'},rock_small:{color:'#9a9a9a',h:14,label:'Rock S'},water:{color:'#3a6a9a',h:1,label:'Water'},moss:{color:'#4a7a4a',h:6,label:'Moss'},rake:{color:'#c8b060',h:2,label:'Rake'}};
+function isoX(c,r){return ORIGIN_X+(c-r)*ISO_TW/2;}
+function isoY(c,r){return ORIGIN_Y+(c+r)*ISO_TH/2;}
+function screenToGrid(sx,sy){const dx=sx-ORIGIN_X,dy=sy-ORIGIN_Y;const c=Math.round((dx/(ISO_TW/2)+dy/(ISO_TH/2))/2);const r=Math.round((dy/(ISO_TH/2)-dx/(ISO_TW/2))/2);return{c,r};}
+function setTool(t){currentTool=t;document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));}
+function clearGarden(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));judgeScore=null;document.getElementById('total-score').textContent='—';document.getElementById('score-detail').style.display='none';document.getElementById('critique-text').textContent='Place elements in the garden, then summon the critic.';render();}
+function render(){ctx.clearRect(0,0,CW,CH);const grad=ctx.createLinearGradient(0,0,0,CH);grad.addColorStop(0,'#0a0c10');grad.addColorStop(1,'#111208');ctx.fillStyle=grad;ctx.fillRect(0,0,CW,CH);for(let r=0;r<ROWS;r++){for(let c=0;c<COLS;c++){const x=isoX(c,r),y=isoY(c,r);const el=grid[r][c];drawIsoTile(x,y+1,'#1a1808','#141206','#0e0e06');if(!el)continue;if(el==='sand'){drawIsoTile(x,y+1,'#c8b060','#b0983a','#987820');}else if(el==='rake'){drawIsoTile(x,y+1,'#c8b878','#b0a060','#989040');ctx.save();ctx.strokeStyle='rgba(100,80,20,0.5)';ctx.lineWidth=0.5;for(let i=-10;i<=10;i+=4){ctx.beginPath();ctx.moveTo(x+i,y+ISO_TH/2+1);ctx.lineTo(x+ISO_TW/2+i*0.5,y+ISO_TH+1);ctx.stroke();}ctx.restore();}else if(el==='water'){drawIsoTile(x,y,'#1a3a5a','#142a4a','#0e1e34');ctx.save();ctx.globalAlpha=0.3;ctx.fillStyle='#6aaecc';ctx.beginPath();ctx.ellipse(x,y+ISO_TH/2,ISO_TW*0.3,ISO_TH*0.25,0,0,Math.PI*2);ctx.fill();ctx.restore();}else if(el==='moss'){drawIsoTile(x,y+1,'#3a6a3a','#2a5a2a','#1a4a1a');drawIsoBlock(x,y,'#4a7a4a','#3a6a3a','#2a5a2a',6);}else if(el==='rock_small'){drawIsoTile(x,y+1,'#b8b0a0','#a09888','#888070');drawIsoBlock(x,y-6,'#b8b0a0','#a09888','#888070',14);}else if(el==='rock_large'){drawIsoTile(x,y+1,'#888078','#706860','#585048');drawIsoBlock(x,y-14,'#888078','#706860','#585048',24);}}}for(let r=0;r<ROWS;r++){for(let c=0;c<COLS;c++){const x=isoX(c,r),y=isoY(c,r);ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+ISO_TW/2,y+ISO_TH/2);ctx.lineTo(x,y+ISO_TH);ctx.lineTo(x-ISO_TW/2,y+ISO_TH/2);ctx.closePath();ctx.stroke();}}if(judgeScore!==null){ctx.save();ctx.fillStyle='rgba(200,184,154,0.08)';ctx.fillRect(CW-90,CH-30,88,22);ctx.fillStyle='#c8b89a';ctx.font='bold 13px Courier New';ctx.textAlign='right';ctx.fillText('Score: '+judgeScore,CW-6,CH-13);ctx.textAlign='left';ctx.restore();}}
+function drawIsoTile(x,y,top,right,left){ctx.fillStyle=top;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+ISO_TW/2,y+ISO_TH/2);ctx.lineTo(x,y+ISO_TH);ctx.lineTo(x-ISO_TW/2,y+ISO_TH/2);ctx.closePath();ctx.fill();}
+function drawIsoBlock(x,y,top,right,left,h){const hw=ISO_TW/2,hh=ISO_TH/2;ctx.fillStyle=top;ctx.beginPath();ctx.moveTo(x,y-h);ctx.lineTo(x+hw,y-h+hh);ctx.lineTo(x,y-h+ISO_TH);ctx.lineTo(x-hw,y-h+hh);ctx.closePath();ctx.fill();ctx.fillStyle=right;ctx.beginPath();ctx.moveTo(x,y-h+ISO_TH);ctx.lineTo(x+hw,y-h+hh);ctx.lineTo(x+hw,y+hh);ctx.lineTo(x,y+ISO_TH);ctx.closePath();ctx.fill();ctx.fillStyle=left;ctx.beginPath();ctx.moveTo(x,y-h+ISO_TH);ctx.lineTo(x-hw,y-h+hh);ctx.lineTo(x-hw,y+hh);ctx.lineTo(x,y+ISO_TH);ctx.closePath();ctx.fill();}
+const CRITIQUES_GOOD=["The void breathes. Your restraint is the composition's greatest virtue.","Three stones — the triangle speaks of stability without declaring it.","Water finds its place beside stone, as all rivers know their banks.","The diagonal axis carries the eye without commanding it. Subtle mastery.","Empty sand holds space the way silence holds music.","The asymmetry here is not accidental — it is earned.","You have understood that the garden is the negative space.","The rake lines radiate from the stones like thoughts from a still mind."];
+const CRITIQUES_MED=["Symmetry is a trap. Your garden knocks on its door.","The rocks cluster. Let them breathe — separation creates relationship.","Consider the rule of thirds: your focal stone drifts from its power position.","More moss than emptiness. The eye needs somewhere to rest.","Water without proximity to stone loses its narrative purpose.","The rake lines fight the stone placement rather than yield to it.","Too much declared, too little suggested."];
+const CRITIQUES_BAD=["The elements compete. No hierarchy, no silence.","A garden is not a catalog. Choose less, mean more.","Every tile occupied is a missed opportunity for restraint.","The stones are evenly spaced — this is furniture arrangement, not zen.","Water and rock must speak to each other. Here they are strangers.","The composition has no anchor. The eye wanders, finds nothing.","Start again. The first placement is always the most honest."];
+function judge(){const counts={};let total=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=grid[r][c];if(el){counts[el]=(counts[el]||0)+1;total++;}}if(total===0){document.getElementById('critique-text').textContent='The empty garden is perfect. But the critic requires something to destroy.';return;}let leftWeight=0,rightWeight=0,topWeight=0,botWeight=0;const weights={sand:1,rake:1,water:2,moss:2,rock_small:3,rock_large:5};for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=grid[r][c];if(!el)continue;const w=weights[el]||1;if(c<COLS/2)leftWeight+=w;else rightWeight+=w;if(r<ROWS/2)topWeight+=w;else botWeight+=w;}const balL=leftWeight+rightWeight>0?1-Math.abs(leftWeight-rightWeight)/(leftWeight+rightWeight):0;const balT=topWeight+botWeight>0?1-Math.abs(topWeight-botWeight)/(topWeight+botWeight):0;const balanceScore=Math.round(((balL*0.6+balT*0.4)*0.7+0.3)*100);const PHI=0.618;const thirds=[0.333,0.5,0.667,PHI,1-PHI];let goldenBonus=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=grid[r][c];if(el==='rock_large'||el==='rock_small'){const cx=c/COLS,cr=r/ROWS;const nearH=thirds.some(t=>Math.abs(cx-t)<0.08);const nearV=thirds.some(t=>Math.abs(cr-t)<0.08);if(nearH&&nearV)goldenBonus+=25;else if(nearH||nearV)goldenBonus+=10;}}const goldenScore=Math.min(100,goldenBonus);const rocks=(counts.rock_large||0)+(counts.rock_small||0);const oddScore=rocks===0?0:rocks%2===1?100:30;const emptyPct=1-total/(ROWS*COLS);const emptScore=emptyPct<0.3?Math.round(emptyPct/0.3*60):emptyPct<0.75?Math.round(60+(emptyPct-0.3)/0.45*40):Math.round(100-(emptyPct-0.75)*200);const types=Object.keys(counts).length;const varScore=types===1?30:types===2?55:types===3?80:types>=4?95:0;let rakeHarm=0;const rakeCells=counts.rake||0;if(rakeCells>0){let rakeNearRock=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(grid[r][c]==='rake'){const neighbors=[[r-1,c],[r+1,c],[r,c-1],[r,c+1],[r-2,c],[r+2,c],[r,c-2],[r,c+2]];const nearRock=neighbors.some(([nr,nc])=>nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&(grid[nr][nc]==='rock_large'||grid[nr][nc]==='rock_small'));if(nearRock)rakeNearRock++;}}rakeHarm=Math.round((rakeNearRock/rakeCells)*100);}else{rakeHarm=50;}const total_score=Math.round(balanceScore*0.2+goldenScore*0.2+oddScore*0.15+emptScore*0.2+varScore*0.1+rakeHarm*0.15);judgeScore=total_score;document.getElementById('total-score').textContent=total_score;document.getElementById('score-detail').style.display='block';const subs={balance:balanceScore,golden:goldenScore,odd:oddScore,empty:emptScore,variety:varScore,rake:rakeHarm};Object.entries(subs).forEach(([k,v])=>{document.getElementById('s-'+k).textContent=v;document.getElementById('b-'+k).style.width=v+'%';});let pool=total_score>=72?CRITIQUES_GOOD:total_score>=45?CRITIQUES_MED:CRITIQUES_BAD;const critique=pool[Math.floor(Math.random()*pool.length)];document.getElementById('critique-text').textContent=`"${critique}"`;render();}
+function paintAt(e){const rect=canvas.getBoundingClientRect();const sx=e.clientX-rect.left,sy=e.clientY-rect.top;const{c,r}=screenToGrid(sx,sy);if(c<0||c>=COLS||r<0||r>=ROWS)return;grid[r][c]=currentTool==='erase'?null:currentTool;render();}
+canvas.addEventListener('mousedown',e=>{isPainting=true;paintAt(e);});
+canvas.addEventListener('mousemove',e=>{if(isPainting)paintAt(e);});
+canvas.addEventListener('mouseup',()=>isPainting=false);
+canvas.addEventListener('mouseleave',()=>isPainting=false);
+render();
+</script>
+</body>
+</html>

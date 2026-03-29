@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xlmx / auditor-sat</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;color:#222;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:1.8;padding:40px 20px;max-width:640px;margin:0 auto}
+a{color:#222}.sep{border:none;border-top:1px solid #ddd;margin:30px 0}
+.tag{font-size:10px;color:#999;letter-spacing:2px;text-transform:uppercase}
+label{display:block;margin-bottom:6px;font-size:12px}
+input,textarea,select{font-family:'Courier New',Courier,monospace;font-size:13px;border:1px solid #ccc;padding:8px;width:100%;margin-bottom:12px;background:#fafafa;color:#222}
+button{font-family:'Courier New',Courier,monospace;font-size:13px;border:1px solid #222;background:#222;color:#fff;padding:10px 24px;cursor:pointer;margin:4px 4px 4px 0}
+button:hover{background:#444}
+table{width:100%;border-collapse:collapse;font-size:11px;margin:16px 0}
+th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}
+th{background:#f5f5f5}
+.footer{margin-top:60px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:20px}
+.lim{background:#f9f9f9;border:1px solid #eee;padding:12px;margin:16px 0;font-size:12px;color:#666}
+</style>
+</head>
+<body>
+<p class="tag">xlmx / auditor-sat</p>
+<hr class="sep">
+<p>// sube tus XMLs del SAT y el gordo te los concilia en segundos.</p>
+<p class="lim" id="counter"></p>
+<div id="blocked" style="display:none">
+<p>// limite alcanzado. para uso ilimitado, contacta al gordo: xlmx@proton.me</p>
+</div><div id="app">
+<hr class="sep">
+<p class="tag">// paso 1: sube tus archivos xml</p>
+<p>archivos con "emitido" en el nombre = emitidos. todo lo demas = recibidos.</p>
+<input type="file" id="xmlFiles" multiple accept=".xml" style="margin:12px 0">
+<button onclick="auditar()">auditar ></button>
+<hr class="sep">
+<div id="results" style="display:none">
+<p class="tag">// resumen fiscal</p>
+<div id="summary"></div>
+<hr class="sep">
+<p class="tag">// detalle de facturas</p>
+<div id="detail"></div>
+<hr class="sep">
+<p class="tag">// discrepancias</p>
+<div id="disc"></div>
+<button onclick="exportCSV()">exportar csv ></button>
+</div>
+</div>
+<hr class="sep">
+<div class="footer">
+<p>xlmx — un gordo programando en su garage</p>
+<p><a href="../index.html">&lt; volver</a></p>
+</div>
+<script>
+const KEY='xlmx_sat';const LIM=5;
+function getU(){return parseInt(localStorage.getItem(KEY)||'0')}
+function incU(){const n=getU()+1;localStorage.setItem(KEY,n);updC()}
+function updC(){const u=getU();document.getElementById('counter').textContent='usos: '+u+'/'+LIM+' (gratis)';
+  if(u>=LIM){document.getElementById('blocked').style.display='block';document.getElementById('app').style.display='none'}}
+updC();let emitidos=[],recibidos=[];
+async function auditar(){
+  if(getU()>=LIM){updC();return}
+  const files=document.getElementById('xmlFiles').files;
+  if(!files.length){alert('sube al menos un XML');return}
+  emitidos=[];recibidos=[];
+  for(const f of files){
+    const txt=await f.text();
+    const parser=new DOMParser();const doc=parser.parseFromString(txt,'text/xml');
+    const comp=doc.querySelector('Comprobante')||doc.documentElement;
+    const uuid=(comp.querySelector('TimbreFiscalDigital')||comp.querySelector('[UUID]')||{}).getAttribute?.('UUID')||
+      (txt.match(/UUID="([^"]+)"/i)||[])[1]||'N/A';
+    const rfcE=(comp.querySelector('Emisor')||{}).getAttribute?.('Rfc')||(txt.match(/Emisor[^>]*Rfc="([^"]+)"/i)||[])[1]||'N/A';
+    const rfcR=(comp.querySelector('Receptor')||{}).getAttribute?.('Rfc')||(txt.match(/Receptor[^>]*Rfc="([^"]+)"/i)||[])[1]||'N/A';
+    const sub=parseFloat(comp.getAttribute('SubTotal')||(txt.match(/SubTotal="([^"]+)"/i)||[])[1]||'0');
+    const iva=parseFloat((comp.querySelector('Traslado')||{}).getAttribute?.('Importe')||(txt.match(/Traslado[^>]*Importe="([^"]+)"/i)||[])[1]||'0');
+    const tot=parseFloat(comp.getAttribute('Total')||(txt.match(/Total="([^"]+)"/i)||[])[1]||'0');
+    const fecha=comp.getAttribute('Fecha')||(txt.match(/Fecha="([^"]+)"/i)||[])[1]||'N/A';
+    const rec={uuid,rfcE,rfcR,sub,iva,tot,fecha,file:f.name};
+    if(f.name.toLowerCase().includes('emitido'))emitidos.push(rec);else recibidos.push(rec);
+  }
+  incU();render();
+}
+function render(){
+  document.getElementById('results').style.display='block';
+  const tE=emitidos.reduce((a,c)=>a+c.tot,0);const tR=recibidos.reduce((a,c)=>a+c.tot,0);
+  const iE=emitidos.reduce((a,c)=>a+c.iva,0);const iR=recibidos.reduce((a,c)=>a+c.iva,0);
+  document.getElementById('summary').innerHTML=
+    '<table><tr><th></th><th>facturas</th><th>subtotal</th><th>IVA</th><th>total</th></tr>'+
+    '<tr><td>emitidos</td><td>'+emitidos.length+'</td><td>$'+fN(emitidos.reduce((a,c)=>a+c.sub,0))+'</td><td>$'+fN(iE)+'</td><td>$'+fN(tE)+'</td></tr>'+
+    '<tr><td>recibidos</td><td>'+recibidos.length+'</td><td>$'+fN(recibidos.reduce((a,c)=>a+c.sub,0))+'</td><td>$'+fN(iR)+'</td><td>$'+fN(tR)+'</td></tr>'+    '<tr><td><b>balance</b></td><td></td><td></td><td>$'+fN(iE-iR)+'</td><td>$'+fN(tE-tR)+'</td></tr></table>';
+  const all=[...emitidos,...recibidos];
+  document.getElementById('detail').innerHTML='<table><tr><th>archivo</th><th>tipo</th><th>UUID</th><th>RFC emisor</th><th>total</th><th>fecha</th></tr>'+
+    all.map(r=>'<tr><td>'+r.file+'</td><td>'+(emitidos.includes(r)?'E':'R')+'</td><td style="font-size:9px">'+r.uuid.substring(0,12)+'...</td><td>'+r.rfcE+'</td><td>$'+fN(r.tot)+'</td><td>'+r.fecha.substring(0,10)+'</td></tr>').join('')+'</table>';
+  // discrepancies
+  const uuids={};const disc=[];
+  all.forEach(r=>{if(uuids[r.uuid])disc.push({tipo:'UUID duplicado',desc:r.uuid,file:r.file});uuids[r.uuid]=(uuids[r.uuid]||0)+1});
+  all.forEach(r=>{if(r.rfcR==='XAXX010101000')disc.push({tipo:'RFC generico',desc:r.rfcR,file:r.file})});
+  all.forEach(r=>{if(r.tot===0)disc.push({tipo:'Total en $0',desc:'Monto cero',file:r.file})});
+  if(disc.length===0)disc.push({tipo:'Sin discrepancias',desc:'Todo concilia correctamente',file:'-'});
+  document.getElementById('disc').innerHTML='<table><tr><th>tipo</th><th>detalle</th><th>archivo</th></tr>'+
+    disc.map(d=>'<tr><td>'+d.tipo+'</td><td>'+d.desc+'</td><td>'+d.file+'</td></tr>').join('')+'</table>';
+  window._disc=disc;
+}
+function fN(n){return n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function exportCSV(){
+  const d=window._disc||[];
+  let csv='tipo,detalle,archivo\n'+d.map(r=>r.tipo+','+r.desc+','+r.file).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='discrepancias_sat.csv';a.click();
+}
+</script>
+</body>
+</html>

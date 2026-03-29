@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuentos Magicos — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.7}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.main{max-width:620px;margin:32px auto;padding:0 32px}
+h2{font-size:18px;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+label{font-size:12px;color:#666;display:block;margin-bottom:8px}
+input,select{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;width:100%}
+.story{border:1px solid #e5e5e5;border-radius:8px;padding:28px;margin-top:20px;display:none;background:#fafafa}
+.story .title{font-size:18px;font-weight:700;margin-bottom:12px}
+.story p{font-size:14px;color:#333;margin-bottom:12px}
+.story .choice{margin-top:16px}
+.story .choice p{font-size:13px;color:#666;font-weight:600;margin-bottom:8px}
+.choice-btn{padding:8px 16px;border:1px solid #e5e5e5;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;margin-bottom:6px;display:block;width:100%;text-align:left;font-family:inherit}
+.choice-btn:hover{background:#f5f5f5;border-color:#999}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Cuentos Magicos</span></div>
+<a href="../" class="back">&larr; Portal</a>
+</header>
+<div class="main">
+<h2>Cuentos Magicos</h2>
+<p class="sub">Historias interactivas donde tu hijo es el protagonista. Elige el tema y toma decisiones en la aventura.</p>
+<div class="form-grid">
+<label>Nombre del protagonista<input id="nombre" type="text" placeholder="ej. Luca" value=""></label>
+<label>Tema de la aventura<select id="tema">
+<option value="dragon">Dragon y castillo magico</option>
+<option value="espacio">Exploradores del espacio</option>
+<option value="selva">Selva misteriosa</option>
+<option value="mar">Tesoro en el fondo del mar</option>
+<option value="ciudad">Ciudad de los robots amigables</option>
+</select></label>
+</div>
+<button class="btn" onclick="startStory()">Comenzar aventura</button>
+<div class="story" id="story"></div>
+</div>
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Cuentos Magicos — XLMX</span><a href="mailto:info@bimxl.com">Contacto</a></div>
+<script>
+const stories={
+dragon:[
+  {t:'El Dragon Dormido',p:(n)=>`En el Reino de Amatl, todos temen al gran dragon Ignis que duerme en la montana nevada. Un dia, ${n} descubrio un huevo dorado junto al rio. Del huevo salio un dragon bebe que lo miro con ojos de estrella.`,c:['Llevar el dragon bebe al castillo del Rey','Esconderlo en el bosque encantado y cuidarlo en secreto']},
+  {t:'El secreto del castillo',p:(n,c)=>c===0?`${n} entro al castillo con el dragon escondido bajo el sombrero. El Rey lo descubrio, pero en lugar de enojarse, se emociono: "Es la cria perdida del guardian del reino!" Le dieron a ${n} el titulo de Guardabosques Real.`:`${n} construyo una guarida secreta de hojas y musgo. El dragon crecio rapido. Un dia, el dragon viejo Ignis los encontro... y en lugar de rugir, lloro de felicidad: habia estado buscando a su hijo 100 anos.`,c:['El dragon le ensena a volar a mi','Ir juntos a despertar al dragon viejo Ignis']},
+  {t:'Fin de la aventura',p:(n)=>`Desde ese dia, ${n} y su dragon sobrevolaron el reino cada manana. La gente salia a saludarlos con panuelos de colores. Y cuando el sol se ponia sobre las montanas, ${n} subia al lomo del dragon, cerraba los ojos, y sabia que el hogar era exactamente donde estaba.`,c:[]}
+],
+espacio:[
+  {t:'La senal misteriosa',p:(n)=>`La nave Estrella-7 cruzo el cinturon de asteroides cuando la computadora detecto algo raro: una senal de musica que venia del planeta azul Zilor. El capitan ${n} era el unico que podia descifrarla.`,c:['Aterrizar en Zilor a investigar','Responder la senal desde la nave primero']},
+  {t:'Los Zilorians',p:(n,c)=>c===0?`Al aterrizar, ${n} encontro criaturas de luz verde que bailaban al ritmo de la senal. Su lider se acerco: "Llevamos 500 anos enviando esta melodia. Esperabamos a alguien que supiera escuchar." Le regalaron a ${n} un cristal que mostraba el futuro del universo.`:`${n} toco la melodia en el teclado de la nave. De repente, aparecieron cientos de naves de todos colores formando un circulo. Era el primer Congreso Intergalactico. Y ${n} habia sido quien lo convoco.`,c:['Compartir el cristal con todos los planetas','Guardar el cristal como responsabilidad propia']},
+  {t:'De regreso a casa',p:(n)=>`${n} regreso a la Tierra con algo que nadie mas tenia: la certeza de que en el universo infinito, la cosa mas rara y valiosa era una persona que sabe escuchar. Esa noche, mirando las estrellas desde el jardin de su casa, ${n} sonrio. Porque ahora sabia que cada estrella era un ojo que tambien lo miraba a el.`,c:[]}
+],
+selva:[
+  {t:'El mapa que habla',p:(n)=>`${n} encontro un mapa bajo una piedra en el jardin de su abuela. El mapa era de un lugar llamado "Selva de los Mil Colores" y tenia una nota: "Solo quien llega con el corazon limpio puede ver el arbol de los deseos."`,c:['Ir solo esa misma tarde','Invitar al perro de la vecina como companero']},
+  {t:'El guardian de la selva',p:(n,c)=>c===0?`${n} avanzo entre las plantas gigantes hasta que aparecio una iguana del tamano de un caballo. "Para pasar, debes responder: Que es lo mas valioso que tienes?" ${n} penso un momento y respondio: "La curiosidad". La iguana se hizo a un lado.`:`El perro Manchas olio el camino correcto entre tres veredas identicas. Sin el, ${n} habria caminado en circulos. A veces la inteligencia mas valiosa viene en cuatro patas.`,c:['Pedir un deseo para mi','Pedir un deseo para alguien mas']},
+  {t:'El arbol de los deseos',p:(n)=>`El arbol era inmenso y brillaba de noche como luna propia. ${n} puso la mano en el tronco y hizo su deseo en silencio. Nadie mas lo sabra nunca. Pero al volver a casa, su abuela lo miro y le dijo: "Algo en ti cambio hoy. Se nota en los ojos." Y ${n} solo sonrio.`,c:[]}
+]
+};
+let state={tema:'dragon',nombre:'',step:0,choices:[]};
+function startStory(){
+  state.nombre=document.getElementById('nombre').value.trim()||'el protagonista';
+  state.tema=document.getElementById('tema').value;
+  if(!stories[state.tema])state.tema='dragon';
+  state.step=0;state.choices=[];
+  render();
+}
+function choose(c){state.choices.push(c);state.step++;render();}
+function render(){
+  const s=stories[state.tema];
+  if(state.step>=s.length){document.getElementById('story').style.display='none';return;}
+  const scene=s[state.step];
+  const prev=state.choices[state.step-1];
+  const text=scene.p(state.nombre,prev);
+  const box=document.getElementById('story');
+  box.style.display='block';
+  box.innerHTML=`<div class="title">${scene.t}</div><p>${text}</p>`+(scene.c.length?`<div class="choice"><p>Que hace ${state.nombre}?</p>${scene.c.map((c,i)=>`<button class="choice-btn" onclick="choose(${i})">${c}</button>`).join('')}</div>`:`<button class="btn" style="margin-top:16px" onclick="document.getElementById('story').style.display='none';document.querySelector('.btn').textContent='Nueva aventura'">Fin — Nueva aventura</button>`);
+}
+</script>
+</body>
+</html>

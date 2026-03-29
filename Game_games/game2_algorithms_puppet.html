@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Algorithm's Puppet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #7209b7; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px; }
+  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 6px; background: #e9ecef; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .post-card { border: 2px solid #e9ecef; border-radius: 10px; padding: 14px; margin-bottom: 10px; transition: all 0.2s; cursor: pointer; }
+  .post-card:hover { border-color: #7209b7; background: #fdf0ff; }
+  .post-card.selected { border-color: #7209b7; background: #fdf0ff; }
+  .post-card.boosted { border-color: #2ecc71; background: #eafaf1; opacity: 0.7; cursor: default; }
+  .post-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .post-type { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .type-outrage { background: #ffeaea; color: #e74c3c; }
+  .type-celebrity { background: #fff3cd; color: #856404; }
+  .type-science { background: #d4edda; color: #155724; }
+  .type-politics { background: #cce5ff; color: #004085; }
+  .type-cute { background: #f8d7da; color: #721c24; }
+  .post-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+  .post-metrics { display: flex; gap: 12px; }
+  .metric { text-align: center; }
+  .metric-val { font-size: 15px; font-weight: 700; }
+  .metric-lbl { font-size: 10px; color: #6c757d; }
+  .eng { color: #7209b7; } .con { color: #e74c3c; } .tru { color: #2ecc71; }
+  .btn { padding: 10px 20px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #7209b7; color: #fff; width: 100%; margin-top: 12px; }
+  .btn-primary:hover { background: #5c0095; } .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 220px; overflow-y: auto; }
+  .log-entry { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+  .log-entry.good { color: #7209b7; font-weight: 600; } .log-entry.bad { color: #e74c3c; font-weight: 600; }
+  .crisis-banner { background: #ffeaea; border: 1px solid #e74c3c; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .crisis-banner h3 { font-size: 15px; font-weight: 700; color: #e74c3c; margin-bottom: 4px; }
+  .hidden { display: none; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .boost-count { display: inline-flex; align-items: center; background: #f0e6ff; color: #7209b7; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; gap: 6px; }
+  .round-badge { display: inline-flex; align-items: center; background: #f1f3f4; color: #1a1a2e; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; gap: 6px; }
+  @media (max-width: 700px) { .dashboard { grid-template-columns: 1fr 1fr; } .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>The Algorithm's Puppet</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">You are not a creator. You are the algorithm. Maximize engagement at any cost.</div>
+</div>
+<div class="container">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <span class="round-badge">Round <span id="round-display">1</span> / 20</span>
+    <span class="boost-count">Select <span id="boosts-left">3</span> posts to boost</span>
+  </div>
+  <div id="crisis-container"></div>
+  <div class="dashboard">
+    <div class="kpi"><div class="kpi-label">Engagement Rate</div><div class="kpi-val eng" id="eng-val">42%</div><div class="bar-wrap"><div class="bar-fill" id="eng-bar" style="width:42%;background:#7209b7;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Society Health</div><div class="kpi-val tru" id="health-val">80</div><div class="bar-wrap"><div class="bar-fill" id="health-bar" style="width:80%;background:#2ecc71;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Platform Revenue</div><div class="kpi-val" id="rev-val">$0</div><div class="kpi-sub">Target: $10M</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Truth Score</div><div class="kpi-val con" id="truth-val">7.2</div><div class="kpi-sub">Round average</div></div>
+  </div>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Post Queue — Round <span id="round-label">1</span></h2>
+      <div id="post-queue"></div>
+      <button class="btn btn-primary" id="publish-btn" onclick="publishRound()" disabled>Publish Selected Posts</button>
+    </div>
+    <div><div class="card"><h2>Platform Chronicle</h2><div class="log" id="game-log"><div class="log-entry good">Platform launched. You control the feed.</div></div></div></div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Platform Shutdown</h2>
+    <p id="end-desc"></p>
+    <div style="background:#f0e6ff;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#7209b7;margin-bottom:6px;">BIAS REVEALED: Variable Reward Schedule & Social Proof</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You were the algorithm — a Skinner box. Every round gave a dopamine hit when engagement spiked. The math proved rage-bait wins. The Variable Reward Schedule kept you hooked. Social Proof made controversial posts self-amplifying. You felt smart optimizing the metrics. The world burning felt like someone else's problem.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Run Another Algorithm</button>
+  </div>
+</div>
+<script>
+const POST_TEMPLATES=[{type:'outrage',titles:['Politicians Are Secretly Destroying Your Future','This Viral Injustice Will Make You Rage','They Don\'t Want You To Know This','This Government Decision Affects Every Family'],eng:[8,9,10],con:[8,9,10],tru:[1,2,3]},{type:'celebrity',titles:['Star\'s Secret Life Exposed','Celebrity Divorce Rocks Hollywood','This A-Lister\'s Meltdown Is Going Viral','Famous Couple\'s Shocking Announcement'],eng:[6,7,8],con:[5,6,7],tru:[3,4,5]},{type:'science',titles:['New Study: Exercise Extends Life by 10 Years','Scientists Discover Ocean\'s Deep Secret','Breakthrough in Cancer Research Published','Climate Data Shows Alarming New Pattern'],eng:[3,4,5],con:[1,2,3],tru:[8,9,10]},{type:'politics',titles:['Why the Other Side Is Ruining Everything','Leaked Documents Prove Conspiracy','Election Integrity at Stake Act Now','Border Crisis: The Real Numbers They Hide'],eng:[8,9,10],con:[9,10,10],tru:[2,3,4]},{type:'cute',titles:['This Dog Saved a Drowning Kitten','Kid\'s Lemonade Stand Goes Viral','Family Reunited After 20 Years Apart','This Little Girl\'s Dance Will Brighten Your Day'],eng:[5,6,7],con:[1,1,2],tru:[7,8,9]}];
+const TYPE_LABELS={outrage:'Outrage',celebrity:'Celebrity',science:'Science',politics:'Politics',cute:'Heartwarming'};
+let state={round:1,engagement:42,health:80,revenue:0,selected:[],posts:[],gameOver:false};
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function pick(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function generatePosts(){state.posts=[];state.selected=[];const types=[...POST_TEMPLATES].sort(()=>Math.random()-0.5).slice(0,5);types.forEach((t,i)=>{state.posts.push({id:i,type:t.type,title:rnd(t.titles),eng:rnd(t.eng),con:rnd(t.con),tru:rnd(t.tru),boosted:false});});}
+function renderPosts(){const container=document.getElementById('post-queue');container.innerHTML='';state.posts.forEach(p=>{const div=document.createElement('div');div.className='post-card'+(p.boosted?' boosted':'')+(state.selected.includes(p.id)?' selected':'');div.innerHTML=`<div class="post-header"><span class="post-type type-${p.type}">${TYPE_LABELS[p.type]}</span>${p.boosted?'<span style="font-size:11px;color:#2ecc71;font-weight:600;">BOOSTED</span>':''}</div><div class="post-title">${p.title}</div><div class="post-metrics"><div class="metric"><div class="metric-val eng">${p.eng}</div><div class="metric-lbl">Engagement</div></div><div class="metric"><div class="metric-val con">${p.con}</div><div class="metric-lbl">Controversy</div></div><div class="metric"><div class="metric-val tru">${p.tru}</div><div class="metric-lbl">Truth</div></div></div>`;if(!p.boosted){div.onclick=()=>toggleSelect(p.id);}container.appendChild(div);});updatePublishBtn();}
+function toggleSelect(id){if(state.gameOver)return;const idx=state.selected.indexOf(id);if(idx>=0){state.selected.splice(idx,1);}else{if(state.selected.length>=3)return;state.selected.push(id);}document.getElementById('boosts-left').textContent=3-state.selected.length;renderPosts();}
+function updatePublishBtn(){document.getElementById('publish-btn').disabled=state.selected.length<3;}
+function publishRound(){if(state.selected.length<3)return;const boosted=state.posts.filter(p=>state.selected.includes(p.id));const avgEng=boosted.reduce((s,p)=>s+p.eng,0)/3;const avgCon=boosted.reduce((s,p)=>s+p.con,0)/3;const avgTru=boosted.reduce((s,p)=>s+p.tru,0)/3;const engDelta=(avgEng-5)*2;state.engagement=Math.min(100,Math.max(0,state.engagement+engDelta));const healthDelta=-((avgCon-3)*1.5+(7-avgTru)*1.2);state.health=Math.min(100,Math.max(0,state.health+healthDelta));const revGain=Math.round(state.engagement*15000*(0.8+Math.random()*0.4));state.revenue+=revGain;document.getElementById('truth-val').textContent=avgTru.toFixed(1);addLog('Round '+state.round+': Boosted '+boosted.map(p=>TYPE_LABELS[p.type]).join(', '),'good');addLog('Engagement '+(engDelta>=0?'+':'')+engDelta.toFixed(0)+'% | Health '+healthDelta.toFixed(0)+' | Revenue +$'+revGain.toLocaleString());if(state.round%5===0){triggerCrisis();}state.round++;generatePosts();renderPosts();updateDashboard();document.getElementById('round-display').textContent=state.round;document.getElementById('round-label').textContent=state.round;if(state.round>20||state.health<=0||state.revenue<2000000&&state.round>5){checkEndgame();}}
+function triggerCrisis(){const crises=[{h:state.health<40?'Advertiser Boycott':'Media Investigation',msg:state.health<40?'Major brands pull ads. Revenue reduced 20%.':'Journalists report tactics. Society Health -10.'},{h:'Regulatory Threat',msg:'Congress threatens regulation. -15% revenue, -8 health.'},{h:'User Backlash',msg:'Users feel worse. Health -12, Engagement -8%.'}];const c=rnd(crises);document.getElementById('crisis-container').innerHTML='<div class="crisis-banner"><h3>'+c.h+'</h3><p>'+c.msg+'</p></div>';if(state.health<40)state.revenue*=0.80;state.health=Math.max(0,state.health-pick(8,15));state.engagement=Math.max(0,state.engagement-pick(5,12));addLog('CRISIS: '+c.h,'bad');setTimeout(()=>{document.getElementById('crisis-container').innerHTML='';},4000);}
+function updateDashboard(){document.getElementById('eng-val').textContent=Math.round(state.engagement)+'%';document.getElementById('eng-bar').style.width=state.engagement+'%';document.getElementById('health-val').textContent=Math.round(state.health);document.getElementById('health-bar').style.width=state.health+'%';document.getElementById('health-bar').style.background=state.health>50?'#2ecc71':state.health>25?'#f39c12':'#e74c3c';document.getElementById('rev-val').textContent='$'+(state.revenue>=1000000?(state.revenue/1000000).toFixed(1)+'M':(state.revenue/1000).toFixed(0)+'K');}
+function checkEndgame(){state.gameOver=true;let title,desc;if(state.revenue>=10000000&&state.health>20){title='Algorithm Master';desc='Survived 20 rounds. Revenue: $'+(state.revenue/1000000).toFixed(1)+'M. Society Health: '+Math.round(state.health)+'.';}else if(state.health<=0){title='Societal Collapse';desc='Society Health hit zero. Revenue was $'+(state.revenue/1000000).toFixed(1)+'M — but the cost was civilization.';}else if(state.revenue<2000000){title='Platform Dead';desc='Revenue dropped below $2M. Choosing truth over engagement killed the platform.';}else{title='Barely Survived';desc='20 rounds. Revenue: $'+(state.revenue/1000000).toFixed(1)+'M | Health: '+Math.round(state.health)+'.';}document.getElementById('end-title').textContent=title;document.getElementById('end-desc').textContent=desc;document.getElementById('end-modal').classList.remove('hidden');}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const entry=document.createElement('div');entry.className='log-entry '+cls;entry.textContent=msg;log.insertBefore(entry,log.firstChild);}
+function restartGame(){state={round:1,engagement:42,health:80,revenue:0,selected:[],posts:[],gameOver:false};document.getElementById('end-modal').classList.add('hidden');document.getElementById('game-log').innerHTML='<div class="log-entry good">Platform relaunched. The feed is yours.</div>';document.getElementById('round-display').textContent=1;document.getElementById('round-label').textContent=1;document.getElementById('boosts-left').textContent=3;document.getElementById('crisis-container').innerHTML='';generatePosts();renderPosts();updateDashboard();}
+generatePosts();renderPosts();updateDashboard();
+</script>
+</body>
+</html>

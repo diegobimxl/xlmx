@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Que Hacemos Hoy? — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.main{max-width:600px;margin:32px auto;padding:0 32px}
+h2{font-size:18px;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:24px}
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+@media(max-width:500px){.filters{grid-template-columns:1fr}}
+label{font-size:12px;color:#666;display:block;margin-bottom:8px}
+select{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;width:100%}
+.activity-card{border:1px solid #e5e5e5;border-radius:8px;padding:24px;margin-top:20px;display:none}
+.activity-card .emoji{font-size:40px;margin-bottom:8px}
+.activity-card h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.activity-card p{font-size:13px;color:#555;line-height:1.6;margin-bottom:12px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 8px;border-radius:3px;background:#f5f5f5;color:#555}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Que Hacemos Hoy?</span></div>
+<a href="../" class="back">&larr; Portal</a>
+</header>
+<div class="main">
+<h2>Que Hacemos Hoy?</h2>
+<p class="sub">Recomendador de actividades para ninos segun clima, edad y objetivo. Sin drama, sin pantallas.</p>
+<div class="filters">
+<label>Clima<select id="clima"><option value="soleado">Soleado</option><option value="nublado">Nublado</option><option value="lluvia">Lluvia</option><option value="frio">Frio</option><option value="calor">Calor extremo</option></select></label>
+<label>Edad<select id="edad"><option value="2-4">2-4 anos</option><option value="5-7">5-7 anos</option><option value="8-10">8-10 anos</option><option value="11-13">11-13 anos</option></select></label>
+<label>Objetivo<select id="obj"><option value="creativo">Creativo</option><option value="fisico">Actividad fisica</option><option value="educativo">Educativo</option><option value="social">Social</option><option value="relajado">Relajado</option></select></label>
+</div>
+<button class="btn" onclick="suggest()">Sugerir actividad</button>
+<div class="activity-card" id="card">
+<div class="emoji" id="cEmoji"></div>
+<h3 id="cTitle"></h3>
+<p id="cDesc"></p>
+<div class="tags" id="cTags"></div>
+<button class="btn" style="margin-top:14px;background:#fff;color:#111;border:1px solid #e5e5e5" onclick="suggest()">Otra sugerencia</button>
+</div>
+</div>
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Que Hacemos Hoy — XLMX</span><a href="mailto:info@bimxl.com">Contacto</a></div>
+<script>
+const acts={
+creativo:[
+  {e:'🎨',t:'Pintura libre',d:'Pon periodicos en el piso, saca los colores y deja que pinten lo que quieran. Sin reglas, sin tema. El resultado no importa, el proceso si.',tags:['indoor','10 min prep','ensuciable']},
+  {e:'✂️',t:'Collage de revistas',d:'Busca revistas viejas, tijeras y resistol. Que hagan su personaje favorito, su familia o su lugar ideal con recortes.',tags:['indoor','materiales basicos','concentracion']},
+  {e:'🏺',t:'Escultura con plastilina',d:'Reta a tu hijo a hacer el animal mas raro que se imagine. Ponle nombre, cuento y habitat.',tags:['indoor','sin pantallas','imaginacion']},
+  {e:'📖',t:'Cuento inventado',d:'Cada quien propone un personaje y un lugar. Escriban o dibujen juntos el cuento en papel. Terminen con un final sorpresa.',tags:['indoor','escritura','colaborativo']}
+],
+fisico:[
+  {e:'⚽',t:'Circuito de obstaculos',d:'Con cojines, sillas y cinta masking tape crea un circuito en sala. Cronometro en mano, a ver quien lo hace mas rapido.',tags:['indoor/outdoor','energia alta','cronometro']},
+  {e:'🚴',t:'Caminata exploradora',d:'Salgan a caminar con una mision: encontrar 5 cosas de color verde, 3 insectos y 1 nube con forma de animal.',tags:['outdoor','observacion','soleado']},
+  {e:'🤸',t:'Sesion de yoga infantil',d:'Busca en YouTube "yoga para ninos 15 minutos". Siguelo juntos. Los ninos aman las poses de animales.',tags:['indoor','calma','flexible']},
+  {e:'🏐',t:'Voleibol con globo',d:'Un globo inflado como pelota, dos personas como red. No puede tocar el piso. Suena simple, dura horas.',tags:['indoor','globo','edad 5+']}
+],
+educativo:[
+  {e:'🔬',t:'Experimento: volcan de bicarbonato',d:'Bicarbonato + vinagre + colorante = volcan. Explica la reaccion quimica en terminos de "burbujas enojadas". Repitelo 5 veces.',tags:['indoor','ciencia','materiales casa']},
+  {e:'🗺️',t:'Mapa del tesoro en casa',d:'Esconde un "tesoro" (dulce, juguete, nota). Dibuja un mapa con pistas. Que el nino lo resuelva solo.',tags:['indoor','logica','preparacion 10min']},
+  {e:'🧮',t:'Tienda de juguetes',d:'Asigna precios a juguetes con post-its. Dale "dinero" de papel. Que practique suma, resta y dar cambio comprando y vendiendo.',tags:['indoor','matematicas','edad 6+']},
+  {e:'🌱',t:'Siembra un frijol',d:'Un vaso con algodon humedo y un frijol. Ponlo en la ventana. En 3 dias sale la raiz. Diario lo miden y dibujan.',tags:['indoor','ciencias naturales','paciencia']}
+],
+social:[
+  {e:'🎲',t:'Tarde de juegos de mesa',d:'Loteria, Uno, Serpientes y Escaleras. Sin celulares. El que pierde prepara la siguiente ronda.',tags:['indoor','familiar','todas las edades']},
+  {e:'🎭',t:'Teatro improvisado',d:'Cada quien saca un papel con un personaje (dinosaurio, astronauta, abuela). Improvisan una escena juntos sin guion.',tags:['indoor','creatividad','energia']},
+  {e:'🍕',t:'Cocinamos juntos',d:'Que el nino elija una receta sencilla (quesadillas, guacamole, licuado). Tu guias, el ejecuta.',tags:['indoor','cocina','orgullo propio']},
+  {e:'📸',t:'Sesion fotografica',d:'Dale tu telefono viejo o una camara desechable. Mision: fotografiar las 10 cosas mas interesantes de la casa. Revisen juntos.',tags:['indoor','arte','reflexion']}
+],
+relajado:[
+  {e:'📚',t:'Club de lectura en pijama',d:'Cada quien toma su libro favorito (o se lo lees tu). Cobijas, almohadas en el piso, agua de jamaica y a leer 30 minutos.',tags:['indoor','calma','ritual']},
+  {e:'🧩',t:'Puzzle en familia',d:'Saca el puzzle mas dificil que tengan. Sin celulares hasta terminarlo. Ponlo en un lugar especial cuando este listo.',tags:['indoor','concentracion','logro']},
+  {e:'🌟',t:'Pelicula clasica de Disney',d:'Dejen que el nino elija. Palomitas, apagan las luces, y si quiere hablar durante la pelicula, dejenlo.',tags:['indoor','lluvia','tranquilo']},
+  {e:'✏️',t:'Diario ilustrado del dia',d:'Al final del dia, cada quien dibuja o escribe la mejor cosa que les paso. En 5 anos van a adorar releerlo.',tags:['indoor','reflexion','habito']}
+]
+};
+function suggest(){
+  const obj=document.getElementById('obj').value;
+  const pool=acts[obj]||acts.creativo;
+  const a=pool[Math.floor(Math.random()*pool.length)];
+  document.getElementById('cEmoji').textContent=a.e;
+  document.getElementById('cTitle').textContent=a.t;
+  document.getElementById('cDesc').textContent=a.d;
+  document.getElementById('cTags').innerHTML=a.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+  document.getElementById('card').style.display='block';
+}
+</script>
+</body>
+</html>

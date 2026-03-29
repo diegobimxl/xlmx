@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Builder Games — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+nav a{font-size:13px;color:#666;margin-left:20px}nav a:hover{color:#111}
+.hero{max-width:720px;margin:48px auto 32px;padding:0 32px;text-align:center}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:1px;margin-bottom:10px}
+.hero p{font-size:14px;color:#444;max-width:580px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.section{max-width:1100px;margin:0 auto;padding:32px}
+.section h2{font-size:16px;font-weight:600;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid #e5e5e5}
+.game-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:800px){.game-grid{grid-template-columns:1fr}}
+.game-card{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s}
+.game-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.game-card a.play-link{display:block;background:#111;color:#fff;text-align:center;padding:14px;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;transition:background .2s}
+.game-card a.play-link:hover{background:#333}
+.game-body{padding:20px}
+.game-body h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.game-body .tag{font-size:10px;font-weight:600;color:#558b2f;background:#f1f8e9;padding:2px 8px;border-radius:3px;display:inline-block;margin-bottom:10px}
+.game-body p{font-size:12px;color:#666;line-height:1.7;margin-bottom:12px}
+.mechanic{font-size:10px;color:#999;border-top:1px solid #f0f0f0;padding-top:10px;margin-top:4px}
+.mechanic strong{color:#666}
+.coming-soon-card{border:1px solid #f0f0f0;border-radius:8px;padding:20px;opacity:0.5}
+.coming-soon-card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.coming-soon-card p{font-size:12px;color:#888;line-height:1.6}
+.badge{font-size:10px;color:#999;border:1px solid #e5e5e5;padding:2px 8px;border-radius:3px;display:inline-block;margin-top:8px}
+.back-link{display:inline-block;font-size:12px;color:#888;margin-bottom:24px}
+.back-link:hover{color:#111}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<a href="../" class="logo">XLMX<span>Data Systems</span></a>
+<nav>
+<a href="../#tools">Herramientas</a>
+<a href="../#browser-tools">Extensions</a>
+<a href="./" style="color:#111;font-weight:600;">Games</a>
+<a href="../#services">Servicios</a>
+<a href="../#contact">Contacto</a>
+</nav>
+</header>
+
+<div class="hero">
+<h1>Builder Games</h1>
+<p>Games for designers, architects, and urban planners. Spatial logic, resource optimization, and systems thinking — free, no sign-up, runs in your browser.</p>
+<div class="sub">Free to play — EN</div>
+</div>
+
+<div class="section">
+<h2>Play Now — Free</h2>
+<div class="game-grid">
+
+<div class="game-card">
+<div class="game-body">
+<h3>Brutalist Tetris</h3>
+<div class="tag">Free — no registro</div>
+<p>Stack architectural elements — cantilevers, columns, slabs, arches. Unlike regular Tetris, center of mass matters. Let the tower lean too far and the whole structure collapses.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Center of mass tracking · Structural collapse · 8 architectural block types</div>
+</div>
+<a href="brutalist-tetris.html" class="play-link">Play Brutalist Tetris →</a>
+</div>
+
+<div class="game-card">
+<div class="game-body">
+<h3>Zoning Puzzle</h3>
+<div class="tag">Free — no registro</div>
+<p>Urban planning on a 12×12 grid. Place residential, commercial, industrial, and green space zones. Industry poisons nearby housing. Find the geometric layout that maximizes population and desirability.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Live desirability heatmap · 4 levels · Population targets</div>
+</div>
+<a href="zoning-puzzle.html" class="play-link">Play Zoning Puzzle →</a>
+</div>
+
+<div class="game-card">
+<div class="game-body">
+<h3>Path of Least Resistance</h3>
+<div class="tag">Free — no registro</div>
+<p>Place homes, parks, shops, and walls on a city grid. Run the simulation and watch 600 agents navigate toward attractors, carving desire lines — the paths people actually want to walk.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Agent-based simulation · Desire line heatmap · 3 speed modes</div>
+</div>
+<a href="path-of-least-resistance.html" class="play-link">Play Path of Least Resistance →</a>
+</div>
+
+</div>
+<div class="game-grid" style="margin-top:20px;">
+
+<div class="game-card">
+<div class="game-body">
+<h3>Floor Plan Optimizer</h3>
+<div class="tag">Free — no registro</div>
+<p>Pack rooms into a building envelope without wasted space. Scored on area fit and circulation efficiency — how short are your hallways vs. the algorithm's layout?</p>
+<div class="mechanic"><strong>Mechanic:</strong> Room packing · Circulation scoring · Rival AI layout</div>
+</div>
+<a href="floor-plan-optimizer.html" class="play-link">Play Floor Plan Optimizer →</a>
+</div>
+
+<div class="game-card">
+<div class="game-body">
+<h3>Bridge Builder</h3>
+<div class="tag">Free — no registro</div>
+<p>Connect nodes with steel, wood, and cable beams to span a gap. Hit Test to watch a truck cross — stress colors reveal which beams are about to snap.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Truss physics · Stress visualization · Budget constraint</div>
+</div>
+<a href="bridge-builder.html" class="play-link">Play Bridge Builder →</a>
+</div>
+
+<div class="game-card">
+<div class="game-body">
+<h3>Passive House Challenge</h3>
+<div class="tag">Free — no registro</div>
+<p>Paint insulation, concrete thermal mass, and south-facing windows onto a building section. Run the 72-hour simulation and survive a deep freeze — no furnace allowed.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Heat diffusion equation · Solar gain · 3 difficulty levels</div>
+</div>
+<a href="passive-house.html" class="play-link">Play Passive House →</a>
+</div>
+
+</div>
+<div class="game-grid" style="margin-top:20px;">
+
+<div class="game-card">
+<div class="game-body">
+<h3>Zen Garden</h3>
+<div class="tag">Free — no registro</div>
+<p>Compose an isometric zen garden with rocks, water, moss, and raked sand. An AI critic scores your layout on balance, golden ratio placement, odd-number groupings, and emptiness.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Isometric rendering · AI composition critique · 6 scoring axes</div>
+</div>
+<a href="zen-garden.html" class="play-link">Play Zen Garden →</a>
+</div>
+
+<div class="game-card">
+<div class="game-body">
+<h3>Modular Colony</h3>
+<div class="tag">Free — no registro</div>
+<p>Build a Mars colony on a hex grid. Connect habitats, O₂ generators, solar arrays, and greenhouses via tunnels. Every pod needs power and oxygen — or it goes dark.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Hex grid · BFS network flow · O₂ &amp; power dependency chains</div>
+</div>
+<a href="modular-colony.html" class="play-link">Play Modular Colony →</a>
+</div>
+
+<div class="game-card">
+<div class="game-body">
+<h3>Structural Integrity</h3>
+<div class="tag">Free — no registro</div>
+<p>Build trusses with a real finite element solver. Place nodes, add beams, apply loads, and run the analysis. Stress colormap shows where your structure is about to yield.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Full 2D FEM · Gaussian elimination · Stress utilization colormap</div>
+</div>
+<a href="structural-integrity.html" class="play-link">Play Structural Integrity →</a>
+</div>
+
+</div>
+</div>
+
+<div class="section">
+<h2>Simuladores de Mercado</h2>
+<div class="game-grid">
+
+<div class="game-card">
+<div class="game-body">
+<h3>La Bolsa — México 1982-1994</h3>
+<span class="tag">ESTRATEGIA / SIMULACIÓN</span>
+<p>Dope Wars meets el apocalipsis financiero mexicano. Invierte en 12 empresas reales, sobrevive la Crisis del Peso, los sismos del 85, los Zapatistas, el asesinato de Colosio y FOBAPROA. Hazte amigo del PRI antes de que todo colapse.</p>
+<div class="mechanic"><strong>Mechanic:</strong> Portfolio tracking · PRN affiliation meter · 15 historical events · Dark comedy flavor text</div>
+</div>
+<a href="bolsa-mx.html" class="play-link">Play La Bolsa →</a>
+</div>
+
+</div>
+</div>
+
+<div style="height:60px"></div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contactanos</a></div>
+</body>
+</html>

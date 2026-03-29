@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Salary Negotiation Prep — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.form-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;padding:0}
+@media(max-width:550px){.form-grid{grid-template-columns:1fr 1fr}}
+.field{padding:12px 16px;border-bottom:1px solid #f0f0f0;border-right:1px solid #f0f0f0}
+.field:nth-child(3n){border-right:none}
+.field label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.field input,.field select{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.btn-row{padding:14px 16px;border-top:1px solid #e5e5e5;display:flex;gap:10px}
+.btn{padding:9px 20px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.result-section{display:none}
+.range-card{border:1px solid #e5e5e5;border-radius:8px;padding:20px;margin-bottom:20px}
+.range-visual{display:flex;align-items:stretch;gap:0;height:60px;border-radius:6px;overflow:hidden;margin-bottom:16px}
+.range-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-direction:column;gap:2px}
+.seg-floor{background:#bbb;flex:1}
+.seg-market{background:#1565c0;flex:2}
+.seg-target{background:#2e7d32;flex:1}
+.seg-stretch{background:#e65100;flex:1}
+.seg-label{font-size:9px;opacity:.85}
+.range-numbers{display:flex;justify-content:space-between;font-size:12px;color:#555;margin-top:8px}
+.numbers-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:500px){.numbers-row{grid-template-columns:1fr}}
+.num-card{border:1px solid #e5e5e5;border-radius:6px;padding:14px;text-align:center}
+.num-val{font-size:24px;font-weight:800;line-height:1}
+.num-val.blue{color:#1565c0}
+.num-val.green{color:#2e7d32}
+.num-val.orange{color:#e65100}
+.num-label{font-size:11px;color:#888;margin-top:4px}
+.scripts-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.script-item{padding:14px 16px;border-bottom:1px solid #f0f0f0}
+.script-item:last-child{border:none}
+.script-title{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.script-text{font-size:13px;color:#333;line-height:1.6;background:#f9f9f9;padding:10px 12px;border-radius:4px;font-style:italic}
+.copy-btn{font-size:11px;background:none;border:1px solid #e5e5e5;padding:4px 10px;border-radius:3px;cursor:pointer;color:#555;margin-top:8px}
+.copy-btn:hover{background:#f5f5f5}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Salary Negotiation Prep</h1>
+<p>Enter your role, location, and experience. Get your market range, opening anchor number, walk-away floor, and copy-paste negotiation scripts.</p>
+<div class="badge">FREE TOOL</div>
+</div>
+<div class="app">
+<div class="form-panel">
+<div class="panel-header">Your Profile</div>
+<div class="form-grid">
+<div class="field"><label>Job title / role</label>
+<select id="fRole"><option>Software Engineer</option><option>Product Manager</option><option>Designer (UX/UI)</option><option>Architect</option><option>BIM Manager</option><option>Project Manager</option><option>Marketing Manager</option><option>Data Analyst</option><option>Sales Manager</option><option>Operations Manager</option></select></div>
+<div class="field"><label>Market / location</label>
+<select id="fMarket"><option value="1.3">San Francisco / NYC</option><option value="1.15">Austin / Denver / Seattle</option><option value="1.0">Dallas / Chicago / Miami</option><option value="0.85">Phoenix / Salt Lake / Nashville</option><option value="0.7">Remote / smaller metro</option><option value="0.4">Mexico City / LatAm</option></select></div>
+<div class="field"><label>Years of experience</label>
+<select id="fYOE"><option value="1">0-2 years (Junior)</option><option value="1.2">3-5 years (Mid)</option><option value="1.45" selected>6-9 years (Senior)</option><option value="1.7">10-15 years (Lead/Staff)</option><option value="2.0">15+ years (Principal/Director)</option></select></div>
+<div class="field"><label>Current salary ($)</label><input type="number" id="fCurrent" value="95000" placeholder="Your current base"></div>
+<div class="field"><label>Offer on table ($)</label><input type="number" id="fOffer" value="110000" placeholder="If you have one"></div>
+<div class="field"><label>Must-have minimum ($)</label><input type="number" id="fMinimum" value="105000" placeholder="Your walk-away number"></div>
+</div>
+<div class="btn-row"><button class="btn btn-primary" onclick="run()">Generate Negotiation Plan</button></div>
+</div>
+<div class="result-section" id="resultSection">
+<div class="range-card">
+<div class="panel-header" style="background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;margin:-20px -20px 16px">Market Range</div>
+<div class="range-visual">
+<div class="range-seg seg-floor"><span id="segFloor">--</span><span class="seg-label">Floor</span></div>
+<div class="range-seg seg-market"><span id="segMarket">Market range</span><span class="seg-label">P25–P75</span></div>
+<div class="range-seg seg-target"><span id="segTarget">--</span><span class="seg-label">Target</span></div>
+<div class="range-seg seg-stretch"><span id="segStretch">--</span><span class="seg-label">Stretch</span></div>
+</div>
+</div>
+<div class="numbers-row">
+<div class="num-card"><div class="num-val blue" id="nAnchor">--</div><div class="num-label">Opening anchor (ask this)</div></div>
+<div class="num-card"><div class="num-val green" id="nTarget">--</div><div class="num-label">Realistic target</div></div>
+<div class="num-card"><div class="num-val orange" id="nWalkaway">--</div><div class="num-label">Walk-away floor</div></div>
+</div>
+<div class="scripts-panel">
+<div class="panel-header">Negotiation Scripts</div>
+<div id="scriptList"></div>
+</div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+const BASE={
+  'Software Engineer':125000,'Product Manager':135000,'Designer (UX/UI)':105000,
+  'Architect':90000,'BIM Manager':95000,'Project Manager':100000,
+  'Marketing Manager':95000,'Data Analyst':90000,'Sales Manager':105000,'Operations Manager':95000
+};
+function fmt(n){return '$'+Math.round(n/1000)*1000>=1000?'$'+Math.round(n/1000)+'K':'$'+n.toLocaleString();}
+function run(){
+  const role=document.getElementById('fRole').value;
+  const market=parseFloat(document.getElementById('fMarket').value);
+  const yoe=parseFloat(document.getElementById('fYOE').value);
+  const current=parseFloat(document.getElementById('fCurrent').value)||0;
+  const offer=parseFloat(document.getElementById('fOffer').value)||0;
+  const minimum=parseFloat(document.getElementById('fMinimum').value)||0;
+  const base=(BASE[role]||100000)*market*yoe;
+  const p25=Math.round(base*0.85/1000)*1000;
+  const p50=Math.round(base/1000)*1000;
+  const p75=Math.round(base*1.15/1000)*1000;
+  const floor=Math.round(base*0.7/1000)*1000;
+  const stretch=Math.round(base*1.3/1000)*1000;
+  const anchor=Math.round(Math.max(p75,offer*1.12,(current||0)*1.2)/1000)*1000;
+  const target=Math.round(Math.max(p50,offer*1.06,(current||0)*1.12)/1000)*1000;
+  const walkaway=minimum>0?minimum:Math.max(floor,(current||0)*1.05);
+  document.getElementById('segFloor').textContent=fmt(floor);
+  document.getElementById('segMarket').textContent=fmt(p25)+' – '+fmt(p75);
+  document.getElementById('segTarget').textContent=fmt(p75);
+  document.getElementById('segStretch').textContent=fmt(stretch);
+  document.getElementById('nAnchor').textContent=fmt(anchor);
+  document.getElementById('nTarget').textContent=fmt(target);
+  document.getElementById('nWalkaway').textContent=fmt(walkaway);
+  const scripts=[
+    {title:'Opening — counter an offer',text:`"Thank you for the offer — I'm genuinely excited about this opportunity. Based on my research and the market rate for this role in this location, I was expecting something closer to ${fmt(anchor)}. Is there room to get there?"`},
+    {title:'Justification — leverage experience',text:`"I bring ${document.getElementById('fYOE').options[document.getElementById('fYOE').selectedIndex].text.split('(')[0].trim()} of hands-on experience in exactly this space. The market data puts this role at ${fmt(p50)}–${fmt(p75)} for that level. I'd like to start at ${fmt(anchor)}."`},
+    {title:'If they push back',text:`"I understand there may be constraints. My floor is ${fmt(walkaway)} — that's what I need to make this work financially. If base salary is fixed, I'm open to discussing a sign-on bonus or an earlier review cycle to get me to ${fmt(target)} faster."`},
+    {title:'Closing — accept at target',text:`"I'm prepared to accept at ${fmt(target)}. This reflects my value to the team and keeps me enthusiastic from day one. Can we make that work?"`},
+  ];
+  const list=document.getElementById('scriptList');
+  list.innerHTML='';
+  scripts.forEach(s=>{
+    const div=document.createElement('div');div.className='script-item';
+    div.innerHTML=`<div class="script-title">${s.title}</div>
+      <div class="script-text">${s.text}</div>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${s.text.replace(/`/g,'\\`')}\`).then(()=>this.textContent='Copied!').catch(()=>alert('${s.text}'))">Copy script</button>`;
+    list.appendChild(div);
+  });
+  document.getElementById('resultSection').style.display='block';
+  document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador de Nombres — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.back{font-size:13px;color:#666}
+.main{max-width:600px;margin:40px auto;padding:0 32px}
+h2{font-size:18px;margin-bottom:4px}
+.main>p{font-size:13px;color:#666;margin-bottom:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid label{font-size:12px;color:#666;display:flex;flex-direction:column;gap:4px}
+.form-grid input,.form-grid select{padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:10px 24px;background:#111;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;margin-top:12px}
+.name-card{border:1px solid #e5e5e5;border-radius:6px;padding:20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.name-card h3{font-size:18px;font-weight:700;margin-bottom:2px}
+.name-card .meaning{font-size:12px;color:#666}
+.name-card .tags{display:flex;gap:4px;margin-top:4px}
+.name-card .tag{font-size:9px;padding:2px 6px;border-radius:3px;background:#f5f5f5;color:#666}
+.name-card .fav{font-size:20px;cursor:pointer;color:#ddd;flex-shrink:0}
+.name-card .fav.on{color:#c62828}
+.favs{border:1px solid #e5e5e5;border-radius:6px;padding:16px;margin-top:20px;display:none}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Generador de Nombres</span></div>
+<a href="../" class="back">&larr; Portal</a>
+</header>
+<div class="main">
+<h2>Generador de Nombres para Negocios</h2>
+<p>Encuentra el nombre perfecto para tu negocio, marca o proyecto.</p>
+<div class="form-grid">
+<label>Tipo de negocio<select id="fType">
+<option value="restaurante">Restaurante / Comida</option>
+<option value="tech">Tecnologia / Software</option>
+<option value="tienda">Tienda / Retail</option>
+<option value="consultoria">Consultoria / Servicios</option>
+<option value="beauty">Belleza / Salud</option>
+<option value="construccion">Construccion / Inmobiliaria</option>
+<option value="creativo">Agencia Creativa</option>
+<option value="educacion">Educacion / Academia</option>
+</select></label>
+<label>Estilo<select id="fStyle">
+<option value="moderno">Moderno / Minimalista</option>
+<option value="clasico">Clasico / Elegante</option>
+<option value="divertido">Divertido / Casual</option>
+<option value="mexicano">Mexicano / Regional</option>
+<option value="tech">Techy / Startupero</option>
+</select></label>
+<label>Palabras clave<input id="fKey" type="text" placeholder="ej. sol, rapido, verde..."></label>
+<label>Idioma<select id="fLang"><option value="es">Espanol</option><option value="en">Ingles</option><option value="mix">Spanglish</option></select></label>
+</div>
+<button class="btn" onclick="generate()">Generar Nombres</button>
+<div id="results" style="margin-top:24px"></div>
+<div class="favs" id="favBox"><h3 style="font-size:14px;margin-bottom:8px">Tus Favoritos</h3><div id="favList" style="font-size:13px"></div></div>
+</div>
+<div style="height:60px"></div>
+<div class="footer-bar"><span>Nombres — XLMX</span><a href="mailto:info@bimxl.com">Contacto</a></div>
+<script>
+const PARTS={restaurante:{prefix:['Casa','La Mesa','El Fogon','Sabor','La Cocina','Don','Fuego','Taco'],suffix:['de Oro','Urbano','Central','del Chef','Real','Gourmet','Express','MX']},tech:{prefix:['Code','Nexus','Byte','Cloud','Pixel','Data','Core','Link'],suffix:['Labs','Hub','Tech','IO','Systems','Digital','Works','Solutions']},tienda:{prefix:['La Vitrina','El Bazar','Mundo','Mi Tienda','Zona','Centro'],suffix:['Express','Shop','Store','Plus','Market','Local','MX','Go']},consultoria:{prefix:['Estrategia','Clave','Cumbre','Impulso','Vision','Axis'],suffix:['Consulting','Partners','Group','Advisors','Capital','Pro']},beauty:{prefix:['Bella','Aura','Glow','Skin','Luna','Flora','Vita','Nova'],suffix:['Beauty','Spa','Studio','Lab','Care','Wellness','Clinic','Co']},construccion:{prefix:['Construye','Edifica','Alto','Fuerte','Arco','Torre','Pilar'],suffix:['Constructora','Inmobiliaria','Desarrollos','Group','Building','MX']},creativo:{prefix:['Chispa','Boom','Wild','Neon','Bold','Raw','Fresh','Pop'],suffix:['Studio','Creative','Agency','Lab','Media','Brand','Design','Co']},educacion:{prefix:['Aprende','Mentor','Saber','Brain','Smart','Skill','Think'],suffix:['Academy','School','Learning','Institute','Lab','Ed','Pro','Hub']}};
+let favs=[];
+function generate(){
+  const type=document.getElementById('fType').value;
+  const style=document.getElementById('fStyle').value;
+  const keys=document.getElementById('fKey').value.split(',').map(s=>s.trim()).filter(s=>s);
+  const parts=PARTS[type];const names=[];
+  for(let i=0;i<8;i++){const r=Math.random();const pre=parts.prefix[Math.floor(Math.random()*parts.prefix.length)];const suf=parts.suffix[Math.floor(Math.random()*parts.suffix.length)];let name=keys.length>0&&Math.random()>0.5?keys[Math.floor(Math.random()*keys.length)].charAt(0).toUpperCase()+keys[Math.floor(Math.random()*keys.length)].slice(1)+' '+suf:r<0.4?pre+' '+suf:pre+suf.replace(/\s/g,'');if(!names.find(n=>n===name))names.push(name);}
+  document.getElementById('results').innerHTML=names.map(n=>`<div class="name-card"><div><h3>${n}</h3><div class="tags"><span class="tag">${type}</span></div></div><span class="fav" onclick="toggleFav('${n.replace(/'/g,"\\'")}',this)">&hearts;</span></div>`).join('');
+}
+function toggleFav(name,el){const idx=favs.indexOf(name);if(idx>-1){favs.splice(idx,1);el.classList.remove('on');}else{favs.push(name);el.classList.add('on');}const box=document.getElementById('favBox');if(favs.length===0){box.style.display='none';return;}box.style.display='block';document.getElementById('favList').innerHTML=favs.map(f=>`<div style="padding:4px 0;border-bottom:1px solid #f0f0f0">${f}</div>`).join('');}
+</script>
+</body>
+</html>
