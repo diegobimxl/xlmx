@@ -2,37 +2,866 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bolsa MX — XLMX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Bolsa â€” MÃ©xico 1982-2005</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111}
-a{color:#111;text-decoration:none}
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5}
-.logo{font-size:20px;font-weight:800;letter-spacing:1px}
-.back{font-size:13px;color:#666}
-.redirect{max-width:500px;margin:80px auto;padding:0 32px;text-align:center}
-.redirect h2{font-size:22px;font-weight:700;margin-bottom:12px}
-.redirect p{font-size:14px;color:#555;margin-bottom:24px;line-height:1.6}
-.play-btn{display:inline-block;padding:14px 40px;background:#111;color:#fff;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:.3px}
-.play-btn:hover{opacity:.85}
-.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
-.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#fff;--bg2:#f8f8f8;--bg3:#f0f0f0;--border:#e0e0e0;--text:#111;--dim:#666;--green:#16a34a;--red:#dc2626;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.ticker-bar{background:#111;color:#fff;overflow:hidden;height:28px;display:flex;align-items:center;}
+.ticker-inner{display:flex;gap:32px;white-space:nowrap;animation:tickerScroll 40s linear infinite;font-size:.7rem;font-weight:600;padding:0 24px;letter-spacing:.5px;}
+.ticker-inner .t-up{color:#4ade80;}.ticker-inner .t-dn{color:#f87171;}.ticker-inner .t-name{color:#aaa;font-weight:400;margin-right:4px;}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.usd-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:3px 24px;display:flex;gap:24px;font-size:.6rem;color:var(--dim);}
+.usd-bar span{font-weight:700;color:#111;}
+.pop-bar{background:#fffbeb;border-bottom:1px solid #fde68a;padding:4px 16px;font-size:.65rem;color:#78350f;display:none;}
+.header{padding:10px 24px;border-bottom:2px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fff;position:sticky;top:0;z-index:50;}
+.header-brand{font-size:1.2rem;font-weight:800;letter-spacing:-1px;}
+.header-brand small{font-size:.58rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase;display:block;font-weight:400;}
+.header-stats{display:flex;gap:16px;align-items:center;}
+.hstat{text-align:right;}.hstat-label{font-size:.5rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;}
+.hstat-val{font-size:.95rem;font-weight:700;}.hstat-val.pos{color:var(--green);}.hstat-val.neg{color:var(--red);}
+.btn-next{padding:8px 18px;background:#111;color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
+.btn-next:hover{background:#333;}
+.main-layout{display:grid;grid-template-columns:1fr 320px;min-height:calc(100vh - 90px);}
+.left-col{padding:14px;border-right:1px solid var(--border);}
+.right-col{padding:14px;background:var(--bg2);overflow-y:auto;}
+.sec{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+/* STOCKS */
+.stbl{width:100%;border-collapse:collapse;font-size:.76rem;margin-bottom:14px;}
+.stbl th{text-align:left;padding:5px 8px;background:var(--bg3);font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);border-bottom:2px solid var(--border);}
+.stbl td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.stbl tr:hover td{background:var(--bg3);cursor:pointer;}
+.sn{font-weight:700;font-size:.8rem;}.sd{font-size:.56rem;color:var(--dim);margin-top:1px;line-height:1.3;}
+.stk{font-size:.55rem;color:var(--dim);font-weight:600;}
+.sp{font-weight:700;text-align:right;}.sp.up{color:var(--green);}.sp.dn{color:var(--red);}
+.sc{font-size:.62rem;text-align:right;}.sc.up{color:var(--green);}.sc.dn{color:var(--red);}
+.bBuy{padding:3px 9px;background:var(--green);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.58rem;font-weight:700;cursor:pointer;}
+.bBuy:hover{background:#15803d;}.bBuy:disabled{opacity:.3;cursor:not-allowed;}
+.bSell{padding:3px 9px;background:var(--red);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.58rem;font-weight:700;cursor:pointer;margin-left:3px;}
+.bSell:hover{background:#b91c1c;}.bSell:disabled{opacity:.3;cursor:not-allowed;}
+.bPRN{font-size:.43rem;background:#111;color:#fff;padding:1px 4px;font-weight:700;letter-spacing:1px;margin-left:3px;}
+.bGOV{font-size:.43rem;background:#555;color:#fff;padding:1px 4px;font-weight:700;letter-spacing:1px;margin-left:3px;}
+.seized-txt{font-size:.58rem;color:var(--red);font-weight:700;}
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.cc{background:#fff;border:1px solid var(--border);padding:10px;}
+.cc.full{grid-column:1/-1;}
+.ct{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:6px;}
+.cw{position:relative;height:130px;}
+.cw.tall{height:170px;}
+/* NEWS */
+.news{max-height:200px;overflow-y:auto;font-size:.67rem;}
+.ni{padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;line-height:1.5;}
+.nd{font-size:.52rem;font-weight:700;color:var(--dim);white-space:nowrap;padding-top:1px;}
+.nt.good{color:var(--green);}.nt.bad{color:var(--red);}.nt.neutral{color:#444;}.nt.crisis{color:var(--red);font-weight:700;}.nt.pop{color:#7c3aed;font-style:italic;}
+/* RIGHT COL */
+.port-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:.68rem;}
+.port-empty{font-size:.62rem;color:var(--dim);text-align:center;padding:10px 0;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.sb{background:#fff;border:1px solid var(--border);padding:7px 8px;}
+.sbl{font-size:.47rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);}
+.sbv{font-size:.9rem;font-weight:700;margin-top:1px;}
+.usd-box{background:#fff;border:1px solid var(--border);padding:8px;margin-bottom:10px;display:flex;justify-content:space-between;}
+.ubl{font-size:.55rem;color:var(--dim);}.ubv{font-size:.88rem;font-weight:700;}
+/* PARTY */
+.pbtns{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.pbtn{padding:6px 8px;font-family:'Inter',sans-serif;font-size:.6rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;text-align:left;}
+.pbtn:hover{background:var(--bg3);}.pbtn.prn{border-color:#111;}.pbtn.opp{border-color:#dc2626;color:#dc2626;}
+.prn-bar-wrap{height:5px;background:var(--bg3);margin:3px 0;}
+.prn-bar{height:100%;background:#111;transition:width .4s;}
+.prn-info{font-size:.5rem;color:var(--dim);}
+/* FINANCE */
+.fbtns{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.fbtn{flex:1;padding:5px 6px;background:#fff;border:1px solid var(--border);font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;cursor:pointer;min-width:70px;}
+.fbtn:hover{background:var(--bg3);}.fbtn.usd{border-color:#111;font-weight:700;}
+/* HACK METER */
+.hm{background:var(--bg3);border:1px solid var(--border);padding:7px;margin-bottom:10px;}
+.hmt{font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:4px;font-size:.52rem;}
+.hstep{display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:.6rem;}
+.hdot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.hdot.done{background:var(--green);}.hdot.active{background:#f59e0b;}
+/* LB */
+.lb-row{display:flex;justify-content:space-between;align-items:center;padding:5px 7px;border-bottom:1px solid var(--border);font-size:.67rem;}
+.lb-row.r1{background:#fffbeb;border-left:3px solid #d97706;}
+.lb-row.r2{background:#f9fafb;border-left:3px solid #6b7280;}
+.lb-row.r3{background:#fdf4ff;border-left:3px solid #c084fc;}
+.lb-rank{font-weight:800;width:18px;color:var(--dim);}.lb-name{font-weight:600;flex:1;padding:0 5px;}
+.lb-sc{font-weight:700;color:var(--green);}.lb-sc.neg{color:var(--red);}
+.lb-era{font-size:.52rem;color:var(--dim);}
+.lb-empty{font-size:.62rem;color:var(--dim);text-align:center;padding:10px 0;}
+/* MODAL */
+.moverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;}
+.modal{background:#fff;border:2px solid #111;max-width:460px;width:90%;max-height:85vh;overflow-y:auto;}
+.mhead{background:#111;color:#fff;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.mclose{cursor:pointer;opacity:.7;font-size:1rem;}.mclose:hover{opacity:1;}
+.mbody{padding:14px;}
+.mevt{font-size:.76rem;line-height:1.9;color:#333;margin-bottom:12px;border-left:3px solid #111;padding-left:11px;}
+.mevt.crisis{border-color:var(--red);color:var(--red);}.mevt.good{border-color:var(--green);}
+.mbtn{width:100%;padding:9px;background:#111;color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;}
+.mbtn:hover{background:#333;}
+/* TRADE */
+.tflav{font-size:.68rem;line-height:1.7;color:#444;margin-bottom:10px;font-style:italic;}
+.tprice{font-size:1.05rem;font-weight:800;margin-bottom:10px;}
+.tqbtns{display:flex;gap:5px;margin-bottom:8px;}
+.tqb{flex:1;padding:4px;background:#fff;border:1px solid var(--border);font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;cursor:pointer;}
+.tqb:hover{background:var(--bg3);}
+.tinput{background:#fff;border:2px solid #111;padding:6px 8px;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;width:80px;text-align:right;}
+.tinput:focus{outline:none;}
+.ttotal{font-size:.82rem;font-weight:700;margin:6px 0;color:var(--dim);}
+.tactions{display:flex;gap:7px;}
+.tcancel{flex:1;padding:9px;background:#fff;border:2px solid #ddd;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;}
+.tconfirm{flex:1;padding:9px;border:none;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;text-transform:uppercase;}
+.tconfirm.buy{background:var(--green);color:#fff;}.tconfirm.buy:hover{background:#15803d;}
+.tconfirm.sell{background:var(--red);color:#fff;}.tconfirm.sell:hover{background:#b91c1c;}
+/* SCREENS */
+.screen{display:none;}.screen.active{display:block;}
+/* INTRO */
+.intro-wrap{max-width:580px;margin:40px auto;padding:24px;}
+.intro-wrap h1{font-size:2rem;font-weight:800;letter-spacing:-1px;margin-bottom:2px;}
+.isub{font-size:.65rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;}
+.iflav{font-size:.78rem;line-height:2;color:#333;border-left:3px solid #111;padding-left:12px;margin-bottom:16px;}
+.irules{margin-bottom:18px;}
+.irules li{font-size:.7rem;color:#444;line-height:2;margin-left:14px;}
+.irules li strong{color:#111;}
+.nwrap{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+.ninput{flex:1;padding:9px 12px;border:2px solid #111;font-family:'Inter',sans-serif;font-size:.82rem;}
+.ninput:focus{outline:none;background:#f8f8f8;}
+.sbtn{width:100%;padding:13px;background:#111;color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
+.sbtn:hover{background:#333;}
+.idisclaim{font-size:.52rem;color:var(--dim);text-align:center;line-height:1.6;}
+/* GAME OVER */
+.gowrap{max-width:560px;margin:40px auto;padding:24px;text-align:center;}
+.gowrap h1{font-size:1.9rem;font-weight:800;letter-spacing:-1px;margin-bottom:5px;}
+.goscore{font-size:2.8rem;font-weight:800;margin:8px 0 3px;}
+.goscore.pos{color:var(--green);}.goscore.neg{color:var(--red);}
+.gousd{font-size:.95rem;color:var(--dim);margin-bottom:10px;}
+.goverd{font-size:.78rem;line-height:1.9;color:#333;max-width:420px;margin:0 auto 14px;border:1px solid var(--border);padding:11px;}
+.gostats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px;}
+.gos{background:var(--bg2);border:1px solid var(--border);padding:7px;text-align:center;}
+.gosl{font-size:.48rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;}
+.gosv{font-size:.88rem;font-weight:700;}
+.top10msg{margin-bottom:10px;}
+.nprompt{margin-bottom:10px;}
+.npinput{padding:7px 11px;border:2px solid #111;font-family:'Inter',sans-serif;font-size:.82rem;width:220px;}
+.npinput:focus{outline:none;}
+.rbtn{padding:11px 28px;background:#111;color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1.5px;margin:0 4px 8px;}
+.rbtn:hover{background:#333;}
 </style>
 </head>
 <body>
-<header>
-<div style="display:flex;align-items:center;gap:12px"><div class="logo">XLMX</div><span style="font-size:13px;color:#666">Bolsa MX</span></div>
-<a href="../" class="back">&larr; Portal</a>
-</header>
-<div class="redirect">
-<div style="font-size:48px;margin-bottom:16px">📈</div>
-<h2>La Bolsa — Mexico 1982-1994</h2>
-<p>Dope Wars meets el apocalipsis financiero mexicano. Invierte en Modelo, PEMEX y CONASUPO. Subete al PRI antes de que llegue la Crisis del Peso, los Zapatistas y el FOBAPROA.</p>
-<p style="font-size:12px;color:#888;margin-bottom:20px">Satira historica — todas las edades</p>
-<a href="../Game_games/bolsa-mx.html" class="play-btn">Jugar ahora</a>
+
+<!-- INTRO -->
+<div id="sc-intro" class="screen active">
+  <div class="intro-wrap">
+    <h1>LA BOLSA</h1>
+    <div class="isub">MÃ©xico 1982 â€” 2005 Â· El capitalismo con asterisco</div>
+    <div class="iflav">
+      Tu tÃ­o polÃ­tico te dejÃ³ <strong>$5,000 pesos</strong> y una pequeÃ±a deuda con el banco.<br><br>
+      En 30 dÃ­as: el peso colapsarÃ¡ varias veces, una aerolÃ­nea llamada Arriesgatsa estrellarÃ¡ aviones hasta que la cierren, el gobierno privatizarÃ¡ todo lo que no estÃ¡ clavado, y El Presidente saldrÃ¡ en cadena nacional a decir que todo estÃ¡ bien justo antes de que todo se incendie.<br><br>
+      <strong>Una sola forma de ganar: hacerte amigo del PRN antes de que llegue el caos.</strong> O eso dicen los que ganaron.
+    </div>
+    <ul class="irules">
+      <li><strong>30 dÃ­as</strong> â€” 10 en los 80s Â· 10 en los 90s Â· 10 en los 2000s</li>
+      <li><strong>8 empresas</strong> mexicanas con nombres <em>ligeramente</em> modificados por razones legales</li>
+      <li>Dona al <strong>PRN</strong> para protecciÃ³n. Dona a la oposiciÃ³n para conocer al STA (Hacienda).</li>
+      <li>DÃ­a 2: el gobierno agrega <strong>3 ceros</strong> al peso. $5,000 â†’ $5,000,000. <em>Si compraste dÃ³lares el dÃ­a 1, ya estÃ¡s protegido â€” sin el "beneficio" de los ceros.</em></li>
+      <li>FOBAPROA: si tienes PRN â‰¥50%, ganas el bonus. Si no, pagas la fiesta de los ricos.</li>
+      <li>El jugador con mayor valor neto en USD entra al <strong>ranking global de magnates</strong>.</li>
+    </ul>
+    <div class="nwrap">
+      <input class="ninput" id="player-name" type="text" placeholder="Nombre de tu empresa (ej: Inversiones Cuates SA)" maxlength="32">
+    </div>
+    <button class="sbtn" onclick="startGame()">ðŸ¦… INVERTIR EN EL CAOS â€” COMENZAR</button>
+    <div class="idisclaim">* SÃ¡tira histÃ³rica. Los nombres son ficticios. Cualquier parecido con la realidad mexicana es 100% intencional. La empresa no se hace responsable de traumas financieros.</div>
+    <br>
+    <div class="sec">Top 10 â€” Club de los Magnates (ranking guardado en este navegador)</div>
+    <div id="lb-intro"></div>
+  </div>
 </div>
-<div style="height:60px"></div>
-<div class="footer-bar"><span>Bolsa MX — XLMX</span><a href="mailto:info@bimxl.com">Contacto</a></div>
+
+<!-- GAME -->
+<div id="sc-game" class="screen">
+  <div class="ticker-bar"><div class="ticker-inner" id="ticker"></div></div>
+  <div class="usd-bar">Tipo de cambio: $<span id="udr">â€”</span> MXN/USD &nbsp;|&nbsp; Efectivo en USD: $<span id="ucash">â€”</span> &nbsp;|&nbsp; Deuda: $<span id="dbtxt">â€”</span> MXN</div>
+  <div class="pop-bar" id="pop-bar"></div>
+  <div class="header">
+    <div class="header-brand">La Bolsa <small id="era-lbl">ERA: LOS 80s â€” DÃA 1/30</small></div>
+    <div class="header-stats">
+      <div class="hstat"><div class="hstat-label">Efectivo</div><div class="hstat-val" id="h-cash">â€”</div></div>
+      <div class="hstat"><div class="hstat-label">Portafolio</div><div class="hstat-val" id="h-port">â€”</div></div>
+      <div class="hstat"><div class="hstat-label">Valor Neto</div><div class="hstat-val" id="h-nw">â€”</div></div>
+      <div class="hstat"><div class="hstat-label">DÃ­a</div><div class="hstat-val" id="h-day">â€”</div></div>
+      <button class="btn-next" onclick="nextDay()">Siguiente dÃ­a â†’</button>
+    </div>
+  </div>
+  <div class="main-layout">
+    <div class="left-col">
+      <div class="sec">Mercado de Valores â€” Bolsa Mexicana (no auditada)</div>
+      <table class="stbl"><thead><tr>
+        <th>Empresa</th><th style="text-align:right">Precio</th><th style="text-align:right">Cambio</th><th style="text-align:right">En mano</th><th>AcciÃ³n</th>
+      </tr></thead><tbody id="stbl-body"></tbody></table>
+
+      <div class="sec">AnÃ¡lisis TÃ©cnico (para sentirte importante)</div>
+      <div class="charts-grid">
+        <div class="cc"><div class="ct">ComposiciÃ³n del portafolio</div><div class="cw"><canvas id="ch-pie"></canvas></div></div>
+        <div class="cc"><div class="ct">Cambio diario % en valor neto</div><div class="cw"><canvas id="ch-pct"></canvas></div></div>
+        <div class="cc full"><div class="ct">Valor neto total dÃ­a a dÃ­a</div><div class="cw tall"><canvas id="ch-nw"></canvas></div></div>
+        <div class="cc full"><div class="ct">Precios de acciones en cartera</div><div class="cw tall"><canvas id="ch-stk"></canvas></div></div>
+      </div>
+
+      <div class="sec">Noticias del DÃ­a (algunas son reales)</div>
+      <div class="news" id="news-feed"></div>
+    </div>
+    <div class="right-col">
+      <div class="sec">Mi Portafolio</div>
+      <div id="port-list"></div>
+
+      <div class="sgrid" id="s-grid"></div>
+
+      <div class="usd-box">
+        <div><div class="ubl">Valor neto en USD</div><div class="ubv" id="usd-nw">â€”</div></div>
+        <div style="text-align:right"><div class="ubl">Tipo de cambio</div><div class="ubv" id="usd-rate">â€”</div></div>
+      </div>
+
+      <div class="sec">Finanzas</div>
+      <div class="fbtns">
+        <button class="fbtn usd" onclick="buyUSD()">ðŸ’µ Comprar USD (40% efectivo)</button>
+        <button class="fbtn" onclick="takeLoan(G.usdRate>10000?10000000:10000)">PrÃ©stamo $10K</button>
+        <button class="fbtn" onclick="takeLoan(G.usdRate>10000?50000000:50000)">PrÃ©stamo $50K</button>
+        <button class="fbtn" onclick="payDebt()">Pagar deuda</button>
+      </div>
+
+      <div class="sec">Partidos PolÃ­ticos</div>
+      <div class="pbtns">
+        <button class="pbtn prn" onclick="donateParty('prn')">ðŸ¦… PRN â€” $5K (protecciÃ³n + deals)</button>
+        <button class="pbtn opp" onclick="donateParty('pna')">ðŸŒ¿ PNA â€” $3K âš ï¸ riesgo STA</button>
+        <button class="pbtn opp" onclick="donateParty('pdr')">âœŠ PDR â€” $3K âš ï¸ riesgo STA</button>
+        <button class="pbtn opp" onclick="donateParty('tp')">ðŸ”¥ TP â€” $3K âš ï¸ riesgo STA</button>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:.5rem;color:var(--dim);"><span>Influencia PRN</span><span id="prn-pct">0%</span></div>
+        <div class="prn-bar-wrap"><div class="prn-bar" id="prn-bar" style="width:0%"></div></div>
+        <div class="prn-info" id="prn-status">Ciudadano inocente â€” aÃºn no vendiste tu alma</div>
+      </div>
+
+      <div class="hm">
+        <div class="hmt">GuÃ­a del magnate (los pasos para ganar)</div>
+        <div class="hstep"><div class="hdot" id="hk1"></div><span>DÃ­a 1: Comprar dÃ³lares</span></div>
+        <div class="hstep"><div class="hdot" id="hk2"></div><span>DÃ­a 2: Donar 50% al PRN</span></div>
+        <div class="hstep"><div class="hdot" id="hk3"></div><span>DÃ­a 3: Invertir en estatales</span></div>
+        <div class="hstep"><div class="hdot" id="hk4"></div><span>DÃ­a 4: Vender todo</span></div>
+        <div class="hstep"><div class="hdot" id="hk5"></div><span>DÃ­a 5+: Invertir en privadas</span></div>
+      </div>
+
+      <div class="sec">Top 10 â€” Club de los Magnates</div>
+      <div id="lb-game"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="sc-gameover" class="screen">
+  <div class="gowrap">
+    <div id="go-head"></div>
+    <div id="go-score"></div>
+    <div id="go-usd"></div>
+    <div id="go-verd"></div>
+    <div id="go-stats"></div>
+    <div id="go-top10"></div>
+    <div class="nprompt"><input class="npinput" id="go-name" type="text" placeholder="Nombre de tu empresa"></div>
+    <button class="rbtn" onclick="submitScore()">Registrar en ranking</button>
+    <button class="rbtn" onclick="restartGame()">Jugar de nuevo</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="moverlay" id="moverlay" style="display:none" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mhead"><span id="mtitle">â€”</span><span class="mclose" onclick="closeModal()">âœ•</span></div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<script>
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// LA BOLSA v2 â€” MÃ©xico 1982-2005
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+const TOTAL_DAYS=30, START_CASH=5000, START_DEBT=200, LOAN_RATE=0.02;
+const LB_KEY='bolsa_mx_v2';
+
+const COS=[
+  {id:'modx',tk:'CRVX',name:'Grupo Modelito',desc:'La cerveza oficial del pueblo, del gobierno, y de las bodas. Desde 1925.',
+   base:45,vol:.10,prn:true,gov:false,flavor:'"La cerveza de MÃ©xico." El Ãºnico precio que sube sin que nadie proteste.'},
+  {id:'tler',tk:'TLER',name:'Telerisa S.A.',desc:'La TV que inventa la realidad. El Presidente les agradece cada lunes.',
+   base:62,vol:.13,prn:true,gov:false,flavor:'Noticiario mÃ¡s visto: "Todo estÃ¡ bien, ciudadano. Regresa a tu telenovela."'},
+  {id:'pemx',tk:'PMEX',name:'Pee-Mex',desc:'PetrÃ³leo nacional. Reservas enormes. Contabilidad: creativa.',
+   base:80,vol:.12,prn:true,gov:true,flavor:'La empresa mÃ¡s rentable de MÃ©xico si ignoras lo que desaparece en el camino.'},
+  {id:'cnsp',tk:'CNSP',name:'Con-a-Supo',desc:'Leche subsidiada. Origen: no preguntes. Especialmente si eres europeo del este post-1986.',
+   base:20,vol:.22,prn:true,gov:true,conasupo:true,flavor:'Contrato especial del estado. La leche brilla levemente. Nadie ha hecho preguntas esta semana.'},
+  {id:'sdrx',tk:'SDRX',name:'SiderMÃ©xico',desc:'Acero estatal para el desarrollo. Eficiencia: gobierno.',
+   base:30,vol:.28,prn:true,gov:true,liq:true,flavor:'En lista de privatizaciÃ³n desde 1988. Comprar antes de que lo vendan a precio de remate.'},
+  {id:'banx',tk:'SFIN',name:'Ser-Fin',desc:'El banco que da crÃ©ditos al 120% y luego se sorprende cuando nadie paga.',
+   base:42,vol:.20,prn:false,gov:false,bank:true,flavor:'PrÃ³ximo comprador: algÃºn banco extranjero que aÃºn no sabe en quÃ© se metiÃ³.'},
+  {id:'artz',tk:'ARTZ',name:'Arriesgatsa',desc:'AerolÃ­nea nacional. Slogan interno: "Llegamos casi siempre."',
+   base:25,vol:.35,prn:false,gov:true,crash:true,flavor:'La aerolÃ­nea donde el copiloto reza antes de despegar. Los pilotos tambiÃ©n.'},
+  {id:'msca',tk:'MSCA',name:'MaseTorta',desc:'La tortilla industrial que destruyÃ³ a las abuelitas. Pero es barata.',
+   base:18,vol:.10,prn:true,gov:false,flavor:'Subsidiada por el gobierno. El campo muriÃ³ pero la tortilla de plÃ¡stico es accesible. ModernizaciÃ³n.'},
+  {id:'tlmx',tk:'TLMX',name:'TelMÃ©xico',desc:'La empresa de telÃ©fonos que privatizÃ³ un monopolio pÃºblico para crear un monopolio privado. EvoluciÃ³n.',
+   base:55,vol:.15,prn:true,gov:false,flavor:'Privatizada en 1990 a precio de amigo. El dueÃ±o: el hombre mÃ¡s rico del mundo. El usuario: pagando mÃ¡s que en Europa.'},
+  {id:'bazo',tk:'BAZO',name:'BanZorro',desc:'El banco de desarrollo que desarrolla principalmente las cuentas de sus directivos.',
+   base:35,vol:.18,prn:true,gov:true,flavor:'Presupuesto pÃºblico, resultados privados. Los crÃ©ditos van a quien el partido manda. La contabilidad: SchrÃ¶dinger.'},
+  {id:'sigx',tk:'SIGX',name:'Cigarros Nacionales',desc:'Empresa tabacalera con contrato exclusivo del gobierno. "Fumar es decisiÃ³n personal." â€”El Secretario de Salud que fuma.',
+   base:28,vol:.09,prn:true,gov:false,flavor:'Ãšnica empresa cuya publicidad aparece en los estadios junto al escudo nacional. Patriotismo: encendido.'},
+  {id:'trex',tk:'TREX',name:'FerroNeta',desc:'Los ferrocarriles nacionales. Trenes que llegan cuando quieren, si quieren. El sindicato: eterno.',
+   base:22,vol:.25,prn:true,gov:true,liq:true,flavor:'Red de 26,000 km. Velocidad promedio: 40 km/h. En venta desde 1995 a quien la quiera. Pocos interesados.'},
+];
+
+// Fixed events (always fire on their day)
+const FIXED=[
+  {id:'dev82',day:2,title:'ðŸ’€ DEVALUACIÃ“N DEL PESO 1982 â€” SE AGREGAN 3 CEROS',type:'crisis',
+   text:'El Presidente sale en cadena nacional con cara de velorio. "Hemos tomado la decisiÃ³n mÃ¡s difÃ­cil." El gobierno agrega tres ceros al peso overnight. $1,000 pesos â†’ $1,000,000 pesos. PERO: en poder adquisitivo valen lo mismo. Si compraste dÃ³lares ayer, no tienes este "beneficio" â€” ya estÃ¡s protegido en divisa fuerte.',
+   fx:gs=>{
+     if(gs.usdOwned>0){
+       // Already in USD â€” just the devaluation pain, no 3-zeros bonus
+       gs.usdRate*=3.2; gs.debt*=1.5; allCos(gs,c=>c.price*=3.0+rnd()*.5);
+       news(gs,'ðŸ’€ DEVALUACIÃ“N: Compraste dÃ³lares â€” te salvaste del caos. Tipo de cambio x3. El peso: nuevo piso.','good');
+     } else {
+       // No USD â€” get the 3 zeros added (multiplied x1000) but rate also x1000 so real value same
+       gs.cash*=1000; gs.debt*=1000; gs.usdRate*=1000;
+       allCos(gs,c=>{c.price*=1000; c.base*=1000; c.hist=c.hist.map(p=>p*1000);});
+       news(gs,'ðŸ’€ 3 CEROS: $'+Math.round(gs.cash/1000).toLocaleString('es-MX')+' â†’ '+fmt(gs.cash)+' MXN. Todo multiplicado x1000. El tipo de cambio tambiÃ©n. Bienvenido al peso nuevo.','crisis');
+     }
+   }},
+  {id:'nat83',day:3,title:'ðŸ›ï¸ EL PRESIDENTE NATIONALIZA LA BANCA',type:'crisis',
+   text:'"Â¡Ya nos saquearon, no nos volverÃ¡n a saquear!" â€” El Presidente, llorando en cadena, mientras saquea Ã©l. Todos los bancos ahora son del gobierno. Ser-Fin: confiscado.',
+   fx:gs=>{gs.cos.banx.seized=true; gs.cos.banx.price*=.15; news(gs,'ðŸ›ï¸ NATIONALIZACIÃ“N BANCARIA: Ser-Fin confiscado. El director ya estÃ¡ en Houston.','crisis');}},
+  {id:'sis85',day:5,title:'ðŸšï¸ SISMO â€” 8.1 RICHTER',type:'crisis',
+   text:'La CDMX se cae. El gobierno dice que no pasÃ³ nada. En TV se ve todo. Telerisa transmite 48 horas seguidas â€” el rating es histÃ³rico.',
+   fx:gs=>{gs.cos.tler.price*=1.9; gs.cos.sdrx.price*=1.7; gs.cos.artz.price*=.70; gs.debt*=1.05; news(gs,'ðŸšï¸ SISMO 8.1: Telerisa y SiderMÃ©xico SUBEN. El gobierno dice que todo estÃ¡ "controlado".','crisis');}},
+  {id:'ac1',day:7,title:'âœˆï¸ ARRIESGATSA â€” ACCIDENTE #1',type:'crisis',
+   text:'Un aviÃ³n de Arriesgatsa aterriza en un lugar que no era el aeropuerto. El director ejecutivo declara que "fue error tÃ©cnico del piloto de no mirar hacia abajo."',
+   fx:gs=>{gs.cos.artz.price*=.55; gs.cos.artz.crashes=(gs.cos.artz.crashes||0)+1; news(gs,'âœˆï¸ ARRIESGATSA accidente #1. Vocero: "el aviÃ³n estaba cansado."','bad');}},
+  {id:'tlc91',day:12,title:'ðŸŒ½ TLC ENTRA EN VIGOR',type:'good',
+   text:'MÃ©xico, EUA y CanadÃ¡ firman el TLC. El maÃ­z americano subsidiado destruye al campo mexicano. MaseTorta sube porque ahora somos el mercado de Monsanto. Win-win (para Monsanto).',
+   fx:gs=>{gs.cos.msca.price*=1.9; gs.cos.modx.price*=1.4; news(gs,'ðŸŒ½ TLC: MaseTorta +90%, Modelito +40%. El campo mexicano: R.I.P. Firmado con entusiasmo.','good');}},
+  {id:'priv92',day:13,title:'ðŸ“ž PRIVATIZACIÃ“N MASIVA',type:'good',
+   text:'El Presidente vende activos del estado "para modernizar MÃ©xico". Un seÃ±or muy bajito compra TELERISA a precio de amigo. Misteriosamente se convierte en el hombre mÃ¡s rico del mundo.',
+   fx:gs=>{gs.cos.tler.price*=2.7; gs.cos.pemx.price*=1.3; news(gs,'ðŸ“ž PRIVATIZACIÃ“N: Telerisa +170%. El comprador: "empresario con trayectoria". Sin conflicto de interÃ©s.','good');}},
+  {id:'zap94',day:18,title:'ðŸ’¬ ENCAPUCHADOS TOMAN CHIAPAS',type:'crisis',
+   text:'El primer dÃ­a del TLC, un grupo con pasamontaÃ±as y comunicados muy bien redactados toma cuatro municipios. El Subcomandante fuma pipa y da clases de Foucault en la selva.',
+   fx:gs=>{gs.cos.tler.price*=1.4; gs.cos.pemx.price*=.78; gs.prnLevel=Math.max(0,gs.prnLevel-15); news(gs,'ðŸ’¬ EZLN: Telerisa SUBE (morbo). Pee-Mex cae. El Subcomandante tiene mejor prosa que el gobierno.','crisis');}},
+  {id:'cand94',day:20,title:'ðŸ”« CANDIDATO ASESINADO',type:'crisis',
+   text:'El candidato presidencial mÃ¡s popular en dÃ©cadas recibe un balazo en un evento. El PRN dice que fue "un loco solitario". Nadie en MÃ©xico cree eso. Ni el loco.',
+   fx:gs=>{allCos(gs,c=>{if(c.prn&&!c.seized)c.price*=.82;}); gs.prnLevel=Math.max(0,gs.prnLevel-10); news(gs,'ðŸ”« CANDIDATO ASESINADO: Todo lo PRN-friendly desploma. InvestigaciÃ³n: "en proceso" desde entonces.','crisis');}},
+  {id:'ac2',day:16,title:'âœˆï¸ ARRIESGATSA â€” ACCIDENTE #2',type:'crisis',
+   text:'Otro aviÃ³n decide terminar su carrera en una montaÃ±a que estaba "inesperadamente ahÃ­". La DGAC abre investigaciÃ³n. Arriesgatsa anuncia nueva ruta.',
+   fx:gs=>{gs.cos.artz.price*=.45; gs.cos.artz.crashes=(gs.cos.artz.crashes||0)+1; news(gs,'âœˆï¸ ARRIESGATSA accidente #2. Titular: "Empresa dice que seguirÃ¡ volando."','bad');}},
+  {id:'ac3',day:22,title:'âœˆï¸ ARRIESGATSA â€” LIQUIDADA',type:'crisis',
+   text:'Tercer accidente. La SCT liquida Arriesgatsa. Sus Ãºltimas palabras: "Hubiera podido pasar en cualquier aerolÃ­nea." Sus acciones valen lo que el peso: nada.',
+   fx:gs=>{gs.cos.artz.seized=true; gs.cos.artz.price*=.03; news(gs,'âœˆï¸ ARRIESGATSA liquidada. Si tenÃ­as acciones: condolencias. TambiÃ©n a sus pasajeros.','crisis');}},
+  {id:'fob95',day:25,title:'ðŸ’° FOBAPROA â€” EL GRAN RESCATE',type:'crisis',
+   text:'Los bancos quebraron prestando a amigos del gobierno que no pagaron. SoluciÃ³n: todos los mexicanos asumen la deuda privada de los ricos. Si estÃ¡s en el PRN, hay bonus.',
+   fx:gs=>{
+     gs.cos.banx.seized=false; gs.cos.banx.price=gs.cos.banx.base*3.5; gs.debt=Math.max(0,gs.debt*.25);
+     if(gs.prnLevel>=50){const b=gs.cash*.6; gs.cash+=b; news(gs,'ðŸ’° FOBAPROA BONUS: Tu amistad con el PRN te vale +'+fmt(b)+' MXN gratis. El pueblo paga.','good'); flashFob();}
+     else news(gs,'ðŸ’° FOBAPROA: Los bancos se rescatan con tu dinero. TÃº no eres invitado a la fiesta.','bad');
+   }},
+  {id:'vend00',day:23,title:'ðŸ¦ SER-FIN VENDIDO A EXTRANJEROS',type:'neutral',
+   text:'Citigroup compra Ser-Fin. El banco fue estatal, privado, casi quiebra, y ahora es gringo. El director: golden parachute. Los empleados: gracias por todo.',
+   fx:gs=>{gs.cos.banx.price*=2.1; gs.cos.banx.seized=false; news(gs,'ðŸ¦ SER-FIN vendido a gringo. Acciones x2. El paÃ­s tambiÃ©n estÃ¡ en venta, pero eso no se anuncia.','good');}},
+  {id:'cri00',day:28,title:'ðŸ’€ MINI-CRISIS 2001',type:'crisis',
+   text:'Las punto-com quebraron arriba. El efecto llega al sur. El Presidente dice MÃ©xico "estÃ¡ blindado". Tres dÃ­as despuÃ©s el peso tiembla.',
+   fx:gs=>{allCos(gs,c=>c.price*=.82+rnd()*.15); gs.usdRate*=1.12; news(gs,'ðŸ’€ CRISIS 2001: Mercado cae. "MÃ©xico estÃ¡ blindado" â€” El Presidente, 3 dÃ­as antes.','crisis');}},
+];
+
+// Random events pool
+const RAND_POOL=[
+  {id:'pe1',title:'ðŸ›¢ï¸ PETRÃ“LEO SUBE',type:'good',prob:.3,
+   text:'El crudo sube por alguna guerra en algÃºn lugar. Pee-Mex celebra aunque sigue igual de ineficiente.',
+   fx:gs=>{gs.cos.pemx.price*=1.5; news(gs,'ðŸ›¢ï¸ PETRÃ“LEO +50%: Pee-Mex en modo festivo. El sindicato ya pide su parte.','good');}},
+  {id:'pe2',title:'ðŸ“¦ BOOM EXPORTADOR',type:'good',prob:.25,
+   text:'Las maquiladoras del norte explotan. Los gringos compran todo a precio de outlet. GDP sube. Salarios: no.',
+   fx:gs=>{allCos(gs,c=>{if(!c.gov&&!c.seized)c.price*=1.12+rnd()*.08;}); news(gs,'ðŸ“¦ EXPORTACIONES: Sector privado +12%. Los trabajadores ganan lo mismo. QuÃ© misterio.','good');}},
+  {id:'pe3',title:'ðŸ­ PRIVATIZACIÃ“N ESTATAL',type:'good',prob:.3,
+   text:'El gobierno vende otra empresa "para modernizar". El comprador es amigo del Presidente. Precio: "el justo de mercado" (segÃºn ellos).',
+   fx:gs=>{const gc=Object.values(gs.cos).filter(c=>c.gov&&!c.seized); if(gc.length){const c=gc[Math.floor(rnd()*gc.length)];c.price*=2;c.gov=false; news(gs,'ðŸ­ PRIVATIZACIÃ“N: '+c.name+' x2. El comprador: "sin conflicto de interÃ©s".','good');}}},
+  {id:'pe4',title:'ðŸ“„ CONTRATO MILLONARIO',type:'good',prob:.3,
+   text:'Una empresa anuncia contrato con el gobierno. Detalles: clasificados. Todos compran.',
+   fx:gs=>{const c=rndAC(gs);if(c){c.price*=1.25+rnd()*.15; news(gs,'ðŸ“„ CONTRATO: '+c.name+' firma con gobierno. Detalles: secreto. Precio: misteriosamente sube.','good');}}},
+  {id:'pe5',title:'ðŸ¦… DECRETO PRESIDENCIAL',type:'good',prob:.3,
+   text:'El Presidente firma protecciÃ³n arancelaria para industrias nacionales. Empresas PRN-friendly suben.',
+   fx:gs=>{if(gs.prnLevel>=50){allCos(gs,c=>{if(c.prn&&!c.seized)c.price*=1.15;}); news(gs,'ðŸ¦… DECRETO PRN: Empresas aliadas +15%. El libre mercado hace una pausa patriÃ³tica.','good');}}},
+  {id:'pe6',title:'â˜¢ï¸ CONTRATO CON-A-SUPO',type:'good',prob:.2,
+   text:'Con-a-Supo ofrece contrato de distribuciÃ³n. La leche es de "origen europeo" post-Chernobyl. Solo para amigos del gobierno.',
+   fx:gs=>{if(gs.prnLevel>=40){gs.cos.cnsp.price*=1.7; gs.cash+=30000; news(gs,'â˜¢ï¸ CONASUPO DEAL: $30K MXN extra. La leche brilla un poco. Es negocio.','good');}else news(gs,'â˜¢ï¸ CONASUPO querÃ­a darte el deal pero no eres del partido. La leche radioactiva: solo para amigos.','bad');}},
+  {id:'pb1',title:'ðŸ“ˆ INFLACIÃ“N GALOPANTE',type:'bad',prob:.35,
+   text:'El Banco de MÃ©xico imprime mÃ¡s pesos. Los economistas llaman esto "expansiÃ³n monetaria". Tu mamÃ¡ lo llama "ya no alcanza para los frijoles".',
+   fx:gs=>{gs.usdRate*=1.08; allCos(gs,c=>c.price*=.88+rnd()*.07); news(gs,'ðŸ“ˆ INFLACIÃ“N: Precios caen en MXN real. El gobernador del Banxico dice que todo "estÃ¡ bajo control".','bad');}},
+  {id:'pb2',title:'ðŸ˜± ESCÃNDALO CORPORATIVO',type:'bad',prob:.25,
+   text:'El director de una empresa aparece en el aeropuerto con un maletÃ­n "prestado". La empresa dice que fue un malentendido. La Bolsa dice lo contrario.',
+   fx:gs=>{const c=rndAC(gs);if(c){c.price*=.60+rnd()*.15; news(gs,'ðŸ˜± ESCÃNDALO: '+c.name+' cae 35%. El director ya estÃ¡ en Miami. La investigaciÃ³n: "en proceso".','bad');}}},
+  {id:'pb3',title:'âœŠ HUELGA SINDICAL',type:'bad',prob:.2,
+   text:'El sindicato pide aumento. La empresa ofrece torta y refresco. Huelga inevitable.',
+   fx:gs=>{const sc=['industria','aviacion','energia']; const t=Object.values(gs.cos).filter(c=>sc.includes(c.sector||'x')&&!c.seized); if(t.length){const c=t[Math.floor(rnd()*t.length)];c.price*=.80; news(gs,'âœŠ HUELGA: '+c.name+' paralizada. Sindicato: 40%. Empresa: tortilla. Resultado: 0-0.','bad');}}},
+  {id:'pb4',title:'ðŸ—³ï¸ ELECCIÃ“N MUY ESPECIAL',type:'crisis',prob:.35,
+   text:'"Se cayÃ³ el sistema" en noche de elecciÃ³n. Al volver, el PRN ganaba por mÃ¡s. EstadÃ­sticamente improbable. El PRN lo llama coincidencia.',
+   fx:gs=>{if(gs.prnLevel>=40){allCos(gs,c=>{if(c.prn&&!c.seized)c.price*=1.1;}); news(gs,'ðŸ—³ï¸ ELECCIÃ“N: PRN gana. Aliados festejan. OposiciÃ³n "impugna". Telerisa transmite victoria.','good');}else news(gs,'ðŸ—³ï¸ ELECCIÃ“N: PRN gana de nuevo. Misteriosamente.','neutral');}},
+  {id:'pb5',title:'ðŸ’¸ MINI-DEVALUACIÃ“N',type:'crisis',prob:.25,
+   text:'El Banco de MÃ©xico "ajusta" el tipo de cambio. No es una devaluaciÃ³n, dicen. Es un "deslizamiento controlado". El peso desliza 15%.',
+   fx:gs=>{gs.usdRate*=1.15; gs.cash*=.93; news(gs,'ðŸ’¸ DESLIZAMIENTO: El peso "se deslizÃ³" 15%. El Banxico: "situaciÃ³n bajo control".','crisis');}},
+  {id:'pb6',title:'ðŸ“£ RUMOR DE QUIEBRA',type:'bad',prob:.2,
+   text:'Alguien en un cafÃ© de la Bolsa dijo que una empresa tiene "problemas de caja". Nadie sabe si es verdad. Todos venden.',
+   fx:gs=>{const c=rndAC(gs);if(c){c.price*=.68+rnd()*.15; news(gs,'ðŸ“£ RUMOR: '+c.name+' en problemas segÃºn "fuente cercana al sector". El director niega desde su rancho.','bad');}}},
+  {id:'pb7',title:'ðŸ” STA AUDITA EMPRESAS',type:'bad',prob:.2,
+   text:'El STA anuncia operativo de auditorÃ­as. Las empresas fuera del PRN tiemblan. Los amigos del partido: tranquilos.',
+   fx:gs=>{allCos(gs,c=>{if(!c.prn&&!c.seized)c.price*=.88+rnd()*.06;}); news(gs,'ðŸ” STA AUDITA: Empresas no-PRN bajan. Coincidencia: una semana despuÃ©s de donar a la oposiciÃ³n.','bad');}},
+  // POP EVENTS (culture, no market effect)
+  {id:'pp1',title:'âš½ MÃ‰XICO EN OCTAVOS',type:'pop',prob:.5,
+   text:'MÃ©xico clasifica a octavos del Mundial. El paÃ­s explota. La productividad cae al 15%. Telerisa rompe records.',
+   fx:gs=>{gs.cos.tler.price*=1.2; news(gs,'âš½ Â¡OCTAVOS! MÃ©xico 2-0. El Director del IMSS no estÃ¡ en su oficina. Ni nadie.','pop');}},
+  {id:'pp2',title:'ðŸ“º TELENOVELA ROMPE RATINGS',type:'pop',prob:.4,
+   text:'Una telenovela de Telerisa bate records. La historia: muchacha humilde descubre que es rica. El pueblo llora. Telerisa cobra anuncios de lujo.',
+   fx:gs=>{gs.cos.tler.price*=1.15; news(gs,'ðŸ“º NOVELA FINAL: 38M de espectadores. El villano: mÃ¡s odiado de la historia. Telerisa +15%.','good');}},
+  {id:'pp3',title:'ðŸ¥Š CAMPEÃ“N MUNDIAL MEXICANO',type:'pop',prob:.25,
+   text:'Boxeador mexicano gana en Las Vegas. El Presidente sale a la foto. El boxeador pide apoyo al CONADE. Respuesta: "en breve".',
+   fx:gs=>{news(gs,'ðŸ¥Š CAMPEÃ“N: Boxeador MX gana en Las Vegas. El Presidente en la foto. Los impuestos: pagados puntualmente.','neutral');}},
+  {id:'pp4',title:'ðŸŽµ BANDA NORTEÃ‘A EN EL TOP',type:'pop',prob:.3,
+   text:'Banda norteÃ±a vende 2 millones de casetes en LatinoamÃ©rica. El sindicato de mÃºsicos estÃ¡ feliz. Los vecinos: menos.',
+   fx:gs=>{news(gs,'ðŸŽµ BANDA: 2M de casetes vendidos. El casete es tecnologÃ­a punta en 1988. El Ã©xito es real.','neutral');}},
+  {id:'pp5',title:'ðŸŒ INTERNET LLEGA A MÃ‰XICO',type:'pop',prob:.5,era:'2000s',
+   text:'El internet llega. Se usa principalmente para bajar mÃºsica y ver fotos de ovnis. El e-commerce llega 10 aÃ±os despuÃ©s.',
+   fx:gs=>{news(gs,'ðŸŒ INTERNET: MÃ©xico entra al siglo XXI. TodavÃ­a sin ADSL en provincias. El progreso es progreso.','good');}},
+  {id:'pp6',title:'ðŸ… ATLETA GANA MEDALLA',type:'pop',prob:.2,
+   text:'Atleta mexicano gana medalla olÃ­mpica en disciplina que nadie sigue. El Presidente sale a la foto. El atleta regresa a su pueblo sin apoyo.',
+   fx:gs=>{news(gs,'ðŸ… MEDALLA: El Presidente en la foto. El atleta pide beca. Respuesta del CONADE: "en breve".','neutral');}},
+  {id:'pp7',title:'ðŸŒ TEMBLOR MENOR',type:'bad',prob:.3,
+   text:'Temblor de 4.8 grados. Nadie muere pero todos hablan de ello. El Presidente declara que "todo estÃ¡ controlado" (protocolo estÃ¡ndar de lunes).',
+   fx:gs=>{gs.cos.sdrx.price*=1.1; news(gs,'ðŸŒ TEMBLOR 4.8: Sin heridos. SiderMÃ©xico sube (reconstrucciÃ³n). El Presidente: "controlado".','neutral');}},
+];
+
+// â”€â”€ UTILS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const rnd=()=>Math.random();
+function fmt(n){
+  if(Math.abs(n)>=1000000)return'$'+(n/1000000).toFixed(2)+'M';
+  if(Math.abs(n)>=1000)return'$'+(n/1000).toFixed(1)+'K';
+  return'$'+Math.round(n).toLocaleString('es-MX');
+}
+function fmtPct(n){return(n>=0?'+':'')+n.toFixed(1)+'%';}
+function rndAC(gs){const a=Object.values(gs.cos).filter(c=>!c.seized);return a.length?a[Math.floor(rnd()*a.length)]:null;}
+function allCos(gs,fn){Object.values(gs.cos).forEach(c=>{if(!c.seized)fn(c);});}
+function era(d){return d<=10?'80s':d<=20?'90s':'2000s';}
+
+function flashFob(){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;color:#fff;font-size:1.3rem;font-weight:800;padding:18px 36px;z-index:9999;letter-spacing:2px;';
+  el.textContent='ðŸ’° FOBAPROA BONUS +60% ðŸ’°';
+  el.style.animation='fbAnim 2.5s forwards';
+  const s=document.createElement('style');
+  s.textContent='@keyframes fbAnim{0%{opacity:0;transform:translate(-50%,-50%)scale(.5)}20%{opacity:1;transform:translate(-50%,-50%)scale(1.05)}80%{opacity:1;transform:translate(-50%,-50%)scale(1)}100%{opacity:0}}';
+  document.head.appendChild(s);document.body.appendChild(el);
+  setTimeout(()=>{el.remove();s.remove();},2500);
+}
+
+function news(gs,text,cls){
+  gs.news.unshift({d:gs.day,e:era(gs.day),text,cls});
+  if(gs.news.length>70)gs.news.pop();
+}
+
+// â”€â”€ LB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function getLB(){try{return JSON.parse(localStorage.getItem(LB_KEY))||[];}catch(e){return[];}}
+function saveLB(lb){try{localStorage.setItem(LB_KEY,JSON.stringify(lb));}catch(e){}}
+
+// â”€â”€ GAME STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let G={};
+function initGame(){
+  G={
+    day:1,cash:START_CASH,debt:START_DEBT,
+    prnLevel:0,usdRate:150,usdOwned:0,
+    cos:{},port:{},paid:{},
+    news:[],fired:new Set(),usedRand:new Set(),
+    nwHist:[START_CASH-START_DEBT],nwDays:[1],pctHist:[0],
+    hs:{h1:false,h2:false,h3:false,h4:false,h5:false},
+  };
+  COS.forEach(c=>{
+    G.cos[c.id]={...c,price:c.base*(.9+rnd()*.2),prev:c.base,seized:false,hist:[c.base],crashes:0};
+    G.port[c.id]=0; G.paid[c.id]=0;
+  });
+  news(G,'Bienvenido a La Bolsa. Tu paÃ­s estÃ¡ tÃ©cnicamente estable. DisfrÃºtalo.','neutral');
+  news(G,'Consejo gratis: hazte amigo del PRN HOY. MaÃ±ana puede ser caro.','neutral');
+}
+
+function nw(){
+  const pv=Object.entries(G.port).reduce((s,[id,q])=>s+q*G.cos[id].price,0);
+  return G.cash+pv+G.usdOwned*G.usdRate-G.debt;
+}
+function portVal(){return Object.entries(G.port).reduce((s,[id,q])=>s+q*G.cos[id].price,0);}
+function nwUSD(){return nw()/G.usdRate;}
+
+function nextDay(){
+  if(G.gameOver)return;
+  const pnw=nw();
+  G.day++;
+  G.debt*=(1+LOAN_RATE);
+  G.usdRate*=(1+(rnd()-.47)*.025);
+    return rnd()<ev.prob;
+  });
+  avail.slice(0,Math.random()<.4?2:1).forEach(ev=>{
+    G.usedRand.add(ev.id); ev.fx(G);
+    if(ev.type==='pop') showPopBar(ev.title+': '+ev.text.substring(0,100)+'...');
+    else showEvModal(ev);
+  });
+
+  // NW tracking
+  const cnw=nw();
+  G.nwHist.push(cnw); G.nwDays.push(G.day);
+  G.pctHist.push(pnw!==0?(cnw-pnw)/Math.abs(pnw)*100:0);
+
+  updateHacks();
+
+  if(cnw<-200000){endGame();return;}
+  if(G.day>=TOTAL_DAYS){endGame();return;}
+  render();
+}
+
+function updateHacks(){
+  if(G.usdOwned>0)G.hs.h1=true;
+  if(G.prnLevel>=50)G.hs.h2=true;
+  if(Object.entries(G.port).some(([id,q])=>q>0&&G.cos[id].gov))G.hs.h3=true;
+  if(G.hs.h3&&!Object.values(G.port).some(q=>q>0))G.hs.h4=true;
+  if(G.day>=5&&Object.entries(G.port).some(([id,q])=>q>0&&!G.cos[id].gov))G.hs.h5=true;
+}
+
+function buyUSD(){
+  const cost=Math.min(G.cash,Math.max(500,Math.floor(G.cash*.4)));
+  if(G.cash<500){showSimple('ðŸ’¸ Sin fondos','Necesitas al menos $500 MXN para comprar dÃ³lares.');return;}
+  const u=cost/G.usdRate; G.cash-=cost; G.usdOwned+=u; G.hs.h1=true;
+  news(G,'ðŸ’µ COMPRA USD: '+u.toFixed(2)+' dÃ³lares @ $'+G.usdRate.toFixed(0)+' MXN/USD. MaÃ±ana agradecerÃ¡s esto.','good'); render();
+}
+function takeLoan(a){G.cash+=a; G.debt+=a*1.15; news(G,'ðŸ¦ PRÃ‰STAMO: '+fmt(a)+' MXN. Deuda: '+fmt(G.debt)+'. El banco sonrÃ­e.','bad'); render();}
+function payDebt(){const p=Math.min(G.cash*.5,G.debt); if(p<100){showSimple('Sin fondos','No tienes suficiente.');return;} G.cash-=p; G.debt-=p; news(G,'âœ… PAGO DEUDA: '+fmt(p)+'. Restante: '+fmt(G.debt)+'.','good'); render();}
+
+function donateParty(party){
+  // Scale donation with usdRate to stay relevant after 3-zeros devaluation
+  const scale=G.usdRate>10000?1000:1;
+  const costs={prn:5000*scale,pna:3000*scale,pdr:3000*scale,tp:3000*scale};
+  const cost=costs[party];
+  if(G.cash<cost){showSimple('ðŸ’¸ Sin fondos',`Necesitas ${fmt(cost)} MXN para donar.`);return;}
+  G.cash-=cost;
+  if(party==='prn'){
+    G.prnLevel=Math.min(100,G.prnLevel+22);
+    news(G,'ðŸ¦… DONACIÃ“N PRN: '+fmt(cost)+'. Influencia: '+G.prnLevel+'%. El partido "recuerda" a sus amigos.','neutral');
+    if(G.prnLevel>=50)G.hs.h2=true;
+  } else {
+    const pn={pna:'PNA',pdr:'PDR',tp:'TP'}[party];
+    if(rnd()<.7){
+      const pen=cost*2; if(G.cash>=pen)G.cash-=pen; G.debt+=pen*.5;
+      const rc=rndAC(G); if(rc&&rnd()<.4)rc.price*=.7;
+      showEvModal({title:`ðŸ” STA TE AUDITA â€” DONASTE AL ${pn}`,type:'crisis',
+        text:`El STA coincidentemente abre auditorÃ­a urgente. Multa de ${fmt(pen)} MXN y posible confiscaciÃ³n. El PRN manda saludos desde su rancho en Acapulco.`});
+      news(G,'ðŸ” STA MULTA: '+fmt(pen)+' por donar al '+pn+'. El Estado tiene buena memoria y mala intenciÃ³n.','bad');
+    }else{news(G,pn+': DonaciÃ³n registrada. Por ahora no pasa nada. Por ahora.','neutral');}
+  }
+  render();
+}
+
+function openTrade(id,mode){
+  G.tradeTarget=id; G.tradeMode=mode;
+  const c=G.cos[id];
+  const isBuy=mode==='buy';
+  const maxQ=isBuy?Math.floor(G.cash/c.price):(G.port[id]||0);
+  document.getElementById('mtitle').textContent=(isBuy?'COMPRAR â€” ':'VENDER â€” ')+c.name;
+  document.getElementById('mbody').innerHTML=`
+    <div style="font-size:.65rem;color:var(--dim);margin-bottom:6px;">${c.tk} Â· ${(c.sector||'').toUpperCase()}</div>
+    <div class="tflav">${c.flavor}</div>
+    <div class="tprice">${fmt(c.price)} MXN <span style="font-size:.65rem;color:var(--dim);">/ acciÃ³n</span></div>
+    <div style="font-size:.68rem;color:var(--dim);margin-bottom:8px;">${isBuy?'Disponible: '+fmt(G.cash)+' â€” mÃ¡x '+maxQ+' acc':'Tienes: '+maxQ+' acc ('+fmt(maxQ*c.price)+' MXN)'}</div>
+    <div class="tqbtns">
+      <button class="tqb" onclick="setQ(1)">1</button>
+      <button class="tqb" onclick="setQ(Math.floor(${maxQ}*.25))">25%</button>
+      <button class="tqb" onclick="setQ(Math.floor(${maxQ}*.5))">50%</button>
+      <button class="tqb" onclick="setQ(${maxQ})">MAX</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:.7rem;">Cantidad:</span>
+      <input class="tinput" type="number" id="tqty" value="1" min="1" max="${maxQ}" oninput="updT()">
+      <span style="font-size:.7rem;">acciones</span>
+    </div>
+    <div class="ttotal" id="ttot">Total: ${fmt(c.price)}</div>
+    ${isBuy?`<div id="tremain" style="font-size:.68rem;margin-bottom:8px;color:var(--dim);">Saldo restante: <span style="font-weight:700;color:#111;">${fmt(G.cash - c.price)}</span></div>`:''}
+    <div class="tactions">
+      <button class="tcancel" onclick="closeModal()">Cancelar</button>
+      <button class="tconfirm ${isBuy?'buy':'sell'}" onclick="execTrade(parseInt(document.getElementById('tqty').value)||1)">${isBuy?'COMPRAR':'VENDER'}</button>
+    </div>`;
+  showModal();
+}
+function setQ(n){const e=document.getElementById('tqty');if(e){e.value=n;updT();}}
+function updT(){
+  const c=G.cos[G.tradeTarget];if(!c)return;
+  const q=parseInt(document.getElementById('tqty').value)||0;
+  const tot=q*c.price;
+  const el=document.getElementById('ttot');if(el)el.textContent='Total: '+fmt(tot)+' MXN';
+  const rem=document.getElementById('tremain');
+  if(rem){
+    const after=G.cash-tot;
+    rem.innerHTML='Saldo restante: <span style="font-weight:700;color:'+(after>=0?'#111':'var(--red)')+';">'+fmt(after)+'</span>'+(after<0?' âš ï¸ insuficiente':'');
+  }
+}
+function execTrade(qty){
+  const c=G.cos[G.tradeTarget];if(!c||c.seized)return;
+  const tot=qty*c.price;
+  if(G.tradeMode==='buy'){
+    if(tot>G.cash){showSimple('Sin fondos','No tienes suficiente efectivo.');return;}
+    G.cash-=tot;
+    G.port[G.tradeTarget]=(G.port[G.tradeTarget]||0)+qty;
+    const prev=G.paid[G.tradeTarget]||0;const pq=G.port[G.tradeTarget]-qty;
+    G.paid[G.tradeTarget]=pq>0?(prev*pq+tot)/(pq+qty):c.price;
+    news(G,'â–¶ COMPRA: '+qty+'x '+c.name+' @ '+fmt(c.price),'good');
+  }else{
+    const held=G.port[G.tradeTarget]||0;if(qty>held){showSimple('Error','No tienes tantas.');return;}
+    G.cash+=tot; G.port[G.tradeTarget]-=qty;
+    const pnl=(c.price-G.paid[G.tradeTarget])*qty;
+    news(G,'â—€ VENTA: '+qty+'x '+c.name+' @ '+fmt(c.price)+' â€” '+(pnl>=0?'ganancia':'pÃ©rdida')+' '+fmt(Math.abs(pnl)),pnl>=0?'good':'bad');
+  }
+  closeModal(); updateHacks(); render();
+}
+
+function showEvModal(ev){
+  const tc=ev.type==='crisis'?'crisis':ev.type==='good'?'good':'';
+  document.getElementById('mtitle').textContent=ev.title||'EVENTO';
+  document.getElementById('mbody').innerHTML=`<div class="mevt ${tc}">${ev.text}</div><button class="mbtn" onclick="closeModal()">ENTENDIDO â€” SEGUIR PERDIENDO</button>`;
+  showModal();
+}
+function showSimple(t,tx){
+  document.getElementById('mtitle').textContent=t;
+  document.getElementById('mbody').innerHTML=`<div class="mevt">${tx}</div><button class="mbtn" onclick="closeModal()">OK</button>`;
+  showModal();
+}
+function showModal(){document.getElementById('moverlay').style.display='flex';}
+function closeModal(){document.getElementById('moverlay').style.display='none';G.tradeTarget=null;G.tradeMode=null;render();}
+function showPopBar(t){const b=document.getElementById('pop-bar');b.style.display='block';b.textContent=t;setTimeout(()=>b.style.display='none',6000);}
+
+function endGame(){
+  G.gameOver=true;
+  const cnw=nw(), cnwUSD=nwUSD();
+  const verdicts=[
+    {min:5000000,t:'ðŸ† OLIGARCA MEXICANO',v:`${fmt(cnw)} MXN. Eres el 0.001%. El Presidente te llama de tÃº. Senador probable. Trabajo moral: discutible.`},
+    {min:1000000,t:'ðŸ’° MAGNATE REGIONAL',v:`${fmt(cnw)} MXN. No eres Carlos Slim pero puedes ver su edificio desde tu penthouse.`},
+    {min:200000,t:'ðŸ“Š EMPRESARIO EXITOSO',v:`${fmt(cnw)} MXN. Le ganaste a la inflaciÃ³n. En MÃ©xico eso ya merece medalla olÃ­mpica.`},
+    {min:50000,t:'ðŸŒ® SOBREVIVISTE',v:`${fmt(cnw)} MXN. Exactamente lo que el sistema diseÃ±Ã³: que sigas igual. Aplaude.`},
+    {min:0,t:'ðŸ˜ EMPATE CON EL UNIVERSO',v:`Terminaste con casi nada. Igual que empezaste. El FMI dice que es tu culpa.`},
+    {min:-999999999,t:'ðŸ’€ ARRUINADO HISTÃ“RICO',v:`Valor neto negativo. El banco llama. Tu tÃ­o ya no contesta. Experiencia mexicana completa.`},
+  ];
+  const vd=verdicts.find(v=>cnw>=v.min)||verdicts[verdicts.length-1];
+  const prnT=G.prnLevel>=80?'Miembro Honorario PRN':G.prnLevel>=50?'Colaborador del Sistema':G.prnLevel>=20?'Simpatizante Registrado':'Ciudadano Inocente';
+
+  document.getElementById('go-head').innerHTML=`<h1>${vd.t}</h1><div style="font-size:.6rem;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">DÃ­a ${G.day} â€” ${prnT}</div>`;
+  document.getElementById('go-score').innerHTML=`<div class="goscore ${cnw>=0?'pos':'neg'}">${fmt(cnw)} MXN</div>`;
+  document.getElementById('go-usd').innerHTML=`<div class="gousd">â‰ˆ $${cnwUSD.toFixed(2)} USD al tipo de cambio final</div>`;
+  document.getElementById('go-verd').innerHTML=`<div class="goverd">${vd.v}</div>`;
+  document.getElementById('go-stats').innerHTML=`<div class="gostats">
+    <div class="gos"><div class="gosl">Efectivo</div><div class="gosv">${fmt(G.cash)}</div></div>
+    <div class="gos"><div class="gosl">Portafolio</div><div class="gosv">${fmt(portVal())}</div></div>
+    <div class="gos"><div class="gosl">Deuda</div><div class="gosv" style="color:var(--red)">${fmt(G.debt)}</div></div>
+    <div class="gos"><div class="gosl">USD guardados</div><div class="gosv">${G.usdOwned.toFixed(2)}</div></div>
+    <div class="gos"><div class="gosl">Influencia PRN</div><div class="gosv">${G.prnLevel}%</div></div>
+    <div class="gos"><div class="gosl">Era final</div><div class="gosv">${era(G.day)}</div></div>
+  </div>`;
+
+  const lb=getLB();
+  const worst=lb.length<10?-Infinity:lb[lb.length-1].score;
+  document.getElementById('go-top10').innerHTML=cnw>worst||lb.length<10
+    ?`<div style="background:#fffbeb;border:2px solid #d97706;padding:11px;margin-bottom:10px;font-size:.75rem;font-weight:700;color:#92400e;">ðŸ† Â¡ENTRASTE AL TOP 10! Bienvenido al Club de los Magnates. Registra tu empresa.</div>`
+    :`<div style="font-size:.65rem;color:var(--dim);margin-bottom:8px;">No entraste al Top 10. El mÃ­nimo actual: ${fmt(lb.length?lb[lb.length-1].score:0)} MXN.</div>`;
+
+  const ni=document.getElementById('go-name');
+  if(ni)ni.value=document.getElementById('player-name').value||'';
+  showScreen('gameover');
+}
+
+function submitScore(){
+  const name=(document.getElementById('go-name').value.trim()||'AnÃ³nimo').substring(0,32);
+  const lb=getLB();
+  lb.push({name,score:nw(),usd:nwUSD(),day:G.day,prn:G.prnLevel,era:era(G.day),ts:Date.now()});
+  lb.sort((a,b)=>b.score-a.score);
+  saveLB(lb.slice(0,10));
+  restartGame();
+}
+function restartGame(){showScreen('intro');initGame();renderLB('lb-intro');renderLB('lb-game');}
+
+// â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let CH={};
+function render(){
+  renderHeader(); renderStocks(); renderPort(); renderStats(); renderPRN();
+  renderNews(); renderLB('lb-game'); renderHacks(); renderTicker(); renderCharts();
+}
+
+function renderHeader(){
+  const cnw=nw(), e=era(G.day);
+  document.getElementById('era-lbl').textContent=`ERA: LOS ${e.toUpperCase()} â€” DÃA ${G.day}/${TOTAL_DAYS}`;
+  document.getElementById('h-cash').textContent=fmt(G.cash);
+  document.getElementById('h-port').textContent=fmt(portVal());
+  const nwEl=document.getElementById('h-nw'); nwEl.textContent=fmt(cnw);
+  nwEl.className='hstat-val '+(cnw>=0?'pos':'neg');
+  document.getElementById('h-day').textContent=G.day+'/'+TOTAL_DAYS;
+  document.getElementById('udr').textContent=G.usdRate.toFixed(1);
+  document.getElementById('ucash').textContent=(G.cash/G.usdRate).toFixed(2);
+  document.getElementById('dbtxt').textContent=fmt(G.debt);
+  document.getElementById('usd-nw').textContent='$'+nwUSD().toFixed(2)+' USD';
+  document.getElementById('usd-rate').textContent='$'+G.usdRate.toFixed(1)+' MXN/USD';
+}
+
+function renderStocks(){
+  let h='';
+  Object.values(G.cos).forEach(c=>{
+    const chg=c.prev?((c.price-c.prev)/c.prev*100):0;
+    const held=G.port[c.id]||0;
+    h+=`<tr style="${c.seized?'opacity:.4;':''}cursor:pointer;" onclick="${!c.seized?`openTrade('${c.id}','buy')`:''}">
+      <td>
+        <div class="sn">${c.seized?'ðŸ”’ ':c.prn?'ðŸ¦… ':c.conasupo?'â˜¢ï¸ ':''}${c.name}
+          ${c.prn&&!c.gov?'<span class="bPRN">PRN</span>':''}
+          ${c.gov?'<span class="bGOV">ESTATAL</span>':''}
+        </div>
+        <div class="sd">${c.desc}</div>
+      </td>
+      <td class="sp ${chg>=0?'up':'dn'}">${fmt(c.price)}</td>
+      <td class="sc ${chg>=0?'up':'dn'}">${fmtPct(chg)}</td>
+      <td style="text-align:right;font-size:.7rem;font-weight:600;">${held>0?held+'<br><span style="font-size:.52rem;color:var(--dim);">'+fmt(held*c.price)+'</span>':'â€”'}</td>
+      <td style="white-space:nowrap;">${c.seized
+        ?'<span class="seized-txt">CONFISCADO</span>'
+        :`<button class="bBuy" onclick="event.stopPropagation();openTrade('${c.id}','buy')" ${G.cash<c.price?'disabled':''}>COMPRAR</button>
+          <button class="bSell" onclick="event.stopPropagation();openTrade('${c.id}','sell')" ${held===0?'disabled':''}>VENDER</button>`}
+      </td>
+    </tr>`;
+  });
+  document.getElementById('stbl-body').innerHTML=h;
+}
+
+function renderPort(){
+  const ent=Object.entries(G.port).filter(([,q])=>q>0);
+  let h=ent.length?'':`<div class="port-empty">Nada. Igual que tu futuro si no inviertes.</div>`;
+  ent.forEach(([id,qty])=>{
+    const c=G.cos[id]; const val=qty*c.price; const pnl=(c.price-G.paid[id])*qty;
+    h+=`<div class="port-row">
+      <div><div style="font-weight:600;">${c.tk}</div><div style="font-size:.55rem;color:var(--dim);">${qty} acc</div></div>
+      <div style="text-align:right;"><div style="font-weight:700;">${fmt(val)}</div><div style="font-size:.58rem;color:${pnl>=0?'var(--green)':'var(--red)'};">${pnl>=0?'+':''}${fmt(pnl)}</div></div>
+    </div>`;
+  });
+  if(ent.length)h+=`<div class="port-row" style="font-weight:700;border:none;padding-top:5px;"><div>Total</div><div>${fmt(portVal())}</div></div>`;
+  document.getElementById('port-list').innerHTML=h;
+}
+
+function renderStats(){
+  const cnw=nw();
+  document.getElementById('s-grid').innerHTML=`
+    <div class="sb"><div class="sbl">Efectivo</div><div class="sbv">${fmt(G.cash)}</div></div>
+    <div class="sb"><div class="sbl">Deuda</div><div class="sbv" style="color:var(--red)">${fmt(G.debt)}</div></div>
+    <div class="sb"><div class="sbl">Valor Neto</div><div class="sbv" style="color:${cnw>=0?'var(--green)':'var(--red)'}">${fmt(cnw)}</div></div>
+    <div class="sb"><div class="sbl">DÃ­as restantes</div><div class="sbv">${TOTAL_DAYS-G.day}</div></div>`;
+}
+
+function renderPRN(){
+  const p=G.prnLevel;
+  document.getElementById('prn-bar').style.width=p+'%';
+  document.getElementById('prn-pct').textContent=p+'%';
+  const lbs=['Ciudadano inocente â€” aÃºn no vendiste tu alma','Simpatizante â€” el partido ya tiene tu nÃºmero','Colaborador â€” ya debes favores','Compadre del sistema â€” eventos te favorecen','PRIÃSTA CONVENCIDO â€” FOBAPROA incoming'];
+  document.getElementById('prn-status').textContent=lbs[Math.min(4,Math.floor(p/20))];
+}
+
+function renderNews(){
+  document.getElementById('news-feed').innerHTML=G.news.slice(0,30).map(n=>
+    `<div class="ni"><span class="nd">D${n.d}</span><span class="nt ${n.cls}">${n.text}</span></div>`
+  ).join('');
+}
+
+function renderLB(elId){
+  const lb=getLB();
+  const el=document.getElementById(elId);
+  if(!el)return;
+  if(!lb.length){el.innerHTML='<div class="lb-empty">Nadie aÃºn. SÃ© el primer magnate.</div>';return;}
+  el.innerHTML=lb.map((e,i)=>`
+    <div class="lb-row ${i<3?'r'+(i+1):''}">
+      <div class="lb-rank">#${i+1}</div>
+      <div class="lb-name">${e.name}</div>
+      <div>
+        <div class="lb-sc ${e.score>=0?'':'neg'}">${fmt(e.score)}</div>
+        <div class="lb-era">${e.era||''} Â· PRN ${e.prn||0}%</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderHacks(){
+  ['h1','h2','h3','h4','h5'].forEach((k,i)=>{
+    const el=document.getElementById('hk'+(i+1));
+    el.className='hdot '+(G.hs[k]?'done':G.day===i+1?'active':'');
+  });
+}
+
+function renderTicker(){
+  const items=Object.values(G.cos).map(c=>{
+    const chg=c.prev?((c.price-c.prev)/c.prev*100):0;
+    return`<span><span class="t-name">${c.tk}</span><span class="${chg>=0?'t-up':'t-dn'}">${fmt(c.price)} ${fmtPct(chg)}</span></span>`;
+  }).join(' &nbsp;Â·&nbsp; ');
+  document.getElementById('ticker').innerHTML=items+'&nbsp;&nbsp;&nbsp;'+items;
+}
+
+// â”€â”€ CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const CCOLORS={modx:'#16a34a',tler:'#dc2626',pemx:'#2563eb',cnsp:'#9333ea',sdrx:'#d97706',banx:'#0891b2',artz:'#ea580c',msca:'#65a30d'};
+
+function renderCharts(){
+  const ent=Object.entries(G.port).filter(([,q])=>q>0);
+
+  // PIE
+  const pieCv=document.getElementById('ch-pie').getContext('2d');
+  if(CH.pie)CH.pie.destroy();
+  const pieLabels=[...ent.map(([id])=>G.cos[id].tk),'Efectivo'];
+  const pieData=[...ent.map(([id,q])=>q*G.cos[id].price),G.cash];
+  const pieColors=[...ent.map(([id])=>CCOLORS[id]||'#888'),'#111'];
+  CH.pie=new Chart(pieCv,{type:'doughnut',data:{labels:pieLabels,datasets:[{data:pieData,backgroundColor:pieColors,borderWidth:1,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10,padding:5}},tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}}}}});
+
+  // PCT BAR
+  const pctCv=document.getElementById('ch-pct').getContext('2d');
+  if(CH.pct)CH.pct.destroy();
+  CH.pct=new Chart(pctCv,{type:'bar',
+    data:{labels:G.nwDays,datasets:[{data:G.pctHist,backgroundColor:G.pctHist.map(p=>p>=0?'rgba(22,163,74,.7)':'rgba(220,38,38,.7)'),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:8},maxTicksLimit:10}},y:{ticks:{font:{size:8},callback:v=>fmtPct(v)},grid:{color:'#eee'}}}}});
+
+  // NW LINE
+  const nwCv=document.getElementById('ch-nw').getContext('2d');
+  if(CH.nw)CH.nw.destroy();
+  CH.nw=new Chart(nwCv,{type:'line',
+    data:{labels:G.nwDays,datasets:[{label:'Valor Neto',data:G.nwHist,borderColor:'#111',borderWidth:2,pointRadius:2,fill:true,backgroundColor:'rgba(17,17,17,.04)',tension:.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:8},maxTicksLimit:10}},y:{ticks:{font:{size:8},callback:v=>fmt(v)},grid:{color:'#eee'}}}}});
+
+  // STOCKS LINE
+  const stkCv=document.getElementById('ch-stk').getContext('2d');
+  if(CH.stk)CH.stk.destroy();
+  if(!ent.length){
+    stkCv.clearRect(0,0,stkCv.canvas.width,stkCv.canvas.height);
+    stkCv.font='11px Inter,sans-serif'; stkCv.fillStyle='#999'; stkCv.textAlign='center';
+    stkCv.fillText('Compra acciones para ver su evoluciÃ³n aquÃ­',stkCv.canvas.width/2,70);
+    CH.stk=null; return;
+  }
+  const maxL=Math.max(...ent.map(([id])=>G.cos[id].hist.length));
+  const labels=Array.from({length:maxL},(_,i)=>i+1);
+  const ds=ent.map(([id])=>{const c=G.cos[id];return{label:c.tk,data:c.hist.slice(-maxL),borderColor:CCOLORS[id]||'#888',borderWidth:2,pointRadius:0,tension:.3,fill:false};});
+  CH.stk=new Chart(stkCv,{type:'line',data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:9},boxWidth:10,padding:5}}},scales:{x:{grid:{display:false},ticks:{font:{size:8},maxTicksLimit:8}},y:{ticks:{font:{size:8},callback:v=>'$'+v.toFixed(0)},grid:{color:'#eee'}}}}});
+}
+
+// â”€â”€ SCREEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function showScreen(n){['intro','game','gameover'].forEach(s=>document.getElementById('sc-'+s).className='screen'+(s===n?' active':''));}
+
+function startGame(){
+  initGame(); showScreen('game'); render();
+}
+
+// BOOT
+initGame();
+renderLB('lb-intro');
+</script>
 </body>
 </html>
