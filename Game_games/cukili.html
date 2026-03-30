@@ -139,13 +139,19 @@ body{
 /* Cukili character creeping in */
 #cukili-creep{
   position:absolute;
-  bottom:90px;
-  font-size:clamp(56px,14vw,100px);
+  bottom:86px;
+  width:clamp(70px,17vw,110px);
   transition:right 1s ease-in-out;
-  right:-120px;
+  right:-130px;
   z-index:5;
-  filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));
   pointer-events:none;
+  animation:cukiliScuttle 0.4s ease-in-out infinite;
+}
+#cukili-creep svg{width:100%;height:auto}
+@keyframes cukiliScuttle{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  50%{transform:translateY(-5px) rotate(2deg)}
 }
 
 /* Game area */
@@ -373,7 +379,48 @@ body{
 
 <!-- ══ START SCREEN ══ -->
 <div id="screen-start">
-  <div id="cukili-intro">🪳</div>
+  <div id="cukili-intro">
+  <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" style="width:clamp(100px,22vw,150px);height:auto">
+    <line x1="30" y1="100" x2="4" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="28" y1="112" x2="2" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="32" y1="124" x2="8" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="100" x2="116" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="92" y1="112" x2="118" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="88" y1="124" x2="112" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="60" cy="118" rx="30" ry="36" fill="#4a3200"/>
+    <ellipse cx="52" cy="104" rx="10" ry="16" fill="#5c4010" opacity=".6"/>
+    <path d="M 32 108 Q 60 105 88 108" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+    <path d="M 34 120 Q 60 117 86 120" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+    <path d="M 36 132 Q 60 129 84 132" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+    <rect x="48" y="78" width="24" height="18" rx="8" fill="#c8a87a"/>
+    <ellipse cx="60" cy="62" rx="34" ry="32" fill="#e8c49a"/>
+    <path d="M 38 36 Q 20 15 10 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 82 36 Q 100 15 110 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="24" cy="20" r="3" fill="#3d2b00"/>
+    <circle cx="96" cy="20" r="3" fill="#3d2b00"/>
+    <circle cx="10" cy="5" r="4" fill="#6d4c1f"/>
+    <circle cx="110" cy="5" r="4" fill="#6d4c1f"/>
+    <ellipse cx="30" cy="70" rx="8" ry="5" fill="#d4845a" opacity=".5"/>
+    <ellipse cx="90" cy="70" rx="8" ry="5" fill="#d4845a" opacity=".5"/>
+    <ellipse cx="44" cy="58" rx="8" ry="9" fill="#cc0000"/>
+    <ellipse cx="76" cy="58" rx="8" ry="9" fill="#cc0000"/>
+    <ellipse cx="44" cy="58" rx="3" ry="7" fill="#1a0000"/>
+    <ellipse cx="76" cy="58" rx="3" ry="7" fill="#1a0000"/>
+    <circle cx="47" cy="54" r="2" fill="#ff6666" opacity=".8"/>
+    <circle cx="79" cy="54" r="2" fill="#ff6666" opacity=".8"/>
+    <ellipse cx="60" cy="67" rx="3" ry="2" fill="#b8845a"/>
+    <path d="M 42 76 Q 60 88 78 76" stroke="#7a3a1a" stroke-width="2.5" fill="#c0392b" stroke-linecap="round"/>
+    <polygon points="50,76 47,82 53,76" fill="#fff"/>
+    <polygon points="70,76 67,82 73,76" fill="#fff"/>
+    <ellipse cx="60" cy="36" rx="33" ry="20" fill="#2d1a00"/>
+    <path d="M 30 44 Q 38 56 44 52 Q 50 48 54 54 Q 58 58 52 60 Q 42 56 34 48 Q 24 42 30 44Z" fill="#3d2600"/>
+    <path d="M 40 32 Q 58 27 74 34" stroke="#6d4c1f" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
+    <ellipse cx="26" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+    <ellipse cx="94" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+    <ellipse cx="34" cy="95" rx="10" ry="5" fill="#5c4218" opacity=".7" transform="rotate(-20 34 95)"/>
+    <ellipse cx="86" cy="95" rx="10" ry="5" fill="#5c4218" opacity=".7" transform="rotate(20 86 95)"/>
+  </svg>
+</div>
   <h1>Cukili is Coming!</h1>
   <p class="subtitle">Luca, clean up the mess before Cukili arrives! 🧹</p>
   <button class="btn-big" onclick="startGame()">▶ Play!</button>
@@ -395,7 +442,69 @@ body{
 
   <!-- Game world -->
   <div id="game-area">
-    <div id="cukili-creep">🪳</div>
+    <div id="cukili-creep">
+      <!-- Cartoon Cukili: half-kid half-roach. Kid face, roach shell, antennae, 6 legs -->
+      <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" style="width:clamp(60px,15vw,100px);height:auto">
+        <!-- Roach legs (3 per side, behind body) -->
+        <line x1="30" y1="100" x2="4" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+        <line x1="28" y1="112" x2="2" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+        <line x1="32" y1="124" x2="8" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+        <line x1="90" y1="100" x2="116" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+        <line x1="92" y1="112" x2="118" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+        <line x1="88" y1="124" x2="112" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+        <!-- Roach shell / body (dark brown carapace) -->
+        <ellipse cx="60" cy="118" rx="30" ry="36" fill="#4a3200"/>
+        <!-- Shell shine -->
+        <ellipse cx="52" cy="104" rx="10" ry="16" fill="#5c4010" opacity=".6"/>
+        <!-- Shell segments -->
+        <path d="M 32 108 Q 60 105 88 108" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+        <path d="M 34 120 Q 60 117 86 120" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+        <path d="M 36 132 Q 60 129 84 132" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+        <!-- Neck -->
+        <rect x="48" y="78" width="24" height="18" rx="8" fill="#c8a87a"/>
+        <!-- Head (round kid face, brown-tan skin) -->
+        <ellipse cx="60" cy="62" rx="34" ry="32" fill="#e8c49a"/>
+        <!-- Antennae (roach style — long, segmented) -->
+        <path d="M 38 36 Q 20 15 10 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M 82 36 Q 100 15 110 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Antennae segments -->
+        <circle cx="24" cy="20" r="3" fill="#3d2b00"/>
+        <circle cx="96" cy="20" r="3" fill="#3d2b00"/>
+        <!-- Antennae tips (little orbs) -->
+        <circle cx="10" cy="5" r="4" fill="#6d4c1f"/>
+        <circle cx="110" cy="5" r="4" fill="#6d4c1f"/>
+        <!-- Cheeks blush -->
+        <ellipse cx="30" cy="70" rx="8" ry="5" fill="#d4845a" opacity=".5"/>
+        <ellipse cx="90" cy="70" rx="8" ry="5" fill="#d4845a" opacity=".5"/>
+        <!-- Evil glowing eyes (red, roach-style) -->
+        <ellipse cx="44" cy="58" rx="8" ry="9" fill="#cc0000"/>
+        <ellipse cx="76" cy="58" rx="8" ry="9" fill="#cc0000"/>
+        <!-- Eye pupils (vertical slit like a bug) -->
+        <ellipse cx="44" cy="58" rx="3" ry="7" fill="#1a0000"/>
+        <ellipse cx="76" cy="58" rx="3" ry="7" fill="#1a0000"/>
+        <!-- Eye shine -->
+        <circle cx="47" cy="54" r="2" fill="#ff6666" opacity=".8"/>
+        <circle cx="79" cy="54" r="2" fill="#ff6666" opacity=".8"/>
+        <!-- Nose (roach-ish, small) -->
+        <ellipse cx="60" cy="67" rx="3" ry="2" fill="#b8845a"/>
+        <!-- Evil grin with small fangs -->
+        <path d="M 42 76 Q 60 88 78 76" stroke="#7a3a1a" stroke-width="2.5" fill="#c0392b" stroke-linecap="round"/>
+        <!-- Tiny fangs -->
+        <polygon points="50,76 47,82 53,76" fill="#fff"/>
+        <polygon points="70,76 67,82 73,76" fill="#fff"/>
+        <!-- Kid messy hair (but darker, greasy roach-like) -->
+        <ellipse cx="60" cy="36" rx="33" ry="20" fill="#2d1a00"/>
+        <path d="M 30 44 Q 38 56 44 52 Q 50 48 54 54 Q 58 58 52 60 Q 42 56 34 48 Q 24 42 30 44Z" fill="#3d2600"/>
+        <!-- Hair highlight (greasy sheen) -->
+        <path d="M 40 32 Q 58 27 74 34" stroke="#6d4c1f" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
+        <!-- Ears -->
+        <ellipse cx="26" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+        <ellipse cx="94" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+        <!-- Small roach wings peeking from shell sides -->
+        <ellipse cx="34" cy="95" rx="10" ry="5" fill="#5c4218" opacity=".7" transform="rotate(-20 34 95)"/>
+        <ellipse cx="86" cy="95" rx="10" ry="5" fill="#5c4218" opacity=".7" transform="rotate(20 86 95)"/>
+      </svg>
+    </div>
     <div id="luca">
       <!-- Cartoon Luca: brown floppy hair, big cheeks, huge dark eyes, white henley -->
       <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
@@ -460,7 +569,38 @@ body{
     <div id="ground"><div id="ground-pattern"></div></div>
     <div id="fact-banner"></div>
     <div id="cukili-arrive">
-      <div class="big-bug">🪳</div>
+      <div class="big-bug">
+        <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" style="width:clamp(100px,25vw,160px);height:auto">
+          <line x1="30" y1="100" x2="4" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="28" y1="112" x2="2" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="32" y1="124" x2="8" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="90" y1="100" x2="116" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="92" y1="112" x2="118" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="88" y1="124" x2="112" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="60" cy="118" rx="30" ry="36" fill="#4a3200"/>
+          <ellipse cx="52" cy="104" rx="10" ry="16" fill="#5c4010" opacity=".6"/>
+          <path d="M 32 108 Q 60 105 88 108" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+          <path d="M 34 120 Q 60 117 86 120" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+          <rect x="48" y="78" width="24" height="18" rx="8" fill="#c8a87a"/>
+          <ellipse cx="60" cy="62" rx="34" ry="32" fill="#e8c49a"/>
+          <path d="M 38 36 Q 20 15 10 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M 82 36 Q 100 15 110 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="10" cy="5" r="4" fill="#6d4c1f"/>
+          <circle cx="110" cy="5" r="4" fill="#6d4c1f"/>
+          <ellipse cx="44" cy="58" rx="10" ry="11" fill="#cc0000"/>
+          <ellipse cx="76" cy="58" rx="10" ry="11" fill="#cc0000"/>
+          <ellipse cx="44" cy="58" rx="4" ry="9" fill="#1a0000"/>
+          <ellipse cx="76" cy="58" rx="4" ry="9" fill="#1a0000"/>
+          <ellipse cx="60" cy="67" rx="3" ry="2" fill="#b8845a"/>
+          <path d="M 38 76 Q 60 92 82 76" stroke="#7a3a1a" stroke-width="3" fill="#c0392b" stroke-linecap="round"/>
+          <polygon points="50,76 46,84 54,76" fill="#fff"/>
+          <polygon points="70,76 66,84 74,76" fill="#fff"/>
+          <ellipse cx="60" cy="36" rx="33" ry="20" fill="#2d1a00"/>
+          <path d="M 30 44 Q 38 56 44 52 Q 50 48 54 54 Q 58 58 52 60 Q 42 56 34 48 Q 24 42 30 44Z" fill="#3d2600"/>
+          <ellipse cx="26" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+          <ellipse cx="94" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+        </svg>
+      </div>
     </div>
   </div>
 
@@ -516,7 +656,7 @@ body{
 
 <!-- ══ LOSE SCREEN ══ -->
 <div id="screen-lose" class="hidden">
-  <div class="big-emoji">🪳😱</div>
+  <div style="font-size:clamp(60px,14vw,100px)">😱</div>
   <h2>Cukili Got In!</h2>
   <p class="result-msg">Oh no! Luca left the garbage and Cukili came for dinner. Clean faster next time!</p>
   <button class="btn-big red" onclick="restartGame()">Try Again! 💪</button>
