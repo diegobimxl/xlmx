@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Cukili is Coming! — XLMX Kids</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;touch-action:manipulation}
+body{
+  font-family:'Nunito',sans-serif;
+  background:#fff9f0;
+  overflow:hidden;
+  width:100vw;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ── SCREENS ── */
+#screen-start,#screen-win,#screen-lose,#screen-game{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.hidden{display:none!important}
+
+/* ── START SCREEN ── */
+#screen-start{
+  background:linear-gradient(160deg,#fff7e6 0%,#ffe8cc 100%);
+  text-align:center;
+  gap:18px;
+}
+#screen-start h1{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(36px,8vw,72px);
+  color:#ff5722;
+  text-shadow:3px 3px 0 #bf360c;
+  line-height:1;
+}
+#screen-start .subtitle{
+  font-size:clamp(16px,4vw,26px);
+  color:#5d4037;
+  font-weight:700;
+  max-width:420px;
+  padding:0 20px;
+}
+#cukili-intro{
+  font-size:clamp(80px,20vw,160px);
+  line-height:1;
+  animation:wobble 1.2s ease-in-out infinite;
+}
+@keyframes wobble{
+  0%,100%{transform:rotate(-6deg) scale(1)}
+  50%{transform:rotate(6deg) scale(1.08)}
+}
+.btn-big{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(22px,5vw,36px);
+  background:#4caf50;
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  padding:18px 48px;
+  cursor:pointer;
+  box-shadow:0 6px 0 #2e7d32;
+  transition:transform .1s,box-shadow .1s;
+  letter-spacing:1px;
+}
+.btn-big:active{transform:translateY(4px);box-shadow:0 2px 0 #2e7d32}
+.btn-big.red{background:#f44336;box-shadow:0 6px 0 #b71c1c}
+.btn-big.red:active{box-shadow:0 2px 0 #b71c1c}
+.btn-big.orange{background:#ff9800;box-shadow:0 6px 0 #e65100}
+.btn-big.orange:active{box-shadow:0 2px 0 #e65100}
+
+/* ── GAME SCREEN ── */
+#screen-game{
+  background:linear-gradient(180deg,#e3f2fd 0%,#fff9f0 60%);
+  flex-direction:column;
+  justify-content:flex-start;
+}
+
+/* Top HUD */
+#hud{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 16px 6px;
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(4px);
+  z-index:10;
+}
+#hud .score-box{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(18px,4vw,28px);
+  color:#5d4037;
+}
+#cookie-display{
+  display:flex;
+  gap:4px;
+}
+.cookie-icon{font-size:clamp(20px,5vw,32px)}
+
+/* Cukili danger bar */
+#danger-track{
+  width:calc(100% - 32px);
+  height:28px;
+  background:#ffe0b2;
+  border-radius:14px;
+  margin:0 16px 8px;
+  overflow:hidden;
+  border:3px solid #ff8f00;
+  position:relative;
+}
+#danger-fill{
+  height:100%;
+  background:linear-gradient(90deg,#ffcc02,#ff5722);
+  border-radius:14px;
+  transition:width .3s;
+  width:0%;
+}
+#danger-label{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-family:'Fredoka One',cursive;
+  font-size:13px;
+  color:#5d4037;
+  white-space:nowrap;
+}
+
+/* Cukili character creeping in */
+#cukili-creep{
+  position:absolute;
+  bottom:90px;
+  font-size:clamp(56px,14vw,100px);
+  transition:right 1s ease-in-out;
+  right:-120px;
+  z-index:5;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));
+  pointer-events:none;
+}
+
+/* Game area */
+#game-area{
+  flex:1;
+  width:100%;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Floor / ground */
+#ground{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:90px;
+  background:linear-gradient(180deg,#a5d6a7 0%,#66bb6a 40%,#388e3c 100%);
+  border-top:4px solid #2e7d32;
+}
+#ground-pattern{
+  position:absolute;
+  top:6px;left:0;right:0;
+  height:20px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.15) 0px,rgba(255,255,255,.15) 30px,transparent 30px,transparent 60px);
+}
+
+/* Luca character */
+#luca{
+  position:absolute;
+  bottom:86px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:clamp(48px,12vw,80px);
+  z-index:6;
+  transition:left .15s;
+  cursor:default;
+  user-select:none;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));
+}
+#luca.collect-anim{animation:jump .3s ease-out}
+@keyframes jump{
+  0%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(-24px)}
+  100%{transform:translateX(-50%) translateY(0)}
+}
+
+/* Trash items */
+.trash{
+  position:absolute;
+  font-size:clamp(36px,9vw,60px);
+  cursor:pointer;
+  bottom:90px;
+  transition:transform .08s;
+  z-index:4;
+  user-select:none;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.25));
+  animation:trashWiggle 2.5s ease-in-out infinite;
+}
+.trash:nth-child(2n){animation-duration:3.1s;animation-delay:.5s}
+.trash:nth-child(3n){animation-duration:2.2s;animation-delay:1.1s}
+@keyframes trashWiggle{
+  0%,100%{transform:rotate(-4deg) translateY(0)}
+  50%{transform:rotate(4deg) translateY(-6px)}
+}
+.trash:active{transform:scale(1.3)!important}
+
+/* Word bubble when collecting */
+.word-bubble{
+  position:absolute;
+  background:#fff;
+  border:3px solid #ff9800;
+  border-radius:16px;
+  padding:6px 14px;
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(14px,3.5vw,22px);
+  color:#e65100;
+  pointer-events:none;
+  z-index:20;
+  animation:bubblePop .9s ease-out forwards;
+  white-space:nowrap;
+}
+@keyframes bubblePop{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  80%{opacity:1;transform:translateY(-50px) scale(1.1)}
+  100%{opacity:0;transform:translateY(-70px) scale(.8)}
+}
+
+/* Fact banner */
+#fact-banner{
+  position:absolute;
+  bottom:100px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#fffde7;
+  border:3px solid #ffd54f;
+  border-radius:20px;
+  padding:10px 20px;
+  font-size:clamp(13px,3vw,18px);
+  font-weight:700;
+  color:#5d4037;
+  text-align:center;
+  max-width:90vw;
+  z-index:30;
+  opacity:0;
+  transition:opacity .3s;
+  pointer-events:none;
+}
+#fact-banner.show{opacity:1}
+
+/* Cukili arriving overlay */
+#cukili-arrive{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:16px;
+  z-index:50;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .5s,background .5s;
+}
+#cukili-arrive.show{
+  opacity:1;
+  background:rgba(200,50,0,.35);
+  pointer-events:all;
+}
+#cukili-arrive .big-bug{font-size:clamp(80px,20vw,150px);animation:shake .15s linear infinite}
+@keyframes shake{
+  0%{transform:translate(-3px,-2px) rotate(-2deg)}
+  25%{transform:translate(3px,2px) rotate(2deg)}
+  50%{transform:translate(-2px,3px) rotate(-1deg)}
+  75%{transform:translate(2px,-3px) rotate(1deg)}
+  100%{transform:translate(-3px,-2px) rotate(-2deg)}
+}
+
+/* WIN / LOSE SCREENS */
+#screen-win{
+  background:linear-gradient(160deg,#e8f5e9 0%,#c8e6c9 100%);
+  text-align:center;
+  gap:20px;
+  flex-direction:column;
+}
+#screen-win h2{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(32px,7vw,60px);
+  color:#2e7d32;
+  text-shadow:3px 3px 0 #1b5e20;
+}
+#screen-lose{
+  background:linear-gradient(160deg,#fbe9e7 0%,#ffccbc 100%);
+  text-align:center;
+  gap:20px;
+  flex-direction:column;
+}
+#screen-lose h2{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(32px,7vw,60px);
+  color:#bf360c;
+  text-shadow:3px 3px 0 #7f0000;
+}
+.big-emoji{font-size:clamp(60px,16vw,120px)}
+.result-msg{
+  font-size:clamp(16px,4vw,26px);
+  color:#5d4037;
+  font-weight:700;
+  max-width:420px;
+  padding:0 20px;
+  line-height:1.4;
+}
+
+/* Arrow controls (mobile) */
+#controls{
+  position:absolute;
+  bottom:100px;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  padding:0 12px;
+  z-index:10;
+  pointer-events:none;
+}
+.ctrl-btn{
+  width:clamp(60px,14vw,90px);
+  height:clamp(60px,14vw,90px);
+  border-radius:50%;
+  background:rgba(255,255,255,.75);
+  border:3px solid rgba(0,0,0,.15);
+  font-size:clamp(24px,6vw,40px);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  pointer-events:all;
+  user-select:none;
+  -webkit-user-select:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  transition:transform .1s,background .1s;
+}
+.ctrl-btn:active{transform:scale(.9);background:rgba(255,200,100,.9)}
+
+/* Level indicator */
+#level-badge{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(14px,3.5vw,20px);
+  background:#ff9800;
+  color:#fff;
+  border-radius:20px;
+  padding:4px 14px;
+  box-shadow:0 3px 0 #e65100;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ START SCREEN ══ -->
+<div id="screen-start">
+  <div id="cukili-intro">🪳</div>
+  <h1>Cukili is Coming!</h1>
+  <p class="subtitle">Luca, clean up the mess before Cukili arrives! 🧹</p>
+  <button class="btn-big" onclick="startGame()">▶ Play!</button>
+  <p style="font-size:13px;color:#9e9e9e;margin-top:8px">Tap trash to pick it up · Move Luca with arrows or swipe</p>
+</div>
+
+<!-- ══ GAME SCREEN ══ -->
+<div id="screen-game" class="hidden">
+  <!-- HUD -->
+  <div id="hud">
+    <div class="score-box">🍪 <span id="score-num">0</span></div>
+    <div id="level-badge">Level <span id="level-num">1</span></div>
+    <div id="cookie-display"></div>
+  </div>
+  <div id="danger-track">
+    <div id="danger-fill"></div>
+    <span id="danger-label">🪳 Cukili gets closer...</span>
+  </div>
+
+  <!-- Game world -->
+  <div id="game-area">
+    <div id="cukili-creep">🪳</div>
+    <div id="luca">👦</div>
+    <div id="ground"><div id="ground-pattern"></div></div>
+    <div id="fact-banner"></div>
+    <div id="cukili-arrive">
+      <div class="big-bug">🪳</div>
+    </div>
+  </div>
+
+  <!-- Mobile controls -->
+  <div id="controls">
+    <div class="ctrl-btn" id="btn-left">◀</div>
+    <div class="ctrl-btn" id="btn-right">▶</div>
+  </div>
+</div>
+
+<!-- ══ WIN SCREEN ══ -->
+<div id="screen-win" class="hidden">
+  <div class="big-emoji">👦🍪🍪🍪</div>
+  <h2>Luca Wins!</h2>
+  <p class="result-msg" id="win-msg">You cleaned everything! Cukili ran away. Here are your cookies!</p>
+  <div id="win-cookies" style="font-size:clamp(30px,8vw,60px)"></div>
+  <button class="btn-big" onclick="nextLevel()">Next Level ▶</button>
+  <button class="btn-big orange" style="font-size:clamp(16px,3.5vw,22px);padding:12px 30px;margin-top:4px" onclick="restartGame()">Play Again</button>
+</div>
+
+<!-- ══ LOSE SCREEN ══ -->
+<div id="screen-lose" class="hidden">
+  <div class="big-emoji">🪳😱</div>
+  <h2>Cukili Got In!</h2>
+  <p class="result-msg">Oh no! Luca left the garbage and Cukili came for dinner. Clean faster next time!</p>
+  <button class="btn-big red" onclick="restartGame()">Try Again! 💪</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// GAME DATA
+// ═══════════════════════════════════════════
+
+const TRASH_TYPES = [
+  { emoji:'🍌', label:'Banana Peel',  word:'BANANA',   fact:'Banana peels can make you slip! Always throw them away.' },
+  { emoji:'🥤', label:'Juice Box',    word:'JUICE',    fact:'Juice boxes go in the recycling bin — they help trees!' },
+  { emoji:'🧃', label:'Juice Bag',    word:'DRINK',    fact:'When we recycle, we make less trash. Yay Earth!' },
+  { emoji:'🍕', label:'Pizza Crust',  word:'PIZZA',    fact:'Food scraps go in the compost. Worms love pizza crusts!' },
+  { emoji:'🥫', label:'Tin Can',      word:'CAN',      fact:'Metal cans get recycled into new cans. Magic!' },
+  { emoji:'🍬', label:'Candy Wrap',   word:'CANDY',    fact:'Candy wrappers go in the trash — they are too small to recycle.' },
+  { emoji:'📄', label:'Paper',        word:'PAPER',    fact:'Paper is made from trees. Recycling paper saves forests!' },
+  { emoji:'🧴', label:'Bottle',       word:'BOTTLE',   fact:'Plastic bottles take 450 years to disappear. Recycle them!' },
+  { emoji:'🍎', label:'Apple Core',   word:'APPLE',    fact:'Apple cores are compost! They turn into soil for plants.' },
+  { emoji:'🥚', label:'Egg Shell',    word:'EGG',      fact:'Eggshells in compost make plants grow strong and tall.' },
+  { emoji:'📦', label:'Box',          word:'BOX',      fact:'Cardboard boxes can be recycled up to 7 times!' },
+  { emoji:'🥛', label:'Milk Carton',  word:'MILK',     fact:'Milk cartons are recyclable — rinse before you toss them!' },
+];
+
+// Educational word list shown when picking up trash (3-yr-old appropriate)
+const PRAISE = ['Great!','Yay!','Nice!','Wow!','Good job!','Super!','Yes!','Clean!','Go Luca!'];
+
+// Level config
+const LEVELS = [
+  { trashCount:4, speed:28, dangerTime:22 }, // Level 1
+  { trashCount:6, speed:24, dangerTime:18 }, // Level 2
+  { trashCount:8, speed:20, dangerTime:14 }, // Level 3
+  { trashCount:10,speed:16, dangerTime:11 }, // Level 4
+  { trashCount:12,speed:13, dangerTime:9  }, // Level 5
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let level = 0;
+let score = 0;
+let cookies = 0;
+let trashLeft = 0;
+let dangerPct = 0;
+let dangerInterval = null;
+let lucaX = 50; // percent
+let trashItems = [];
+let factTimeout = null;
+let gameActive = false;
+let leftHeld = false;
+let rightHeld = false;
+let moveInterval = null;
+
+// ═══════════════════════════════════════════
+// SCREEN HELPERS
+// ═══════════════════════════════════════════
+function showScreen(id){
+  ['screen-start','screen-game','screen-win','screen-lose'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+
+// ═══════════════════════════════════════════
+// START / RESTART
+// ═══════════════════════════════════════════
+function startGame(){
+  level = 0; score = 0; cookies = 0;
+  launchLevel();
+}
+function restartGame(){
+  level = 0; score = 0; cookies = 0;
+  launchLevel();
+}
+function nextLevel(){
+  if(level < LEVELS.length - 1) level++;
+  launchLevel();
+}
+
+function launchLevel(){
+  clearAllTimers();
+  dangerPct = 0;
+  lucaX = 50;
+  gameActive = true;
+
+  showScreen('screen-game');
+
+  const cfg = LEVELS[level];
+  document.getElementById('level-num').textContent = level + 1;
+  document.getElementById('score-num').textContent = score;
+  updateCookieDisplay();
+
+  // Reset danger
+  setDanger(0);
+  document.getElementById('cukili-creep').style.right = '-120px';
+  document.getElementById('cukili-arrive').classList.remove('show');
+
+  // Place Luca
+  positionLuca();
+
+  // Spawn trash
+  spawnTrash(cfg.trashCount);
+
+  // Start danger timer
+  const tickMs = (cfg.dangerTime * 1000) / 100; // reach 100% in dangerTime seconds
+  dangerInterval = setInterval(()=>{
+    if(!gameActive) return;
+    dangerPct = Math.min(100, dangerPct + 1);
+    setDanger(dangerPct);
+    if(dangerPct >= 100) cukiliArrives();
+  }, tickMs);
+}
+
+function clearAllTimers(){
+  clearInterval(dangerInterval);
+  clearInterval(moveInterval);
+  dangerInterval = null;
+  moveInterval = null;
+  leftHeld = false; rightHeld = false;
+  // Remove existing trash
+  document.querySelectorAll('.trash').forEach(t=>t.remove());
+  trashItems = [];
+}
+
+// ═══════════════════════════════════════════
+// DANGER BAR + CUKILI
+// ═══════════════════════════════════════════
+function setDanger(pct){
+  document.getElementById('danger-fill').style.width = pct + '%';
+  // Move Cukili creep from right
+  const maxRight = -120;
+  const minRight = window.innerWidth * 0.1; // stops at ~10% from right
+  const right = maxRight + (minRight - maxRight) * (pct / 100);
+  document.getElementById('cukili-creep').style.right = Math.round(-right) + 'px';
+}
+
+function cukiliArrives(){
+  if(!gameActive) return;
+  gameActive = false;
+  clearAllTimers();
+  const overlay = document.getElementById('cukili-arrive');
+  overlay.classList.add('show');
+  setTimeout(()=>showScreen('screen-lose'), 1800);
+}
+
+// ═══════════════════════════════════════════
+// LUCA MOVEMENT
+// ═══════════════════════════════════════════
+function positionLuca(){
+  const luca = document.getElementById('luca');
+  luca.style.left = lucaX + '%';
+  luca.style.transform = 'translateX(-50%)';
+}
+
+function moveLuca(dir){ // dir: -1 left, +1 right
+  lucaX = Math.max(5, Math.min(95, lucaX + dir * 4));
+  positionLuca();
+}
+
+// Keyboard
+document.addEventListener('keydown', e=>{
+  if(!gameActive) return;
+  if(e.key==='ArrowLeft'  || e.key==='a') moveLuca(-1);
+  if(e.key==='ArrowRight' || e.key==='d') moveLuca(1);
+});
+
+// Touch swipe
+let touchStartX = 0;
+document.addEventListener('touchstart', e=>{ touchStartX = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e=>{
+  if(!gameActive) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 30) moveLuca(dx > 0 ? 1 : -1);
+}, {passive:true});
+
+// Mobile buttons — hold
+function startHold(dir){
+  if(!gameActive) return;
+  moveLuca(dir);
+  clearInterval(moveInterval);
+  moveInterval = setInterval(()=>{ if(gameActive) moveLuca(dir); }, 120);
+}
+function stopHold(){
+  clearInterval(moveInterval);
+  moveInterval = null;
+}
+
+const btnL = document.getElementById('btn-left');
+const btnR = document.getElementById('btn-right');
+btnL.addEventListener('pointerdown', ()=>startHold(-1));
+btnR.addEventListener('pointerdown', ()=>startHold(1));
+btnL.addEventListener('pointerup', stopHold);
+btnR.addEventListener('pointerup', stopHold);
+btnL.addEventListener('pointercancel', stopHold);
+btnR.addEventListener('pointercancel', stopHold);
+
+// ═══════════════════════════════════════════
+// TRASH
+// ═══════════════════════════════════════════
+function spawnTrash(count){
+  const area = document.getElementById('game-area');
+  const W = area.clientWidth;
+  const usedX = [];
+  trashLeft = count;
+
+  for(let i=0;i<count;i++){
+    const type = TRASH_TYPES[Math.floor(Math.random()*TRASH_TYPES.length)];
+    const el = document.createElement('div');
+    el.className = 'trash';
+    el.textContent = type.emoji;
+    el.dataset.word = type.word;
+    el.dataset.fact = type.fact;
+    el.dataset.label = type.label;
+
+    // Spread evenly with some randomness, avoid overlap
+    let x;
+    let tries = 0;
+    do {
+      x = 8 + Math.random() * 84; // 8%–92%
+      tries++;
+    } while(usedX.some(ux=>Math.abs(ux-x)<12) && tries < 30);
+    usedX.push(x);
+
+    el.style.left = x + '%';
+    el.style.bottom = '90px';
+
+    el.addEventListener('click', ()=>collectTrash(el, type));
+    el.addEventListener('touchstart', (e)=>{ e.preventDefault(); collectTrash(el, type); }, {passive:false});
+
+    area.appendChild(el);
+    trashItems.push(el);
+  }
+}
+
+function collectTrash(el, type){
+  if(!gameActive) return;
+  if(!el.parentNode) return;
+
+  // Remove element
+  el.remove();
+  trashItems = trashItems.filter(t=>t!==el);
+  trashLeft--;
+
+  // Score
+  score += 10;
+  document.getElementById('score-num').textContent = score;
+
+  // Reduce danger — picking up trash buys time
+  dangerPct = Math.max(0, dangerPct - 8);
+  setDanger(dangerPct);
+
+  // Luca jump anim
+  const luca = document.getElementById('luca');
+  luca.classList.remove('collect-anim');
+  void luca.offsetWidth;
+  luca.classList.add('collect-anim');
+
+  // Word bubble
+  showWordBubble(el, type.word);
+
+  // Show educational fact
+  showFact(type.fact);
+
+  // Check win
+  if(trashLeft <= 0) setTimeout(winLevel, 600);
+}
+
+function showWordBubble(el, word){
+  const area = document.getElementById('game-area');
+  const rect = el.getBoundingClientRect();
+  const areaRect = area.getBoundingClientRect();
+
+  const bubble = document.createElement('div');
+  bubble.className = 'word-bubble';
+  bubble.textContent = word;
+  bubble.style.left = (rect.left - areaRect.left + rect.width/2) + 'px';
+  bubble.style.bottom = '130px';
+  bubble.style.transform = 'translateX(-50%)';
+  area.appendChild(bubble);
+  setTimeout(()=>bubble.remove(), 900);
+
+  // Also show praise randomly
+  if(Math.random() < 0.5){
+    const praise = document.createElement('div');
+    praise.className = 'word-bubble';
+    praise.textContent = PRAISE[Math.floor(Math.random()*PRAISE.length)];
+    praise.style.left = (rect.left - areaRect.left + rect.width/2 + 50) + 'px';
+    praise.style.bottom = '160px';
+    praise.style.transform = 'translateX(-50%)';
+    praise.style.borderColor = '#4caf50';
+    praise.style.color = '#2e7d32';
+    area.appendChild(praise);
+    setTimeout(()=>praise.remove(), 900);
+  }
+}
+
+function showFact(fact){
+  const banner = document.getElementById('fact-banner');
+  clearTimeout(factTimeout);
+  banner.textContent = '💡 ' + fact;
+  banner.classList.add('show');
+  factTimeout = setTimeout(()=>banner.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════
+// WIN
+// ═══════════════════════════════════════════
+function winLevel(){
+  if(!gameActive) return;
+  gameActive = false;
+  clearAllTimers();
+
+  cookies += level + 1; // more cookies for higher levels
+  score += (level + 1) * 50; // bonus
+
+  document.getElementById('win-msg').textContent =
+    level >= LEVELS.length - 1
+      ? 'Amazing! You beat ALL levels! Luca is the cleanest kid in the world! 🏆'
+      : `Room is clean! Cukili ran away! Get your cookie${cookies>1?'s':''}!`;
+
+  let cookieStr = '';
+  for(let i=0;i<Math.min(cookies,10);i++) cookieStr += '🍪';
+  if(cookies>10) cookieStr += ` x${cookies}`;
+  document.getElementById('win-cookies').textContent = cookieStr;
+
+  // Hide next level button on last level
+  const nextBtn = document.querySelector('#screen-win .btn-big');
+  nextBtn.style.display = level >= LEVELS.length - 1 ? 'none' : 'inline-block';
+
+  updateCookieDisplay();
+  showScreen('screen-win');
+}
+
+function updateCookieDisplay(){
+  const d = document.getElementById('cookie-display');
+  d.innerHTML = '';
+  const show = Math.min(cookies, 5);
+  for(let i=0;i<show;i++){
+    const c = document.createElement('span');
+    c.className = 'cookie-icon';
+    c.textContent = '🍪';
+    d.appendChild(c);
+  }
+  if(cookies>5){
+    const c = document.createElement('span');
+    c.className = 'cookie-icon';
+    c.style.fontSize = '14px';
+    c.textContent = '+' + (cookies-5);
+    d.appendChild(c);
+  }
+}
+</script>
+</body>
+</html>
