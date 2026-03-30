@@ -177,19 +177,30 @@ body{
   bottom:86px;
   left:50%;
   transform:translateX(-50%);
-  font-size:clamp(48px,12vw,80px);
+  width:clamp(60px,14vw,90px);
+  height:clamp(80px,18vw,120px);
   z-index:6;
   transition:left .15s;
   cursor:default;
   user-select:none;
-  filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));
 }
-#luca.collect-anim{animation:jump .3s ease-out}
+#luca svg { width:100%; height:100%; }
+#luca.collect-anim{animation:jump .35s ease-out}
 @keyframes jump{
   0%{transform:translateX(-50%) translateY(0)}
-  50%{transform:translateX(-50%) translateY(-24px)}
+  40%{transform:translateX(-50%) translateY(-28px)}
   100%{transform:translateX(-50%) translateY(0)}
 }
+/* blinking eyes */
+#luca-eye-l, #luca-eye-r { animation: blink 3.5s ease-in-out infinite; transform-origin: center; }
+#luca-eye-r { animation-delay: .08s; }
+@keyframes blink {
+  0%,90%,100%{transform:scaleY(1)}
+  95%{transform:scaleY(0.08)}
+}
+/* happy mouth on win screen */
+#luca-win svg #luca-mouth { d: path("M 38 68 Q 50 80 62 68"); }
 
 /* Trash items */
 .trash{
@@ -385,7 +396,67 @@ body{
   <!-- Game world -->
   <div id="game-area">
     <div id="cukili-creep">🪳</div>
-    <div id="luca">👦</div>
+    <div id="luca">
+      <!-- Cartoon Luca: brown floppy hair, big cheeks, huge dark eyes, white henley -->
+      <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body / henley shirt (white with light grey texture) -->
+        <rect x="22" y="85" width="56" height="50" rx="12" fill="#f5f5f5"/>
+        <!-- Shirt collar area -->
+        <rect x="38" y="84" width="24" height="18" rx="4" fill="#ececec"/>
+        <!-- Henley buttons -->
+        <circle cx="50" cy="91" r="2.2" fill="#9e9e9e"/>
+        <circle cx="50" cy="99" r="2.2" fill="#9e9e9e"/>
+        <!-- Arms -->
+        <rect x="8" y="87" width="18" height="30" rx="9" fill="#f5cba7"/>
+        <rect x="74" y="87" width="18" height="30" rx="9" fill="#f5cba7"/>
+        <!-- Neck -->
+        <rect x="42" y="76" width="16" height="16" rx="6" fill="#f5cba7"/>
+        <!-- Head (round, big cheeks) -->
+        <ellipse cx="50" cy="58" rx="32" ry="30" fill="#f5cba7"/>
+        <!-- Cheek blush left -->
+        <ellipse cx="22" cy="66" rx="8" ry="5" fill="#f4a7a7" opacity=".55"/>
+        <!-- Cheek blush right -->
+        <ellipse cx="78" cy="66" rx="8" ry="5" fill="#f4a7a7" opacity=".55"/>
+        <!-- Eyes (big, dark brown) -->
+        <ellipse id="luca-eye-l" cx="37" cy="54" rx="7" ry="8" fill="#2d1a0e"/>
+        <ellipse id="luca-eye-r" cx="63" cy="54" rx="7" ry="8" fill="#2d1a0e"/>
+        <!-- Eye shine left -->
+        <circle cx="40" cy="51" r="2.5" fill="#fff"/>
+        <!-- Eye shine right -->
+        <circle cx="66" cy="51" r="2.5" fill="#fff"/>
+        <!-- Nose -->
+        <ellipse cx="50" cy="64" rx="3" ry="2" fill="#e8a07a"/>
+        <!-- Mouth (slight open smirk — Luca being Luca) -->
+        <path id="luca-mouth" d="M 38 70 Q 50 78 62 70" stroke="#b55a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Top teeth peek -->
+        <rect x="44" y="70" width="12" height="4" rx="2" fill="#fff" opacity=".8"/>
+        <!-- Floppy hair (brown, falls over forehead) -->
+        <!-- Back of hair -->
+        <ellipse cx="50" cy="34" rx="32" ry="22" fill="#6d4c1f"/>
+        <!-- Hair mass over head -->
+        <ellipse cx="50" cy="36" rx="31" ry="19" fill="#7b5428"/>
+        <!-- Hair flop left -->
+        <ellipse cx="23" cy="42" rx="14" ry="10" fill="#7b5428" transform="rotate(-20 23 42)"/>
+        <!-- Hair flop right -->
+        <ellipse cx="74" cy="40" rx="10" ry="8" fill="#7b5428" transform="rotate(15 74 40)"/>
+        <!-- Forelock falling over forehead -->
+        <path d="M 30 38 Q 38 52 46 50 Q 50 48 52 52 Q 56 56 50 58 Q 42 55 34 48 Q 24 42 30 38Z" fill="#8b6030"/>
+        <!-- Hair highlight -->
+        <path d="M 36 30 Q 50 26 62 32" stroke="#a0753a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>
+        <!-- Ears -->
+        <ellipse cx="18" cy="58" rx="6" ry="7" fill="#f5cba7"/>
+        <ellipse cx="82" cy="58" rx="6" ry="7" fill="#f5cba7"/>
+        <!-- Ear inner -->
+        <ellipse cx="18" cy="58" rx="3" ry="4" fill="#e8a07a" opacity=".5"/>
+        <ellipse cx="82" cy="58" rx="3" ry="4" fill="#e8a07a" opacity=".5"/>
+        <!-- Legs -->
+        <rect x="30" y="128" width="16" height="12" rx="6" fill="#5c8a5a"/>
+        <rect x="54" y="128" width="16" height="12" rx="6" fill="#5c8a5a"/>
+        <!-- Shoes -->
+        <ellipse cx="38" cy="140" rx="10" ry="5" fill="#37474f"/>
+        <ellipse cx="62" cy="140" rx="10" ry="5" fill="#37474f"/>
+      </svg>
+    </div>
     <div id="ground"><div id="ground-pattern"></div></div>
     <div id="fact-banner"></div>
     <div id="cukili-arrive">
@@ -402,7 +473,40 @@ body{
 
 <!-- ══ WIN SCREEN ══ -->
 <div id="screen-win" class="hidden">
-  <div class="big-emoji">👦🍪🍪🍪</div>
+  <!-- Happy Luca on win screen -->
+  <div id="luca-win" style="width:clamp(80px,18vw,110px);height:clamp(100px,22vw,140px)">
+    <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+      <rect x="22" y="85" width="56" height="50" rx="12" fill="#f5f5f5"/>
+      <rect x="38" y="84" width="24" height="18" rx="4" fill="#ececec"/>
+      <circle cx="50" cy="91" r="2.2" fill="#9e9e9e"/>
+      <circle cx="50" cy="99" r="2.2" fill="#9e9e9e"/>
+      <!-- Arms raised in celebration -->
+      <rect x="4" y="72" width="18" height="30" rx="9" fill="#f5cba7" transform="rotate(-40 4 72)"/>
+      <rect x="78" y="72" width="18" height="30" rx="9" fill="#f5cba7" transform="rotate(40 96 72)"/>
+      <rect x="42" y="76" width="16" height="16" rx="6" fill="#f5cba7"/>
+      <ellipse cx="50" cy="58" rx="32" ry="30" fill="#f5cba7"/>
+      <ellipse cx="22" cy="66" rx="8" ry="5" fill="#f4a7a7" opacity=".7"/>
+      <ellipse cx="78" cy="66" rx="8" ry="5" fill="#f4a7a7" opacity=".7"/>
+      <!-- Happy squint eyes -->
+      <path d="M 30 54 Q 37 48 44 54" stroke="#2d1a0e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M 56 54 Q 63 48 70 54" stroke="#2d1a0e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="50" cy="64" rx="3" ry="2" fill="#e8a07a"/>
+      <!-- Big happy open mouth -->
+      <path d="M 36 70 Q 50 86 64 70" stroke="#b55a3a" stroke-width="2.5" fill="#ff8a65" stroke-linecap="round"/>
+      <rect x="40" y="70" width="20" height="5" rx="2" fill="#fff" opacity=".9"/>
+      <ellipse cx="50" cy="34" rx="32" ry="22" fill="#6d4c1f"/>
+      <ellipse cx="50" cy="36" rx="31" ry="19" fill="#7b5428"/>
+      <ellipse cx="23" cy="42" rx="14" ry="10" fill="#7b5428" transform="rotate(-20 23 42)"/>
+      <path d="M 30 38 Q 38 52 46 50 Q 50 48 52 52 Q 56 56 50 58 Q 42 55 34 48 Q 24 42 30 38Z" fill="#8b6030"/>
+      <path d="M 36 30 Q 50 26 62 32" stroke="#a0753a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>
+      <ellipse cx="18" cy="58" rx="6" ry="7" fill="#f5cba7"/>
+      <ellipse cx="82" cy="58" rx="6" ry="7" fill="#f5cba7"/>
+      <rect x="30" y="128" width="16" height="12" rx="6" fill="#5c8a5a"/>
+      <rect x="54" y="128" width="16" height="12" rx="6" fill="#5c8a5a"/>
+      <ellipse cx="38" cy="140" rx="10" ry="5" fill="#37474f"/>
+      <ellipse cx="62" cy="140" rx="10" ry="5" fill="#37474f"/>
+    </svg>
+  </div>
   <h2>Luca Wins!</h2>
   <p class="result-msg" id="win-msg">You cleaned everything! Cukili ran away. Here are your cookies!</p>
   <div id="win-cookies" style="font-size:clamp(30px,8vw,60px)"></div>
@@ -544,9 +648,25 @@ function setDanger(pct){
   document.getElementById('danger-fill').style.width = pct + '%';
   // Move Cukili creep from right
   const maxRight = -120;
-  const minRight = window.innerWidth * 0.1; // stops at ~10% from right
+  const minRight = window.innerWidth * 0.1;
   const right = maxRight + (minRight - maxRight) * (pct / 100);
   document.getElementById('cukili-creep').style.right = Math.round(-right) + 'px';
+  // Swap Luca face expression at 75% danger
+  const mouth = document.getElementById('luca-mouth');
+  const eyeL = document.getElementById('luca-eye-l');
+  const eyeR = document.getElementById('luca-eye-r');
+  if(!mouth || !eyeL) return;
+  if(pct >= 75){
+    // Scared: wide eyes, frown
+    mouth.setAttribute('d','M 38 74 Q 50 66 62 74');
+    eyeL.setAttribute('rx','8'); eyeL.setAttribute('ry','9');
+    eyeR.setAttribute('rx','8'); eyeR.setAttribute('ry','9');
+  } else {
+    // Normal smile
+    mouth.setAttribute('d','M 38 70 Q 50 78 62 70');
+    eyeL.setAttribute('rx','7'); eyeL.setAttribute('ry','8');
+    eyeR.setAttribute('rx','7'); eyeR.setAttribute('ry','8');
+  }
 }
 
 function cukiliArrives(){
