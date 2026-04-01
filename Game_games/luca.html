@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Luca's Room — XLMX Kids</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;background:#fff9f0;font-family:'Nunito',sans-serif}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hidden{display:none!important}
+
+/* ── START ── */
+#screen-start{background:linear-gradient(160deg,#fff3e0,#fce4ec);gap:14px;text-align:center;padding:20px}
+#screen-start h1{font-family:'Fredoka One',cursive;font-size:clamp(32px,7vw,64px);color:#e53935;text-shadow:3px 3px 0 #b71c1c;line-height:1.1}
+#screen-start .tagline{font-size:clamp(14px,3vw,22px);color:#5d4037;font-weight:700;max-width:480px}
+.cast-row{display:flex;align-items:flex-end;justify-content:center;gap:clamp(6px,2vw,20px);margin:8px 0}
+.btn{font-family:'Fredoka One',cursive;font-size:clamp(20px,4vw,32px);background:#43a047;color:#fff;border:none;border-radius:50px;padding:16px 44px;cursor:pointer;box-shadow:0 6px 0 #2e7d32;transition:transform .1s,box-shadow .1s;letter-spacing:1px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #2e7d32}
+.btn.red{background:#e53935;box-shadow:0 6px 0 #b71c1c}
+.btn.red:active{box-shadow:0 2px 0 #b71c1c}
+.btn.blue{background:#1e88e5;box-shadow:0 6px 0 #1565c0}
+.btn.blue:active{box-shadow:0 2px 0 #1565c0}
+
+/* ── GAME ── */
+#screen-game{background:linear-gradient(180deg,#b3e5fc 0%,#e8f5e9 50%,#fff9f0 100%);justify-content:flex-start;padding:0}
+
+/* HUD */
+#hud{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,255,255,.75);backdrop-filter:blur(6px);z-index:100;flex-shrink:0}
+#hud .stars{font-size:clamp(18px,4vw,28px);letter-spacing:2px}
+#level-badge{font-family:'Fredoka One',cursive;font-size:clamp(13px,3vw,20px);background:#ff9800;color:#fff;border-radius:20px;padding:3px 14px;box-shadow:0 3px 0 #e65100}
+
+/* Danger bar */
+#danger-wrap{width:100%;padding:0 12px 6px;flex-shrink:0}
+#danger-track{width:100%;height:24px;background:#ffe0b2;border-radius:12px;overflow:hidden;border:3px solid #ff8f00;position:relative}
+#danger-fill{height:100%;background:linear-gradient(90deg,#ffd54f,#f4511e);border-radius:12px;width:0%;transition:width .4s}
+#danger-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:12px;color:#5d4037;pointer-events:none}
+
+/* Room */
+#room{flex:1;width:100%;position:relative;overflow:hidden}
+
+/* Room background layers */
+#room-bg{position:absolute;inset:0;background:linear-gradient(180deg,#fff9f0 0%,#fff3e0 100%)}
+/* Wall */
+#wall{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#ffe0b2 0%,#ffcc80 100%);border-bottom:6px solid #e6a817}
+/* Floor */
+#floor{position:absolute;bottom:0;left:0;right:0;height:45%;background:repeating-linear-gradient(90deg,#d7a87a 0px,#d7a87a 60px,#c49a6c 60px,#c49a6c 120px)}
+
+/* Furniture */
+.furniture{position:absolute;pointer-events:none;user-select:none}
+
+/* Destination zones (bin, fridge, sink) */
+.dest-zone{position:absolute;cursor:pointer;transition:filter .2s;z-index:10}
+.dest-zone.highlight{filter:drop-shadow(0 0 12px #ffea00) brightness(1.2)}
+.dest-zone svg{width:100%;height:100%}
+
+/* Luca character */
+#luca-char{position:absolute;z-index:20;pointer-events:none;transition:left .25s ease,bottom .2s ease}
+#luca-char svg{width:100%;height:100%}
+
+/* Cukili creep */
+#cukili-char{position:absolute;z-index:15;pointer-events:none;transition:right 1.2s ease-in-out,bottom .1s}
+#cukili-char svg{width:100%;height:100%}
+
+/* Items (draggable) */
+.item{position:absolute;cursor:grab;user-select:none;z-index:30;touch-action:none;transition:filter .15s,transform .15s}
+.item:active,.item.dragging{cursor:grabbing;z-index:200;filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));transform:scale(1.18)}
+.item svg,.item span{pointer-events:none;display:block}
+
+/* Helpers & characters watching */
+#family-bar{position:absolute;bottom:0;left:0;right:0;height:clamp(70px,15vw,110px);display:flex;align-items:flex-end;justify-content:flex-end;padding:0 8px 4px;z-index:25;pointer-events:none;gap:clamp(4px,1.5vw,12px)}
+#family-bar>div{pointer-events:none}
+
+/* Speech bubbles */
+.speech{position:absolute;background:#fff;border:3px solid #ffa726;border-radius:16px;padding:6px 12px;font-family:'Fredoka One',cursive;font-size:clamp(11px,2.5vw,17px);color:#e65100;white-space:nowrap;pointer-events:none;z-index:300;opacity:0;transition:opacity .3s;bottom:100%;left:50%;transform:translateX(-50%)}
+.speech::after{content:'';position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#ffa726}
+.speech.show{opacity:1}
+
+/* Collect pop */
+.pop{position:absolute;font-family:'Fredoka One',cursive;font-size:clamp(16px,3.5vw,24px);pointer-events:none;z-index:400;animation:popUp .8s ease-out forwards;white-space:nowrap}
+@keyframes popUp{0%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:1;transform:translateY(-50px) scale(1.1)}100%{opacity:0;transform:translateY(-70px) scale(.8)}}
+
+/* Cukili eat anim */
+@keyframes cukiliEat{0%,100%{transform:scaleX(1) translateY(0)}50%{transform:scaleX(1.15) translateY(-8px)}}
+#cukili-char.eating{animation:cukiliEat .3s ease-in-out 3}
+
+/* Luca walk */
+@keyframes lucaWalk{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+#luca-char.walking{animation:lucaWalk .35s ease-in-out infinite}
+#luca-char.cheer{animation:cheer .4s ease-in-out 3}
+@keyframes cheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+
+/* Screen flashes */
+#flash{position:absolute;inset:0;pointer-events:none;z-index:500;opacity:0;background:red;transition:opacity .1s}
+#flash.show{opacity:.3}
+
+/* ── WIN / LOSE ── */
+#screen-win{background:linear-gradient(160deg,#e8f5e9,#c8e6c9);gap:16px;text-align:center;padding:24px}
+#screen-win h2{font-family:'Fredoka One',cursive;font-size:clamp(30px,7vw,58px);color:#2e7d32;text-shadow:3px 3px 0 #1b5e20}
+#screen-lose{background:linear-gradient(160deg,#fbe9e7,#ffccbc);gap:16px;text-align:center;padding:24px}
+#screen-lose h2{font-family:'Fredoka One',cursive;font-size:clamp(30px,7vw,58px);color:#bf360c;text-shadow:3px 3px 0 #7f0000}
+.result-msg{font-size:clamp(15px,3vw,22px);color:#5d4037;font-weight:700;max-width:460px;line-height:1.5}
+.star-row{font-size:clamp(28px,7vw,52px);letter-spacing:4px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     START SCREEN
+══════════════════════════════════════ -->
+<div id="screen-start" class="screen">
+  <h1>Luca's Room</h1>
+  <p class="tagline">Clean up before Cukili arrives and eats everything! 🧹</p>
+  <div class="cast-row" id="cast-row"></div>
+  <button class="btn" onclick="startGame()">▶ Let's Go!</button>
+  <p style="font-size:12px;color:#9e9e9e;margin-top:6px">Touch trash → trash bin · Touch food → fridge · Touch dishes → sink</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     GAME SCREEN
+══════════════════════════════════════ -->
+<div id="screen-game" class="screen hidden">
+  <div id="hud">
+    <div class="stars" id="stars-display">⭐⭐⭐</div>
+    <div id="level-badge">Level <span id="level-num">1</span></div>
+    <div style="font-family:'Fredoka One',cursive;font-size:clamp(13px,3vw,18px);color:#5d4037">🍪 <span id="score-num">0</span></div>
+  </div>
+  <div id="danger-wrap">
+    <div id="danger-track">
+      <div id="danger-fill"></div>
+      <div id="danger-label">🪳 Cukili is coming...</div>
+    </div>
+  </div>
+  <div id="room">
+    <div id="room-bg"></div>
+    <div id="wall"></div>
+    <div id="floor"></div>
+    <!-- Destinations placed by JS -->
+    <!-- Items placed by JS -->
+    <!-- Characters placed by JS -->
+    <div id="luca-char"></div>
+    <div id="cukili-char"></div>
+    <div id="family-bar" id="family-bar"></div>
+    <div id="flash"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WIN SCREEN
+══════════════════════════════════════ -->
+<div id="screen-win" class="screen hidden">
+  <div id="win-cast" style="display:flex;gap:12px;align-items:flex-end;justify-content:center"></div>
+  <h2>Room is Clean! 🎉</h2>
+  <div class="star-row" id="win-stars"></div>
+  <p class="result-msg" id="win-msg">Amazing! Cukili ran away!</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+    <button class="btn" onclick="nextLevel()">Next Level ▶</button>
+    <button class="btn blue" onclick="restartGame()">Play Again</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LOSE SCREEN
+══════════════════════════════════════ -->
+<div id="screen-lose" class="screen hidden">
+  <div id="lose-cast" style="display:flex;gap:12px;align-items:flex-end;justify-content:center"></div>
+  <h2>Cukili Ate It!</h2>
+  <p class="result-msg">Nooo! Cukili found the garbage and had a feast. Clean faster next time, Luca!</p>
+  <button class="btn red" onclick="restartGame()">Try Again! 💪</button>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// SVG CHARACTER LIBRARY
+// ════════════════════════════════════════
+
+const SVG = {
+
+// ── LUCA (3yr, brown floppy hair, big cheeks, white henley) ──
+luca(w=80,h=110,expr='normal'){
+  const mouth = expr==='happy'
+    ? `<path d="M 38 70 Q 50 82 62 70" stroke="#b55a3a" stroke-width="2.5" fill="#ff8a65" stroke-linecap="round"/>`
+    : expr==='scared'
+    ? `<path d="M 40 74 Q 50 66 60 74" stroke="#b55a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
+    : `<path d="M 38 70 Q 50 78 62 70" stroke="#b55a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="44" y="70" width="12" height="4" rx="2" fill="#fff" opacity=".7"/>`;
+  const eyes = expr==='happy'
+    ? `<path d="M 30 54 Q 37 48 44 54" stroke="#2d1a0e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+       <path d="M 56 54 Q 63 48 70 54" stroke="#2d1a0e" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+    : `<ellipse cx="37" cy="54" rx="7" ry="8" fill="#2d1a0e"/>
+       <ellipse cx="63" cy="54" rx="7" ry="8" fill="#2d1a0e"/>
+       <circle cx="40" cy="51" r="2.5" fill="#fff"/>
+       <circle cx="66" cy="51" r="2.5" fill="#fff"/>`;
+  return `<svg viewBox="0 0 100 140" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="22" y="85" width="56" height="50" rx="12" fill="#f5f5f5"/>
+    <rect x="38" y="84" width="24" height="18" rx="4" fill="#ececec"/>
+    <circle cx="50" cy="91" r="2.2" fill="#9e9e9e"/>
+    <circle cx="50" cy="99" r="2.2" fill="#9e9e9e"/>
+    <rect x="8" y="87" width="18" height="30" rx="9" fill="#f5cba7"/>
+    <rect x="74" y="87" width="18" height="30" rx="9" fill="#f5cba7"/>
+    <rect x="30" y="128" width="16" height="12" rx="6" fill="#5c8a5a"/>
+    <rect x="54" y="128" width="16" height="12" rx="6" fill="#5c8a5a"/>
+    <ellipse cx="38" cy="140" rx="10" ry="5" fill="#37474f"/>
+    <ellipse cx="62" cy="140" rx="10" ry="5" fill="#37474f"/>
+    <rect x="42" y="76" width="16" height="16" rx="6" fill="#f5cba7"/>
+    <ellipse cx="50" cy="58" rx="32" ry="30" fill="#f5cba7"/>
+    <ellipse cx="22" cy="66" rx="8" ry="5" fill="#f4a7a7" opacity=".55"/>
+    <ellipse cx="78" cy="66" rx="8" ry="5" fill="#f4a7a7" opacity=".55"/>
+    ${eyes}
+    <ellipse cx="50" cy="64" rx="3" ry="2" fill="#e8a07a"/>
+    ${mouth}
+    <ellipse cx="50" cy="34" rx="32" ry="22" fill="#6d4c1f"/>
+    <ellipse cx="50" cy="36" rx="31" ry="19" fill="#7b5428"/>
+    <ellipse cx="23" cy="42" rx="14" ry="10" fill="#7b5428" transform="rotate(-20 23 42)"/>
+    <path d="M 30 38 Q 38 52 46 50 Q 50 48 52 52 Q 56 56 50 58 Q 42 55 34 48 Q 24 42 30 38Z" fill="#8b6030"/>
+    <path d="M 36 30 Q 50 26 62 32" stroke="#a0753a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>
+    <ellipse cx="18" cy="58" rx="6" ry="7" fill="#f5cba7"/>
+    <ellipse cx="82" cy="58" rx="6" ry="7" fill="#f5cba7"/>
+  </svg>`;
+},
+
+// ── EMMA (1yr, blonde hair, light blue eyes, big cheeks, onesie) ──
+emma(w=60,h=85){
+  return `<svg viewBox="0 0 80 110" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <!-- onesie body -->
+    <rect x="18" y="70" width="44" height="38" rx="10" fill="#b3e5fc"/>
+    <!-- snap buttons -->
+    <circle cx="40" cy="94" r="2" fill="#81d4fa"/>
+    <circle cx="40" cy="103" r="2" fill="#81d4fa"/>
+    <!-- arms -->
+    <rect x="6" y="72" width="14" height="22" rx="7" fill="#ffe0b2"/>
+    <rect x="60" y="72" width="14" height="22" rx="7" fill="#ffe0b2"/>
+    <!-- neck -->
+    <rect x="34" y="62" width="12" height="14" rx="5" fill="#ffe0b2"/>
+    <!-- head -->
+    <ellipse cx="40" cy="48" rx="28" ry="26" fill="#ffe0b2"/>
+    <!-- big chubby cheeks -->
+    <ellipse cx="16" cy="55" rx="9" ry="6" fill="#ffb3b3" opacity=".55"/>
+    <ellipse cx="64" cy="55" rx="9" ry="6" fill="#ffb3b3" opacity=".55"/>
+    <!-- light blue eyes -->
+    <ellipse cx="31" cy="44" rx="6" ry="7" fill="#4fc3f7"/>
+    <ellipse cx="49" cy="44" rx="6" ry="7" fill="#4fc3f7"/>
+    <ellipse cx="31" cy="44" rx="3.5" ry="4.5" fill="#0277bd"/>
+    <ellipse cx="49" cy="44" rx="3.5" ry="4.5" fill="#0277bd"/>
+    <circle cx="33" cy="42" r="2" fill="#fff"/>
+    <circle cx="51" cy="42" r="2" fill="#fff"/>
+    <!-- tiny nose -->
+    <ellipse cx="40" cy="52" rx="2.5" ry="1.8" fill="#e8a07a"/>
+    <!-- happy baby mouth -->
+    <path d="M 33 57 Q 40 64 47 57" stroke="#c0654a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- blonde fluffy hair -->
+    <ellipse cx="40" cy="28" rx="28" ry="16" fill="#fdd835"/>
+    <ellipse cx="40" cy="30" rx="26" ry="13" fill="#ffee58"/>
+    <!-- hair wisp top -->
+    <path d="M 38 18 Q 40 10 42 18" stroke="#fdd835" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- ears -->
+    <ellipse cx="12" cy="48" rx="5" ry="6" fill="#ffe0b2"/>
+    <ellipse cx="68" cy="48" rx="5" ry="6" fill="#ffe0b2"/>
+    <!-- legs -->
+    <rect x="24" y="102" width="12" height="10" rx="5" fill="#81d4fa"/>
+    <rect x="44" y="102" width="12" height="10" rx="5" fill="#81d4fa"/>
+    <ellipse cx="30" cy="112" rx="8" ry="4" fill="#e0f7fa"/>
+    <ellipse cx="50" cy="112" rx="8" ry="4" fill="#e0f7fa"/>
+  </svg>`;
+},
+
+// ── MAMA (tall, long blonde hair, slim, white top) ──
+mama(w=70,h=110){
+  return `<svg viewBox="0 0 80 140" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <!-- long skirt -->
+    <path d="M 20 88 Q 16 130 15 138 L 65 138 Q 64 130 60 88Z" fill="#f48fb1"/>
+    <!-- body/top -->
+    <rect x="22" y="68" width="36" height="28" rx="6" fill="#fff"/>
+    <!-- arms (slender) -->
+    <rect x="10" y="70" width="13" height="36" rx="6.5" fill="#ffe0b2"/>
+    <rect x="57" y="70" width="13" height="36" rx="6.5" fill="#ffe0b2"/>
+    <!-- neck -->
+    <rect x="35" y="60" width="10" height="14" rx="5" fill="#ffe0b2"/>
+    <!-- head -->
+    <ellipse cx="40" cy="46" rx="22" ry="23" fill="#ffe0b2"/>
+    <!-- cheeks -->
+    <ellipse cx="22" cy="52" rx="6" ry="4" fill="#f4a7a7" opacity=".5"/>
+    <ellipse cx="58" cy="52" rx="6" ry="4" fill="#f4a7a7" opacity=".5"/>
+    <!-- eyes (blue) -->
+    <ellipse cx="32" cy="43" rx="5" ry="5.5" fill="#5c9ed6"/>
+    <ellipse cx="48" cy="43" rx="5" ry="5.5" fill="#5c9ed6"/>
+    <ellipse cx="32" cy="43" rx="3" ry="3.5" fill="#1a4a7a"/>
+    <ellipse cx="48" cy="43" rx="3" ry="3.5" fill="#1a4a7a"/>
+    <circle cx="34" cy="41" r="1.5" fill="#fff"/>
+    <circle cx="50" cy="41" r="1.5" fill="#fff"/>
+    <!-- nose -->
+    <ellipse cx="40" cy="50" rx="2.5" ry="1.8" fill="#e8a07a"/>
+    <!-- smile -->
+    <path d="M 33 55 Q 40 62 47 55" stroke="#c0654a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- LONG blonde hair — flows past shoulders -->
+    <ellipse cx="40" cy="28" rx="24" ry="16" fill="#fdd835"/>
+    <!-- left side hair long -->
+    <path d="M 18 36 Q 10 70 12 100 Q 16 105 20 100 Q 18 70 24 42Z" fill="#fdd835"/>
+    <!-- right side hair long -->
+    <path d="M 62 36 Q 70 70 68 100 Q 64 105 60 100 Q 62 70 56 42Z" fill="#fdd835"/>
+    <!-- top hair -->
+    <ellipse cx="40" cy="26" rx="22" ry="13" fill="#ffee58"/>
+    <!-- ears -->
+    <ellipse cx="18" cy="46" rx="4" ry="5" fill="#ffe0b2"/>
+    <ellipse cx="62" cy="46" rx="4" ry="5" fill="#ffe0b2"/>
+    <!-- legs -->
+    <ellipse cx="28" cy="138" rx="8" ry="4" fill="#f06292"/>
+    <ellipse cx="52" cy="138" rx="8" ry="4" fill="#f06292"/>
+  </svg>`;
+},
+
+// ── PAPA (brown hair, short, beard, Meta glasses, jeans) ──
+papa(w=75,h=115){
+  return `<svg viewBox="0 0 90 150" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <!-- jeans -->
+    <rect x="18" y="92" width="22" height="55" rx="8" fill="#3949ab"/>
+    <rect x="50" y="92" width="22" height="55" rx="8" fill="#3949ab"/>
+    <!-- shirt -->
+    <rect x="18" y="68" width="54" height="32" rx="8" fill="#546e7a"/>
+    <!-- arms -->
+    <rect x="6" y="70" width="15" height="38" rx="7" fill="#546e7a"/>
+    <rect x="69" y="70" width="15" height="38" rx="7" fill="#546e7a"/>
+    <!-- hands -->
+    <ellipse cx="13" cy="110" rx="7" ry="5" fill="#d4a07a"/>
+    <ellipse cx="77" cy="110" rx="7" ry="5" fill="#d4a07a"/>
+    <!-- neck -->
+    <rect x="38" y="60" width="14" height="14" rx="6" fill="#d4a07a"/>
+    <!-- head (slightly wider, light skin) -->
+    <ellipse cx="45" cy="45" rx="26" ry="27" fill="#d4a07a"/>
+    <!-- beard (short, dark brown) -->
+    <path d="M 22 54 Q 22 72 45 76 Q 68 72 68 54 Q 58 62 45 63 Q 32 62 22 54Z" fill="#4e342e"/>
+    <!-- mustache -->
+    <path d="M 33 52 Q 45 58 57 52" fill="#4e342e"/>
+    <!-- cheeks under beard -->
+    <ellipse cx="25" cy="54" rx="8" ry="6" fill="#c09070" opacity=".4"/>
+    <ellipse cx="65" cy="54" rx="8" ry="6" fill="#c09070" opacity=".4"/>
+    <!-- Meta glasses (rectangular, dark frame) -->
+    <rect x="21" y="38" width="20" height="13" rx="4" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+    <rect x="49" y="38" width="20" height="13" rx="4" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+    <!-- glass lenses tint -->
+    <rect x="21" y="38" width="20" height="13" rx="4" fill="#90caf9" opacity=".25"/>
+    <rect x="49" y="38" width="20" height="13" rx="4" fill="#90caf9" opacity=".25"/>
+    <!-- bridge -->
+    <line x1="41" y1="44" x2="49" y2="44" stroke="#1a1a2e" stroke-width="2.5"/>
+    <!-- temples -->
+    <line x1="21" y1="44" x2="14" y2="44" stroke="#1a1a2e" stroke-width="2.5"/>
+    <line x1="69" y1="44" x2="76" y2="44" stroke="#1a1a2e" stroke-width="2.5"/>
+    <!-- eyes behind glasses -->
+    <ellipse cx="31" cy="44" rx="4" ry="4.5" fill="#2d1a0e"/>
+    <ellipse cx="59" cy="44" rx="4" ry="4.5" fill="#2d1a0e"/>
+    <circle cx="33" cy="42" r="1.5" fill="#fff"/>
+    <circle cx="61" cy="42" r="1.5" fill="#fff"/>
+    <!-- nose -->
+    <ellipse cx="45" cy="53" rx="3" ry="2.5" fill="#b8845a"/>
+    <!-- Brown short hair -->
+    <ellipse cx="45" cy="26" rx="26" ry="16" fill="#4e342e"/>
+    <ellipse cx="45" cy="28" rx="25" ry="13" fill="#5d4037"/>
+    <!-- short hair on sides -->
+    <ellipse cx="20" cy="38" rx="6" ry="12" fill="#5d4037"/>
+    <ellipse cx="70" cy="38" rx="6" ry="12" fill="#5d4037"/>
+    <!-- ears -->
+    <ellipse cx="19" cy="46" rx="5" ry="7" fill="#d4a07a"/>
+    <ellipse cx="71" cy="46" rx="5" ry="7" fill="#d4a07a"/>
+    <!-- shoes -->
+    <ellipse cx="27" cy="148" rx="11" ry="5" fill="#212121"/>
+    <ellipse cx="63" cy="148" rx="11" ry="5" fill="#212121"/>
+  </svg>`;
+},
+
+// ── LOLA / CHOLA (small white labradoodle, fluffy) ──
+lola(w=80,h=55,name='Lola'){
+  const collar = name==='Chola' ? '#f44336' : '#ff9800';
+  return `<svg viewBox="0 0 120 80" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <!-- tail -->
+    <path d="M 100 30 Q 115 10 110 5 Q 105 15 98 25Z" fill="#f5f5f5"/>
+    <!-- body (fluffy white) -->
+    <ellipse cx="65" cy="48" rx="38" ry="22" fill="#f5f5f5"/>
+    <!-- fluffy texture -->
+    <ellipse cx="55" cy="40" rx="16" ry="10" fill="#eeeeee" opacity=".6"/>
+    <ellipse cx="75" cy="38" rx="14" ry="9" fill="#eeeeee" opacity=".5"/>
+    <!-- legs -->
+    <rect x="32" y="60" width="10" height="20" rx="5" fill="#f5f5f5"/>
+    <rect x="48" y="62" width="10" height="18" rx="5" fill="#f5f5f5"/>
+    <rect x="70" y="62" width="10" height="18" rx="5" fill="#f5f5f5"/>
+    <rect x="86" y="60" width="10" height="20" rx="5" fill="#f5f5f5"/>
+    <!-- collar -->
+    <rect x="24" y="40" width="26" height="7" rx="3" fill="${collar}"/>
+    <circle cx="37" cy="47" r="3" fill="#ffd700"/>
+    <!-- head -->
+    <ellipse cx="26" cy="32" rx="22" ry="20" fill="#f5f5f5"/>
+    <!-- fluffy head -->
+    <ellipse cx="20" cy="22" rx="12" ry="9" fill="#eeeeee" opacity=".7"/>
+    <!-- floppy ears -->
+    <ellipse cx="8" cy="36" rx="8" ry="14" fill="#e0e0e0" transform="rotate(-10 8 36)"/>
+    <ellipse cx="44" cy="36" rx="8" ry="14" fill="#e0e0e0" transform="rotate(10 44 36)"/>
+    <!-- eyes (black button eyes) -->
+    <circle cx="18" cy="30" r="4" fill="#1a1a1a"/>
+    <circle cx="34" cy="30" r="4" fill="#1a1a1a"/>
+    <circle cx="20" cy="28" r="1.5" fill="#fff"/>
+    <circle cx="36" cy="28" r="1.5" fill="#fff"/>
+    <!-- nose -->
+    <ellipse cx="26" cy="38" rx="4" ry="3" fill="#555"/>
+    <!-- mouth -->
+    <path d="M 22 41 Q 26 45 30 41" stroke="#555" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    ${name==='Chola' ? `<path d="M 14 24 Q 10 16 6 18" stroke="#f44336" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M 38 24 Q 42 16 46 18" stroke="#f44336" stroke-width="2" fill="none" stroke-linecap="round"/>` : ''}
+  </svg>`;
+},
+
+// ── CUKILI (half-kid half-roach, evil red eyes, antennae, shell) ──
+cukili(w=90,h=120){
+  return `<svg viewBox="0 0 120 160" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <line x1="30" y1="100" x2="4" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="28" y1="112" x2="2" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="32" y1="124" x2="8" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="100" x2="116" y2="88" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="92" y1="112" x2="118" y2="108" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="88" y1="124" x2="112" y2="130" stroke="#3d2b00" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="60" cy="118" rx="30" ry="36" fill="#4a3200"/>
+    <ellipse cx="52" cy="104" rx="10" ry="16" fill="#5c4010" opacity=".6"/>
+    <path d="M 32 108 Q 60 105 88 108" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+    <path d="M 34 120 Q 60 117 86 120" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+    <path d="M 36 132 Q 60 129 84 132" stroke="#3d2b00" stroke-width="1.5" fill="none"/>
+    <rect x="48" y="78" width="24" height="18" rx="8" fill="#c8a87a"/>
+    <ellipse cx="60" cy="62" rx="34" ry="32" fill="#e8c49a"/>
+    <path d="M 38 36 Q 20 15 10 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 82 36 Q 100 15 110 5" stroke="#3d2b00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="24" cy="20" r="3" fill="#3d2b00"/>
+    <circle cx="96" cy="20" r="3" fill="#3d2b00"/>
+    <circle cx="10" cy="5" r="4" fill="#6d4c1f"/>
+    <circle cx="110" cy="5" r="4" fill="#6d4c1f"/>
+    <ellipse cx="30" cy="70" rx="8" ry="5" fill="#d4845a" opacity=".5"/>
+    <ellipse cx="90" cy="70" rx="8" ry="5" fill="#d4845a" opacity=".5"/>
+    <ellipse cx="44" cy="58" rx="8" ry="9" fill="#cc0000"/>
+    <ellipse cx="76" cy="58" rx="8" ry="9" fill="#cc0000"/>
+    <ellipse cx="44" cy="58" rx="3" ry="7" fill="#1a0000"/>
+    <ellipse cx="76" cy="58" rx="3" ry="7" fill="#1a0000"/>
+    <circle cx="47" cy="54" r="2" fill="#ff6666" opacity=".8"/>
+    <circle cx="79" cy="54" r="2" fill="#ff6666" opacity=".8"/>
+    <ellipse cx="60" cy="67" rx="3" ry="2" fill="#b8845a"/>
+    <path d="M 42 76 Q 60 88 78 76" stroke="#7a3a1a" stroke-width="2.5" fill="#c0392b" stroke-linecap="round"/>
+    <polygon points="50,76 47,82 53,76" fill="#fff"/>
+    <polygon points="70,76 67,82 73,76" fill="#fff"/>
+    <ellipse cx="60" cy="36" rx="33" ry="20" fill="#2d1a00"/>
+    <path d="M 30 44 Q 38 56 44 52 Q 50 48 54 54 Q 58 58 52 60 Q 42 56 34 48 Q 24 42 30 44Z" fill="#3d2600"/>
+    <path d="M 40 32 Q 58 27 74 34" stroke="#6d4c1f" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
+    <ellipse cx="26" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+    <ellipse cx="94" cy="62" rx="6" ry="7" fill="#e8c49a"/>
+    <ellipse cx="34" cy="95" rx="10" ry="5" fill="#5c4218" opacity=".7" transform="rotate(-20 34 95)"/>
+    <ellipse cx="86" cy="95" rx="10" ry="5" fill="#5c4218" opacity=".7" transform="rotate(20 86 95)"/>
+  </svg>`;
+},
+
+// ── TRASH BIN ──
+bin(w=70,h=80){
+  return `<svg viewBox="0 0 80 100" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="28" width="60" height="68" rx="8" fill="#78909c"/>
+    <rect x="10" y="28" width="60" height="68" rx="8" fill="none" stroke="#546e7a" stroke-width="2"/>
+    <!-- stripes -->
+    <rect x="10" y="44" width="60" height="6" fill="#607d8b" opacity=".5"/>
+    <rect x="10" y="62" width="60" height="6" fill="#607d8b" opacity=".5"/>
+    <rect x="10" y="80" width="60" height="6" fill="#607d8b" opacity=".5"/>
+    <!-- lid -->
+    <rect x="6" y="18" width="68" height="16" rx="6" fill="#90a4ae"/>
+    <rect x="28" y="8" width="24" height="14" rx="5" fill="#b0bec5"/>
+    <!-- label -->
+    <rect x="22" y="50" width="36" height="22" rx="4" fill="#eceff1"/>
+    <text x="40" y="65" font-size="10" text-anchor="middle" fill="#546e7a" font-family="Arial" font-weight="bold">TRASH</text>
+  </svg>`;
+},
+
+// ── FRIDGE ──
+fridge(w=80,h=110){
+  return `<svg viewBox="0 0 90 130" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <!-- body -->
+    <rect x="8" y="4" width="74" height="122" rx="10" fill="#e0f2f1"/>
+    <rect x="8" y="4" width="74" height="122" rx="10" fill="none" stroke="#80cbc4" stroke-width="2.5"/>
+    <!-- freezer top -->
+    <rect x="8" y="4" width="74" height="46" rx="10" fill="#b2dfdb"/>
+    <line x1="8" y1="50" x2="82" y2="50" stroke="#80cbc4" stroke-width="2.5"/>
+    <!-- handles -->
+    <rect x="68" y="14" width="6" height="26" rx="3" fill="#4db6ac"/>
+    <rect x="68" y="58" width="6" height="52" rx="3" fill="#4db6ac"/>
+    <!-- snowflake icon freezer -->
+    <text x="38" y="34" font-size="20" text-anchor="middle" fill="#80cbc4">❄</text>
+    <!-- label -->
+    <rect x="18" y="72" width="46" height="22" rx="4" fill="#e0f7fa"/>
+    <text x="41" y="87" font-size="9" text-anchor="middle" fill="#00796b" font-family="Arial" font-weight="bold">FRIDGE</text>
+  </svg>`;
+},
+
+// ── SINK ──
+sink(w=85,h=80){
+  return `<svg viewBox="0 0 100 90" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <!-- cabinet under sink -->
+    <rect x="5" y="46" width="90" height="44" rx="6" fill="#d7ccc8"/>
+    <line x1="50" y1="46" x2="50" y2="90" stroke="#bcaaa4" stroke-width="1.5"/>
+    <circle cx="36" cy="70" r="4" fill="#a1887f"/>
+    <circle cx="64" cy="70" r="4" fill="#a1887f"/>
+    <!-- sink basin -->
+    <rect x="12" y="20" width="76" height="32" rx="8" fill="#b0bec5"/>
+    <rect x="18" y="24" width="64" height="22" rx="6" fill="#90a4ae"/>
+    <!-- water shimmer -->
+    <rect x="18" y="24" width="64" height="22" rx="6" fill="#4fc3f7" opacity=".3"/>
+    <!-- faucet -->
+    <rect x="43" y="6" width="14" height="18" rx="5" fill="#bdbdbd"/>
+    <rect x="36" y="4" width="28" height="7" rx="3" fill="#9e9e9e"/>
+    <!-- handles -->
+    <rect x="26" y="8" width="10" height="6" rx="3" fill="#ef9a9a"/>
+    <rect x="64" y="8" width="10" height="6" rx="3" fill="#90caf9"/>
+    <!-- drain -->
+    <circle cx="50" cy="37" r="5" fill="#78909c"/>
+    <circle cx="50" cy="37" r="3" fill="#607d8b"/>
+    <!-- label -->
+    <text x="50" y="56" font-size="8" text-anchor="middle" fill="#546e7a" font-family="Arial" font-weight="bold">SINK</text>
+  </svg>`;
+},
+
+// ── ITEM EMOJIS as simple SVG text ──
+itemSvg(emoji, size=48){
+  return `<svg viewBox="0 0 60 60" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <text x="30" y="46" font-size="42" text-anchor="middle">${emoji}</text>
+  </svg>`;
+}
+
+}; // end SVG
+
+// ════════════════════════════════════════
+// GAME DATA
+// ════════════════════════════════════════
+
+const TRASH_ITEMS = [
+  {emoji:'🍌',label:'Banana',type:'trash',fact:'Banana peels compost!'},
+  {emoji:'🧃',label:'Juice',type:'trash',fact:'Juice boxes go in recycling!'},
+  {emoji:'🍬',label:'Candy',type:'trash',fact:'Candy wrappers go in trash!'},
+  {emoji:'📦',label:'Box',type:'trash',fact:'Cardboard gets recycled!'},
+  {emoji:'🥫',label:'Can',type:'trash',fact:'Cans get recycled into new cans!'},
+  {emoji:'🧻',label:'Paper',type:'trash',fact:'Paper comes from trees!'},
+];
+const FOOD_ITEMS = [
+  {emoji:'🍎',label:'Apple',type:'food',fact:'Apples keep you strong!'},
+  {emoji:'🥕',label:'Carrot',type:'food',fact:'Carrots help your eyes!'},
+  {emoji:'🧀',label:'Cheese',type:'food',fact:'Cheese has calcium for bones!'},
+  {emoji:'🥚',label:'Egg',type:'food',fact:'Eggs have lots of protein!'},
+  {emoji:'🍇',label:'Grapes',type:'food',fact:'Grapes are full of vitamins!'},
+];
+const DISH_ITEMS = [
+  {emoji:'🍽️',label:'Plate',type:'dish',fact:'Clean plates = happy family!'},
+  {emoji:'🥣',label:'Bowl',type:'dish',fact:'Rinse bowls after eating!'},
+  {emoji:'☕',label:'Cup',type:'dish',fact:'Cups go in the sink!'},
+  {emoji:'🥄',label:'Spoon',type:'dish',fact:'Spoons are for sharing food!'},
+];
+
+const PRAISE = ['Great!','Yay!','Clean!','Nice!','Go Luca!','Perfect!','Wow!','Yes!'];
+const CUKILI_QUOTES = ['¡Yum!','Mine!','Garbage!','Delicious!','Nom nom!'];
+const FAMILY_QUOTES_GOOD = ['Go Luca!','You can do it!','Woof! 🐾','Clean it!','¡Ándale!'];
+const FAMILY_QUOTES_BAD  = ['Hurry up!','Cukili!!','Run Luca!','¡Corre!','Woof! 🐾'];
+
+const LEVELS = [
+  {trash:2, food:1, dish:1, dangerSec:30},
+  {trash:3, food:1, dish:1, dangerSec:25},
+  {trash:3, food:2, dish:1, dangerSec:20},
+  {trash:4, food:2, dish:2, dangerSec:17},
+  {trash:4, food:2, dish:2, dangerSec:13},
+];
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let level = 0, score = 0, stars = 3;
+let danger = 0, dangerInterval = null;
+let itemsLeft = 0, gameActive = false;
+let dragging = null, dragOffX = 0, dragOffY = 0;
+let lucaTargetX = 50, lucaX = 50;
+let lucaMoveTimer = null;
+let familySpeechTimer = null;
+
+// ════════════════════════════════════════
+// SCREEN HELPERS
+// ════════════════════════════════════════
+function show(id){
+  ['screen-start','screen-game','screen-win','screen-lose'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+
+// ════════════════════════════════════════
+// BUILD CAST PREVIEWS
+// ════════════════════════════════════════
+function buildCastRow(containerId){
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = '';
+  c.innerHTML =
+    SVG.luca(54,76,'happy') +
+    SVG.emma(40,58) +
+    SVG.lola(56,38,'Lola') +
+    SVG.mama(46,76) +
+    SVG.papa(50,80);
+}
+
+// ════════════════════════════════════════
+// GAME INIT
+// ════════════════════════════════════════
+function startGame(){level=0;score=0;stars=3;launchLevel();}
+function restartGame(){level=0;score=0;stars=3;launchLevel();}
+function nextLevel(){if(level<LEVELS.length-1)level++;launchLevel();}
+
+function launchLevel(){
+  clearTimers();
+  danger = 0; gameActive = true; itemsLeft = 0;
+  show('screen-game');
+  document.getElementById('level-num').textContent = level+1;
+  document.getElementById('score-num').textContent = score;
+  updateStars(3);
+  document.getElementById('danger-fill').style.width = '0%';
+
+  const room = document.getElementById('room');
+  // Remove old items/destinations
+  room.querySelectorAll('.item,.dest-zone').forEach(e=>e.remove());
+
+  const W = room.clientWidth, H = room.clientHeight;
+  const cfg = LEVELS[level];
+
+  // Place destinations
+  placeDestination('dest-bin',  SVG.bin(clamp(55,70,W*.08), clamp(65,80,W*.1)),  Math.round(W*.06),  Math.round(H*.38));
+  placeDestination('dest-fridge',SVG.fridge(clamp(65,80,W*.1),clamp(90,110,W*.13)), Math.round(W*.82), Math.round(H*.25));
+  placeDestination('dest-sink', SVG.sink(clamp(68,85,W*.11),clamp(62,80,W*.1)),   Math.round(W*.44),  Math.round(H*.15));
+
+  // Spawn items
+  const pool = [];
+  for(let i=0;i<cfg.trash;i++) pool.push({...pick(TRASH_ITEMS)});
+  for(let i=0;i<cfg.food; i++) pool.push({...pick(FOOD_ITEMS)});
+  for(let i=0;i<cfg.dish; i++) pool.push({...pick(DISH_ITEMS)});
+  shuffle(pool);
+  itemsLeft = pool.length;
+
+  const usedX=[], usedY=[];
+  pool.forEach((item,i)=>{
+    let x,y,tries=0;
+    do{
+      x = Math.round(W*.15 + Math.random()*(W*.7));
+      y = Math.round(H*.38 + Math.random()*(H*.42));
+      tries++;
+    }while(tries<40 && (usedX.some((ux,j)=>Math.abs(ux-x)<70&&Math.abs(usedY[j]-y)<70)));
+    usedX.push(x); usedY.push(y);
+    spawnItem(item, x, y);
+  });
+
+  // Place Luca
+  const luca = document.getElementById('luca-char');
+  luca.innerHTML = SVG.luca(clamp(60,80,W*.1), clamp(80,110,W*.13));
+  lucaX = 50;
+  luca.style.left = '50%';
+  luca.style.bottom = clamp(8,14,H*.02)+'px';
+  luca.style.transform = 'translateX(-50%)';
+
+  // Place Cukili off-screen right
+  const cukili = document.getElementById('cukili-char');
+  cukili.innerHTML = SVG.cukili(clamp(70,90,W*.12), clamp(95,120,W*.16));
+  cukili.style.right = '-150px';
+  cukili.style.bottom = clamp(8,14,H*.02)+'px';
+  cukili.classList.remove('eating');
+
+  // Family bar
+  buildFamilyBar(W,H);
+
+  // Start danger
+  const tickMs = (cfg.dangerSec * 1000) / 100;
+  dangerInterval = setInterval(()=>{
+    if(!gameActive) return;
+    danger = Math.min(100, danger+1);
+    document.getElementById('danger-fill').style.width = danger+'%';
+    const right = -150 + (W*.25) * (danger/100);
+    document.getElementById('cukili-char').style.right = Math.round(-right)+'px';
+    if(danger>=75 && Math.random()<.04) familySpeak(pick(FAMILY_QUOTES_BAD), 'family-papa');
+    if(danger>=100) cukiliWins();
+  }, tickMs);
+
+  // Luca auto-wander
+  lucaMoveTimer = setInterval(()=>{
+    if(!gameActive) return;
+    if(!dragging) wanderLuca();
+  }, 2000);
+}
+
+function buildFamilyBar(W,H){
+  const bar = document.getElementById('family-bar');
+  bar.innerHTML = '';
+  const charH = clamp(55,80,H*.12);
+  // Lola
+  const lolaWrap = mkDiv('position:relative');
+  lolaWrap.innerHTML = SVG.lola(clamp(60,80,W*.1), Math.round(charH*.65),'Lola');
+  const lolaSpeech = mkDiv('',['speech']); lolaSpeech.id='speech-lola'; lolaWrap.appendChild(lolaSpeech);
+  bar.appendChild(lolaWrap);
+  // Emma
+  const emmaWrap = mkDiv('position:relative');
+  emmaWrap.innerHTML = SVG.emma(Math.round(charH*.65), charH);
+  const emmaSpeech = mkDiv('',['speech']); emmaSpeech.id='speech-emma'; emmaWrap.appendChild(emmaSpeech);
+  bar.appendChild(emmaWrap);
+  // Mama
+  const mamaWrap = mkDiv('position:relative');
+  mamaWrap.innerHTML = SVG.mama(Math.round(charH*.7), charH);
+  const mamaSpeech = mkDiv('',['speech']); mamaSpeech.id='speech-mama'; mamaWrap.appendChild(mamaSpeech);
+  mamaWrap.id = 'family-mama'; bar.appendChild(mamaWrap);
+  // Papa
+  const papaWrap = mkDiv('position:relative');
+  papaWrap.innerHTML = SVG.papa(Math.round(charH*.75), charH);
+  const papaSpeech = mkDiv('',['speech']); papaSpeech.id='speech-papa'; papaWrap.appendChild(papaSpeech);
+  papaWrap.id = 'family-papa'; bar.appendChild(papaWrap);
+}
+
+// ════════════════════════════════════════
+// ITEM SPAWNING
+// ════════════════════════════════════════
+function spawnItem(data, x, y){
+  const room = document.getElementById('room');
+  const el = document.createElement('div');
+  el.className = 'item';
+  el.dataset.type = data.type;
+  el.dataset.emoji = data.emoji;
+  el.dataset.label = data.label;
+  el.dataset.fact = data.fact;
+  const sz = clamp(40,56, room.clientWidth*.075);
+  el.innerHTML = SVG.itemSvg(data.emoji, sz);
+  el.style.cssText = `left:${x}px;top:${y}px;width:${sz}px;height:${sz}px`;
+  addDrag(el);
+  room.appendChild(el);
+}
+
+// ════════════════════════════════════════
+// DESTINATION ZONES
+// ════════════════════════════════════════
+function placeDestination(id, svgHtml, x, y){
+  const room = document.getElementById('room');
+  const el = document.createElement('div');
+  el.className = 'dest-zone';
+  el.id = id;
+  el.innerHTML = svgHtml;
+  el.style.cssText = `left:${x}px;top:${y}px`;
+  room.appendChild(el);
+}
+
+// ════════════════════════════════════════
+// DRAG & DROP — touch only
+// ════════════════════════════════════════
+function addDrag(el){
+  el.addEventListener('touchstart', onTouchStart, {passive:false});
+}
+
+function onTouchStart(e){
+  if(!gameActive) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  const el = e.currentTarget;
+  const rect = el.getBoundingClientRect();
+  dragOffX = t.clientX - rect.left - rect.width/2;
+  dragOffY = t.clientY - rect.top - rect.height/2;
+  dragging = el;
+  el.classList.add('dragging');
+  moveLucaToward(t.clientX);
+  document.addEventListener('touchmove', onTouchMove, {passive:false});
+  document.addEventListener('touchend', onTouchEnd);
+}
+
+function onTouchMove(e){
+  if(!dragging) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  const room = document.getElementById('room');
+  const rRect = room.getBoundingClientRect();
+  const x = t.clientX - rRect.left - dragging.offsetWidth/2 - dragOffX;
+  const y = t.clientY - rRect.top  - dragging.offsetHeight/2 - dragOffY;
+  dragging.style.left = x+'px';
+  dragging.style.top  = y+'px';
+  // highlight matching dest
+  highlightDest(dragging.dataset.type, t.clientX, t.clientY);
+}
+
+function onTouchEnd(e){
+  if(!dragging) return;
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+  const t = e.changedTouches[0];
+  const dropped = tryDrop(dragging, t.clientX, t.clientY);
+  if(!dropped){
+    dragging.classList.remove('dragging');
+  }
+  clearHighlights();
+  dragging = null;
+}
+
+function highlightDest(type, cx, cy){
+  clearHighlights();
+  const destId = typeToDestId(type);
+  const dest = document.getElementById(destId);
+  if(!dest) return;
+  const r = dest.getBoundingClientRect();
+  const near = cx>r.left-30 && cx<r.right+30 && cy>r.top-30 && cy<r.bottom+30;
+  if(near) dest.classList.add('highlight');
+}
+function clearHighlights(){
+  document.querySelectorAll('.dest-zone').forEach(d=>d.classList.remove('highlight'));
+}
+function typeToDestId(type){
+  return type==='trash' ? 'dest-bin' : type==='food' ? 'dest-fridge' : 'dest-sink';
+}
+
+function tryDrop(el, cx, cy){
+  const type = el.dataset.type;
+  const destId = typeToDestId(type);
+  const dest = document.getElementById(destId);
+  if(!dest) return false;
+  const r = dest.getBoundingClientRect();
+  const hit = cx>r.left && cx<r.right && cy>r.top && cy<r.bottom;
+  if(hit){
+    collectItem(el, dest);
+    return true;
+  }
+  // Wrong destination — check if dropped on wrong one
+  const allDests = ['dest-bin','dest-fridge','dest-sink'];
+  for(const did of allDests){
+    if(did===destId) continue;
+    const wd = document.getElementById(did);
+    if(!wd) continue;
+    const wr = wd.getBoundingClientRect();
+    if(cx>wr.left && cx<wr.right && cy>wr.top && cy<wr.bottom){
+      wrongDrop(el);
+      return false;
+    }
+  }
+  return false;
+}
+
+// ════════════════════════════════════════
+// COLLECT / WRONG
+// ════════════════════════════════════════
+function collectItem(el, dest){
+  const destR = dest.getBoundingClientRect();
+  const room = document.getElementById('room');
+  const rR = room.getBoundingClientRect();
+  // Pop animation from dest center
+  showPop(destR.left - rR.left + destR.width/2, destR.top - rR.top,
+    el.dataset.label, '#43a047');
+  showPop(destR.left - rR.left + destR.width/2, destR.top - rR.top - 32,
+    pick(PRAISE), '#ff9800');
+  // Fact
+  showFact(el.dataset.fact, room);
+  score += 15;
+  document.getElementById('score-num').textContent = score;
+  // Danger reduction
+  danger = Math.max(0, danger-12);
+  document.getElementById('danger-fill').style.width = danger+'%';
+  // Luca cheer
+  lucaCheer();
+  // Remove item
+  el.remove();
+  itemsLeft--;
+  if(itemsLeft<=0) setTimeout(winLevel, 500);
+  // Occasional family praise
+  if(Math.random()<.5) familySpeak(pick(FAMILY_QUOTES_GOOD), pick(['family-mama','family-papa']));
+}
+
+function wrongDrop(el){
+  el.classList.remove('dragging');
+  el.style.transition='transform .3s';
+  el.style.transform='scale(1.2) rotate(10deg)';
+  setTimeout(()=>{el.style.transform='';el.style.transition='';},300);
+  flashScreen();
+  danger = Math.min(100, danger+8);
+  document.getElementById('danger-fill').style.width = danger+'%';
+}
+
+// ════════════════════════════════════════
+// LUCA MOVEMENT
+// ════════════════════════════════════════
+function moveLucaToward(clientX){
+  const room = document.getElementById('room');
+  const rR = room.getBoundingClientRect();
+  const targetPct = ((clientX - rR.left) / rR.width) * 100;
+  const luca = document.getElementById('luca-char');
+  lucaX = Math.max(5, Math.min(93, targetPct));
+  luca.style.left = lucaX+'%';
+  luca.classList.add('walking');
+  setTimeout(()=>luca.classList.remove('walking'), 600);
+}
+
+function wanderLuca(){
+  const luca = document.getElementById('luca-char');
+  lucaX = Math.max(8, Math.min(88, lucaX + (Math.random()-0.5)*20));
+  luca.style.left = lucaX+'%';
+  luca.classList.add('walking');
+  setTimeout(()=>luca.classList.remove('walking'),500);
+}
+
+function lucaCheer(){
+  const luca = document.getElementById('luca-char');
+  luca.classList.remove('cheer','walking');
+  void luca.offsetWidth;
+  luca.classList.add('cheer');
+  setTimeout(()=>luca.classList.remove('cheer'),1200);
+}
+
+// ════════════════════════════════════════
+// CUKILI WINS
+// ════════════════════════════════════════
+function cukiliWins(){
+  if(!gameActive) return;
+  gameActive = false;
+  clearTimers();
+  const cukili = document.getElementById('cukili-char');
+  cukili.style.right = '20%';
+  cukili.classList.add('eating');
+  showPop(document.getElementById('room').clientWidth/2,
+    document.getElementById('room').clientHeight/2, pick(CUKILI_QUOTES), '#f44336');
+  flashScreen();
+  setTimeout(()=>{
+    document.getElementById('lose-cast').innerHTML =
+      SVG.luca(60,84,'scared') + SVG.cukili(70,94) + SVG.lola(60,40,'Chola');
+    show('screen-lose');
+  }, 1600);
+}
+
+// ════════════════════════════════════════
+// WIN
+// ════════════════════════════════════════
+function winLevel(){
+  if(!gameActive) return;
+  gameActive = false;
+  clearTimers();
+  // Stars based on danger at win
+  const earnedStars = danger<33 ? 3 : danger<66 ? 2 : 1;
+  score += earnedStars * 30;
+  document.getElementById('win-stars').textContent = '⭐'.repeat(earnedStars);
+  document.getElementById('win-msg').textContent =
+    level>=LEVELS.length-1
+      ? 'You cleaned ALL levels! Luca is the CHAMPION of clean rooms! 🏆'
+      : 'Room is spotless! Cukili ran away crying. Next room awaits!';
+  document.getElementById('win-cast').innerHTML =
+    SVG.luca(60,84,'happy') + SVG.emma(44,60) + SVG.lola(64,42,'Lola') +
+    SVG.mama(50,78) + SVG.papa(54,84);
+  // Hide next level on last level
+  document.querySelectorAll('#screen-win .btn')[0].style.display =
+    level>=LEVELS.length-1 ? 'none' : 'inline-block';
+  show('screen-win');
+}
+
+// ════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════
+function updateStars(n){
+  stars = n;
+  document.getElementById('stars-display').textContent = '⭐'.repeat(n);
+}
+
+function showPop(x, y, text, color){
+  const room = document.getElementById('room');
+  const el = document.createElement('div');
+  el.className = 'pop';
+  el.textContent = text;
+  el.style.cssText = `left:${x}px;top:${y}px;color:${color};transform:translateX(-50%)`;
+  room.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+let factTimer = null;
+function showFact(text, room){
+  let fb = document.getElementById('fact-banner-game');
+  if(!fb){
+    fb = document.createElement('div');
+    fb.id = 'fact-banner-game';
+    fb.style.cssText = `position:absolute;bottom:${Math.round(room.clientHeight*.18)}px;left:50%;
+      transform:translateX(-50%);background:#fffde7;border:3px solid #ffd54f;border-radius:20px;
+      padding:8px 18px;font-size:clamp(12px,2.8vw,17px);font-weight:700;color:#5d4037;
+      text-align:center;max-width:88vw;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;
+      font-family:'Nunito',sans-serif`;
+    room.appendChild(fb);
+  }
+  clearTimeout(factTimer);
+  fb.textContent = '💡 '+text;
+  fb.style.opacity = '1';
+  factTimer = setTimeout(()=>fb.style.opacity='0', 3000);
+}
+
+function familySpeak(text, id){
+  const el = document.getElementById('speech-'+id.replace('family-',''));
+  if(!el) return;
+  clearTimeout(familySpeechTimer);
+  el.textContent = text;
+  el.classList.add('show');
+  familySpeechTimer = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+function flashScreen(){
+  const f = document.getElementById('flash');
+  f.classList.add('show');
+  setTimeout(()=>f.classList.remove('show'),200);
+}
+
+// ════════════════════════════════════════
+// TIMER CLEANUP
+// ════════════════════════════════════════
+function clearTimers(){
+  clearInterval(dangerInterval);
+  clearInterval(lucaMoveTimer);
+  clearTimeout(familySpeechTimer);
+  clearTimeout(factTimer);
+  dangerInterval = lucaMoveTimer = null;
+}
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}}
+function clamp(mn,mx,v){return Math.max(mn,Math.min(mx,v))}
+function mkDiv(style='',classes=[]){
+  const d=document.createElement('div');
+  if(style) d.style.cssText=style;
+  classes.forEach(c=>d.classList.add(c));
+  return d;
+}
+
+// ════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════
+buildCastRow('cast-row');
+</script>
+</body>
+</html>
