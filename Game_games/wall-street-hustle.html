@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#1e293b">
 <meta name="description" content="Learn to invest in the stock market with real companies, crypto, gold, and currencies. Educational trading game for all ages.">
 <meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Wall Street Hustle — Learn to Invest</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -25,7 +27,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .news-ticker-tape span{padding:0 40px;font-size:10px;color:#fbbf24;font-weight:500}
 @keyframes nticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .screen{display:none;flex:1;overflow-y:auto;padding:14px 14px 8px;-webkit-overflow-scrolling:touch}
-.screen.active{display:block}.nav{display:flex;border-top:1px solid var(--bd);background:var(--bg);padding:5px 0 env(safe-area-inset-bottom,6px);flex-shrink:0}
+.screen.active{display:block}
+.nav{display:flex;border-top:1px solid var(--bd);background:var(--bg);padding:5px 0 env(safe-area-inset-bottom,6px);flex-shrink:0}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:5px 0;font-size:9px;color:var(--t2);cursor:pointer;gap:1px}.nav-item.active{color:var(--bk)}.nav-item .ic{width:20px;height:20px}.nav-item .ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .card{background:var(--sf);border-radius:10px;padding:14px;margin-bottom:10px}
 .cr{display:flex;justify-content:space-between;align-items:center}
@@ -53,7 +56,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .news-box{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:11px;line-height:1.5;color:#1e40af}
 .news-box .nl{font-weight:700;color:#1e3a5f;margin-bottom:3px}
 .toast{position:fixed;top:36px;left:50%;transform:translateX(-50%);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:500;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;max-width:340px;text-align:center}
-.toast.show{opacity:1}.tg{background:#065f1a;color:#fff}.tr{background:#991b1b;color:#fff}.tb{background:#1e3a5f;color:#fff}.tgo{background:#92400e;color:#fff}.tee{background:#7c3aed;color:#fff}.hr{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}.hinfo{flex:1}.hpnl{text-align:right}
+.toast.show{opacity:1}.tg{background:#065f1a;color:#fff}.tr{background:#991b1b;color:#fff}.tb{background:#1e3a5f;color:#fff}.tgo{background:#92400e;color:#fff}.tee{background:#7c3aed;color:#fff}
+.hr{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}.hinfo{flex:1}.hpnl{text-align:right}
 .rr{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}.rr.me{background:rgba(22,163,74,.06);margin:0 -14px;padding:8px 14px;border-radius:6px}
 .rn{width:26px;font-size:12px;font-weight:700;color:var(--t2)}.rn.t3{color:var(--gd)}.ri{flex:1;margin-left:6px}.rw{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;font-size:12px}
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sc{background:var(--sf);border-radius:8px;padding:10px;text-align:center}
@@ -82,7 +86,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 </head>
 <body>
 <div class="app">
-<div id="toast" class="toast"></div><div class="ticker-wrap"><div class="ticker-tape" id="ttape"></div></div>
+<div id="toast" class="toast"></div>
+<div class="ticker-wrap"><div class="ticker-tape" id="ttape"></div></div>
 <div class="news-ticker-wrap"><div class="news-ticker-tape" id="ntape"></div></div>
 
 <!-- Dashboard -->
@@ -111,7 +116,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 </div>
 
 <!-- Portfolio -->
-<div id="s-port" class="screen">  <h2 style="font-size:18px;margin-bottom:3px">Portfolio</h2>
+<div id="s-port" class="screen">
+  <h2 style="font-size:18px;margin-bottom:3px">Portfolio</h2>
   <div id="ptot" class="mn" style="margin-bottom:3px"></div>
   <div id="ppnl" style="margin-bottom:8px"></div>
   <div id="pieChart" style="margin-bottom:6px"></div>
@@ -170,7 +176,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
   <div id="ldet"></div>
 </div></div>
 
-<!-- Currency Modal --><div class="mo" id="cmod2"><div class="modal">
+<!-- Currency Modal -->
+<div class="mo" id="cmod2"><div class="modal">
   <div class="cr"><div><h3 style="font-size:16px" id="cname"></h3><div style="font-size:11px;color:var(--t2)" id="ctick"></div></div><button onclick="ccmod()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--t2)">&times;</button></div>
   <div id="cnews" class="news-box"></div>
   <div class="cr" style="margin:10px 0"><div><div class="lb">Rate</div><div id="crate" class="mn"></div></div><div style="text-align:right"><div class="lb">Change</div><div id="cchg"></div></div></div>
@@ -198,7 +205,9 @@ const LOGOS={
   NFLX:'https://logo.clearbit.com/netflix.com',DIS:'https://logo.clearbit.com/disney.com',
   KO:'https://logo.clearbit.com/coca-cola.com',PFE:'https://logo.clearbit.com/pfizer.com',
   BA:'https://logo.clearbit.com/boeing.com',COST:'https://logo.clearbit.com/costco.com'
-};// ===== STOCKS — 10x VOLATILITY =====
+};
+
+// ===== STOCKS — 10x VOLATILITY =====
 const S=[
   {t:'NVDA',n:'NVIDIA',s:'Tech',p:170.85,v:.22,c:'#76b900',ceo:'Jensen Huang',f:'1993',mc:'$4.37T',
    bio:'World\'s most valuable company. Pioneered the GPU, now leads the AI revolution. Revenue hit $68B in Q4 alone. Every major tech company buys their chips.',
@@ -227,7 +236,8 @@ const S=[
   {t:'TSLA',n:'Tesla',s:'EV',p:372,v:.30,c:'#cc0000',ceo:'Elon Musk',f:'2003',mc:'$1.2T',
    bio:'Proved EVs could be mainstream. Gigafactories produce millions of vehicles. Full Self-Driving technology and energy business represent massive growth.',
    news:'Tesla earnings expected April 20. Stock surged 5% on March 31 from geopolitical de-escalation rally. FSD getting regulatory approvals in new markets. Robotaxi launch timeline in focus.',
-   spec:'Q1 2026 earnings April 20 — FIRST of big tech to report. Key: vehicle delivery numbers, FSD revenue recognition, energy storage growth. Musk\'s Twitter activity adds volatility.'},  {t:'BRK.B',n:'Berkshire Hathaway',s:'Finance',p:479,v:.05,c:'#2d1a47',ceo:'Greg Abel',f:'1839',mc:'$1.08T',
+   spec:'Q1 2026 earnings April 20 — FIRST of big tech to report. Key: vehicle delivery numbers, FSD revenue recognition, energy storage growth. Musk\'s Twitter activity adds volatility.'},
+  {t:'BRK.B',n:'Berkshire Hathaway',s:'Finance',p:479,v:.05,c:'#2d1a47',ceo:'Greg Abel',f:'1839',mc:'$1.08T',
    bio:'Warren Buffett\'s masterpiece. Owns GEICO, Dairy Queen, Duracell + massive stakes in Apple and Coca-Cola. Annual letters studied like textbooks.',
    news:'Berkshire sitting on record $300B+ cash pile. Buffett annual letter inspired new generation of investors. Greg Abel preparing for full transition. Cash position suggests Buffett sees market as overvalued.',
    spec:'Annual meeting coming May — "Woodstock for Capitalists." Watch for major acquisition announcements given massive cash reserves. Buffett\'s market commentary moves markets.'},
@@ -256,7 +266,8 @@ const S=[
    news:'MedTech division growing from surgical robotics. Pharmaceutical pipeline strong with cancer treatments. Talc litigation settlement progressing. Dividend aristocrat — 60+ years of increases.',
    spec:'Q1 earnings mid-April. Watch for pharma pipeline updates, MedTech surgical robot adoption, and litigation reserve changes. Dividend increase announcement expected.'},
   {t:'NFLX',n:'Netflix',s:'Entertainment',p:1050,v:.18,c:'#E50914',ceo:'Ted Sarandos',f:'1997',mc:'$450B',
-   bio:'300M+ subscribers across 190 countries. Revolutionized entertainment. Ad-supported tier opening massive new market.',   news:'Netflix approaching 350M subscriber milestone. Ad tier growing faster than expected. Live sports (WWE, NFL) driving engagement. Password-sharing crackdown adding millions of new paid users.',
+   bio:'300M+ subscribers across 190 countries. Revolutionized entertainment. Ad-supported tier opening massive new market.',
+   news:'Netflix approaching 350M subscriber milestone. Ad tier growing faster than expected. Live sports (WWE, NFL) driving engagement. Password-sharing crackdown adding millions of new paid users.',
    spec:'Q1 earnings late April. Watch for ad-tier revenue per user, subscriber net adds, and content spending guidance. Live events strategy becoming clearer.'},
   {t:'DIS',n:'Walt Disney',s:'Entertainment',p:112,v:.15,c:'#003087',ceo:'Bob Iger',f:'1923',mc:'$200B',
    bio:'The most magical brand on Earth. Marvel, Star Wars, Pixar, Disney+, theme parks across 6 countries. Storytelling is power.',
@@ -284,7 +295,9 @@ const S=[
 const BTC={t:'BTC',n:'Bitcoin',p:68510,v:.25,c:'#f7931a',
   bio:'First cryptocurrency. Fixed supply: only 21 million ever. Digital gold. Countries and companies now hold Bitcoin as investment.',
   news:'Bitcoin at $68,510 — rallying on Iran de-escalation hopes. Morgan Stanley approved BTC ETF with just 14 basis point fee, opening access to $6.2T in advisor assets. Spot ETF inflows $118M on March 31.',
-  spec:'Key resistance: $71,500-$74,000. If Iran war ends, analysts see $76,700 by end of April. Quantum computing fears adding minor headwind. Support at $67,000 has held all year.'};// GOLD
+  spec:'Key resistance: $71,500-$74,000. If Iran war ends, analysts see $76,700 by end of April. Quantum computing fears adding minor headwind. Support at $67,000 has held all year.'};
+
+// GOLD
 const GOLD={t:'GOLD',n:'Gold (XAU)',p:4720,v:.08,c:'#D4AF37',
   bio:'The ultimate safe-haven asset. Humans have valued gold for 5,000+ years. Central banks hold 36,000+ tonnes. When everything else crashes, gold shines.',
   news:'Gold at $4,720/oz — up $142 from yesterday. JPMorgan and Goldman Sachs see $4,000-$6,300 range for 2026. Iran war premium keeping prices elevated. Central bank buying at record pace.',
@@ -313,7 +326,8 @@ const BONDS=[
 // LIFESTYLE INVESTMENTS — Smart purchases + expensive pointless ones
 const LIFE=[
   // Smart investments (reduce bills)
-  {id:'bike',n:'Used Bicycle',cost:500,save:50,monthlyCost:0,desc:'Cuts transport costs by $50/mo.',cat:'smart'},  {id:'car',n:'Reliable Used Car',cost:8000,save:200,monthlyCost:0,desc:'Eliminates $200/mo transport cost.',cat:'smart'},
+  {id:'bike',n:'Used Bicycle',cost:500,save:50,monthlyCost:0,desc:'Cuts transport costs by $50/mo.',cat:'smart'},
+  {id:'car',n:'Reliable Used Car',cost:8000,save:200,monthlyCost:0,desc:'Eliminates $200/mo transport cost.',cat:'smart'},
   {id:'laptop',n:'Trading Laptop',cost:2000,save:0,monthlyCost:0,desc:'Better tools = better research.',cat:'smart',special:'Unlocks advanced chart view'},
   {id:'apt',n:'Studio Apartment',cost:25000,save:600,monthlyCost:0,desc:'Cuts rent from $1,200 to $600/mo.',cat:'smart'},
   {id:'house',n:'House',cost:80000,save:1000,monthlyCost:0,desc:'Eliminates rent. Your biggest wealth builder.',cat:'smart'},
@@ -342,7 +356,8 @@ const NEWS_HEADLINES=[
   "SpaceX files for IPO — on track for June listing",
   "Gold hits $4,720/oz — up $142 on geopolitical uncertainty",
   "Bitcoin ETF sees $118M inflows on March 31",
-  "Morgan Stanley launches BTC ETF with 14 bps fee",  "Tesla earnings April 20 — first big tech to report",
+  "Morgan Stanley launches BTC ETF with 14 bps fee",
+  "Tesla earnings April 20 — first big tech to report",
   "Fed expected to cut rates in April — dollar weakens",
   "Apple celebrates 50th anniversary — product reveals expected",
   "NVIDIA projects $1T in GPU sales over 21 months",
@@ -370,7 +385,9 @@ const EASTER_EGGS=[
   {title:"The Market Hates Mondays",fact:"Historically, stock markets perform worst on Mondays and best on Fridays. This is called the 'Weekend Effect.' Some theories: bad news released over weekends, or investors being grumpy on Monday mornings. Either way, data doesn't lie!"},
   {title:"Diversification Saved the Day",fact:"During the 2008 crash, the S&P 500 lost 57%. But a portfolio split between stocks, bonds, and gold only lost 25%. Diversification doesn't prevent losses — it prevents catastrophic ones. That's why smart investors spread their bets."},
   {title:"IPO Stands for...",fact:"Initial Public Offering. When a company 'goes public,' it sells shares to everyday investors for the first time. Fun fact: SpaceX just filed for an IPO today! Early investors in Amazon's 1997 IPO at $18/share are sitting on 10,000%+ returns."}
-];// Init prices
+];
+
+// Init prices
 const prices={};const pH={};const dO={};
 S.forEach(s=>{prices[s.t]=s.p;pH[s.t]=[s.p];for(let i=0;i<29;i++){const l=pH[s.t][pH[s.t].length-1];pH[s.t].push(l*(1+(Math.random()-.48)*s.v*1.5))}prices[s.t]=pH[s.t][pH[s.t].length-1];dO[s.t]=prices[s.t]});
 prices.BTC=BTC.p;pH.BTC=[BTC.p];for(let i=0;i<29;i++){const l=pH.BTC[pH.BTC.length-1];pH.BTC.push(l*(1+(Math.random()-.48)*BTC.v*1.5))}prices.BTC=pH.BTC[pH.BTC.length-1];dO.BTC=prices.BTC;
@@ -399,7 +416,8 @@ const EVT=[
   {h:"JPMorgan reports record profits — Jamie Dimon bullish",t:'JPM',i:[5,12],ty:'pos'},
   {h:"Amazon AWS wins massive Pentagon cloud deal",t:'AMZN',i:[5,12],ty:'pos'},
   {h:"Netflix hits 350M subscribers — ad revenue surging",t:'NFLX',i:[8,18],ty:'pos'},
-  {h:"TSMC announces 2nm chip breakthrough ahead of schedule",t:'TSM',i:[8,15],ty:'pos'},  {h:"Warren Buffett makes surprise $50B acquisition",t:'BRK.B',i:[3,8],ty:'pos'},
+  {h:"TSMC announces 2nm chip breakthrough ahead of schedule",t:'TSM',i:[8,15],ty:'pos'},
+  {h:"Warren Buffett makes surprise $50B acquisition",t:'BRK.B',i:[3,8],ty:'pos'},
   {h:"Costco announces membership fee increase — profits surge",t:'COST',i:[5,12],ty:'pos'},
   {h:"Quantum computing breakthrough threatens Bitcoin encryption",t:'BTC',i:[-15,-5],ty:'neg'},
   {h:"Meta VR headset sales triple — metaverse gaining traction",t:'META',i:[8,18],ty:'pos'},
@@ -428,7 +446,8 @@ function bTicker(){const items=[...S,{t:'BTC',n:'Bitcoin',p:BTC.p},{t:'GOLD',n:'
 function bNewsTicker(){const items=NEWS_HEADLINES.map(h=>`<span>${h}</span>`).join('');document.getElementById('ntape').innerHTML=items+items}
 
 // Achievements
-const ACH=[{id:'f',n:'First Trade',i:'\u{1F3AF}'},{id:'10',n:'10 Trades',i:'\u26A1'},{id:'100k',n:'$100K Club',i:'\u{1F4B0}'},{id:'1m',n:'Millionaire',i:'\u{1F389}'},{id:'5k',n:'$5K Trade',i:'\u{1F3C6}'},{id:'d30',n:'30 Days',i:'\u{1F6E1}'},{id:'d5',n:'Diversified',i:'\u{1F308}'},{id:'bd',n:'Bond Buyer',i:'\u{1F4DC}'},{id:'sh',n:'Short Seller',i:'\u{1F4C9}'},{id:'btc',n:'Bitcoin Holder',i:'\u20BF'},{id:'home',n:'Homeowner',i:'\u{1F3E0}'},{id:'car',n:'Car Owner',i:'\u{1F697}'},{id:'fx',n:'Forex Trader',i:'\u{1F4B1}'},{id:'au',n:'Gold Bug',i:'\u{1F947}'},{id:'yacht',n:'Yacht Owner',i:'\u{1F6A2}'},{id:'jet',n:'Jet Setter',i:'\u2708'},{id:'50t',n:'50 Trades',i:'\u{1F525}'},{id:'bill',n:'Billionaire',i:'\u{1F451}'}];function cAch(){const nw=gnw();const hl=Object.keys(G.holdings).length;
+const ACH=[{id:'f',n:'First Trade',i:'\u{1F3AF}'},{id:'10',n:'10 Trades',i:'\u26A1'},{id:'100k',n:'$100K Club',i:'\u{1F4B0}'},{id:'1m',n:'Millionaire',i:'\u{1F389}'},{id:'5k',n:'$5K Trade',i:'\u{1F3C6}'},{id:'d30',n:'30 Days',i:'\u{1F6E1}'},{id:'d5',n:'Diversified',i:'\u{1F308}'},{id:'bd',n:'Bond Buyer',i:'\u{1F4DC}'},{id:'sh',n:'Short Seller',i:'\u{1F4C9}'},{id:'btc',n:'Bitcoin Holder',i:'\u20BF'},{id:'home',n:'Homeowner',i:'\u{1F3E0}'},{id:'car',n:'Car Owner',i:'\u{1F697}'},{id:'fx',n:'Forex Trader',i:'\u{1F4B1}'},{id:'au',n:'Gold Bug',i:'\u{1F947}'},{id:'yacht',n:'Yacht Owner',i:'\u{1F6A2}'},{id:'jet',n:'Jet Setter',i:'\u2708'},{id:'50t',n:'50 Trades',i:'\u{1F525}'},{id:'bill',n:'Billionaire',i:'\u{1F451}'}];
+function cAch(){const nw=gnw();const hl=Object.keys(G.holdings).length;
   if(G.trades>=1)ulk('f');if(G.trades>=10)ulk('10');if(G.trades>=50)ulk('50t');if(nw>=100000)ulk('100k');if(nw>=1e6)ulk('1m');if(nw>=1e9)ulk('bill');
   if(G.best>=5000)ulk('5k');if(G.day>=30)ulk('d30');if(hl>=5)ulk('d5');if(G.bonds.length>0)ulk('bd');
   if(Object.keys(G.shorts).length>0)ulk('sh');if(G.holdings.BTC)ulk('btc');if(G.holdings.GOLD)ulk('au');
@@ -457,7 +476,8 @@ function tickP(){
   for(const cd in G.curHoldings){const h=G.curHoldings[cd];const cur=CUR.find(x=>x.cd===cd);if(cur){h.usd=h.units*(cur.inv?1/cur.r:cur.r)}}
   aiP.forEach(p=>{p.worth*=(1+(Math.random()-.48)*0.015);p.worth=Math.max(500,p.worth)});
   G.bonds.forEach(b=>{b.dh++;b.amt+=b.amt*(b.y/100/365)});
-}function tickClk(){G.min+=30;if(G.min>=60){G.min=0;G.hr++}if(G.hr>=24){G.hr=0;G.day++;G.billPaid=false;onDay()}G.tick++;if(G.tick%90===0)bTicker()}
+}
+function tickClk(){G.min+=30;if(G.min>=60){G.min=0;G.hr++}if(G.hr>=24){G.hr=0;G.day++;G.billPaid=false;onDay()}G.tick++;if(G.tick%90===0)bTicker()}
 function onDay(){
   S.forEach(s=>dO[s.t]=prices[s.t]);dO.BTC=prices.BTC;dO.GOLD=prices.GOLD;
   G.worthHist.push(gnw());if(G.worthHist.length>90)G.worthHist.shift();
@@ -486,7 +506,8 @@ function rDash(){
   document.getElementById('gdate').textContent='Day '+G.day;document.getElementById('gtime').textContent=G.hr.toString().padStart(2,'0')+':'+G.min.toString().padStart(2,'0');
   const ec=document.getElementById('evtC');ec.innerHTML='';
   if(G.evts.length>0){const e=G.evts[0];const cl=e.ty==='pos'?'var(--gn)':'var(--rd)';
-    ec.innerHTML=`<div class="eb"><div class="ehl" style="color:${cl}">Day ${e.d} \u2014 ${e.imp>0?'+':''}${e.imp}%</div>${e.h}</div>`}}
+    ec.innerHTML=`<div class="eb"><div class="ehl" style="color:${cl}">Day ${e.d} \u2014 ${e.imp>0?'+':''}${e.imp}%</div>${e.h}</div>`}
+}
 
 let aTab='Stocks';
 function rMarket(){
@@ -515,7 +536,8 @@ function rMarket(){
     h=`<div class="et"><strong>Forex Trading:</strong> Buy currencies you think will strengthen vs the Dollar. The forex market trades $7.5T daily \u2014 the world's largest. 10x volatility makes currency swings dramatic!</div>`;
     h+=CUR.map(c=>{const ch=c.inv?((c.startR/c.r-1)*100):((c.r/c.startR-1)*100);
       return`<div class="sr" onclick="oCur('${c.cd}')"><div style="font-size:22px;margin-right:10px;width:34px;text-align:center">${c.fl}</div><div class="sinfo"><div class="sname">${c.cd}/USD</div><div class="stick">${c.fl} ${c.n}</div></div><div class="sprice"><div class="p">${c.inv?(c.r).toFixed(2):(1/c.r).toFixed(4)}</div><div class="${ch>=0?'gn':'rd'}" style="font-size:11px">${pc(ch)}</div></div></div>`}).join('');
-  }else if(aTab==='Bonds'){    h=`<div class="et"><strong>U.S. Treasury Bonds:</strong> Lend money to the government. They pay interest (yield). Safer than stocks. Current 10-Year yield: 4.30%. Rates as of April 1, 2026.</div>`;
+  }else if(aTab==='Bonds'){
+    h=`<div class="et"><strong>U.S. Treasury Bonds:</strong> Lend money to the government. They pay interest (yield). Safer than stocks. Current 10-Year yield: 4.30%. Rates as of April 1, 2026.</div>`;
     h+=BONDS.map(b=>`<div class="bc" onclick="oBond('${b.id}')"><div class="cr"><div><div class="bn2">${b.n}</div><div style="font-size:10px;color:var(--t2)">Term: ${b.tm}mo \u00B7 Risk: ${b.rk}</div></div><div><div class="by">${b.y}%</div><div style="font-size:9px;color:var(--t2)">Annual</div></div></div></div>`).join('');
   }else if(aTab==='Lifestyle'){
     const smart=LIFE.filter(l=>l.cat==='smart');const flex=LIFE.filter(l=>l.cat==='flex');
@@ -544,7 +566,8 @@ function rPort(){
   hk.forEach(t=>{const v=G.holdings[t].sh*prices[t];tV+=v;tC+=G.holdings[t].sh*G.holdings[t].ac;
     const st=S.find(x=>x.t===t)||(t==='BTC'?BTC:t==='GOLD'?GOLD:null);
     pieData.push(v);pieColors.push(st?st.c:'#64748b');pieLabels.push(st?st.n:t)});
-  // Bonds total  const bondTotal=G.bonds.reduce((a,b)=>a+b.amt,0);
+  // Bonds total
+  const bondTotal=G.bonds.reduce((a,b)=>a+b.amt,0);
   if(bondTotal>0){pieData.push(bondTotal);pieColors.push('#d97706');pieLabels.push('Bonds')}
   // Currency total
   const curTotal=ck.reduce((a,cd)=>a+G.curHoldings[cd].usd,0);
@@ -572,7 +595,9 @@ function rPort(){
   hk.forEach(t=>{const h=G.holdings[t];const cp=prices[t];const v=h.sh*cp;const c=h.sh*h.ac;const pnl=v-c;const pp=(pnl/c)*100;
     const st=S.find(x=>x.t===t)||(t==='BTC'?BTC:t==='GOLD'?GOLD:null);
     hl+=`<div class="hr" onclick="oTrade('${t}')"><div class="hinfo"><div style="font-weight:600;font-size:12px">${st?st.n:t}</div><div style="font-size:10px;color:var(--t2)">${h.sh} shares \u00B7 avg ${fmt(h.ac)}</div></div><div class="hpnl"><div style="font-weight:600;font-size:12px">${fmt(v)}</div><div class="${pnl>=0?'gn':'rd'}" style="font-size:10px">${pnl>=0?'+':''}${fmt(pnl)} (${pc(pp)})</div></div></div>`});
-  document.getElementById('hlist').innerHTML=hl;  // Shorts
+  document.getElementById('hlist').innerHTML=hl;
+
+  // Shorts
   let sl=sk.length?'<div class="st">Short Positions</div>':'';
   sk.forEach(t=>{const s=G.shorts[t];const pnl=(s.ep-prices[t])*s.sh;const st=S.find(x=>x.t===t)||(t==='BTC'?BTC:t==='GOLD'?GOLD:null);
     sl+=`<div class="hr"><div class="hinfo"><div style="font-weight:600;font-size:12px">${st?st.n:t} <span style="color:var(--bk);font-size:9px">SHORT</span></div><div style="font-size:10px;color:var(--t2)">${s.sh} @ ${fmt(s.ep)}</div></div><div class="hpnl"><div class="${pnl>=0?'gn':'rd'}" style="font-weight:600;font-size:12px">${pnl>=0?'+':''}${fmt(pnl)}</div><button onclick="coverS('${t}')" style="background:var(--bk);color:#fff;border:none;padding:3px 8px;border-radius:5px;font-size:10px;cursor:pointer;margin-top:2px">Cover</button></div></div>`});
@@ -601,7 +626,8 @@ function rRank(){
 }
 
 let wC=null;
-function rProf(){  const nw=gnw();document.getElementById('ptitle').textContent=getTitle(nw);
+function rProf(){
+  const nw=gnw();document.getElementById('ptitle').textContent=getTitle(nw);
   document.getElementById('pd').textContent=G.day;document.getElementById('ptr').textContent=G.trades;
   document.getElementById('pbt').textContent=fs(G.best);document.getElementById('pwr').textContent=G.trades>0?Math.round((G.wins/G.trades)*100)+'%':'--';
   document.getElementById('achlist').innerHTML=ACH.map(a=>`<div class="ach" style="opacity:${G.ach.includes(a.id)?1:.3}">${a.i} ${a.n}</div>`).join('');
@@ -630,7 +656,8 @@ function oTrade(t){
   document.getElementById('mnews').innerHTML=`<div class="nl">Latest News & Catalysts</div>${s.news||'No recent news.'}<br><br><div style="font-weight:700;color:#78350f">Upcoming / Speculation</div>${s.spec||'Nothing scheduled.'}`;
   const hi=document.getElementById('mhold');
   if(G.holdings[t]){const h=G.holdings[t];hi.innerHTML=`<div style="padding:6px 10px;background:var(--sf);border-radius:6px;font-size:11px"><span style="color:var(--t2)">Own</span> <b>${h.sh} shares</b> <span style="color:var(--t2)">avg</span> <b>${fmt(h.ac)}</b></div>`}else hi.innerHTML='';
-  const ctx=document.getElementById('dchart');if(dC)dC.destroy();const data=pH[t].slice(-40);const up=data[data.length-1]>=data[0];  dC=new Chart(ctx,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data,borderColor:up?'#16a34a':'#dc2626',borderWidth:2,fill:true,backgroundColor:up?'rgba(22,163,74,.06)':'rgba(220,38,38,.06)',tension:.3,pointRadius:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:true,ticks:{callback:v=>'$'+v.toFixed(0),font:{size:8}},grid:{color:'#e5e7eb'}}}}});
+  const ctx=document.getElementById('dchart');if(dC)dC.destroy();const data=pH[t].slice(-40);const up=data[data.length-1]>=data[0];
+  dC=new Chart(ctx,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data,borderColor:up?'#16a34a':'#dc2626',borderWidth:2,fill:true,backgroundColor:up?'rgba(22,163,74,.06)':'rgba(220,38,38,.06)',tension:.3,pointRadius:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:true,ticks:{callback:v=>'$'+v.toFixed(0),font:{size:8}},grid:{color:'#e5e7eb'}}}}});
   document.getElementById('tmod').classList.add('show');
 }
 function cmod(){document.getElementById('tmod').classList.remove('show');cT=null}
@@ -659,7 +686,8 @@ function doTrade(side){
 }
 function coverS(t){const s=G.shorts[t];if(!s)return;const pnl=(s.ep-prices[t])*s.sh;G.cash+=s.col+pnl;delete G.shorts[t];G.trades++;if(pnl>0)G.wins++;if(pnl>G.best)G.best=pnl;toast('Covered '+t+' P&L: '+(pnl>=0?'+':'')+fmt(pnl),pnl>=0?'tg':'tr');checkEasterEgg()}
 
-// Currency tradinglet curSel=null;
+// Currency trading
+let curSel=null;
 function oCur(cd){
   curSel=cd;const c=CUR.find(x=>x.cd===cd);
   document.getElementById('cname').textContent=c.fl+' '+c.n;document.getElementById('ctick').textContent=c.cd+'/USD';
@@ -688,7 +716,8 @@ function doCurTrade(side){
     const costBasis=h.cost*ratio;const pnl=sellAmt-costBasis;
     G.cash+=sellAmt;h.units*=(1-ratio);h.cost*=(1-ratio);h.usd*=(1-ratio);
     if(h.units<0.01)delete G.curHoldings[curSel];
-    G.trades++;if(pnl>0)G.wins++;if(pnl>G.best)G.best=pnl;    toast('Sold '+curSel+' for '+fmt(sellAmt)+' P&L: '+(pnl>=0?'+':'')+fmt(pnl),pnl>=0?'tg':'tr');
+    G.trades++;if(pnl>0)G.wins++;if(pnl>G.best)G.best=pnl;
+    toast('Sold '+curSel+' for '+fmt(sellAmt)+' P&L: '+(pnl>=0?'+':'')+fmt(pnl),pnl>=0?'tg':'tr');
   }
   cAch();checkEasterEgg();ccmod();
 }
@@ -724,6 +753,9 @@ document.getElementById('ssearch').addEventListener('input',rMarket);
 
 // GAME LOOP
 bTicker();bNewsTicker();rDash();setInterval(()=>{tickClk();tickP();rDash()},1000);
+
+// Register Service Worker
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
