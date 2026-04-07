@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Budget_Q2_2026_FINAL_v3.xlsx - Excel Online</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23217346'/><text x='3' y='12' font-size='10' fill='white' font-weight='bold'>X</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--grid-line:#d0d0d0;--cell-bg:#fff;--header-bg:#f0f0f0;--select-blue:#4472C4;--ribbon-bg:#217346;--formula-bg:#f8f8f8;--text:#333;--text-light:#666;--red:#c00;--green:#107c10;--orange:#d97706;--danger:#dc2626;--tab-active:#fff;--tab-inactive:#e0e0e0}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',Calibri,Arial,sans-serif;font-size:11px;color:var(--text);background:#e8e8e8;-webkit-tap-highlight-color:transparent}
+.title-bar{height:28px;background:#217346;display:flex;align-items:center;padding:0 8px;color:white;font-size:11px;gap:6px}
+.title-bar .logo{font-weight:700;font-size:13px;letter-spacing:-.5px}
+.title-bar .filename{opacity:.9;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.title-bar .dot{width:6px;height:6px;border-radius:50%;background:#4ade80;margin-left:auto;flex-shrink:0}
+.title-bar .players-count{font-size:9px;opacity:.7;flex-shrink:0}
+.ribbon{height:32px;background:var(--header-bg);border-bottom:1px solid #c0c0c0;display:flex;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ribbon-tab{padding:6px 12px;font-size:10px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;color:var(--text-light);font-weight:500}
+.ribbon-tab.active{color:var(--ribbon-bg);border-bottom-color:var(--ribbon-bg);font-weight:700}
+.formula-bar{height:24px;background:var(--formula-bg);border-bottom:1px solid var(--grid-line);display:flex;align-items:center;padding:0 6px;font-size:10px}
+.cell-ref{background:#fff;border:1px solid #ccc;padding:1px 4px;width:50px;text-align:center;font-weight:600;font-size:9px;margin-right:4px}
+.formula-fx{color:var(--text-light);margin-right:4px;font-style:italic}
+.formula-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--cell-bg)}
+.grid-container{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;position:relative}
+.col-headers{display:flex;position:sticky;top:0;z-index:10;background:var(--header-bg);border-bottom:1px solid var(--grid-line)}
+.col-header{min-width:80px;max-width:120px;flex:1;text-align:center;padding:3px 2px;font-size:9px;font-weight:600;color:var(--text-light);border-right:1px solid var(--grid-line);background:var(--header-bg)}
+.row-num{width:28px;min-width:28px;text-align:center;font-size:9px;color:var(--text-light);background:var(--header-bg);border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.grid-row{display:flex;border-bottom:1px solid var(--grid-line)}
+.grid-cell{min-width:80px;max-width:120px;flex:1;padding:3px 4px;border-right:1px solid var(--grid-line);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;height:22px;line-height:16px}
+.grid-cell.num{text-align:right;font-variant-numeric:tabular-nums}
+.grid-cell.pos{color:var(--green)}
+.grid-cell.neg{color:var(--red)}
+.grid-cell.warn{color:var(--orange)}
+.grid-cell.danger{color:var(--danger);font-weight:700}
+.grid-cell.header-cell{font-weight:700;background:#f5f5f5;font-size:9px;color:var(--text-light)}
+.sparkline{display:inline-block;vertical-align:middle}
+.sparkline svg{height:14px;width:50px}
+.sheet-tabs{height:30px;background:var(--header-bg);border-top:1px solid var(--grid-line);display:flex;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sheet-tab{padding:5px 14px;font-size:10px;cursor:pointer;border:1px solid var(--grid-line);border-bottom:none;margin-left:-1px;background:var(--tab-inactive);white-space:nowrap;color:var(--text-light)}
+.sheet-tab.active{background:var(--tab-active);font-weight:700;color:var(--text);border-top:2px solid var(--ribbon-bg)}
+.status-bar{height:20px;background:var(--ribbon-bg);color:white;display:flex;align-items:center;padding:0 8px;font-size:9px;justify-content:space-between}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;padding:10px}
+.modal-overlay.show{display:flex}
+.modal{background:white;border-radius:4px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.modal-header{padding:10px 12px;background:var(--ribbon-bg);color:white;font-weight:700;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{cursor:pointer;font-size:16px;opacity:.8}
+.modal-body{padding:12px}
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:11px}
+.modal-row:last-child{border-bottom:none}
+.modal-row .label{color:var(--text-light);flex:1}
+.modal-row .value{font-weight:600;text-align:right}
+.btn{padding:6px 14px;border:1px solid #ccc;background:var(--header-bg);cursor:pointer;font-size:10px;border-radius:2px;font-weight:600}
+.btn-buy{background:#107c10;color:white;border-color:#0a5c0a}
+.btn-sell{background:#c00;color:white;border-color:#900}
+.btn-bet{background:#4472C4;color:white;border-color:#335da3}
+.btn-dark{background:#333;color:#0f0;border-color:#555}
+.btn:active{opacity:.7}
+input[type=number],input[type=text]{width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:2px;font-size:11px;font-family:inherit}
+.news-ticker{position:relative;overflow:hidden;height:18px;background:#fffde7;border-bottom:1px solid #e6d88a;font-size:9px;line-height:18px;padding:0 6px}
+.news-item{white-space:nowrap;display:inline-block}
+.news-item.bullish{color:var(--green)}
+.news-item.bearish{color:var(--red)}
+.news-item.danger{color:var(--danger)}
+.news-item.neutral{color:var(--text)}
+.login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#217346 0%,#1a5c38 100%);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;padding:20px}
+.login-screen.hidden{display:none}
+.login-title{font-size:14px;font-weight:400;opacity:.7;margin-bottom:4px}
+.login-logo{font-size:28px;font-weight:700;letter-spacing:-1px;margin-bottom:20px}
+.login-subtitle{font-size:11px;opacity:.6;margin-bottom:24px;text-align:center;line-height:1.5}
+.login-input{width:260px;padding:10px 14px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);border-radius:3px;color:white;font-size:13px;text-align:center;margin-bottom:12px}
+.login-input::placeholder{color:rgba(255,255,255,.5)}
+.login-btn{padding:10px 40px;background:white;color:#217346;border:none;border-radius:3px;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.5px}
+.login-btn:active{opacity:.8}
+.login-disclaimer{font-size:8px;opacity:.4;margin-top:16px;text-align:center;max-width:260px;line-height:1.4}
+.trade-controls{display:flex;gap:4px;align-items:center;margin-top:6px}
+.trade-controls input{width:60px;text-align:center}
+.qty-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;font-weight:700;font-size:14px;border-radius:2px}
+.toast{position:fixed;top:32px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:8px 16px;border-radius:3px;font-size:11px;z-index:300;display:none;max-width:90vw;text-align:center}
+.toast.show{display:block;animation:fadeInOut 3s forwards}
+@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}10%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0}}
+.toast.error{background:var(--red)}
+.toast.success{background:var(--green)}
+.toast.warning{background:var(--orange)}
+.busted-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(220,38,38,.9);z-index:150;display:none;flex-direction:column;align-items:center;justify-content:center;color:white}
+.busted-overlay.show{display:flex}
+.busted-text{font-size:36px;font-weight:900;letter-spacing:4px;margin-bottom:10px}
+.busted-sub{font-size:12px;opacity:.8}
+.gameover-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;color:white}
+.gameover-overlay.show{display:flex}
+@media(max-width:600px){
+  .grid-cell{min-width:65px;max-width:100px;font-size:9px;padding:2px 3px}
+  .col-header{min-width:65px;max-width:100px;font-size:8px}
+  .row-num{width:22px;min-width:22px;font-size:8px}
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-title">Microsoft Excel Online</div>
+  <div class="login-logo">Budget_Q2_Final.xlsx</div>
+  <div class="login-subtitle">This workbook requires authentication.<br>Enter your trader name to access.</div>
+  <input type="text" id="usernameInput" class="login-input" placeholder="Enter your name..." maxlength="16" autocomplete="off">
+  <button class="login-btn" onclick="joinGame()">OPEN WORKBOOK</button>
+  <div class="login-disclaimer">By opening this file you agree to Wall Street's terms. Your portfolio starts at $50,000. Wall Street never closes. Good luck.</div>
+</div>
+
+<div id="bustedOverlay" class="busted-overlay">
+  <div class="busted-text">BUSTED</div>
+  <div class="busted-sub">Federal agents seized your contraband.<br>Trading suspended for 30 seconds.</div>
+</div>
+
+<div id="gameoverOverlay" class="gameover-overlay">
+  <div style="font-size:36px;font-weight:900;letter-spacing:4px;margin-bottom:10px;color:#c00">BANKRUPT</div>
+  <div style="font-size:14px;opacity:.8;margin-bottom:6px">You ran out of money.</div>
+  <div style="font-size:12px;opacity:.6;margin-bottom:20px" id="goStats"></div>
+  <button class="login-btn" onclick="location.reload()" style="background:#c00;color:white">TRY AGAIN</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="app" style="height:100%;display:flex;flex-direction:column;display:none">
+  <div class="title-bar">
+    <span class="logo">X</span>
+    <span class="filename">Budget_Q2_2026_FINAL_v3.xlsx</span>
+    <span class="dot"></span>
+    <span class="players-count" id="playersCount">1 trader</span>
+  </div>
+  <div class="ribbon" id="ribbonTabs">
+    <div class="ribbon-tab active" data-tab="portfolio" onclick="switchTab('portfolio')">Portfolio</div>
+    <div class="ribbon-tab" data-tab="stocks" onclick="switchTab('stocks')">Stocks</div>
+    <div class="ribbon-tab" data-tab="crypto" onclick="switchTab('crypto')">Crypto</div>
+    <div class="ribbon-tab" data-tab="forex" onclick="switchTab('forex')">Forex</div>
+    <div class="ribbon-tab" data-tab="sports" onclick="switchTab('sports')">Sports</div>
+    <div class="ribbon-tab" data-tab="blackmarket" onclick="switchTab('blackmarket')">Sheet6</div>
+    <div class="ribbon-tab" data-tab="lifestyle" onclick="switchTab('lifestyle')">Expenses</div>
+    <div class="ribbon-tab" data-tab="business" onclick="switchTab('business')">Revenue</div>
+    <div class="ribbon-tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">Rankings</div>
+    <div class="ribbon-tab" data-tab="news" onclick="switchTab('news')">Notes</div>
+  </div>
+  <div class="formula-bar">
+    <span class="cell-ref" id="cellRef">A1</span>
+    <span class="formula-fx">fx</span>
+    <span class="formula-text" id="formulaText">=NET_WORTH()</span>
+  </div>
+  <div class="news-ticker" id="newsTicker"></div>
+  <div class="main">
+    <div class="grid-container" id="gridContainer"></div>
+  </div>
+  <div class="sheet-tabs">
+    <div class="sheet-tab active" data-tab="portfolio" onclick="switchTab('portfolio')">Portfolio</div>
+    <div class="sheet-tab" data-tab="stocks" onclick="switchTab('stocks')">Markets</div>
+    <div class="sheet-tab" data-tab="crypto" onclick="switchTab('crypto')">Crypto</div>
+    <div class="sheet-tab" data-tab="sports" onclick="switchTab('sports')">Sports</div>
+    <div class="sheet-tab" data-tab="blackmarket" onclick="switchTab('blackmarket')">Sheet6</div>
+    <div class="sheet-tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">Rankings</div>
+  </div>
+  <div class="status-bar">
+    <span id="statusLeft">Ready</span>
+    <span id="statusRight">Day 1 | $50,000.00</span>
+  </div>
+</div>
+
+<div id="tradeModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><span id="tradeTitle">Trade</span><span class="modal-close" onclick="closeModal('tradeModal')">&times;</span></div>
+    <div class="modal-body">
+      <div class="modal-row"><span class="label">Asset</span><span class="value" id="tradeAsset">-</span></div>
+      <div class="modal-row"><span class="label">Price</span><span class="value" id="tradePrice">-</span></div>
+      <div class="modal-row"><span class="label">Your Cash</span><span class="value" id="tradeCash">-</span></div>
+      <div class="modal-row"><span class="label">Holding</span><span class="value" id="tradeHolding">-</span></div>
+      <div style="margin-top:10px">
+        <label style="font-size:10px;color:#666">Quantity</label>
+        <div class="trade-controls">
+          <div class="qty-btn" onclick="adjustQty(-10)">--</div>
+          <div class="qty-btn" onclick="adjustQty(-1)">-</div>
+          <input type="number" id="tradeQty" value="1" min="0" step="1" oninput="updateTradeTotal()">
+          <div class="qty-btn" onclick="adjustQty(1)">+</div>
+          <div class="qty-btn" onclick="adjustQty(10)">++</div>
+          <div class="qty-btn" onclick="setMaxQty()" style="font-size:9px;width:auto;padding:0 6px">MAX</div>
+        </div>
+        <div style="font-size:9px;color:#999;margin-top:4px">Total: $<span id="tradeTotal">0.00</span></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px">
+        <button class="btn btn-buy" style="flex:1" onclick="executeTrade('buy')">BUY</button>
+        <button class="btn btn-sell" style="flex:1" onclick="executeTrade('sell')">SELL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="betModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><span id="betTitle">Place Bet</span><span class="modal-close" onclick="closeModal('betModal')">&times;</span></div>
+    <div class="modal-body">
+      <div class="modal-row"><span class="label">Match</span><span class="value" id="betMatch">-</span></div>
+      <div class="modal-row"><span class="label">Sport</span><span class="value" id="betSport">-</span></div>
+      <div style="margin-top:10px"><label style="font-size:10px;color:#666">Bet Amount ($)</label><input type="number" id="betAmount" value="100" min="1"></div>
+      <div style="display:flex;gap:6px;margin-top:12px" id="betButtons"></div>
+    </div>
+  </div>
+</div>
+
+<div id="bmModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header" style="background:#333"><span id="bmTitle">Black Market Deal</span><span class="modal-close" onclick="closeModal('bmModal')">&times;</span></div>
+    <div class="modal-body" style="background:#1a1a1a;color:#0f0">
+      <div class="modal-row" style="border-color:#333"><span class="label" style="color:#0a0">Item</span><span class="value" id="bmAsset" style="color:#0f0">-</span></div>
+      <div class="modal-row" style="border-color:#333"><span class="label" style="color:#0a0">Price</span><span class="value" id="bmPrice" style="color:#0f0">-</span></div>
+      <div class="modal-row" style="border-color:#333"><span class="label" style="color:#0a0">Available</span><span class="value" id="bmAvail" style="color:#0f0">-</span></div>
+      <div class="modal-row" style="border-color:#333"><span class="label" style="color:#c00">Heat Level</span><span class="value" id="bmHeat" style="color:#c00">-</span></div>
+      <div style="margin-top:10px"><label style="font-size:10px;color:#0a0">Quantity</label><div class="trade-controls"><input type="number" id="bmQty" value="1" min="1" style="background:#333;color:#0f0;border-color:#555"></div></div>
+      <div style="display:flex;gap:6px;margin-top:12px">
+        <button class="btn btn-dark" style="flex:1" onclick="executeBMTrade('buy')">ACQUIRE</button>
+        <button class="btn btn-dark" style="flex:1;background:#600;color:#faa" onclick="executeBMTrade('sell')">OFFLOAD</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var AT_PAT="",AT_BASE="",AT_TABLE="Leaderboard";
+var TICK=10000,DAY_DUR=300,START=$=50000,BASE_EXP=5000,VOL=100;
+var STOCKS={AAPL:{n:"Apple Inc.",p:178.5,s:"Tech"},TSLA:{n:"Tesla",p:245,s:"Tech"},NVDA:{n:"NVIDIA",p:880,s:"Tech"},AMZN:{n:"Amazon",p:185,s:"Tech"},META:{n:"Meta",p:505,s:"Tech"},GOOGL:{n:"Alphabet",p:155,s:"Tech"},JPM:{n:"JPMorgan",p:198,s:"Finance"},BAC:{n:"Bank of America",p:37.5,s:"Finance"},XOM:{n:"Exxon",p:105,s:"Energy"},PFE:{n:"Pfizer",p:27,s:"Pharma"},DIS:{n:"Disney",p:112,s:"Entertainment"},NFLX:{n:"Netflix",p:620,s:"Entertainment"},COIN:{n:"Coinbase",p:225,s:"Crypto"},GME:{n:"GameStop",p:18,s:"Meme"},AMC:{n:"AMC",p:5.5,s:"Meme"}};
+var CRYPTO={BTC:{n:"Bitcoin",p:68000},ETH:{n:"Ethereum",p:3500},SOL:{n:"Solana",p:145},DOGE:{n:"Dogecoin",p:0.15},XRP:{n:"Ripple",p:0.62},PEPE:{n:"Pepe",p:0.0000085}};
+var FOREX={"EUR/USD":{n:"Euro/Dollar",p:1.085},"GBP/USD":{n:"Pound/Dollar",p:1.265},"USD/JPY":{n:"Dollar/Yen",p:151.5},"USD/MXN":{n:"Dollar/Peso",p:17.15},"BTC/ETH":{n:"Bitcoin/Ether",p:19.43}};
+var TEAMS={soccer:["Real Madrid","Barcelona","Man City","Liverpool","Bayern","PSG","Inter Milan","Arsenal","Club America","Monterrey","Tigres","Chivas","Santos Laguna"],basketball:["Lakers","Celtics","Warriors","Nuggets","Bucks","76ers","Heat","Suns","Mavs","Thunder"],football:["Chiefs","49ers","Eagles","Cowboys","Bills","Ravens","Lions","Dolphins","Bengals","Packers"],baseball:["Yankees","Dodgers","Braves","Astros","Rangers","Phillies","Mets","Orioles","Twins","Padres"]};
+var BM={contraband_tech:{n:"Stolen GPU Shipment",bp:15000,v:.4},counterfeit:{n:"Designer Knockoffs",bp:8000,v:.35},crypto_mixer:{n:"Crypto Mixer Service",bp:5000,v:.5},insider:{n:"Insider Trading Tip",bp:25000,v:.6},offshore:{n:"Offshore Shell Co.",bp:50000,v:.25},stolen_art:{n:"Stolen Artwork",bp:120000,v:.45},fake_ids:{n:"Premium Fake IDs",bp:3000,v:.55},weapons:{n:"Surplus Military Gear",bp:75000,v:.7}};
+var LIFE={used_car:{n:"Used Honda Civic",c:8000,sv:800,ad:0,cat:"transport"},nice_car:{n:"BMW 3 Series",c:45000,sv:800,ad:500,cat:"transport"},supercar:{n:"Lamborghini Urus",c:250000,sv:800,ad:3000,cat:"transport"},studio:{n:"Studio Apartment",c:80000,sv:3500,ad:800,cat:"housing"},condo:{n:"2BR Condo",c:250000,sv:3500,ad:1200,cat:"housing"},mansion:{n:"Mansion",c:2000000,sv:3500,ad:8000,cat:"housing"},fridge:{n:"Mini Fridge+Groceries",c:500,sv:600,ad:0,cat:"food"},kitchen:{n:"Full Kitchen Setup",c:3000,sv:900,ad:0,cat:"food"},yacht:{n:"Yacht",c:500000,sv:0,ad:5000,cat:"luxury"},jet:{n:"Private Jet Share",c:300000,sv:0,ad:8000,cat:"luxury"},rolex:{n:"Rolex Submariner",c:15000,sv:0,ad:0,cat:"luxury"}};
+var BIZ={food_truck:{n:"Food Truck",c:25000,inc:3000,v:.3,r:.05},laundromat:{n:"Laundromat",c:60000,inc:4500,v:.15,r:.02},bar:{n:"Dive Bar",c:80000,inc:6000,v:.35,r:.08},vape:{n:"Vape Shop",c:35000,inc:5000,v:.25,r:.04},car_wash:{n:"Car Wash",c:120000,inc:8000,v:.2,r:.03},nightclub:{n:"Nightclub",c:250000,inc:15000,v:.45,r:.1},startup:{n:"Tech Startup",c:50000,inc:0,v:.8,r:.15},re_agency:{n:"Real Estate Agency",c:150000,inc:12000,v:.3,r:.06}};
+var NB=[["{t} beats earnings 300%. Surging.",.15],["Breaking: {t} massive stock buyback.",.1],["{t} lands $50B government contract.",.2],["Elon tweets he loves {t}.",.25],["Reddit targets {t}. Short squeeze.",.3],["Fed cuts rates 0%. Everything pumping.",.08],["{t} revolutionary AI product.",.18],["Buffett reveals {t} position.",.1],["{t} merger confirmed.",.22]];
+var NR=[["{t} CEO arrested for fraud.",-.25],["SEC investigation into {t}.",-.15],["{t} misses earnings. Downgraded.",-.12],["{t} factory explosion.",-.18],["{t} product recall.",-.1],["Class action against {t}.",-.08],["Fed raises rates 200bps.",-.06],["{t} loses major contract.",-.14],["Insider selling at {t}.",-.2],["China bans {t}.",-.16]];
+var NCB=[["Bitcoin ETF approval. Crypto soaring.",.2],["Nation makes {t} legal tender.",.15],["Whale buys $2B in {t}.",.25],["{t} network upgrade 1000x TPS.",.18],["BlackRock doubles {t}.",.12]];
+var NCR=[["Exchange hacked. $500M {t} stolen.",-.3],["SEC classifies {t} as security.",-.25],["Whale dumps $1B in {t}.",-.2],["{t} network down 6 hours.",-.15],["Senate passes crypto ban.",-.18]];
+var NBM=["Police raid contraband warehouse.","Cartel alliance opens supply routes.","DEA biggest bust in history.","Dark web marketplace offline.","Whistleblower leaks client list."];
+var NSP=["Star player injured before game.","Match-fixing scandal exposed.","Underdog on historic winning streak.","Weather delay for multiple events."];
+var P,mkt={},bm_state={},sports=[],news=[],gDay=1,dayT=0,tab="portfolio",curT=null,curBet=null,curBM=null,dead=false,atLB=[];
+
+function joinGame(){
+  var u=document.getElementById("usernameInput").value.trim()||("Anon_"+Math.floor(Math.random()*9999));
+  P={u:u,cash:START,port:{},bmI:{},bets:[],life:[],biz:[],mExp:BASE_EXP,mInc:0,nw:START,nwH:[START],trades:0,pnl:0,busted:false,bustT:0};
+  for(var k in STOCKS){var d=STOCKS[k];mkt[k]={tp:"stock",nm:d.n,pr:d.p,pv:d.p,hi:d.p,lo:d.p,hs:a20(d.p)};}
+  for(var k in CRYPTO){var d=CRYPTO[k];mkt[k]={tp:"crypto",nm:d.n,pr:d.p,pv:d.p,hi:d.p,lo:d.p,hs:a20(d.p)};}
+  for(var k in FOREX){var d=FOREX[k];mkt[k]={tp:"forex",nm:d.n,pr:d.p,pv:d.p,hi:d.p,lo:d.p,hs:a20(d.p)};}
+  for(var k in BM){var d=BM[k];bm_state[k]={nm:d.n,pr:d.bp,bp:d.bp,vl:d.v,av:Math.floor(Math.random()*5)+1,ht:0};}
+  genSports();addN("Market opens. Wall Street never sleeps.","neutral");
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").style.display="flex";
+  setInterval(gameTick,TICK);setInterval(dayTick,1000);schedNews();
+  render();updBar();updTicker();
+}
+function a20(v){var a=[];for(var i=0;i<20;i++)a.push(v);return a;}
+function rnd8(){return Math.random().toString(36).substr(2,8);}
+
+function genSports(){
+  sports=[];
+  for(var sp in TEAMS){
+    var ts=TEAMS[sp].slice().sort(function(){return Math.random()-.5}).slice(0,6);
+    for(var i=0;i<ts.length-1;i+=2){
+      sports.push({id:rnd8(),sp:sp,hm:ts[i],aw:ts[i+1],ho:+(Math.random()*3.3+1.2).toFixed(2),ao:+(Math.random()*3.3+1.2).toFixed(2),dr:sp==="soccer"?+(Math.random()*3.5+2.5).toFixed(2):null,st:"upcoming",res:null,at:Date.now()+30000+Math.random()*90000});
+    }
+  }
+}
+
+function gameTick(){
+  if(dead)return;
+  for(var k in mkt){
+    var m=mkt[k];m.pv=m.pr;
+    var vol=m.tp==="crypto"?.04:m.tp==="forex"?.005:.02;
+    if(k==="GME"||k==="AMC"||k==="DOGE"||k==="PEPE")vol*=2;
+    var chg=(Math.random()-.48)*vol*VOL/50;
+    if(Math.random()<.02)chg*=(Math.random()<.5?5:-5);
+    m.pr=Math.max(.0000001,m.pr*(1+chg));
+    m.hs.push(m.pr);if(m.hs.length>20)m.hs.shift();
+    m.hi=Math.max(m.hi,m.pr);m.lo=Math.min(m.lo,m.pr);
+  }
+  for(var k in bm_state){
+    var b=bm_state[k];
+    b.pr=Math.max(b.bp*.2,b.pr*(1+(Math.random()-.5)*b.vl*.3));
+    b.pr=Math.round(b.pr);b.ht=Math.max(0,b.ht-.005);
+    if(Math.random()<.1)b.av=Math.min(10,b.av+1);
+  }
+  if(P.busted){P.bustT--;if(P.bustT<=0){P.busted=false;toast("Back in business. Keep your head down.","warning");}}
+  var now=Date.now();
+  sports.forEach(function(e){
+    if(e.st==="upcoming"&&now>=e.at){
+      e.st="finished";var outs=["home","away"];if(e.dr!==null)outs.push("draw");e.res=outs[Math.floor(Math.random()*outs.length)];
+      P.bets=P.bets.filter(function(bt){
+        if(bt.eid===e.id){
+          if(bt.pk===e.res){var pay=bt.am*bt.od;P.cash+=pay;P.pnl+=pay-bt.am;toast("BET WON! +"+fD(pay),"success");}
+          else{P.pnl-=bt.am;toast("Bet lost. "+e.hm+" vs "+e.aw,"error");}
+          return false;
+        }return true;
+      });
+    }
+  });
+  if(sports.filter(function(e){return e.st==="finished"}).length>4){sports=sports.filter(function(e){return e.st!=="finished"});genSports();}
+  calcNW();render();updBar();updTicker();
+}
+
+function dayTick(){
+  if(dead)return;dayT++;
+  if(dayT>=DAY_DUR){
+    dayT=0;gDay++;recalcExp();
+    var de=P.mExp/30,di=P.mInc/30;P.cash-=de;P.cash+=di;
+    if(de>0)toast("Day "+gDay+": -"+fD(de)+(di>0?" +"+fD(di)+" income":""),"warning");
+    var lost=[];P.biz=P.biz.filter(function(bk){var b=BIZ[bk];if(b&&Math.random()<b.r/30){lost.push(b.n);return false;}return true;});
+    if(lost.length)toast("BUSINESS FAILED: "+lost.join(", "),"error");
+    calcNW();
+    if(P.cash<0&&P.nw<0){dead=true;document.getElementById("goStats").textContent="Survived "+gDay+" days. Trades: "+P.trades;document.getElementById("gameoverOverlay").classList.add("show");pushAT();return;}
+    if(gDay%5===0)pushAT();updBar();
+  }
+}
+
+function recalcExp(){
+  P.mExp=BASE_EXP;P.mInc=0;var cats={};
+  P.life.forEach(function(k){var it=LIFE[k];if(!it)return;if(!cats[it.cat]){P.mExp-=(it.sv||0);cats[it.cat]=1;}P.mExp+=(it.ad||0);});
+  P.biz.forEach(function(bk){var b=BIZ[bk];if(b)P.mInc+=Math.max(0,b.inc*(1+(Math.random()-.5)*b.v*2));});
+  P.mExp=Math.max(0,P.mExp);
+}
+
+function calcNW(){
+  var t=P.cash;
+  for(var k in P.port)if(mkt[k])t+=P.port[k].q*mkt[k].pr;
+  for(var k in P.bmI)if(bm_state[k])t+=P.bmI[k].q*bm_state[k].pr;
+  P.biz.forEach(function(bk){if(BIZ[bk])t+=BIZ[bk].c*.7;});
+  P.nw=+t.toFixed(2);P.nwH.push(P.nw);if(P.nwH.length>100)P.nwH=P.nwH.slice(-100);
+}
+
+function schedNews(){setTimeout(function(){genNews();schedNews();},15000+Math.random()*15000);}
+function genNews(){
+  var cats=["bull","bear","cbull","cbear","bm","sp"],ws=[25,25,15,15,10,10],tot=0,i;
+  for(i=0;i<ws.length;i++)tot+=ws[i];var r=Math.random()*tot,cat="bull";
+  for(i=0;i<cats.length;i++){r-=ws[i];if(r<=0){cat=cats[i];break;}}
+  var tk=null,hl="",sent="neutral",imp=0;
+  if(cat==="bull"||cat==="bear"){var tks=Object.keys(STOCKS);tk=tks[Math.floor(Math.random()*tks.length)];var pool=cat==="bull"?NB:NR;var tmpl=pool[Math.floor(Math.random()*pool.length)];hl=tmpl[0].replace("{t}",tk);imp=tmpl[1];sent=cat==="bull"?"bullish":"bearish";}
+  else if(cat==="cbull"||cat==="cbear"){var tks=Object.keys(CRYPTO);tk=tks[Math.floor(Math.random()*tks.length)];var pool=cat==="cbull"?NCB:NCR;var tmpl=pool[Math.floor(Math.random()*pool.length)];hl=tmpl[0].replace("{t}",tk);imp=tmpl[1];sent=cat==="cbull"?"bullish":"bearish";}
+  else if(cat==="bm"){hl=NBM[Math.floor(Math.random()*NBM.length)];sent="danger";for(var k in bm_state)bm_state[k].ht=Math.min(1,bm_state[k].ht+.05);}
+  else{hl=NSP[Math.floor(Math.random()*NSP.length)];}
+  if(tk&&mkt[tk]&&imp!==0)mkt[tk].pr=Math.max(.0000001,mkt[tk].pr*(1+imp*VOL/100));
+  addN(hl,sent,tk,imp);
+}
+function addN(hl,sent,tk,imp){news.unshift({hl:hl,sent:sent||"neutral",tk:tk||null,imp:imp||0,day:gDay,tm:new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})});if(news.length>50)news.length=50;}
+
+function pushAT(){if(!AT_PAT||!AT_BASE)return;fetch("https://api.airtable.com/v0/"+AT_BASE+"/"+encodeURIComponent(AT_TABLE),{method:"POST",headers:{"Authorization":"Bearer "+AT_PAT,"Content-Type":"application/json"},body:JSON.stringify({records:[{fields:{PlayerName:P.u,NetWorth:Math.round(P.nw),TotalTrades:P.trades,TotalPL:Math.round(P.pnl),DaysSurvived:gDay,Timestamp:new Date().toISOString()}}]})}).catch(function(){});}
+function fetchAT(){if(!AT_PAT||!AT_BASE)return;fetch("https://api.airtable.com/v0/"+AT_BASE+"/"+encodeURIComponent(AT_TABLE)+"?sort%5B0%5D%5Bfield%5D=NetWorth&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=50",{headers:{"Authorization":"Bearer "+AT_PAT}}).then(function(r){return r.json()}).then(function(d){atLB=(d.records||[]).map(function(r){return r.fields})}).catch(function(){atLB=[]});}
+
+function switchTab(t){tab=t;document.querySelectorAll(".ribbon-tab,.sheet-tab").forEach(function(el){el.classList.toggle("active",el.dataset.tab===t)});if(t==="leaderboard")fetchAT();render();}
+function render(){if(!P)return;var fn={portfolio:rPort,stocks:function(){return rMkt("stock")},crypto:function(){return rMkt("crypto")},forex:function(){return rMkt("forex")},sports:rSport,blackmarket:rBMTab,lifestyle:rLife,business:rBizTab,leaderboard:rLB,news:rNT};document.getElementById("gridContainer").innerHTML=(fn[tab]||fn.portfolio)();}
+
+function fD(v){if(typeof v!=="number")return v;return v>=0?"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):"-$"+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fP(v){return(v>=0?"+":"")+v.toFixed(2)+"%";}
+function cc(v){return v>0?"pos":v<0?"neg":"";}
+function fp(p){if(p>=1000)return "$"+p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});if(p>=1)return "$"+p.toFixed(2);if(p>=.01)return "$"+p.toFixed(4);return "$"+p.toFixed(8);}
+function R(n,cells){var h='<div class="grid-row"><div class="row-num">'+n+'</div>';cells.forEach(function(c){var cl=["grid-cell"];if(c.n)cl.push("num");if(c.c)cl.push(c.c);if(c.hd)cl.push("header-cell");var oc=c.oc?' onclick="'+c.oc+'"':'';h+='<div class="'+cl.join(" ")+'"'+oc+'>'+(c.v||'')+'</div>';});return h+'</div>';}
+function H(cols){var h='<div class="col-headers"><div class="row-num"></div>',L="ABCDEFGHIJKLMNOP";cols.forEach(function(c,i){h+='<div class="col-header">'+(L[i]||'')+'</div>';});return h+'</div>';}
+function spk(hist,color){if(!hist||hist.length<2)return"";var mn=Math.min.apply(null,hist),mx=Math.max.apply(null,hist),rng=mx-mn||1,w=50,h=14;var pts=hist.map(function(v,i){return(i/(hist.length-1))*w+","+(h-((v-mn)/rng)*h);}).join(" ");return'<span class="sparkline"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" stroke="'+(color||'#4472C4')+'" stroke-width="1.2"/></svg></span>';}
+
+function rPort(){var r=1,h=H(["","B","C","D","E"]);
+  h+=R(r++,[{v:"ACCOUNT SUMMARY",hd:1},{v:""},{v:""},{v:""},{v:""}]);
+  h+=R(r++,[{v:"Cash Balance"},{v:fD(P.cash),n:1,c:P.cash>10000?"pos":P.cash<1000?"neg":""},{v:""},{v:"Net Worth"},{v:fD(P.nw),n:1,c:"pos"}]);
+  h+=R(r++,[{v:"Monthly Expenses"},{v:fD(P.mExp),n:1,c:"neg"},{v:""},{v:"Monthly Income"},{v:fD(P.mInc),n:1,c:"pos"}]);
+  h+=R(r++,[{v:"Total Trades"},{v:P.trades,n:1},{v:""},{v:"Total P&L"},{v:fD(P.pnl),n:1,c:cc(P.pnl)}]);
+  h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);
+  h+=R(r++,[{v:"NET WORTH TREND",hd:1},{v:spk(P.nwH,P.nwH[P.nwH.length-1]>=P.nwH[0]?"#107c10":"#c00")},{v:""},{v:""},{v:""}]);
+  h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);
+  h+=R(r++,[{v:"HOLDINGS",hd:1},{v:"Qty",hd:1},{v:"Avg Cost",hd:1},{v:"Mkt Price",hd:1},{v:"P&L",hd:1}]);
+  var tks=Object.keys(P.port);if(!tks.length)h+=R(r++,[{v:"No positions yet"},{v:""},{v:""},{v:""},{v:""}]);
+  tks.forEach(function(t){var pos=P.port[t],m=mkt[t],mp=m?m.pr:0,pl=(mp-pos.a)*pos.q;h+=R(r++,[{v:t,oc:"openTrade('"+t+"')"},{v:pos.q.toFixed(pos.q<1?6:2),n:1},{v:fD(pos.a),n:1},{v:fD(mp),n:1},{v:fD(pl),n:1,c:cc(pl)}]);});
+  var bmk=Object.keys(P.bmI);if(bmk.length){h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:"CONTRABAND",hd:1},{v:"Qty",hd:1},{v:"Avg Cost",hd:1},{v:"Mkt Value",hd:1},{v:"P&L",hd:1}]);bmk.forEach(function(id){var pos=P.bmI[id],b=bm_state[id],mp=b?b.pr:0,pl=(mp-pos.a)*pos.q;h+=R(r++,[{v:b?b.nm:id},{v:pos.q,n:1},{v:fD(pos.a),n:1},{v:fD(mp),n:1},{v:fD(pl),n:1,c:cc(pl)}]);});}
+  if(P.bets.length){h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:"ACTIVE BETS",hd:1},{v:"Pick",hd:1},{v:"Amount",hd:1},{v:"Odds",hd:1},{v:"Payout",hd:1}]);P.bets.forEach(function(b){h+=R(r++,[{v:b.desc},{v:b.pk},{v:fD(b.am),n:1},{v:b.od.toFixed(2)+"x",n:1},{v:fD(b.am*b.od),n:1,c:"pos"}]);});}
+  if(P.life.length){h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:"OWNED ASSETS",hd:1},{v:"Category",hd:1},{v:""},{v:""},{v:""}]);P.life.forEach(function(k){var it=LIFE[k]||{};h+=R(r++,[{v:it.n||k},{v:it.cat||""},{v:""},{v:""},{v:""}]);});}
+  if(P.biz.length){h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:"BUSINESSES",hd:1},{v:"Est. Income",hd:1},{v:""},{v:""},{v:""}]);P.biz.forEach(function(k){var b=BIZ[k]||{};h+=R(r++,[{v:b.n||k},{v:fD(b.inc)+"/mo",n:1,c:"pos"},{v:""},{v:""},{v:""}]);});}
+  return h;
+}
+
+function rMkt(tp){var h=H(["","B","C","D","E","F"]),r=1;var lbl=tp==="stock"?"STOCK MARKET":tp==="crypto"?"CRYPTOCURRENCY":"FOREX";h+=R(r++,[{v:lbl,hd:1},{v:"Price",hd:1},{v:"Change",hd:1},{v:"24h Hi",hd:1},{v:"24h Lo",hd:1},{v:"Chart",hd:1}]);for(var t in mkt){var m=mkt[t];if(m.tp!==tp)continue;var chg=m.pv>0?((m.pr-m.pv)/m.pv*100):0;h+=R(r++,[{v:t,oc:"openTrade('"+t+"')"},{v:fp(m.pr),n:1},{v:fP(chg),n:1,c:cc(chg)},{v:fp(m.hi),n:1},{v:fp(m.lo),n:1},{v:spk(m.hs,chg>=0?"#107c10":"#c00")}]);}return h;}
+
+function rSport(){var h=H(["","B","C","D","E"]),r=1;h+=R(r++,[{v:"SPORTS BETTING",hd:1},{v:"Home Odds",hd:1},{v:"Away Odds",hd:1},{v:"Draw",hd:1},{v:"Status",hd:1}]);var act=sports.filter(function(e){return e.st==="upcoming"});act.forEach(function(e){h+=R(r++,[{v:e.hm+" vs "+e.aw,oc:"openBet('"+e.id+"')"},{v:e.ho.toFixed(2)+"x",n:1,c:"pos"},{v:e.ao.toFixed(2)+"x",n:1,c:"pos"},{v:e.dr?e.dr.toFixed(2)+"x":"N/A",n:1},{v:e.sp.toUpperCase()}]);});if(!act.length)h+=R(r++,[{v:"No events right now."},{v:""},{v:""},{v:""},{v:""}]);return h;}
+
+function rBMTab(){var h=H(["","B","C","D","E"]),r=1;h+=R(r++,[{v:"// CLASSIFIED //",hd:1},{v:"Price",hd:1},{v:"Avail",hd:1},{v:"Heat",hd:1},{v:""}]);for(var id in bm_state){var b=bm_state[id],hb=Math.min(5,Math.floor(b.ht*10));h+=R(r++,[{v:b.nm,oc:"openBM('"+id+"')"},{v:fD(b.pr),n:1},{v:b.av,n:1},{v:"\u2588".repeat(hb)+"\u2591".repeat(5-hb),c:b.ht>.3?"danger":b.ht>.1?"warn":""},{v:"DEAL",c:"pos",oc:"openBM('"+id+"')"}]);}h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:"WARNING: Higher heat = higher bust risk",c:"warn"},{v:""},{v:""},{v:""},{v:""}]);return h;}
+
+function rLife(){var h=H(["","B","C","D","E"]),r=1;h+=R(r++,[{v:"LIFESTYLE & EXPENSES",hd:1},{v:"Cost",hd:1},{v:"Saves/mo",hd:1},{v:"Adds/mo",hd:1},{v:""}]);h+=R(r++,[{v:"Monthly burn: "+fD(P.mExp),c:"neg"},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);for(var k in LIFE){var it=LIFE[k],owned=P.life.indexOf(k)>=0;h+=R(r++,[{v:it.n+(owned?" [OWNED]":"")},{v:fD(it.c),n:1},{v:it.sv?"-$"+it.sv:"-",n:1,c:it.sv?"pos":""},{v:it.ad?"+$"+it.ad:"-",n:1,c:it.ad?"neg":""},{v:owned?"":"BUY",c:owned?"":"pos",oc:owned?"":"buyLife('"+k+"')"}]);}return h;}
+
+function rBizTab(){var h=H(["","B","C","D","E"]),r=1;h+=R(r++,[{v:"BUSINESS ACQUISITIONS",hd:1},{v:"Cost",hd:1},{v:"Income/mo",hd:1},{v:"Risk",hd:1},{v:""}]);h+=R(r++,[{v:"Monthly income: "+fD(P.mInc),c:"pos"},{v:""},{v:""},{v:""},{v:""}]);h+=R(r++,[{v:""},{v:""},{v:""},{v:""},{v:""}]);for(var k in BIZ){var b=BIZ[k],owned=P.biz.indexOf(k)>=0,rb=Math.floor(b.r*20);h+=R(r++,[{v:b.n+(owned?" [OWNED]":"")},{v:fD(b.c),n:1},{v:fD(b.inc)+"/mo",n:1,c:"pos"},{v:"\u2588".repeat(rb)+"\u2591".repeat(3-Math.min(3,rb)),c:b.r>.1?"warn":""},{v:owned?"ACTIVE":"BUY",c:owned?"pos":"",oc:owned?"":"buyBiz('"+k+"')"}]);}return h;}
+
+function rLB(){var h=H(["","B","C","D","E"]),r=1;h+=R(r++,[{v:"GLOBAL RANKINGS",hd:1},{v:"Net Worth",hd:1},{v:"Trades",hd:1},{v:"P&L",hd:1},{v:"Days",hd:1}]);h+=R(r++,[{v:"#1 "+P.u+" (YOU)",c:"pos"},{v:fD(P.nw),n:1,c:"pos"},{v:P.trades,n:1},{v:fD(P.pnl),n:1,c:cc(P.pnl)},{v:gDay,n:1}]);atLB.forEach(function(p,i){if(p.PlayerName===P.u)return;h+=R(r++,[{v:"#"+(i+2)+" "+(p.PlayerName||"???")},{v:fD(p.NetWorth||0),n:1},{v:p.TotalTrades||0,n:1},{v:fD(p.TotalPL||0),n:1,c:cc(p.TotalPL||0)},{v:p.DaysSurvived||0,n:1}]);});if(!atLB.length)h+=R(r++,[{v:"Connect Airtable for global rankings"},{v:""},{v:""},{v:""},{v:""}]);return h;}
+
+function rNT(){var h=H(["","B","C"]),r=1;h+=R(r++,[{v:"NEWS & EVENTS",hd:1},{v:"Impact",hd:1},{v:"Time",hd:1}]);news.forEach(function(n){h+=R(r++,[{v:n.hl,c:n.sent==="bullish"?"pos":n.sent==="bearish"?"neg":n.sent==="danger"?"danger":""},{v:n.imp?fP(n.imp*100):"-",n:1,c:n.imp>0?"pos":n.imp<0?"neg":""},{v:"Day "+n.day+" "+n.tm}]);});return h;}
+
+function openTrade(t){if(P.busted)return toast("Trading suspended","error");curT=t;var m=mkt[t];if(!m)return;document.getElementById("tradeAsset").textContent=t+" - "+m.nm;document.getElementById("tradePrice").textContent=fp(m.pr);document.getElementById("tradeCash").textContent=fD(P.cash);var pos=P.port[t];document.getElementById("tradeHolding").textContent=pos?pos.q.toFixed(pos.q<1?6:2):"0";document.getElementById("tradeQty").value="1";updateTradeTotal();document.getElementById("tradeModal").classList.add("show");document.getElementById("formulaText").textContent='=TRADE("'+t+'", PRICE='+fp(m.pr)+')';}
+function adjustQty(d){var i=document.getElementById("tradeQty"),v=parseFloat(i.value)||0;i.value=Math.max(0,v+d);updateTradeTotal();}
+function setMaxQty(){var m=mkt[curT];if(!m)return;document.getElementById("tradeQty").value=Math.floor(P.cash/m.pr);updateTradeTotal();}
+function updateTradeTotal(){var m=mkt[curT];if(!m)return;var q=parseFloat(document.getElementById("tradeQty").value)||0;document.getElementById("tradeTotal").textContent=(q*m.pr).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function executeTrade(act){var q=parseFloat(document.getElementById("tradeQty").value)||0;if(q<=0)return toast("Enter a quantity","error");var m=mkt[curT];if(!m)return;if(act==="buy"){var cost=q*m.pr;if(cost>P.cash)return toast("Not enough cash","error");P.cash-=cost;if(!P.port[curT])P.port[curT]={q:0,a:0};var pos=P.port[curT],tc=pos.a*pos.q+cost;pos.q+=q;pos.a=tc/pos.q;P.trades++;toast("Bought "+q+" "+curT+" @ "+fp(m.pr),"success");}else{var pos=P.port[curT];if(!pos||pos.q<q)return toast("Not enough shares","error");var rev=q*m.pr,profit=(m.pr-pos.a)*q;P.cash+=rev;P.pnl+=profit;pos.q-=q;if(pos.q<=.0001)delete P.port[curT];P.trades++;toast("Sold "+q+" "+curT+" P&L: "+fD(profit),profit>=0?"success":"error");}closeModal("tradeModal");calcNW();render();updBar();}
+
+function openBet(eid){var ev=sports.filter(function(e){return e.id===eid})[0];if(!ev||ev.st!=="upcoming")return toast("Event not available","error");curBet=ev;document.getElementById("betMatch").textContent=ev.hm+" vs "+ev.aw;document.getElementById("betSport").textContent=ev.sp.toUpperCase();var btns='<button class="btn btn-bet" style="flex:1" onclick="placeBet(\'home\')">HOME '+ev.ho.toFixed(2)+'x</button>';btns+='<button class="btn btn-bet" style="flex:1" onclick="placeBet(\'away\')">AWAY '+ev.ao.toFixed(2)+'x</button>';if(ev.dr!==null)btns+='<button class="btn btn-bet" style="flex:1" onclick="placeBet(\'draw\')">DRAW '+ev.dr.toFixed(2)+'x</button>';document.getElementById("betButtons").innerHTML=btns;document.getElementById("betAmount").value="100";document.getElementById("betModal").classList.add("show");}
+function placeBet(pk){var am=parseFloat(document.getElementById("betAmount").value)||0;if(am<=0)return toast("Enter bet amount","error");if(am>P.cash)return toast("Not enough cash","error");var ev=curBet,od=pk==="home"?ev.ho:pk==="away"?ev.ao:ev.dr;P.cash-=am;P.bets.push({eid:ev.id,desc:ev.hm+" vs "+ev.aw,pk:pk,am:am,od:od});P.trades++;toast("Bet: "+fD(am)+" on "+pk+" @ "+od+"x","success");closeModal("betModal");render();updBar();}
+
+function openBM(id){if(P.busted)return toast("Trading suspended","error");curBM=id;var b=bm_state[id];if(!b)return;document.getElementById("bmAsset").textContent=b.nm;document.getElementById("bmPrice").textContent=fD(b.pr);document.getElementById("bmAvail").textContent=b.av;var hb=Math.min(5,Math.floor(b.ht*10));document.getElementById("bmHeat").textContent="\u2588".repeat(hb)+"\u2591".repeat(5-hb)+" ("+(b.ht*100).toFixed(0)+"%)";document.getElementById("bmQty").value="1";document.getElementById("bmModal").classList.add("show");}
+function executeBMTrade(act){var q=parseInt(document.getElementById("bmQty").value)||0;if(q<=0)return toast("Enter a quantity","error");var b=bm_state[curBM];if(!b)return;if(Math.random()<b.ht*.5){P.busted=true;P.bustT=3;if(P.bmI[curBM]){var conf=Math.ceil(P.bmI[curBM].q*.5);P.bmI[curBM].q-=conf;if(P.bmI[curBM].q<=0)delete P.bmI[curBM];}document.getElementById("bustedOverlay").classList.add("show");setTimeout(function(){document.getElementById("bustedOverlay").classList.remove("show")},4000);closeModal("bmModal");toast("BUSTED! Contraband confiscated.","error");return;}if(act==="buy"){if(q>b.av)return toast("Not enough available","error");var cost=q*b.pr;if(cost>P.cash)return toast("Not enough cash","error");P.cash-=cost;b.av-=q;if(!P.bmI[curBM])P.bmI[curBM]={q:0,a:0};var pos=P.bmI[curBM],tc=pos.a*pos.q+cost;pos.q+=q;pos.a=tc/pos.q;b.ht=Math.min(1,b.ht+.05*q);P.trades++;toast("Acquired "+q+"x "+b.nm,"success");}else{var pos=P.bmI[curBM];if(!pos||pos.q<q)return toast("Not enough","error");var rev=q*b.pr,profit=(b.pr-pos.a)*q;P.cash+=rev;P.pnl+=profit;pos.q-=q;if(pos.q<=0)delete P.bmI[curBM];b.ht=Math.min(1,b.ht+.03*q);P.trades++;toast("Offloaded "+q+"x P&L: "+fD(profit),profit>=0?"success":"error");}closeModal("bmModal");calcNW();render();updBar();}
+
+function buyLife(k){var it=LIFE[k];if(!it)return;if(P.life.indexOf(k)>=0)return toast("Already owned","error");if(it.c>P.cash)return toast("Need "+fD(it.c),"error");P.cash-=it.c;P.life.push(k);recalcExp();P.trades++;toast("Purchased "+it.n,"success");calcNW();render();updBar();}
+function buyBiz(k){var b=BIZ[k];if(!b)return;if(P.biz.indexOf(k)>=0)return toast("Already owned","error");if(b.c>P.cash)return toast("Need "+fD(b.c),"error");P.cash-=b.c;P.biz.push(k);recalcExp();P.trades++;toast("Acquired "+b.n+" +"+fD(b.inc)+"/mo","success");calcNW();render();updBar();}
+
+function closeModal(id){document.getElementById(id).classList.remove("show");}
+function toast(msg,type){var t=document.getElementById("toast");t.textContent=msg;t.className="toast show "+(type||"");clearTimeout(t._tm);t._tm=setTimeout(function(){t.className="toast"},3000);}
+function updBar(){if(!P)return;document.getElementById("statusLeft").textContent=P.busted?"BUSTED":"Ready";document.getElementById("statusRight").textContent="Day "+gDay+" ("+Math.floor(dayT/DAY_DUR*100)+"%) | "+fD(P.nw);}
+function updTicker(){var el=document.getElementById("newsTicker");el.innerHTML=news.slice(0,5).map(function(n){return'<span class="news-item '+n.sent+'"> \u25CF '+n.hl+' &nbsp;&nbsp;&nbsp;</span>';}).join("");}
+document.querySelectorAll(".modal-overlay").forEach(function(el){el.addEventListener("click",function(e){if(e.target===el)el.classList.remove("show")});});
+document.getElementById("usernameInput").addEventListener("keypress",function(e){if(e.key==="Enter")joinGame()});
+</script>
+</body>
+</html>
