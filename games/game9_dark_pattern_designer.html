@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dark Pattern Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #1d3557; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 5px; background: #e9ecef; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 14px; }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .level-badge { display: inline-flex; background: #f0f4ff; color: #1d3557; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .brief-box { background: #f8f9ff; border-radius: 10px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #1d3557; }
+  .brief-label { font-size: 11px; font-weight: 700; color: #1d3557; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .brief-text { font-size: 14px; line-height: 1.6; color: #333; }
+  .constraint-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .constraint-tag { background: #d4edda; color: #155724; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .tool-item { border: 2px solid #e9ecef; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; }
+  .tool-item:hover { border-color: #1d3557; background: #f0f4ff; }
+  .tool-item.applied { border-color: #1d3557; background: #f0f4ff; }
+  .tool-name { font-size: 13px; font-weight: 600; }
+  .tool-desc { font-size: 12px; color: #6c757d; margin-top: 2px; }
+  .tool-effect { font-size: 11px; font-weight: 600; color: #1d3557; margin-top: 4px; }
+  .preview-area { background: #f4f4f4; border-radius: 8px; padding: 16px; min-height: 250px; }
+  .sim-header { background: #1d3557; color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; font-weight: 600; }
+  .sim-content { font-size: 13px; color: #333; margin-bottom: 12px; }
+  .big-btn { display: block; width: 100%; padding: 12px; border-radius: 8px; text-align: center; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.3s; margin-bottom: 8px; }
+  .sim-small { font-size: 10px; color: #aaa; text-align: center; }
+  .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .score-label { font-size: 12px; color: #555; }
+  .score-val { font-size: 12px; font-weight: 700; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #1d3557; color: #fff; width: 100%; }
+  .btn-primary:hover { background: #152840; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .hidden { display: none; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  @media (max-width: 700px) { .kpi-row { grid-template-columns: 1fr 1fr; } .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>Dark Pattern Designer</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">Make the "Delete Account" button disappear without breaking the law.</div>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Level</div><div class="kpi-val" id="level-val" style="color:#1d3557;">1 / 5</div></div>
+    <div class="kpi"><div class="kpi-label">Retention Score</div><div class="kpi-val" id="retention-val">0%</div><div class="kpi-sub">Users who didn't delete</div><div class="bar-wrap"><div class="bar-fill" id="retention-bar" style="width:0%;background:#1d3557;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Legal Compliance</div><div class="kpi-val" id="legal-val" style="color:#2ecc71;">✓ Legal</div><div class="kpi-sub">Must stay legal</div></div>
+    <div class="kpi"><div class="kpi-label">Total Score</div><div class="kpi-val" id="total-score-val" style="color:#1d3557;">0</div></div>
+  </div>
+  <div class="main-grid">
+    <div>
+      <div class="card">
+        <span class="level-badge">Level <span id="level-label">1</span> — <span id="level-name">The Rookie</span></span>
+        <div class="brief-box">
+          <div class="brief-label">Client Brief</div>
+          <div class="brief-text" id="brief-text">Loading...</div>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Constraints</div>
+        <div class="constraint-list" id="constraint-list"></div>
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Dark Pattern Toolbox</div>
+        <div id="toolbox"></div>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitDesign()" style="margin-top:12px;" disabled>Submit Design →</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Live Preview</div>
+        <div class="preview-area">
+          <div class="sim-header">🔷 MegaApp — Account Settings</div>
+          <div class="sim-content" id="sim-content">Select patterns to apply...</div>
+          <div id="sim-buttons"></div>
+          <div class="sim-small" id="sim-small"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Design Score</h2>
+        <div class="score-row"><span class="score-label">Retention Power</span><span class="score-val" id="sm-retention">0%</span></div>
+        <div class="bar-wrap" style="margin-bottom:8px;"><div class="bar-fill" id="sm-retention-bar" style="width:0%;background:#1d3557;"></div></div>
+        <div class="score-row"><span class="score-label">Legal Risk</span><span class="score-val" id="sm-legal">Low</span></div>
+        <div class="bar-wrap" style="margin-bottom:8px;"><div class="bar-fill" id="sm-legal-bar" style="width:5%;background:#2ecc71;"></div></div>
+        <div class="score-row"><span class="score-label">Patterns Applied</span><span class="score-val" id="sm-patterns">0</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Career Complete</h2>
+    <p id="end-desc"></p>
+    <div style="background:#f0f4ff;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#1d3557;margin-bottom:6px;">BIAS REVEALED: Anchoring</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You anchored users on the bright "Stay" button. The Anchoring Bias means the first piece of information seen becomes the reference point for all decisions. The "Delete" option existed — it was legal — but anchored so far from the user's attention it might as well not have. You didn't deceive them. You just controlled what they noticed first.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">New Contract</button>
+  </div>
+</div>
+<script>
+const LEVELS=[{id:1,name:'The Rookie',retention_target:55,brief:'BigCorp wants to reduce churn. Make the "Delete Account" button harder to find. Legal says: the button must exist and be accessible within 3 clicks.',constraints:['Must delete in ≤3 clicks','No fake buttons','GDPR compliant'],tools_allowed:['color_anchor','small_text','confirm_shame']},{id:2,name:'The Strategist',retention_target:68,brief:'StreamFlix: Users cancelling subscriptions too easily. Make cancellation a multi-step process while technically available. Legal: cannot exceed 5 steps.',constraints:['≤5 steps','Must show final cancellation','No fake errors'],tools_allowed:['color_anchor','small_text','confirm_shame','roach_motel','misdirection']},{id:3,name:'The Architect',retention_target:78,brief:'SocialLoop: Keep users from deleting accounts for 30 days after requesting. Legal: 30-day "cooling off" period is allowed by TOS.',constraints:['30-day delay is legal','Must inform user of delay','Cannot delete data early'],tools_allowed:['color_anchor','small_text','confirm_shame','roach_motel','misdirection','fake_urgency','social_proof_loss']},{id:4,name:'The Veteran',retention_target:85,brief:'BankRight: Stop users from closing accounts. Legal: Must close in ≤10 business days. Interface must not mislead about account status.',constraints:['≤10 day close timeline','Cannot misrepresent status','Must confirm on request'],tools_allowed:['color_anchor','small_text','confirm_shame','roach_motel','misdirection','fake_urgency','social_proof_loss','hidden_cost_reveal']},{id:5,name:'The Maestro',retention_target:92,brief:'TechGiant: Design the ultimate anti-churn flow. All patterns signed off legally. Maximize retention without a single illegal element.',constraints:['All toolbox patterns legal','No genuine deception','Must close within 7 days if requested'],tools_allowed:['color_anchor','small_text','confirm_shame','roach_motel','misdirection','fake_urgency','social_proof_loss','hidden_cost_reveal']}];
+const TOOLS={color_anchor:{name:'Color Anchoring',desc:'Make "Stay" bright and primary. Make "Delete" gray and small.',effect:'+20% retention',retention:20,legalRisk:0},small_text:{name:'Micro-Text Exit',desc:'Shrink the delete link to 8px, gray-on-gray, bottom of page.',effect:'+15% retention',retention:15,legalRisk:5},confirm_shame:{name:'Confirmshaming',desc:'"No thanks, I want worse results" as the cancel option.',effect:'+12% retention',retention:12,legalRisk:10},roach_motel:{name:'Roach Motel',desc:'Sign up in 1 click, cancel through 4 buried menus.',effect:'+25% retention',retention:25,legalRisk:25},misdirection:{name:'Attention Misdirection',desc:'Pop-up "special offer" appears the moment they click Settings.',effect:'+18% retention',retention:18,legalRisk:8},fake_urgency:{name:'False Urgency Banner',desc:'"Your data will be lost FOREVER in 24 hours!" (it won\'t).',effect:'+10% retention, +30% legal risk',retention:10,legalRisk:30},social_proof_loss:{name:'Social Proof Loss',desc:'"12,847 people left last month and regretted it."',effect:'+14% retention',retention:14,legalRisk:5},hidden_cost_reveal:{name:'Last-Second Cost Reveal',desc:'Show all benefits being lost in a graphic at the last step.',effect:'+22% retention',retention:22,legalRisk:12}};
+let state={levelIdx:0,totalScore:0,appliedTools:[],gameOver:false};
+function currentLevel(){return LEVELS[state.levelIdx];}
+function renderLevel(){const lv=currentLevel();document.getElementById('level-val').textContent=(state.levelIdx+1)+' / 5';document.getElementById('level-label').textContent=state.levelIdx+1;document.getElementById('level-name').textContent=lv.name;document.getElementById('brief-text').textContent=lv.brief;const cl=document.getElementById('constraint-list');cl.innerHTML='';lv.constraints.forEach(c=>{const t=document.createElement('span');t.className='constraint-tag';t.textContent='✓ '+c;cl.appendChild(t);});const tb=document.getElementById('toolbox');tb.innerHTML='';state.appliedTools=[];lv.tools_allowed.forEach(tid=>{const t=TOOLS[tid];const div=document.createElement('div');div.className='tool-item';div.id='tool-'+tid;div.innerHTML=`<div class="tool-name">${t.name}</div><div class="tool-desc">${t.desc}</div><div class="tool-effect">${t.effect}</div>`;div.onclick=()=>toggleTool(tid);tb.appendChild(div);});updatePreview();updateScores();}
+function toggleTool(tid){const idx=state.appliedTools.indexOf(tid);if(idx>=0)state.appliedTools.splice(idx,1);else state.appliedTools.push(tid);document.getElementById('tool-'+tid).classList.toggle('applied',state.appliedTools.includes(tid));updatePreview();updateScores();}
+function updatePreview(){const hasCA=state.appliedTools.includes('color_anchor');const hasST=state.appliedTools.includes('small_text');const hasCS=state.appliedTools.includes('confirm_shame');const hasMD=state.appliedTools.includes('misdirection');const hasFU=state.appliedTools.includes('fake_urgency');let content=hasMD?'🎁 SPECIAL OFFER: 3 months free if you stay! Limited time.':'We\'ll miss you! Before you go, check out your benefits:';if(hasFU)content+='<br>⚠️ WARNING: Your photos will be permanently deleted in 24 hours!';document.getElementById('sim-content').innerHTML=content;const btns=document.getElementById('sim-buttons');const delStyle=hasST?'background:#f8f9fa;color:#ccc;font-size:10px;padding:6px;':'background:#f8f9fa;color:#888;font-size:13px;padding:10px;';const stayStyle=hasCA?'background:#1d3557;color:#fff;font-size:15px;padding:14px;':'background:#e9ecef;color:#555;font-size:13px;padding:10px;';const cancelLabel=hasCS?'No thanks, I prefer to lose all my data and memories':'Delete Account';btns.innerHTML=`<button class="big-btn" style="${stayStyle}">Keep My Account ✓</button><button class="big-btn" style="${delStyle}">${cancelLabel}</button>`;document.getElementById('sim-small').textContent=hasST?'Delete option available in settings > privacy > account > close > confirm':'';}
+function updateScores(){let retention=0,legalRisk=0;state.appliedTools.forEach(tid=>{retention+=TOOLS[tid].retention;legalRisk+=TOOLS[tid].legalRisk;});retention=Math.min(99,retention);const isLegal=legalRisk<50;document.getElementById('sm-retention').textContent=retention+'%';document.getElementById('sm-retention-bar').style.width=retention+'%';document.getElementById('sm-legal').textContent=legalRisk<20?'Low':legalRisk<40?'Medium':'⚠️ High Risk';document.getElementById('sm-legal').style.color=legalRisk<20?'#2ecc71':legalRisk<40?'#f39c12':'#e74c3c';document.getElementById('sm-legal-bar').style.width=legalRisk+'%';document.getElementById('sm-legal-bar').style.background=legalRisk<20?'#2ecc71':legalRisk<40?'#f39c12':'#e74c3c';document.getElementById('sm-patterns').textContent=state.appliedTools.length;document.getElementById('retention-val').textContent=retention+'%';document.getElementById('retention-bar').style.width=retention+'%';document.getElementById('legal-val').textContent=isLegal?'✓ Legal':'⚠️ Risky';document.getElementById('legal-val').style.color=isLegal?'#2ecc71':'#e74c3c';document.getElementById('submit-btn').disabled=state.appliedTools.length===0;}
+function submitDesign(){const lv=currentLevel();let retention=0,legalRisk=0;state.appliedTools.forEach(tid=>{retention+=TOOLS[tid].retention;legalRisk+=TOOLS[tid].legalRisk;});retention=Math.min(99,retention);const isLegal=legalRisk<50;if(!isLegal){alert(`Legal violation detected. ${legalRisk}% risk score exceeded threshold. Design rejected.`);return;}if(retention<lv.retention_target){alert(`Retention score ${retention}% — below target ${lv.retention_target}%. Apply more patterns.`);return;}const levelScore=Math.round(retention*10);state.totalScore+=levelScore;document.getElementById('total-score-val').textContent=state.totalScore;state.levelIdx++;if(state.levelIdx>=LEVELS.length){endGame();return;}renderLevel();}
+function endGame(){state.gameOver=true;document.getElementById('end-title').textContent='🏆 Career Complete — Dark Pattern Maestro';document.getElementById('end-desc').textContent=`All 5 levels completed. Total score: ${state.totalScore}. Every design was legally compliant. Not one illegal element. And yet — millions of users who wanted to leave were kept from doing so by the architecture of your attention.`;document.getElementById('end-modal').classList.remove('hidden');}
+function restartGame(){state={levelIdx:0,totalScore:0,appliedTools:[],gameOver:false};document.getElementById('end-modal').classList.add('hidden');document.getElementById('total-score-val').textContent=0;renderLevel();}
+renderLevel();
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Prompt Builder - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.ptabs{display:flex;gap:.4rem;margin-bottom:1.5rem}
+.ptab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.35rem .9rem;border-radius:5px;font-size:.82rem;cursor:pointer}
+.ptab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.25rem;margin-bottom:1.25rem}
+.card h2{font-size:.82rem;font-weight:600;color:#16a34a;margin-bottom:.7rem}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.25rem;margin-top:.6rem}
+label:first-child{margin-top:0}
+select,input{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.45rem .7rem;border-radius:5px;font-size:.82rem;font-family:inherit}
+.tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem}
+.tag{background:#111;border:1px solid #2a2a2a;color:#777;padding:.2rem .5rem;border-radius:4px;font-size:.72rem;cursor:pointer;user-select:none}
+.tag.on{background:#16a34a22;border-color:#16a34a;color:#16a34a}
+.btn{background:#16a34a;color:#fff;border:none;padding:.6rem 1.4rem;border-radius:6px;font-size:.88rem;cursor:pointer;font-family:inherit;font-weight:500}
+.btn:hover{background:#15803d}
+.btn2{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:.4rem .9rem;border-radius:5px;font-size:.78rem;cursor:pointer;font-family:inherit;margin-left:.5rem}
+.out{margin-top:1.25rem;background:#0d0d0d;border:1px solid #333;border-radius:8px;padding:1.25rem;font-size:.82rem;line-height:1.8;color:#ccc;min-height:90px;white-space:pre-wrap;word-break:break-word}
+.hint{font-size:.73rem;color:#555;margin-top:.5rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>AI Prompt Builder</h1>
+<p class="sub">Build optimized prompts for Midjourney, Stable Diffusion, and DALL-E. Architecture and design focused.</p>
+<div class="ptabs">
+  <div class="ptab active" onclick="setP('mj',this)">Midjourney</div>
+  <div class="ptab" onclick="setP('sd',this)">Stable Diffusion XL</div>
+  <div class="ptab" onclick="setP('de',this)">DALL-E 3</div>
+</div>
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>Subject</h2>
+      <label>Building / Space Type</label>
+      <select id="btype"><option value="">select</option><option>residential house</option><option>apartment building</option><option>office tower</option><option>museum</option><option>cultural center</option><option>library</option><option>hotel</option><option>resort</option><option>mixed-use development</option><option>industrial warehouse</option><option>pavilion</option><option>chapel</option><option>urban plaza</option><option>landscape park</option><option>interior living space</option><option>interior office</option><option>restaurant interior</option></select>
+      <label>Custom Subject</label>
+      <input type="text" id="csub" placeholder="e.g. brutalist concrete museum on a cliff edge">
+    </div>
+    <div class="card"><h2>Architectural Style</h2><div class="tags" id="tStyle"></div></div>
+    <div class="card"><h2>Rendering Style</h2><div class="tags" id="tRender"></div></div>
+    <div class="card"><h2>Artist / Reference</h2><div class="tags" id="tArtist"></div></div>
+  </div>
+  <div>
+    <div class="card"><h2>Camera and Viewpoint</h2><div class="tags" id="tView"></div></div>
+    <div class="card"><h2>Light and Atmosphere</h2><div class="tags" id="tTime"></div><div class="tags" id="tMood" style="margin-top:.4rem"></div></div>
+    <div class="card"><h2>Quality Boosters</h2><div class="tags" id="tQual"></div></div>
+    <div class="card"><h2>Negative - exclude</h2><div class="tags" id="tNeg"></div></div>
+    <div class="card">
+      <h2>Parameters</h2>
+      <label>Aspect Ratio</label>
+      <select id="ar"><option value="16:9">16:9 Landscape</option><option value="1:1">1:1 Square</option><option value="4:3">4:3 Standard</option><option value="2:3">2:3 Portrait</option><option value="21:9">21:9 Ultrawide</option></select>
+      <label>MJ Version</label>
+      <select id="ver"><option value="--v 6.1">v6.1</option><option value="--v 6">v6</option><option value="--v 5.2">v5.2</option><option value="">None</option></select>
+    </div>
+  </div>
+</div>
+<button class="btn" onclick="build()">Build Prompt</button>
+<button class="btn2" onclick="copy()">Copy</button>
+<div class="out" id="out">Your prompt will appear here...</div>
+<p class="hint">Click tags to toggle. Mix styles for hybrid results.</p>
+<script>
+var P='mj',S={};
+var D={tStyle:['brutalist','minimalist','parametric','deconstructivist','modernist','art deco','biophilic','high-tech','neoclassical','organic','japandi','scandinavian'],tRender:['photorealistic','arch viz','concept art','watercolor sketch','line drawing','V-Ray render','Unreal Engine 5','cinematic photography'],tArtist:['Zaha Hadid','Tadao Ando','Renzo Piano','Rem Koolhaas','Bjarke Ingels','Peter Zumthor','Herzog and de Meuron','Kengo Kuma','MVRDV'],tView:['exterior street level','aerial drone','interior perspective','axonometric','section cut','detail close-up','panoramic wide'],tTime:['golden hour','blue hour','midday','overcast','night scene','dawn mist','dramatic sunset'],tMood:['serene','dramatic','stormy','foggy','ethereal','vibrant','moody','warm glow'],tQual:['8K','hyperdetailed','award-winning','sharp focus','studio lighting','HDR','masterpiece'],tNeg:['blurry','distorted','low quality','watermark','text','ugly','deformed','people','cars']};
+function init(){Object.keys(D).forEach(function(id){S[id]=[];var el=document.getElementById(id);if(el)el.innerHTML=D[id].map(function(t){return '<span class="tag" onclick="tog(\''+id+'\',\''+t.replace(/'/g,'').replace(/&/g,'and')+'\',this)">'+t+'</span>';}).join('');});}
+function tog(g,v,el){var i=S[g].indexOf(v);if(i>-1){S[g].splice(i,1);el.classList.remove('on');}else{S[g].push(v);el.classList.add('on');}}
+function setP(p,el){P=p;document.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('active');});el.classList.add('active');}
+function build(){
+  var sub=document.getElementById('csub').value.trim()||document.getElementById('btype').value||'modern architectural building';
+  var ar=document.getElementById('ar').value,ver=document.getElementById('ver').value;
+  var parts=[sub].concat(S.tStyle,S.tRender,S.tView,S.tTime,S.tMood,S.tQual);
+  if(S.tArtist.length)parts.push('in the style of '+S.tArtist.join(', '));
+  var pos=parts.filter(Boolean).join(', ');
+  var neg=S.tNeg.join(', ');
+  var out='';
+  if(P==='mj')out=pos+(neg?' --no '+neg:'')+' --ar '+ar+(ver?' '+ver:'')+' --q 2 --s 750';
+  else if(P==='sd')out='POSITIVE:\n'+pos+'\n\nNEGATIVE:\n'+(neg||'blurry, low quality, distorted');
+  else out='Create a photorealistic architectural image of: '+pos+'. Aspect ratio '+ar+'. Ultra high quality.';
+  document.getElementById('out').textContent=out;
+}
+function copy(){navigator.clipboard.writeText(document.getElementById('out').textContent).catch(function(){});}
+init();
+</script>
+</body>
+</html>

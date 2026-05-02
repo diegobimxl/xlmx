@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOA Dictator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #2b9348; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 980px; margin: 0 auto; padding: 20px 16px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 5px; background: #e9ecef; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .street { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .house { border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; background: #f8f9fa; }
+  .house:hover { border-color: #2b9348; transform: scale(1.04); }
+  .house.selected { border-color: #2b9348; box-shadow: 0 0 0 3px rgba(43,147,72,0.2); }
+  .house.fined { border-color: #e74c3c; }
+  .house.yours { border-color: #f1c40f; box-shadow: 0 0 0 3px rgba(241,196,15,0.2); }
+  .house-icon { font-size: 24px; }
+  .house-name { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .house-score { font-size: 11px; color: #6c757d; }
+  .violation-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 6px; transition: all 0.15s; }
+  .violation-item.selected-v { background: #f0fff4; border-color: #2b9348; }
+  .v-name { font-size: 13px; font-weight: 500; }
+  .v-fine { font-size: 13px; font-weight: 700; color: #2b9348; }
+  .v-check { width: 18px; height: 18px; border-radius: 4px; border: 2px solid #dee2e6; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+  .v-check.checked { background: #2b9348; border-color: #2b9348; color: #fff; font-size: 12px; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #2b9348; color: #fff; width: 100%; }
+  .btn-primary:hover { background: #1f7a38; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: #f1f3f4; color: #1a1a2e; }
+  .log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 160px; overflow-y: auto; }
+  .log-entry { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+  .log-entry.fine { color: #2b9348; font-weight: 600; }
+  .log-entry.warn { color: #e74c3c; font-weight: 600; }
+  .upgrade-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 8px; }
+  .up-name { font-size: 13px; font-weight: 500; }
+  .up-cost { font-size: 12px; color: #6c757d; }
+  .up-btn { padding: 4px 12px; border-radius: 6px; background: #f0fff4; border: 1px solid #2b9348; color: #2b9348; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .up-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .hidden { display: none; }
+  .season-badge { display: inline-flex; align-items: center; background: #f0fff4; color: #2b9348; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  @media (max-width: 700px) { .kpi-row { grid-template-columns: 1fr 1fr; } .main-layout { grid-template-columns: 1fr; } .street { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>HOA Dictator</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">Your neighborhood. Your rules. Your power.</div>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">HOA Treasury</div><div class="kpi-val" id="treasury-val" style="color:#2b9348;">$4,200</div><div class="kpi-sub">Fines collected</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Property Value</div><div class="kpi-val" id="propval-val">$320K</div><div class="kpi-sub">Your home: $320K</div></div>
+    <div class="kpi"><div class="kpi-label">Neighborhood Score</div><div class="kpi-val" id="hood-val">72</div><div class="bar-wrap"><div class="bar-fill" id="hood-bar" style="width:72%;background:#2b9348;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Neighbor Approval</div><div class="kpi-val" id="approval-val" style="color:#f39c12;">65%</div><div class="bar-wrap"><div class="bar-fill" id="approval-bar" style="width:65%;background:#f39c12;"></div></div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <span class="season-badge">🌿 Season <span id="season-display">1</span> of 8</span>
+    <button class="btn btn-secondary" onclick="endSeason()" style="margin-left:auto;">End Season →</button>
+  </div>
+  <div class="main-layout">
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h2>Maple Lane — Select a neighbor to inspect</h2>
+        <div class="street" id="street-grid"></div>
+        <div id="selected-neighbor-info" style="margin-top:12px;font-size:13px;color:#aaa;">Click a neighbor's home to inspect it.</div>
+      </div>
+      <div class="card">
+        <h2>Issue Violations</h2>
+        <div id="violation-list"><div style="font-size:13px;color:#aaa;">Select a neighbor first.</div></div>
+        <button class="btn btn-primary" id="fine-btn" disabled onclick="issueFines()" style="margin-top:12px;">Issue Fines →</button>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px;">
+        <h2>Upgrade Your Home</h2>
+        <div id="upgrade-list"></div>
+      </div>
+      <div class="card">
+        <h2>HOA Chronicle</h2>
+        <div class="log" id="game-log"><div class="log-entry fine">Season 1 — You are now HOA President. Power is yours.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">HOA Season Complete</h2>
+    <p id="end-desc"></p>
+    <div style="background:#f0fff4;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#2b9348;margin-bottom:6px;">BIAS REVEALED: In-group / Out-group Bias</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You systematically fined the neighbors who were "different." The HOA gave this bias a legal framework and a revenue model. Your lawn is "tasteful"; their garden is a "violation." The power to define the standard is the power to exclude — and you used it to fund your own upgrades.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">New HOA Term</button>
+  </div>
+</div>
+<script>
+const NEIGHBORS=[{id:0,name:'The Johnsons',icon:'🟡',style:'Classic',baseViolations:['Grass over 3"','Driveway stain','Wrong mailbox color'],approval:8},{id:1,name:'The Garcias',icon:'🟠',style:'Colorful',baseViolations:['Non-approved paint','Garden gnomes','Bright door color','Wind chimes'],approval:7},{id:2,name:'The Nguyens',icon:'🔵',style:'Minimalist',baseViolations:['Rock garden','No holiday lights'],approval:6},{id:3,name:'The Petrovs',icon:'🟣',style:'Eastern European',baseViolations:['Vegetable garden','Clothesline','Outdoor furniture style'],approval:5},{id:4,name:'The Smiths',icon:'⚪',style:'Standard',baseViolations:['Grass over 3"'],approval:9},{id:5,name:'The Okafor',icon:'🟢',style:'African Diaspora',baseViolations:['Bright fabrics','Noise level','Car on grass','Non-standard porch'],approval:4},{id:6,name:'The Lees',icon:'🔴',style:'Asian Garden',baseViolations:['Koi pond','Bamboo fence','Lanterns'],approval:6},{id:7,name:'The Browns',icon:'🟤',style:'Vintage',baseViolations:['Old car on property','Peeling paint'],approval:7}];
+const VIOLATION_FINES={'Grass over 3"':150,'Driveway stain':200,'Wrong mailbox color':100,'Non-approved paint':500,'Garden gnomes':75,'Bright door color':250,'Wind chimes':50,'Rock garden':300,'No holiday lights':100,'Vegetable garden':400,'Clothesline':200,'Outdoor furniture style':250,'Bright fabrics':300,'Noise level':500,'Car on grass':600,'Non-standard porch':350,'Koi pond':450,'Bamboo fence':300,'Lanterns':150,'Old car on property':500,'Peeling paint':400};
+const UPGRADES=[{id:'lawn',name:'🌿 Premium Lawn Service',cost:800,propBonus:15000,done:false},{id:'fence',name:'🏡 Designer Fence',cost:1200,propBonus:20000,done:false},{id:'driveway',name:'🚗 Paver Driveway',cost:2000,propBonus:35000,done:false},{id:'garden',name:'🌸 Curated Garden',cost:1500,propBonus:25000,done:false},{id:'exterior',name:'🎨 Exterior Repaint',cost:1800,propBonus:30000,done:false}];
+let state={season:1,treasury:4200,myPropVal:320000,hoodScore:72,approval:65,selectedNeighbor:null,selectedViolations:[],finesIssued:0,gameOver:false,neighborsFined:{}};
+function renderStreet(){const grid=document.getElementById('street-grid');grid.innerHTML='';const myDiv=document.createElement('div');myDiv.className='house yours';myDiv.innerHTML='<div class="house-icon">⭐</div><div class="house-name">YOU</div><div class="house-score">President</div>';grid.appendChild(myDiv);NEIGHBORS.forEach(n=>{const fined=state.neighborsFined[n.id]||0;const div=document.createElement('div');div.className='house'+(state.selectedNeighbor===n.id?' selected':'')+(fined>0?' fined':'');div.innerHTML=`<div class="house-icon">${n.icon}</div><div class="house-name">${n.name.split(' ')[1]}</div><div class="house-score">${fined>0?'$'+fined+' fined':n.style}</div>`;div.onclick=()=>selectNeighbor(n.id);grid.appendChild(div);});}
+function selectNeighbor(id){state.selectedNeighbor=id;state.selectedViolations=[];const n=NEIGHBORS.find(nb=>nb.id===id);document.getElementById('selected-neighbor-info').innerHTML=`<strong>${n.name}</strong> — Style: ${n.style} | HOA Approval: ${n.approval}/10`;renderViolations(n);renderStreet();}
+function renderViolations(n){const c=document.getElementById('violation-list');c.innerHTML='';n.baseViolations.forEach(v=>{const checked=state.selectedViolations.includes(v);const item=document.createElement('div');item.className='violation-item'+(checked?' selected-v':'');item.innerHTML=`<div><div class="v-name">${v}</div><div style="font-size:11px;color:#aaa;">HOA Rule §${Math.floor(Math.random()*50)+1}</div></div><div style="display:flex;align-items:center;gap:10px;"><span class="v-fine">$${VIOLATION_FINES[v]}</span><div class="v-check ${checked?'checked':''}" onclick="toggleViolation('${v}')">${checked?'✓':''}</div></div>`;c.appendChild(item);});document.getElementById('fine-btn').disabled=state.selectedViolations.length===0;}
+function toggleViolation(v){const idx=state.selectedViolations.indexOf(v);if(idx>=0)state.selectedViolations.splice(idx,1);else state.selectedViolations.push(v);const n=NEIGHBORS.find(nb=>nb.id===state.selectedNeighbor);renderViolations(n);}
+function issueFines(){if(state.selectedNeighbor===null||state.selectedViolations.length===0)return;const n=NEIGHBORS.find(nb=>nb.id===state.selectedNeighbor);const totalFine=state.selectedViolations.reduce((s,v)=>s+VIOLATION_FINES[v],0);state.treasury+=totalFine;state.finesIssued++;state.neighborsFined[n.id]=(state.neighborsFined[n.id]||0)+totalFine;state.approval=Math.max(0,state.approval-n.approval*1.5);state.hoodScore=Math.min(100,state.hoodScore+(totalFine/1000));addLog(`Fined ${n.name}: ${state.selectedViolations.join(', ')} — $${totalFine}`,'fine');state.selectedViolations=[];state.selectedNeighbor=null;document.getElementById('selected-neighbor-info').textContent='Click a neighbor\'s home to inspect it.';document.getElementById('violation-list').innerHTML='<div style="font-size:13px;color:#aaa;">Select a neighbor first.</div>';document.getElementById('fine-btn').disabled=true;updateDashboard();renderStreet();}
+function renderUpgrades(){const c=document.getElementById('upgrade-list');c.innerHTML='';UPGRADES.forEach(u=>{const div=document.createElement('div');div.className='upgrade-item';div.innerHTML=`<div><div class="up-name">${u.name}</div><div class="up-cost">${u.done?'Installed ✓':'Cost: $'+u.cost+' | +$'+Math.round(u.propBonus/1000)+'K home value'}</div></div><button class="up-btn" ${u.done||state.treasury<u.cost?'disabled':''} onclick="buyUpgrade('${u.id}')">${u.done?'Done':'Buy'}</button>`;c.appendChild(div);});}
+function buyUpgrade(id){const u=UPGRADES.find(up=>up.id===id);if(!u||u.done||state.treasury<u.cost)return;u.done=true;state.treasury-=u.cost;state.myPropVal+=u.propBonus;state.hoodScore=Math.min(100,state.hoodScore+2);addLog(`Installed ${u.name}. Property value +$${Math.round(u.propBonus/1000)}K`,'fine');updateDashboard();renderUpgrades();}
+function endSeason(){state.season++;if(Object.keys(state.neighborsFined).length>4){state.approval-=15;addLog('Neighbors organizing against you. Approval dropped.','warn');}addLog(`Season ${state.season} — Treasury: $${state.treasury.toLocaleString()} | Approval: ${Math.round(state.approval)}%`,'');state.neighborsFined={};updateDashboard();renderStreet();renderUpgrades();if(state.season>8||state.approval<=0)endGame();}
+function updateDashboard(){document.getElementById('treasury-val').textContent='$'+state.treasury.toLocaleString();document.getElementById('propval-val').textContent='$'+Math.round(state.myPropVal/1000)+'K';document.getElementById('hood-val').textContent=Math.round(state.hoodScore);document.getElementById('hood-bar').style.width=state.hoodScore+'%';document.getElementById('approval-val').textContent=Math.round(state.approval)+'%';document.getElementById('approval-bar').style.width=Math.max(0,state.approval)+'%';document.getElementById('approval-bar').style.background=state.approval>40?'#f39c12':'#e74c3c';document.getElementById('season-display').textContent=state.season;}
+function endGame(){state.gameOver=true;const win=state.myPropVal>=450000&&state.approval>20;document.getElementById('end-title').textContent=win?'🏆 Neighborhood Perfected':state.approval<=0?'📢 Voted Out':'📋 Term Complete';document.getElementById('end-desc').textContent=`${state.season-1} seasons. Treasury: $${state.treasury.toLocaleString()} | Your home: $${Math.round(state.myPropVal/1000)}K | Approval: ${Math.round(state.approval)}% | Fines issued: ${state.finesIssued}.`;document.getElementById('end-modal').classList.remove('hidden');}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const entry=document.createElement('div');entry.className='log-entry '+cls;entry.textContent=msg;log.insertBefore(entry,log.firstChild);}
+function restartGame(){UPGRADES.forEach(u=>u.done=false);state={season:1,treasury:4200,myPropVal:320000,hoodScore:72,approval:65,selectedNeighbor:null,selectedViolations:[],finesIssued:0,gameOver:false,neighborsFined:{}};document.getElementById('end-modal').classList.add('hidden');document.getElementById('game-log').innerHTML='<div class="log-entry fine">Season 1 — You are now HOA President. Power is yours.</div>';document.getElementById('selected-neighbor-info').textContent='Click a neighbor\'s home to inspect it.';document.getElementById('violation-list').innerHTML='<div style="font-size:13px;color:#aaa;">Select a neighbor first.</div>';document.getElementById('fine-btn').disabled=true;updateDashboard();renderStreet();renderUpgrades();}
+renderStreet();renderUpgrades();updateDashboard();
+</script>
+</body>
+</html>

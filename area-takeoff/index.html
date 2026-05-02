@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Area Takeoff — XLMX</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}.container{max-width:900px;margin:0 auto;padding:20px}h1{font-size:1.5rem;margin-bottom:4px}.sub{font-size:.75rem;color:#888;margin-bottom:20px}label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}textarea{min-height:80px;resize:vertical}button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}button.del{background:#dc2626;padding:4px 8px;font-size:.7rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}table{width:100%;border-collapse:collapse;font-size:.78rem}th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}td{padding:6px 8px;border-bottom:1px solid #222}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></head><body>
+<div class="container">
+<h1>Area Takeoff Calculator</h1>
+<p class="sub">Calculate areas by zone and room — running totals and efficiency ratios.</p>
+<div class="card grid3">
+<div><label>Unit System</label><select id="unit" onchange="render()"><option value="m2">m²</option><option value="ft2">ft²</option></select></div>
+<div><label>Gross Area (optional)</label><input id="gross" type="number" placeholder="0" oninput="render()"></div>
+<div style="display:flex;align-items:end;padding-bottom:2px;"><button onclick="addZone()">+ Add Zone</button></div>
+</div>
+<div id="zones"></div>
+<div id="totals"></div>
+</div>
+<script>
+let data=[{name:'Level 1',rooms:[{name:'Lobby',w:10,l:8},{name:'Office A',w:6,l:5}]}];
+function addZone(){data.push({name:'Zone '+(data.length+1),rooms:[{name:'Room 1',w:0,l:0}]});render();}
+function addRoom(zi){data[zi].rooms.push({name:'Room '+(data[zi].rooms.length+1),w:0,l:0});render();}
+function delZone(zi){data.splice(zi,1);render();}
+function delRoom(zi,ri){data[zi].rooms.splice(ri,1);render();}
+function upd(zi,ri,field,val){
+if(field==='zname')data[zi].name=val;
+else if(field==='rname')data[zi].rooms[ri].name=val;
+else if(field==='w')data[zi].rooms[ri].w=parseFloat(val)||0;
+else if(field==='l')data[zi].rooms[ri].l=parseFloat(val)||0;
+render();
+}
+function render(){
+const u=document.getElementById('unit').value;
+const ul=u==='m2'?'m²':'ft²';
+let h='';
+let grand=0;
+data.forEach((z,zi)=>{
+let ztotal=0;
+h+=`<div class="card"><div class="flex" style="justify-content:space-between;margin-bottom:8px;">
+<input value="${z.name}" onchange="upd(${zi},0,'zname',this.value)" style="width:200px;font-weight:700;background:transparent;border:none;color:#fff;font-size:.9rem;">
+<div class="flex"><button class="sec" onclick="addRoom(${zi})" style="font-size:.7rem;padding:4px 10px;">+ Room</button>
+<button class="del" onclick="delZone(${zi})">✕</button></div></div>`;
+h+=`<table><tr><th>Room</th><th>Width</th><th>Length</th><th>Area (${ul})</th><th></th></tr>`;
+z.rooms.forEach((r,ri)=>{
+const a=r.w*r.l;ztotal+=a;
+h+=`<tr><td><input value="${r.name}" onchange="upd(${zi},${ri},'rname',this.value)" style="width:120px;padding:3px 6px;"></td>
+<td><input type="number" value="${r.w||''}" onchange="upd(${zi},${ri},'w',this.value)" style="width:70px;padding:3px 6px;"></td>
+<td><input type="number" value="${r.l||''}" onchange="upd(${zi},${ri},'l',this.value)" style="width:70px;padding:3px 6px;"></td>
+<td style="font-weight:700;">${a.toFixed(1)}</td>
+<td><button class="del" onclick="delRoom(${zi},${ri})">✕</button></td></tr>`;
+});
+h+=`<tr style="background:#222;font-weight:700;"><td colspan="3">${z.name} Total</td><td>${ztotal.toFixed(1)} ${ul}</td><td></td></tr></table></div>`;
+grand+=ztotal;
+});
+document.getElementById('zones').innerHTML=h;
+const gross=parseFloat(document.getElementById('gross').value)||0;
+const eff=gross>0?(grand/gross*100).toFixed(1):'—';
+document.getElementById('totals').innerHTML=`<div class="card"><div class="grid3">
+<div class="stat"><div class="n" style="color:#16a34a;">${grand.toFixed(1)}</div><div class="l">Net Area (${ul})</div></div>
+<div class="stat"><div class="n">${gross||'—'}</div><div class="l">Gross Area (${ul})</div></div>
+<div class="stat"><div class="n">${eff}${eff!=='—'?'%':''}</div><div class="l">Efficiency Ratio</div></div>
+</div></div>`;
+}
+render();
+</script></body></html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Material Takeoff — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.kbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.68rem;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase;white-space:nowrap}
+td{padding:6px;border-bottom:1px solid #1e1e1e}
+.del{color:#ef4444;cursor:pointer}
+.cat-badge{padding:2px 7px;border-radius:4px;font-size:.7rem;font-weight:600}
+.concrete-b{background:#2a2a0a;color:#f59e0b}.steel-b{background:#0a1a2a;color:#3b82f6}
+.masonry-b{background:#2a0a0a;color:#fca5a5}.wood-b{background:#1a0a00;color:#fdba74}
+.other-b{background:#1a1a2a;color:#c4b5fd}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+#form{display:none}
+@media(max-width:700px){.grid2,.kpi{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Material Quantity Takeoff</h1>
+<p class="sub">Line-item material takeoff by element — quantity, unit cost, and waste factor</p>
+<div class="kpi">
+<div class="kbox"><div class="v" id="kItems">0</div><div class="l">Line Items</div></div>
+<div class="kbox"><div class="v" id="kSub">$0</div><div class="l">Subtotal</div></div>
+<div class="kbox"><div class="v" id="kTotal">$0</div><div class="l">Total w/ Waste</div></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+<button onclick="document.getElementById('form').style.display='block'">+ Add Item</button>
+<button class="sec" onclick="loadSample()">Load Sample</button>
+<button class="sec" onclick="expCSV()">Export CSV</button>
+</div>
+<div class="card" id="form">
+<div class="grid2">
+<div><label>Description</label><input id="fDesc" placeholder="Concrete slab 150mm"></div>
+<div><label>Category</label>
+<select id="fCat"><option>Concrete</option><option>Rebar / Steel</option><option>Masonry</option><option>Wood / Lumber</option><option>Insulation</option><option>Roofing</option><option>Finishes</option><option>MEP</option><option>Earthwork</option><option>Other</option></select></div>
+<div><label>Quantity</label><input id="fQty" type="number" value="1" step="0.01"></div>
+<div><label>Unit</label>
+<select id="fUnit"><option>m²</option><option>m³</option><option>m</option><option>LF</option><option>SF</option><option>CY</option><option>kg</option><option>ton</option><option>EA</option><option>LS</option></select></div>
+<div><label>Unit Cost ($)</label><input id="fCost" type="number" value="0" step="0.01"></div>
+<div><label>Waste Factor (%)</label><input id="fWaste" type="number" value="5" step="1" title="Added to quantity for cutting/waste"></div>
+</div>
+<button onclick="addItem()">Save</button><button class="sec" onclick="document.getElementById('form').style.display='none'">Cancel</button>
+</div>
+<div class="card" style="overflow-x:auto">
+<table><thead><tr><th>#</th><th>Description</th><th>Cat</th><th>Qty</th><th>Unit</th><th>Waste%</th><th>Unit Cost</th><th>Total</th><th></th></tr></thead>
+<tbody id="tb"></tbody>
+<tfoot><tr style="font-weight:700;border-top:2px solid #16a34a"><td colspan="7" style="padding:8px 6px;color:#aaa">TOTAL</td><td id="tfoot" style="padding:8px 6px;color:#16a34a">$0</td><td></td></tr></tfoot>
+</table>
+</div>
+<script>
+let items=[];let nid=1;
+const catClasses={'Concrete':'concrete-b','Rebar / Steel':'steel-b','Masonry':'masonry-b','Wood / Lumber':'wood-b'};
+function fmt(n){return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function addItem(){
+  items.push({id:nid++,desc:document.getElementById('fDesc').value||'Item',cat:document.getElementById('fCat').value,
+    qty:+document.getElementById('fQty').value,unit:document.getElementById('fUnit').value,
+    cost:+document.getElementById('fCost').value,waste:+document.getElementById('fWaste').value});
+  render();document.getElementById('form').style.display='none';
+  ['fDesc','fQty','fCost'].forEach(i=>document.getElementById(i).value=i==='fWaste'?'5':i==='fQty'?'1':'0');
+}
+function del(id){items=items.filter(x=>x.id!==id);render()}
+function render(){
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  let sub=0,tot=0;
+  items.forEach((r,i)=>{
+    const qtyW=r.qty*(1+r.waste/100);const line=qtyW*r.cost;
+    sub+=r.qty*r.cost;tot+=line;
+    const cls=catClasses[r.cat]||'other-b';
+    tb.innerHTML+=`<tr><td>${i+1}</td><td>${r.desc}</td><td><span class="cat-badge ${cls}">${r.cat.split(' ')[0]}</span></td>
+    <td>${r.qty}</td><td>${r.unit}</td><td>${r.waste}%</td><td>${fmt(r.cost)}</td><td>${fmt(line)}</td>
+    <td class="del" onclick="del(${r.id})">×</td></tr>`;
+  });
+  document.getElementById('kItems').textContent=items.length;
+  document.getElementById('kSub').textContent=fmt(sub);
+  document.getElementById('kTotal').textContent=fmt(tot);
+  document.getElementById('tfoot').textContent=fmt(tot);
+}
+function loadSample(){
+  [['Concrete slab 150mm','Concrete',450,'m²',85,5],['Rebar #4 (12mm)','Rebar / Steel',2200,'kg',1.10,8],
+   ['CMU 20cm block','Masonry',180,'m²',45,4],['Batt insulation R-19','Insulation',600,'m²',4.5,5],
+   ['Drywall 5/8"','Finishes',800,'m²',6,7],['Ceramic tile 30×30','Finishes',200,'m²',22,10]
+  ].forEach(([d,c,q,u,cost,w])=>items.push({id:nid++,desc:d,cat:c,qty:q,unit:u,cost,waste:w}));
+  render();
+}
+function expCSV(){
+  let c='#,Description,Category,Qty,Unit,Waste%,Qty w/Waste,Unit Cost,Total\n';
+  items.forEach((r,i)=>{const qw=r.qty*(1+r.waste/100);c+=`${i+1},"${r.desc}",${r.cat},${r.qty},${r.unit},${r.waste}%,${qw.toFixed(2)},${r.cost},${(qw*r.cost).toFixed(2)}\n`});
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(c);a.download='material_takeoff.csv';a.click();
+}
+render();
+</script></body></html>

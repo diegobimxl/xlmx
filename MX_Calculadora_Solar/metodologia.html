@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Metodologia - Calculadora Solar Mexico</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111;line-height:1.7}
+.wrap{max-width:740px;margin:0 auto;padding:32px 20px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+h2{font-size:16px;font-weight:600;margin:28px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}
+h3{font-size:14px;font-weight:600;margin:16px 0 6px}
+p{font-size:14px;color:#333;margin-bottom:12px}
+a.back{display:inline-block;font-size:13px;color:#228b22;text-decoration:none;margin-bottom:16px}
+a.back:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#f5f5f5;border-bottom:2px solid #ddd;font-weight:600}
+td{padding:8px 10px;border-bottom:1px solid #eee}
+.formula{background:#f8f8f8;padding:12px 16px;border-left:3px solid #228b22;margin:12px 0;font-family:monospace;font-size:13px}
+.src{font-size:12px;color:#888;margin-top:4px}
+.note{font-size:13px;color:#666;background:#fffbe6;padding:10px 14px;border-left:3px solid #b80;margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="main.html">&larr; Regresar a la calculadora</a>
+<h1>Metodologia y Fuentes Cientificas</h1>
+<p style="color:#888;font-size:13px">Calculadora Solar Mexico — Documento tecnico v1.0 — Marzo 2026</p>
+
+<h2>1. Modelo de Irradiacion Solar</h2>
+
+<h3>1.1 Horas Sol Pico (HSP)</h3>
+<p>La irradiacion solar se expresa en Horas Sol Pico (HSP o PSH), equivalente a kWh/m2/dia. Una HSP representa 1 hora de irradiacion a 1,000 W/m2 (condicion estandar de prueba, STC). Los valores utilizados son promedios anuales por ciudad, derivados de las siguientes fuentes:</p>
+
+<p>Fuente primaria: NASA POWER (Prediction of Worldwide Energy Resources), base de datos Surface Solar Radiation (SSR), resolucion 0.5° x 0.5°, promedio climatologico 1991-2020. Parametro: ALLSKY_SFC_SW_DWN (irradiancia de onda corta descendente en superficie bajo todas las condiciones de cielo).</p>
+<p class="src">URL: https://power.larc.nasa.gov/</p>
+
+<p>Fuente secundaria: Global Solar Atlas 2.0 (Banco Mundial / Solargis), modelo satelital con resolucion de 250m, validado con estaciones terrestres. Parametro: GHI (Global Horizontal Irradiance) anual.</p>
+<p class="src">URL: https://globalsolaratlas.info/</p>
+
+<p>Fuente terciaria: INEGI / CONAGUA — Atlas de Radiacion Solar de Mexico, datos de estaciones meteorologicas de superficie de la red CONAGUA (SMN). Utilizados para validacion cruzada con datos satelitales.</p>
+
+<h3>1.2 Factor de Inclinacion y Orientacion</h3>
+<p>El modelo aplica un factor combinado de inclinacion (tilt) y orientacion (azimut) sobre la irradiancia horizontal global (GHI) para estimar la irradiancia en el plano del panel (POA — Plane of Array).</p>
+
+<div class="formula">
+POA = GHI x Factor_Tilt x Factor_Orientacion
+</div>
+
+<p>Factor de inclinacion: modelo simplificado basado en latitud optima. Para la latitud L de cada ciudad, la inclinacion optima es aproximadamente L grados hacia el sur. A 0° (horizontal), factor = 1.0. A inclinacion optima, factor = 1.15 (ganancia del 15%). Mas alla de la inclinacion optima, el factor decrece linealmente.</p>
+
+<div class="formula">
+Si pitch &lt;= L: TiltFactor = 1.0 + 0.15 x (pitch / L)<br>
+Si pitch &gt; L: TiltFactor = 1.15 - 0.15 x ((pitch - L) / (45 - L))
+</div>
+
+<p>Factor de orientacion: basado en estudios de perdida por azimut para latitudes bajas-medias del hemisferio norte (20-33°N). Los factores aplicados son:</p>
+
+<table>
+<tr><th>Orientacion</th><th>Factor</th><th>Nota</th></tr>
+<tr><td>Sur (S)</td><td>1.00</td><td>Optimo para hemisferio norte</td></tr>
+<tr><td>SSE / SSO</td><td>0.97</td><td>Perdida minima</td></tr>
+<tr><td>SE / SO</td><td>0.92</td><td>Perdida moderada</td></tr>
+<tr><td>Este / Oeste</td><td>0.82</td><td>Solo irradiacion matutina o vespertina</td></tr>
+<tr><td>NE / NO</td><td>0.60</td><td>Irradiacion directa minima</td></tr>
+<tr><td>Norte (N)</td><td>0.50</td><td>Opuesto al sol — peor caso</td></tr>
+</table>
+
+<p class="src">Referencia: Duffie, J.A. & Beckman, W.A. (2013). Solar Engineering of Thermal Processes, 4th Ed. Wiley. Capitulos 1-2.</p>
+<p class="src">Referencia: Marion, B. et al. (2014). "Performance parameters for grid-connected PV systems." NREL/CP-520-37358.</p>
+
+<p>Para orientaciones norte (N, NE, NO), la inclinacion reduce la produccion en lugar de aumentarla, aplicando una penalizacion de 2% por grado de inclinacion:</p>
+<div class="formula">
+TiltFactor(Norte) = 1.0 - 0.02 x pitch
+</div>
+
+<h2>2. Especificaciones del Sistema Fotovoltaico</h2>
+
+<table>
+<tr><th>Parametro</th><th>Valor</th><th>Justificacion</th></tr>
+<tr><td>Potencia del panel</td><td>550 Wp</td><td>Estandar comercial 2025-2026 para paneles monocristalinos de alta eficiencia (Longi, JA Solar, Trina)</td></tr>
+<tr><td>Area por panel</td><td>2.58 m2</td><td>Dimension tipica de panel de 550W: ~2.278m x 1.134m</td></tr>
+<tr><td>Eficiencia del sistema</td><td>80%</td><td>Incluye perdidas por: inversor (3-5%), cableado (1-2%), temperatura (5-8%), polvo/suciedad (2-5%), degradacion (1-2%)</td></tr>
+<tr><td>Vida util</td><td>25 anos</td><td>Garantia estandar de fabricantes tier-1. Degradacion anual ~0.5%</td></tr>
+</table>
+
+<h3>2.1 Calculo de Generacion Anual</h3>
+<div class="formula">
+Generacion_anual (kWh) = kWp_sistema x HSP_efectivas x 365 x Eficiencia_sistema
+</div>
+<p>Donde HSP_efectivas = HSP_base x Factor_Tilt x Factor_Orientacion</p>
+
+<h3>2.2 Dimensionamiento del Sistema</h3>
+<div class="formula">
+Consumo_diario (kWh) = (Recibo_mensual / Tarifa_DAC) x 12 / 365<br>
+kWp_requeridos = Consumo_diario / (HSP_efectivas x Eficiencia)<br>
+Num_paneles = min( ceil(kWp x 1000 / Wp_panel), floor(Area_techo / Area_panel) )
+</div>
+<p>El sistema se limita al menor entre: paneles necesarios para cubrir el consumo, o paneles que caben fisicamente en el techo.</p>
+
+<h2>3. Modelo Economico</h2>
+
+<h3>3.1 Tarifa CFE DAC</h3>
+<p>Se utiliza la Tarifa de Alto Consumo (DAC) de la Comision Federal de Electricidad a $6.50 MXN/kWh. Esta es la tarifa mas alta del esquema residencial y aplica a usuarios que exceden el limite de consumo mensual establecido por CFE segun su region climatica.</p>
+<p class="src">Fuente: CFE — Tarifas para el suministro y venta de energia electrica 2025-2026. https://app.cfe.mx/Aplicaciones/CCFE/Tarifas/</p>
+
+<div class="note">
+Nota: La tarifa DAC ha incrementado entre 5-8% anual en los ultimos 5 anos. Este modelo asume tarifa plana (conservador). El ROI real es mas rapido que el calculado.
+</div>
+
+<h3>3.2 Costo de Instalacion</h3>
+<p>Costo referencia: $18 MXN por Watt-pico instalado. Incluye: paneles, inversor, estructura de montaje, cableado, protecciones, mano de obra, tramites CFE para interconexion (contrato de interconexion en media/baja tension).</p>
+<p class="src">Fuente: ASOLMEX (Asociacion Mexicana de Energia Solar) — Reporte de Mercado Solar 2025. Rango de mercado: $15-22 MXN/Wp segun region y escala.</p>
+
+<h3>3.3 Calculo de ROI</h3>
+<div class="formula">
+Inversion_total = kWp_sistema x 1000 x Costo_por_Wp<br>
+Ahorro_anual = Generacion_anual x Tarifa_DAC<br>
+ROI (anos) = Inversion_total / Ahorro_anual<br>
+Punto_equilibrio (meses) = Inversion_total / Ahorro_mensual<br>
+Ganancia_25_anos = (Ahorro_anual x 25) - Inversion_total
+</div>
+
+<h2>4. Modelo de Emisiones de CO2</h2>
+
+<p>El factor de emision de la red electrica mexicana se obtiene del inventario nacional de emisiones de gases de efecto invernadero publicado por SEMARNAT y el factor de emision del Sistema Electrico Nacional (SEN).</p>
+
+<table>
+<tr><th>Parametro</th><th>Valor</th><th>Fuente</th></tr>
+<tr><td>Factor de emision CO2</td><td>0.435 kg CO2/kWh</td><td>SEMARNAT / CRE — Factor de emision del SEN 2024</td></tr>
+<tr><td>CO2 evitado anual</td><td>Generacion x 0.435 / 1000 (toneladas)</td><td>Calculo directo</td></tr>
+<tr><td>CO2 evitado 25 anos</td><td>CO2_anual x 25 x 0.95</td><td>Factor 0.95 para degradacion acumulada de paneles</td></tr>
+</table>
+
+<p class="src">Fuente: SEMARNAT — Registro Nacional de Emisiones (RENE). Factores de emision del sector electrico.</p>
+<p class="src">Fuente: CRE (Comision Reguladora de Energia) — Factor de emision del SEN publicado en DOF.</p>
+
+<h2>5. Datos Solares por Ciudad</h2>
+<p>Las 40 ciudades incluidas representan las areas metropolitanas mas pobladas e importantes de Mexico. Los valores de HSP son promedios anuales de la irradiancia global horizontal (GHI) convertidos a horas sol pico equivalentes.</p>
+
+<table>
+<tr><th>Ciudad</th><th>Estado</th><th>Lat °N</th><th>HSP (hrs/dia)</th><th>ROI (anos)*</th></tr>
+<tr><td>Hermosillo</td><td>Sonora</td><td>29.07</td><td>6.6</td><td>1.7</td></tr>
+<tr><td>La Paz</td><td>BCS</td><td>24.14</td><td>6.5</td><td>1.7</td></tr>
+<tr><td>Ciudad Juarez</td><td>Chihuahua</td><td>31.69</td><td>6.4</td><td>1.7</td></tr>
+<tr><td>Mexicali</td><td>BC</td><td>32.66</td><td>6.3</td><td>1.7</td></tr>
+<tr><td>Chihuahua</td><td>Chihuahua</td><td>28.63</td><td>6.2</td><td>1.7</td></tr>
+<tr><td>Culiacan</td><td>Sinaloa</td><td>24.81</td><td>6.0</td><td>1.7</td></tr>
+<tr><td>Durango</td><td>Durango</td><td>24.02</td><td>6.0</td><td>1.7</td></tr>
+<tr><td>Mazatlan</td><td>Sinaloa</td><td>23.24</td><td>5.9</td><td>1.7</td></tr>
+<tr><td>Torreon</td><td>Coahuila</td><td>25.54</td><td>5.9</td><td>1.7</td></tr>
+<tr><td>Monterrey</td><td>Nuevo Leon</td><td>25.67</td><td>5.8</td><td>1.7</td></tr>
+<tr><td>SLP</td><td>San Luis Potosi</td><td>22.15</td><td>5.8</td><td>1.7</td></tr>
+<tr><td>Saltillo</td><td>Coahuila</td><td>25.42</td><td>5.5</td><td>1.7</td></tr>
+<tr><td>Queretaro</td><td>Queretaro</td><td>20.59</td><td>5.5</td><td>1.7</td></tr>
+<tr><td>Guadalajara</td><td>Jalisco</td><td>20.67</td><td>5.6</td><td>1.7</td></tr>
+<tr><td>Puebla</td><td>Puebla</td><td>19.04</td><td>5.1</td><td>1.7</td></tr>
+<tr><td>Toluca</td><td>Edo. Mex</td><td>19.29</td><td>4.8</td><td>1.7</td></tr>
+<tr><td>CDMX</td><td>CDMX</td><td>19.43</td><td>4.6</td><td>1.7</td></tr>
+</table>
+<p style="font-size:12px;color:#888">*ROI calculado con recibo de $5,000/mes, orientacion sur, 15° inclinacion. Tabla parcial — ver calculadora para las 40 ciudades.</p>
+
+<div class="note">
+Nota: Dado que la tarifa CFE DAC es uniforme en todo Mexico ($6.50/kWh), el ROI entre ciudades varia principalmente por la cantidad de paneles necesarios para cubrir el mismo consumo. Ciudades con mas sol necesitan menos paneles, reduciendo la inversion total. Sin embargo, el ratio inversion/ahorro es similar porque ambos escalan proporcionalmente. Las diferencias reales se manifiestan cuando el techo limita el numero de paneles.
+</div>
+
+<h2>6. Limitaciones del Modelo</h2>
+<p>Este modelo simplificado tiene las siguientes limitaciones que deben considerarse:</p>
+<p>1. Tarifa plana: asume tarifa DAC constante durante 25 anos. En realidad, CFE incrementa tarifas 5-8% anual, lo cual mejora el ROI real significativamente.</p>
+<p>2. Sin degradacion anual: no modela la degradacion de ~0.5%/ano de los paneles (excepto en el calculo de CO2 a 25 anos donde aplica factor 0.95).</p>
+<p>3. Sin variacion estacional: usa promedio anual de HSP. La produccion real varia por mes (mayor en primavera/verano, menor en invierno).</p>
+<p>4. Sin esquemas de netbilling/net metering: asume autoconsumo directo al 100%. Los esquemas de interconexion de CFE pueden variar el beneficio economico.</p>
+<p>5. Sin incentivos fiscales: no incluye la deduccion fiscal del 100% de la inversion en el ISR (Art. 34 LISR) disponible para personas morales.</p>
+<p>6. Tilt factor simplificado: utiliza modelo lineal en lugar del modelo de Perez o Liu-Jordan para radiacion difusa.</p>
+<p>7. Sin efecto de temperatura: no modela el coeficiente de temperatura negativo de los paneles (-0.35%/°C sobre STC 25°C), relevante en ciudades calurosas como Hermosillo y Mexicali.</p>
+
+<h2>7. Referencias Bibliograficas</h2>
+<p>Duffie, J.A. & Beckman, W.A. (2013). Solar Engineering of Thermal Processes, 4th Edition. John Wiley & Sons.</p>
+<p>NASA Langley Research Center. POWER Project — Prediction of Worldwide Energy Resources. https://power.larc.nasa.gov/</p>
+<p>World Bank Group / Solargis. Global Solar Atlas 2.0. https://globalsolaratlas.info/</p>
+<p>INEGI / CONAGUA. Atlas de Radiacion Solar de Mexico. Servicio Meteorologico Nacional.</p>
+<p>CFE. Tarifas para suministro y venta de energia electrica. https://app.cfe.mx/Aplicaciones/CCFE/Tarifas/</p>
+<p>SEMARNAT. Registro Nacional de Emisiones (RENE). Factores de emision del sector electrico mexicano.</p>
+<p>CRE. Factor de emision del Sistema Electrico Nacional. Diario Oficial de la Federacion.</p>
+<p>ASOLMEX. Reporte del Mercado Solar Mexicano 2025.</p>
+<p>Marion, B. et al. (2014). Performance parameters for grid-connected PV systems. NREL/CP-520-37358.</p>
+<p>IEA-PVPS. Trends in Photovoltaic Applications 2024. International Energy Agency.</p>
+
+<div style="font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px;margin-top:28px">
+Documento generado para MX Calculadora Solar v1.0 — Marzo 2026<br>
+<a href="main.html" style="color:#228b22">Regresar a la calculadora</a>
+</div>
+</div>
+</body>
+</html>

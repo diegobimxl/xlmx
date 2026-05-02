@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Time Tracker - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.timer-block{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap}
+.timer-block .field{flex:1;min-width:130px}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.3rem}
+input,select{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .75rem;border-radius:5px;font-size:.85rem;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:#16a34a}
+.timer-display{font-size:2.5rem;font-weight:600;color:#16a34a;font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.btn{background:#16a34a;color:#fff;border:none;padding:.55rem 1.25rem;border-radius:6px;font-size:.85rem;cursor:pointer;font-family:inherit;font-weight:500}
+.btn:hover{background:#15803d}
+.btn-stop{background:#ef4444;color:#fff;border:none;padding:.55rem 1.25rem;border-radius:6px;font-size:.85rem;cursor:pointer;font-family:inherit;font-weight:500}
+.btn-stop:hover{background:#dc2626}
+.btn-sec{background:#222;border:1px solid #333;color:#aaa;padding:.55rem 1.25rem;border-radius:6px;font-size:.85rem;cursor:pointer;font-family:inherit}
+.btn-sec:hover{color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1.5rem}
+.stat{background:#1a1a1a;border:1px solid #333;border-radius:7px;padding:.85rem;text-align:center}
+.stat-val{font-size:1.4rem;font-weight:600;color:#16a34a}
+.stat-label{font-size:.72rem;color:#888;margin-top:.2rem}
+.entries{background:#1a1a1a;border:1px solid #333;border-radius:8px;overflow:hidden}
+.entries-header{padding:.75rem 1.25rem;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center}
+.entries-header h2{font-size:.88rem;font-weight:600;color:#16a34a}
+.entry{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:.75rem;padding:.7rem 1.25rem;border-bottom:1px solid #1a1a1a;align-items:center;font-size:.82rem}
+.entry:last-child{border-bottom:none}
+.entry:hover{background:#1f1f1f}
+.e-proj{font-weight:500}
+.e-cat{background:#16a34a22;color:#16a34a;padding:.1rem .4rem;border-radius:3px;font-size:.7rem}
+.e-time{color:#16a34a;font-weight:600;font-variant-numeric:tabular-nums}
+.e-date{color:#555;font-size:.72rem}
+.e-del{background:none;border:none;color:#444;cursor:pointer;font-size:.85rem;padding:.1rem .3rem}
+.e-del:hover{color:#ef4444}
+.billable-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block}
+.billable-dot.no{background:#555}
+.empty{text-align:center;color:#555;padding:2rem;font-size:.88rem}
+.filter-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filter-row select{width:auto}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Project Time Tracker</h1>
+<p class="sub">Track billable hours by project and phase. Simple, fast, no login required.</p>
+
+<div class="timer-block">
+  <div class="field"><label>Project</label><input type="text" id="tProject" placeholder="e.g. Project Alpha, HW, Project Beta"></div>
+  <div class="field"><label>Phase / Task</label>
+    <select id="tPhase">
+      <option>Schematic Design</option><option>Design Development</option><option>Construction Docs</option>
+      <option>BIM Modeling</option><option>Coordination</option><option>Client Meeting</option>
+      <option>Site Visit</option><option>Permit / Admin</option><option>Review</option><option>Other</option>
+    </select>
+  </div>
+  <div class="field"><label>Rate ($/hr)</label><input type="number" id="tRate" value="85" min="0" step="5"></div>
+  <div class="field"><label>Billable</label>
+    <select id="tBillable"><option value="yes">Yes</option><option value="no">No</option></select>
+  </div>
+  <div>
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+      <button class="btn" id="startBtn" onclick="startTimer()">Start</button>
+      <button class="btn-stop" id="stopBtn" onclick="stopTimer()" style="display:none">Stop</button>
+      <button class="btn-sec" onclick="logManual()">Log Manual</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats" id="statsRow"></div>
+
+<div class="filter-row">
+  <span style="font-size:.78rem;color:#888">Filter by project:</span>
+  <select id="filterProj" onchange="render()"><option value="">All</option></select>
+  <button class="btn-sec" style="font-size:.75rem;padding:.3rem .7rem" onclick="exportCSV()">Export CSV</button>
+  <button class="btn-sec" style="font-size:.75rem;padding:.3rem .7rem;color:#ef4444" onclick="clearAll()">Clear All</button>
+</div>
+
+<div class="entries">
+  <div class="entries-header"><h2>Time Entries</h2></div>
+  <div id="entryList"></div>
+</div>
+
+<script>
+var entries = [];
+var timerInterval = null;
+var timerStart = null;
+var running = false;
+
+function startTimer(){
+  if(running)return;
+  running=true;
+  timerStart=Date.now();
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='block';
+  timerInterval=setInterval(function(){
+    var elapsed=Math.floor((Date.now()-timerStart)/1000);
+    document.getElementById('timerDisplay').textContent=fmt(elapsed);
+  },1000);
+}
+
+function stopTimer(){
+  if(!running)return;
+  clearInterval(timerInterval);
+  running=false;
+  var elapsed=Math.floor((Date.now()-timerStart)/1000);
+  document.getElementById('startBtn').style.display='block';
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('timerDisplay').textContent='00:00:00';
+  if(elapsed<5)return;
+  logEntry(elapsed);
+}
+
+function logManual(){
+  var mins=prompt('Enter duration in minutes:');
+  if(!mins||isNaN(mins))return;
+  logEntry(parseInt(mins)*60);
+}
+
+function logEntry(secs){
+  var proj=document.getElementById('tProject').value.trim()||'Unnamed';
+  var phase=document.getElementById('tPhase').value;
+  var rate=parseFloat(document.getElementById('tRate').value)||0;
+  var billable=document.getElementById('tBillable').value==='yes';
+  var hrs=secs/3600;
+  entries.unshift({id:Date.now(),proj:proj,phase:phase,secs:secs,rate:rate,billable:billable,date:new Date().toLocaleDateString()});
+  save(); render();
+}
+
+function removeEntry(id){entries=entries.filter(function(e){return e.id!==id;});save();render();}
+
+function fmt(s){
+  var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  return pad(h)+':'+pad(m)+':'+pad(sec);
+}
+function pad(n){return n<10?'0'+n:String(n);}
+
+function render(){
+  var fp=document.getElementById('filterProj').value;
+  var filtered=fp?entries.filter(function(e){return e.proj===fp;}):entries;
+
+  // update filter dropdown
+  var projs=[...new Set(entries.map(function(e){return e.proj;}))];
+  var cur=document.getElementById('filterProj').value;
+  document.getElementById('filterProj').innerHTML='<option value="">All</option>'+projs.map(function(p){return '<option value="'+p+'"'+(p===cur?' selected':'')+'>'+p+'</option>';}).join('');
+
+  // stats
+  var totalSecs=filtered.reduce(function(s,e){return s+e.secs;},0);
+  var billSecs=filtered.filter(function(e){return e.billable;}).reduce(function(s,e){return s+e.secs;},0);
+  var billAmount=filtered.filter(function(e){return e.billable;}).reduce(function(s,e){return s+(e.secs/3600)*e.rate;},0);
+  var projCount=[...new Set(filtered.map(function(e){return e.proj;}))].length;
+  document.getElementById('statsRow').innerHTML=[
+    ['Total Hours',(totalSecs/3600).toFixed(1)+'h'],
+    ['Billable',(billSecs/3600).toFixed(1)+'h'],
+    ['Earned','$'+billAmount.toFixed(0)],
+    ['Projects',projCount]
+  ].map(function(s){return '<div class="stat"><div class="stat-val">'+s[1]+'</div><div class="stat-label">'+s[0]+'</div></div>';}).join('');
+
+  if(!filtered.length){document.getElementById('entryList').innerHTML='<div class="empty">No entries yet. Start the timer or log manually.</div>';return;}
+  document.getElementById('entryList').innerHTML=filtered.map(function(e){
+    return '<div class="entry">'
+      +'<span class="billable-dot'+(e.billable?'':' no')+'" title="'+(e.billable?'Billable':'Non-billable')+'"></span>'
+      +'<div><div class="e-proj">'+e.proj+'</div><span class="e-cat">'+e.phase+'</span></div>'
+      +'<div class="e-time">'+fmt(e.secs)+'</div>'
+      +'<div>'+(e.billable?'$'+((e.secs/3600)*e.rate).toFixed(0):'—')+'</div>'
+      +'<div class="e-date">'+e.date+'</div>'
+      +'<button class="e-del" onclick="removeEntry('+e.id+')">x</button>'
+      +'</div>';
+  }).join('');
+}
+
+function exportCSV(){
+  var rows=[['Project','Phase','Duration (hrs)','Billable','Rate','Amount','Date']];
+  entries.forEach(function(e){rows.push([e.proj,e.phase,(e.secs/3600).toFixed(2),e.billable?'Yes':'No',e.rate,e.billable?((e.secs/3600)*e.rate).toFixed(2):0,e.date]);});
+  var csv=rows.map(function(r){return r.join(',');}).join('\n');
+  navigator.clipboard.writeText(csv).catch(function(){});
+  alert('CSV copied to clipboard.');
+}
+
+function clearAll(){if(confirm('Clear all entries?')){entries=[];save();render();}}
+function save(){try{localStorage.setItem('xlmx_time',JSON.stringify(entries));}catch(e){}}
+function load(){try{var d=localStorage.getItem('xlmx_time');if(d)entries=JSON.parse(d);}catch(e){}}
+
+load(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invoice Generator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:40px auto 24px;padding:0 32px;text-align:center}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:1px;margin-bottom:8px}
+.hero p{font-size:14px;color:#444;max-width:520px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:10px;letter-spacing:0.5px}
+.workspace{max-width:1000px;margin:0 auto;padding:0 32px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:700px){.workspace{grid-template-columns:1fr}}
+.form-side{display:flex;flex-direction:column;gap:16px}
+.panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.panel-header{background:#f5f5f5;padding:9px 14px;font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e5e5e5}
+.field-group{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field label{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:3px}
+.field input,.field textarea,.field select{width:100%;padding:6px 9px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.field textarea{min-height:60px;resize:vertical}
+.items-table{width:100%;border-collapse:collapse}
+.items-table th{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid #e5e5e5;text-align:left}
+.items-table th:last-child,.items-table td:last-child{text-align:right;width:36px}
+.items-table th:nth-child(2),.items-table td:nth-child(2){width:70px}
+.items-table th:nth-child(3),.items-table td:nth-child(3){width:90px}
+.items-table th:nth-child(4),.items-table td:nth-child(4){width:90px;text-align:right}
+.items-table td{padding:4px 8px}
+.items-table input{width:100%;border:1px solid #e5e5e5;border-radius:3px;padding:5px 7px;font-size:12px;font-family:inherit}
+.items-table input[type=number]{text-align:right}
+.rm-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:0 4px}
+.rm-btn:hover{color:#c62828}
+.add-item-row{padding:8px 14px;border-top:1px solid #f0f0f0}
+.add-link{font-size:12px;color:#1565c0;cursor:pointer;font-weight:600}
+.totals-block{padding:12px 14px;border-top:1px solid #e5e5e5;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.total-row{display:flex;gap:20px;font-size:13px}
+.total-row.grand{font-size:16px;font-weight:800;margin-top:4px}
+.total-label{color:#888;min-width:80px;text-align:right}
+.total-val{min-width:80px;text-align:right;font-weight:600}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:9px 20px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}
+.preview-side{}
+.invoice-preview{border:1px solid #e5e5e5;border-radius:8px;padding:32px;font-size:12px;min-height:500px}
+.inv-header{display:flex;justify-content:space-between;margin-bottom:24px}
+.inv-from{font-size:11px;line-height:1.7;color:#444}
+.inv-title{font-size:28px;font-weight:800;color:#111;text-align:right}
+.inv-number{font-size:12px;color:#888;text-align:right;margin-top:4px}
+.inv-dates{font-size:11px;color:#888;text-align:right;margin-top:2px}
+.inv-bill-to{margin-bottom:20px}
+.inv-bill-label{font-size:9px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.inv-bill-name{font-size:13px;font-weight:700}
+.inv-bill-addr{font-size:11px;color:#555;line-height:1.6}
+.inv-table{width:100%;border-collapse:collapse;margin-bottom:16px}
+.inv-table th{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:6px 0;border-bottom:1px solid #e5e5e5;text-align:left}
+.inv-table th:last-child,.inv-table td:last-child{text-align:right}
+.inv-table td{padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:11px}
+.inv-totals{display:flex;justify-content:flex-end}
+.inv-totals-inner{min-width:200px}
+.inv-tot-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}
+.inv-tot-row.total-final{font-size:14px;font-weight:800;border-top:1px solid #e5e5e5;padding-top:8px;margin-top:4px}
+.inv-notes{margin-top:20px;font-size:10px;color:#888;border-top:1px solid #f0f0f0;padding-top:12px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+@media print{header,.hero,.form-side,.footer-bar,.btn-row{display:none!important}.workspace{grid-template-columns:1fr}.preview-side{padding:0}.invoice-preview{border:none;padding:0}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Invoice Generator</h1>
+<p>Fill in your details, add line items, and get a print-ready invoice in seconds. No account required.</p>
+<div class="badge">FREE TOOL</div>
+</div>
+<div class="workspace">
+<div class="form-side">
+<div class="panel">
+<div class="panel-header">From (Your Business)</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field"><label>Business name</label><input id="fromName" value="XLMX Consulting" oninput="render()"></div>
+<div class="field"><label>Email</label><input id="fromEmail" value="info@bimxl.com" oninput="render()"></div>
+</div>
+<div class="field"><label>Address / Phone</label><textarea id="fromAddr" oninput="render()">Saltillo, Coahuila, Mexico
++52 (844) 000-0000</textarea></div>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">Bill To</div>
+<div class="field-group">
+<div class="field"><label>Client name</label><input id="toName" value="Apex Architects" oninput="render()"></div>
+<div class="field"><label>Client email</label><input id="toEmail" value="client@hoeferwelker.com" oninput="render()"></div>
+<div class="field"><label>Address</label><textarea id="toAddr" oninput="render()">1234 Main St, Kansas City, MO 64111</textarea></div>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">Invoice Details</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field"><label>Invoice #</label><input id="invNum" value="INV-2026-001" oninput="render()"></div>
+<div class="field"><label>Currency</label>
+<select id="currency" onchange="render()"><option value="$">USD ($)</option><option value="MXN$">MXN ($)</option><option value="€">EUR (€)</option><option value="£">GBP (£)</option></select>
+</div>
+</div>
+<div class="field-row">
+<div class="field"><label>Issue date</label><input type="date" id="issueDate" oninput="render()"></div>
+<div class="field"><label>Due date</label><input type="date" id="dueDate" oninput="render()"></div>
+</div>
+<div class="field-row">
+<div class="field"><label>Tax rate (%)</label><input type="number" id="taxRate" value="16" min="0" max="100" oninput="render()"></div>
+<div class="field"><label>Discount (%)</label><input type="number" id="discount" value="0" min="0" max="100" oninput="render()"></div>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">Line Items</div>
+<table class="items-table">
+<thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th><th></th></tr></thead>
+<tbody id="itemsBody"></tbody>
+</table>
+<div class="add-item-row"><span class="add-link" onclick="addItem()">+ Add item</span></div>
+<div class="totals-block">
+<div class="total-row"><span class="total-label">Subtotal</span><span class="total-val" id="subtotalDisplay">$0.00</span></div>
+<div class="total-row" id="discountRow" style="display:none"><span class="total-label">Discount</span><span class="total-val" id="discountDisplay">-$0.00</span></div>
+<div class="total-row"><span class="total-label">Tax</span><span class="total-val" id="taxDisplay">$0.00</span></div>
+<div class="total-row grand"><span class="total-label">Total</span><span class="total-val" id="grandDisplay">$0.00</span></div>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">Notes / Payment Terms</div>
+<div class="field-group">
+<div class="field"><textarea id="notes" rows="3" oninput="render()">Payment due within 30 days. Bank transfer or wire. Thank you for your business.</textarea></div>
+</div>
+</div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+<button class="btn btn-secondary" onclick="loadSample()">Load sample</button>
+</div>
+</div>
+<div class="preview-side">
+<div class="invoice-preview" id="invoicePreview"></div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let items=[];let iid=0;
+function addItem(desc,qty,rate){
+  items.push({id:iid++,desc:desc||'',qty:qty||1,rate:rate||0});
+  renderItems();render();
+}
+function removeItem(id){items=items.filter(i=>i.id!==id);renderItems();render();}
+function renderItems(){
+  const tb=document.getElementById('itemsBody');tb.innerHTML='';
+  items.forEach(it=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input value="${it.desc}" onchange="updateItem(${it.id},'desc',this.value)"></td>
+      <td><input type="number" value="${it.qty}" min="0" step="any" onchange="updateItem(${it.id},'qty',parseFloat(this.value)||0)"></td>
+      <td><input type="number" value="${it.rate}" min="0" step="any" onchange="updateItem(${it.id},'rate',parseFloat(this.value)||0)"></td>
+      <td style="text-align:right;font-size:12px;padding:4px 8px;font-weight:600">${cur()}${(it.qty*it.rate).toFixed(2)}</td>
+      <td><button class="rm-btn" onclick="removeItem(${it.id})">×</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function updateItem(id,key,val){const it=items.find(i=>i.id===id);if(it){it[key]=val;renderItems();render();}}
+function cur(){return document.getElementById('currency').value||'$';}
+function fmt(n){return cur()+n.toFixed(2);}
+function render(){
+  const sub=items.reduce((a,i)=>a+i.qty*i.rate,0);
+  const disc=(parseFloat(document.getElementById('discount').value)||0)/100;
+  const tax=(parseFloat(document.getElementById('taxRate').value)||0)/100;
+  const discAmt=sub*disc;
+  const taxBase=sub-discAmt;
+  const taxAmt=taxBase*tax;
+  const grand=taxBase+taxAmt;
+  document.getElementById('subtotalDisplay').textContent=fmt(sub);
+  document.getElementById('taxDisplay').textContent=fmt(taxAmt);
+  document.getElementById('grandDisplay').textContent=fmt(grand);
+  if(disc>0){document.getElementById('discountRow').style.display='';document.getElementById('discountDisplay').textContent='-'+fmt(discAmt);}
+  else document.getElementById('discountRow').style.display='none';
+  const fn=document.getElementById('fromName').value;
+  const fe=document.getElementById('fromEmail').value;
+  const fa=document.getElementById('fromAddr').value.replace(/\n/g,'<br>');
+  const tn=document.getElementById('toName').value;
+  const te=document.getElementById('toEmail').value;
+  const ta=document.getElementById('toAddr').value.replace(/\n/g,'<br>');
+  const inv=document.getElementById('invNum').value;
+  const iDate=document.getElementById('issueDate').value;
+  const dDate=document.getElementById('dueDate').value;
+  const notes=document.getElementById('notes').value;
+  const rows=items.map(it=>`<tr><td>${it.desc}</td><td style="text-align:right">${it.qty}</td><td style="text-align:right">${fmt(it.rate)}</td><td style="text-align:right">${fmt(it.qty*it.rate)}</td></tr>`).join('');
+  document.getElementById('invoicePreview').innerHTML=`
+    <div class="inv-header">
+      <div class="inv-from"><strong>${fn}</strong><br>${fe}<br>${fa}</div>
+      <div><div class="inv-title">INVOICE</div><div class="inv-number">${inv}</div>
+      <div class="inv-dates">${iDate?'Issued: '+iDate:''}<br>${dDate?'Due: '+dDate:''}</div></div>
+    </div>
+    <div class="inv-bill-to">
+      <div class="inv-bill-label">Bill To</div>
+      <div class="inv-bill-name">${tn}</div>
+      <div class="inv-bill-addr">${te}<br>${ta}</div>
+    </div>
+    <table class="inv-table"><thead><tr><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="inv-totals"><div class="inv-totals-inner">
+      <div class="inv-tot-row"><span>Subtotal</span><span>${fmt(sub)}</span></div>
+      ${disc>0?`<div class="inv-tot-row"><span>Discount (${(disc*100).toFixed(0)}%)</span><span>-${fmt(discAmt)}</span></div>`:''}
+      <div class="inv-tot-row"><span>Tax (${(tax*100).toFixed(0)}%)</span><span>${fmt(taxAmt)}</span></div>
+      <div class="inv-tot-row total-final"><span>Total Due</span><span>${fmt(grand)}</span></div>
+    </div></div>
+    ${notes?`<div class="inv-notes">${notes}</div>`:''}`;
+}
+function loadSample(){
+  items=[];iid=0;
+  addItem('BIM Coordination — Schematic Design',1,8500);
+  addItem('Revit Modeling — LOD 300 (150 hrs)',150,65);
+  addItem('ACC Project Setup & Standards',1,1200);
+  addItem('VDC Coordination Meetings (8)',8,350);
+}
+const today=new Date();
+document.getElementById('issueDate').value=today.toISOString().split('T')[0];
+const due=new Date();due.setDate(due.getDate()+30);
+document.getElementById('dueDate').value=due.toISOString().split('T')[0];
+loadSample();
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Embodied Carbon Estimator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;text-align:center}
+.kbox .v{font-size:1.2rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase}
+td{padding:7px 6px;border-bottom:1px solid #1e1e1e}
+.del{color:#ef4444;cursor:pointer}
+.bar-wrap{height:10px;background:#222;border-radius:5px;overflow:hidden;margin:3px 0}
+.bar-fill{height:100%;background:#16a34a;border-radius:5px}
+.high{background:#ef4444}.med{background:#f59e0b}.low{background:#16a34a}
+tfoot td{padding:8px 6px;font-weight:700;color:#16a34a;border-top:2px solid #16a34a}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.kpi{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Embodied Carbon Estimator</h1>
+<p class="sub">Whole-life embodied carbon by material — kg CO₂e per unit, based on ICE database / EC3 values</p>
+<div class="card">
+<div class="grid2">
+<div><label>Project Name</label><input id="proj" placeholder="Tower A — Structure"></div>
+<div><label>GFA (m²) for intensity benchmarking</label><input id="gfa" type="number" value="5000" step="100"></div>
+</div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+<button onclick="document.getElementById('form').style.display='block'">+ Add Material</button>
+<button class="sec" onclick="loadSample()">Load Structure Sample</button>
+<button class="sec" onclick="expCSV()">Export CSV</button>
+</div>
+<div class="card" id="form" style="display:none">
+<div class="grid2">
+<div><label>Material</label>
+<select id="fMat" onchange="setGWP()">
+<option value="0.159|m³">Ready-mix concrete 30MPa — 0.159 kg CO₂e/kg</option>
+<option value="0.099|m³">Ready-mix concrete 20MPa — 0.099 kg CO₂e/kg</option>
+<option value="1.46|ton">Structural steel (virgin) — 1.46 kg CO₂e/kg</option>
+<option value="0.51|ton">Structural steel (recycled 90%) — 0.51 kg CO₂e/kg</option>
+<option value="1.80|ton">Rebar (virgin) — 1.80 kg CO₂e/kg</option>
+<option value="0.77|ton">Rebar (recycled) — 0.77 kg CO₂e/kg</option>
+<option value="0.285|m³">Glulam / CLT timber — 0.285 kg CO₂e/kg</option>
+<option value="0.24|m³">Lumber / Sawn timber — 0.24 kg CO₂e/kg</option>
+<option value="0.62|ton">Aluminum (primary) — 6.2 kg CO₂e/kg</option>
+<option value="1.50|ton">Aluminum (recycled) — 1.5 kg CO₂e/kg</option>
+<option value="0.83|ton">Glass (float) — 0.83 kg CO₂e/kg</option>
+<option value="0.28|ton">Brick (clay) — 0.28 kg CO₂e/kg</option>
+<option value="0.083|m³">CMU block — 0.083 kg CO₂e/kg</option>
+<option value="0.082|m²">Gypsum board (12mm) — 0.082 kg CO₂e/kg</option>
+<option value="3.00|ton">XPS insulation — 3.00 kg CO₂e/kg</option>
+<option value="1.05|ton">Mineral wool insulation — 1.05 kg CO₂e/kg</option>
+<option value="0.50|ton">EPDM roofing — 0.50 kg CO₂e/kg</option>
+<option value="0.0|custom">Custom material</option>
+</select></div>
+<div><label>GWP (kg CO₂e / unit)</label><input id="fGWP" type="number" value="0.159" step="0.001"></div>
+<div><label>Quantity</label><input id="fQty" type="number" value="100" step="1"></div>
+<div><label>Unit</label><input id="fUnit" value="m³" placeholder="m³, ton, m², kg"></div>
+<div><label>Mass per unit (kg)</label><input id="fMass" type="number" value="2400" step="10" title="kg per m³, ton=1000, etc."></div>
+<div><label>Life Cycle Stage</label>
+<select id="fLC"><option>A1-A3 Product</option><option>A4-A5 Construction</option><option>B Operational</option><option>C End of Life</option></select></div>
+</div>
+<button onclick="addItem()">Save</button><button class="sec" onclick="document.getElementById('form').style.display='none'">Cancel</button>
+</div>
+<div class="kpi" id="kpi">
+<div class="kbox"><div class="v">0 tCO₂e</div><div class="l">Total Embodied Carbon</div></div>
+<div class="kbox"><div class="v">—</div><div class="l">Intensity (kg CO₂e/m²)</div></div>
+<div class="kbox"><div class="v">—</div><div class="l">vs. RIBA 2030 Target</div></div>
+</div>
+<div class="card" style="overflow-x:auto">
+<table><thead><tr><th>#</th><th>Material</th><th>Stage</th><th>Qty</th><th>Unit</th><th>GWP</th><th>CO₂e (t)</th><th>Share</th><th></th></tr></thead>
+<tbody id="tb"></tbody>
+<tfoot><tr><td colspan="6">TOTAL</td><td id="tfoot">0 t</td><td></td><td></td></tr></tfoot>
+</table>
+</div>
+<script>
+let items=[];let nid=1;
+function setGWP(){
+  const v=document.getElementById('fMat').value.split('|');
+  document.getElementById('fGWP').value=v[0];
+  document.getElementById('fUnit').value=v[1]||'ton';
+  const massMap={'m³':2400,'ton':1000,'m²':25,'kg':1};
+  document.getElementById('fMass').value=massMap[v[1]]||1000;
+}
+function addItem(){
+  const matSel=document.getElementById('fMat');const matName=matSel.options[matSel.selectedIndex].text.split(' —')[0];
+  items.push({id:nid++,mat:matName,lc:document.getElementById('fLC').value,
+    qty:+document.getElementById('fQty').value,unit:document.getElementById('fUnit').value,
+    gwp:+document.getElementById('fGWP').value,mass:+document.getElementById('fMass').value});
+  render();document.getElementById('form').style.display='none';
+}
+function del(id){items=items.filter(x=>x.id!==id);render()}
+function render(){
+  const gfa=+document.getElementById('gfa').value||1;
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  const totals=items.map(r=>r.qty*r.mass*r.gwp/1000); // tCO₂e
+  const total=totals.reduce((a,b)=>a+b,0);
+  items.forEach((r,i)=>{
+    const co2=totals[i];const pct=total>0?(co2/total*100):0;
+    const barClass=pct>30?'high':pct>15?'med':'low';
+    tb.innerHTML+=`<tr><td>${i+1}</td><td>${r.mat}</td><td>${r.lc.split(' ')[0]}</td>
+    <td>${r.qty}</td><td>${r.unit}</td><td>${r.gwp}</td><td>${co2.toFixed(2)}</td>
+    <td style="min-width:80px"><div style="font-size:.75rem;color:#aaa">${pct.toFixed(1)}%</div><div class="bar-wrap"><div class="bar-fill ${barClass}" style="width:${Math.min(pct,100)}%"></div></div></td>
+    <td class="del" onclick="del(${r.id})">×</td></tr>`;
+  });
+  const intensity=total*1000/gfa;const RIBA2030=500; // kg CO₂e/m² RIBA 2030 target
+  const pctTarget=(intensity/RIBA2030*100);
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v">${total.toFixed(1)} tCO₂e</div><div class="l">Total Embodied Carbon</div></div>`+
+    `<div class="kbox"><div class="v">${intensity.toFixed(0)} kg CO₂e/m²</div><div class="l">Carbon Intensity</div></div>`+
+    `<div class="kbox"><div class="v" style="color:${pctTarget<=100?'#16a34a':'#ef4444'}">${pctTarget.toFixed(0)}% of target</div><div class="l">vs. RIBA 2030 (500 kg/m²)</div></div>`;
+  document.getElementById('tfoot').textContent=total.toFixed(2)+' tCO₂e';
+}
+function loadSample(){
+  [['Ready-mix concrete 30MPa',400,'m³',0.159,2400,'A1-A3 Product'],
+   ['Rebar (recycled)',80,'ton',0.77,1000,'A1-A3 Product'],
+   ['Structural steel (recycled 90%)',60,'ton',0.51,1000,'A1-A3 Product'],
+   ['Gypsum board (12mm)',2000,'m²',0.082,10,'A1-A3 Product'],
+   ['Mineral wool insulation',8,'ton',1.05,1000,'A1-A3 Product']
+  ].forEach(([mat,qty,unit,gwp,mass,lc])=>items.push({id:nid++,mat,qty,unit,gwp,mass,lc}));
+  render();
+}
+render();
+</script></body></html>

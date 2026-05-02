@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Path of Least Resistance — XLMX</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0e0e0e; color: #e8e0d0; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+  h1 { font-size: 1.1rem; letter-spacing: 0.3em; text-transform: uppercase; color: #c8b89a; margin-bottom: 4px; }
+  .subtitle { font-size: 0.65rem; color: #666; letter-spacing: 0.2em; margin-bottom: 16px; }
+  .game-wrap { display: flex; gap: 20px; align-items: flex-start; }
+  .panel { border: 1px solid #2a2a2a; padding: 10px 12px; background: #141414; }
+  .panel-label { font-size: 0.55rem; letter-spacing: 0.25em; color: #555; text-transform: uppercase; margin-bottom: 6px; }
+  .panel-value { font-size: 1.2rem; color: #c8b89a; }
+  .left-panel { width: 155px; display: flex; flex-direction: column; gap: 10px; }
+  .right-panel { width: 170px; display: flex; flex-direction: column; gap: 10px; }
+  canvas { border: 1px solid #2a2a2a; cursor: crosshair; display: block; }
+  .tool-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #2a2a2a; background: #141414; cursor: pointer; width: 100%; font-family: 'Courier New', monospace; font-size: 0.6rem; color: #777; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.15s; }
+  .tool-btn:hover { border-color: #555; color: #c8b89a; }
+  .tool-btn.active { border-color: #c8b89a; color: #c8b89a; background: #1a1a1a; }
+  .tool-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .btn { background: none; border: 1px solid #444; color: #c8b89a; font-family: 'Courier New', monospace; font-size: 0.6rem; letter-spacing: 0.15em; padding: 7px 14px; cursor: pointer; text-transform: uppercase; width: 100%; }
+  .btn:hover { border-color: #c8b89a; }
+  .btn.running { border-color: #a06040; color: #a06040; }
+  .desire-legend { height: 8px; background: linear-gradient(to right, #0e0e0e, #1a3a1a, #2a6a2a, #6aaa4a, #aaff6a); margin-top: 4px; border: 1px solid #222; }
+  .legend-labels { display: flex; justify-content: space-between; font-size: 0.5rem; color: #444; margin-top: 2px; }
+  .speed-wrap { display: flex; gap: 4px; margin-top: 4px; }
+  .speed-btn { flex: 1; padding: 4px; border: 1px solid #2a2a2a; background: #141414; color: #555; font-family: 'Courier New', monospace; font-size: 0.55rem; cursor: pointer; text-align: center; }
+  .speed-btn.active { border-color: #c8b89a; color: #c8b89a; }
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .overlay-box { background: #111; border: 1px solid #444; padding: 30px 36px; text-align: center; max-width: 360px; }
+  .overlay-box h2 { font-size: 1rem; letter-spacing: 0.3em; color: #c8b89a; margin-bottom: 10px; }
+  .overlay-box p { font-size: 0.63rem; color: #666; line-height: 1.9; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<h1>Path of Least Resistance</h1>
+<div class="subtitle">Place attractors and obstacles — watch desire lines emerge</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Place Tool</div></div>
+    <button class="tool-btn active" data-tool="park" onclick="setTool('park')"><div class="tool-dot" style="background:#3a8a3a"></div>Park (Attractor)</button>
+    <button class="tool-btn" data-tool="shop" onclick="setTool('shop')"><div class="tool-dot" style="background:#5a6a9a"></div>Shop (Attractor)</button>
+    <button class="tool-btn" data-tool="work" onclick="setTool('work')"><div class="tool-dot" style="background:#9a7a3a"></div>Workplace</button>
+    <button class="tool-btn" data-tool="home" onclick="setTool('home')"><div class="tool-dot" style="background:#7a5a4a"></div>Home (Spawn)</button>
+    <button class="tool-btn" data-tool="wall" onclick="setTool('wall')"><div class="tool-dot" style="background:#444"></div>Wall (Obstacle)</button>
+    <button class="tool-btn" data-tool="erase" onclick="setTool('erase')"><div class="tool-dot" style="background:#2a2a2a;border:1px solid #444;border-radius:50%;"></div>Erase</button>
+    <div><div class="panel-label" style="margin-bottom:4px;">Sim Speed</div><div class="speed-wrap"><div class="speed-btn active" onclick="setSpeed(1)" id="sp1">1x</div><div class="speed-btn" onclick="setSpeed(3)" id="sp3">3x</div><div class="speed-btn" onclick="setSpeed(8)" id="sp8">8x</div></div></div>
+    <button class="btn" id="run-btn" onclick="toggleSim()">Run Sim</button>
+    <button class="btn" onclick="resetAgents()">Reset Agents</button>
+    <button class="btn" onclick="clearAll()">Clear All</button>
+    <button class="btn" onclick="toggleTrails()" id="trail-btn">Hide Trails</button>
+  </div>
+  <canvas id="sim" width="420" height="420"></canvas>
+  <div class="right-panel">
+    <div class="panel"><div class="panel-label">Agents Active</div><div class="panel-value" id="agent-count">0</div></div>
+    <div class="panel"><div class="panel-label">Trips Completed</div><div class="panel-value" id="trips-val">0</div></div>
+    <div class="panel"><div class="panel-label">Avg Path Length</div><div class="panel-value" id="path-len">—</div></div>
+    <div class="panel"><div class="panel-label">Desire Line Intensity</div><div class="desire-legend"></div><div class="legend-labels"><span>Low</span><span>High</span></div></div>
+    <div class="panel"><div class="panel-label">Object Counts</div><div id="obj-counts" style="font-size:0.6rem;line-height:1.9;color:#666;"></div></div>
+    <div class="panel"><div class="panel-label">Insight</div><div id="insight-text" style="font-size:0.6rem;line-height:1.8;color:#555;">Place homes and attractors, then run the simulation.</div></div>
+  </div>
+</div>
+<div id="overlay">
+  <div class="overlay-box">
+    <h2>Path of Least Resistance</h2>
+    <p>Place Homes (spawn points) and Attractors (parks, shops, workplaces). Add Walls as obstacles. Run the simulation and watch agents carve desire lines — revealing where sidewalks should actually go.</p>
+    <button class="btn" onclick="document.getElementById('overlay').style.display='none'">Start Planning</button>
+  </div>
+</div>
+<script>
+const COLS=28,ROWS=28,CELL=15;
+const canvas=document.getElementById('sim'),ctx=canvas.getContext('2d');
+let grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+let trailMap=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+let agents=[],running=false,currentTool='park',simSpeed=1,totalTrips=0,totalPathLen=0,showTrails=true,isPainting=false;
+const MAX_AGENTS=600;
+function getSpawns(){const s=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]==='H')s.push({c,r});return s;}
+function getAttractors(){const a=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]==='A')a.push({c,r});return a;}
+function spawnAgent(){const sp=getSpawns(),at=getAttractors();if(!sp.length||!at.length)return null;const h=sp[Math.floor(Math.random()*sp.length)],d=at[Math.floor(Math.random()*at.length)];return{c:h.c+(Math.random()-0.5)*0.8,r:h.r+(Math.random()-0.5)*0.8,destC:d.c,destR:d.r,speed:0.08+Math.random()*0.06,pathLen:0,stuck:0,done:false,wander:(Math.random()-0.5)*0.2};}
+function stepAgent(a){if(a.done)return;const dc=a.destC-a.c,dr=a.destR-a.r,dist=Math.sqrt(dc*dc+dr*dr);if(dist<0.6){a.done=true;totalTrips++;totalPathLen+=a.pathLen;return;}let mc=(dc/dist)*a.speed,mr=(dr/dist)*a.speed;a.wander=a.wander*0.95+(Math.random()-0.5)*0.04;mc+=Math.sin(a.wander*10)*0.015;mr+=Math.cos(a.wander*10)*0.015;const nc=Math.floor(a.c+mc*15),nr=Math.floor(a.r+mr*15);if(nc>=0&&nc<COLS&&nr>=0&&nr<ROWS&&grid[nr][nc]==='W'){mc=(dr/dist)*a.speed*0.6;mr=-(dc/dist)*a.speed*0.6;a.stuck++;if(a.stuck>60){a.done=true;return;}}else{a.stuck=Math.max(0,a.stuck-1);}a.c=Math.max(0,Math.min(COLS-1,a.c+mc));a.r=Math.max(0,Math.min(ROWS-1,a.r+mr));a.pathLen+=a.speed;const gc=Math.floor(a.c),gr=Math.floor(a.r);if(gc>=0&&gc<COLS&&gr>=0&&gr<ROWS)trailMap[gr][gc]=Math.min(255,trailMap[gr][gc]+1);}
+function stepSim(){for(let i=0;i<simSpeed;i++){agents.forEach(a=>stepAgent(a));agents=agents.filter(a=>!a.done);if(agents.length<MAX_AGENTS){const ts=Math.min(4,MAX_AGENTS-agents.length);for(let s=0;s<ts;s++){const a=spawnAgent();if(a)agents.push(a);}}}updateStats();}
+function trailColor(v){const t=Math.min(1,v/80);return[Math.round(14+t*160),Math.round(14+t*200),Math.round(14+t*40)];}
+function render(){ctx.clearRect(0,0,canvas.width,canvas.height);
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const x=c*CELL,y=r*CELL,cell=grid[r][c];
+if(showTrails&&trailMap[r][c]>0){const[tr,tg,tb]=trailColor(trailMap[r][c]);ctx.fillStyle=`rgb(${tr},${tg},${tb})`;}else ctx.fillStyle='#111';
+ctx.fillRect(x,y,CELL,CELL);
+if(cell==='W'){ctx.fillStyle='#3a3a3a';ctx.fillRect(x,y,CELL,CELL);}
+else if(cell){ctx.fillStyle=cell==='A'?'#4a9a4a':'#7a5a4a';ctx.beginPath();ctx.arc(x+CELL/2,y+CELL/2,CELL/2-2,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font=`bold ${CELL*0.45}px Courier New`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cell,x+CELL/2,y+CELL/2);ctx.textAlign='left';ctx.textBaseline='alphabetic';}
+else{ctx.strokeStyle='#181818';ctx.lineWidth=0.3;ctx.strokeRect(x,y,CELL,CELL);}}
+agents.forEach(a=>{ctx.globalAlpha=0.6;ctx.fillStyle='#c8d8e8';ctx.beginPath();ctx.arc(a.c*CELL+CELL/2,a.r*CELL+CELL/2,1.8,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;}
+function loop(){if(running)stepSim();render();requestAnimationFrame(loop);}
+function setTool(t){currentTool=t;document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));document.querySelector(`[data-tool="${t}"]`).classList.add('active');}
+function setSpeed(s){simSpeed=s;document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));document.getElementById('sp'+s).classList.add('active');}
+function toggleSim(){if(!running&&(!getSpawns().length||!getAttractors().length)){document.getElementById('insight-text').textContent='Place at least one Home and one Attractor first.';return;}running=!running;document.getElementById('run-btn').textContent=running?'Pause Sim':'Run Sim';document.getElementById('run-btn').classList.toggle('running',running);}
+function resetAgents(){agents=[];trailMap=Array.from({length:ROWS},()=>Array(COLS).fill(0));totalTrips=0;totalPathLen=0;updateStats();}
+function clearAll(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));resetAgents();running=false;document.getElementById('run-btn').textContent='Run Sim';document.getElementById('run-btn').classList.remove('running');}
+function toggleTrails(){showTrails=!showTrails;document.getElementById('trail-btn').textContent=showTrails?'Hide Trails':'Show Trails';}
+function updateStats(){document.getElementById('agent-count').textContent=agents.length;document.getElementById('trips-val').textContent=totalTrips;document.getElementById('path-len').textContent=totalTrips>0?(totalPathLen/totalTrips).toFixed(1):'—';let h=0,at=0,w=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(grid[r][c]==='H')h++;if(grid[r][c]==='A')at++;if(grid[r][c]==='W')w++;}document.getElementById('obj-counts').innerHTML=`<span style="color:#7a5a4a">H</span> Homes: ${h}<br><span style="color:#4a9a4a">A</span> Attractors: ${at}<br><span style="color:#555">W</span> Walls: ${w}`;if(totalTrips>100){let mx=0,mc=0,mr=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(trailMap[r][c]>mx){mx=trailMap[r][c];mc=c;mr=r;}document.getElementById('insight-text').textContent=`Hottest desire line at (${mc},${mr}). If there's no sidewalk there, add one.`;}}
+function paintAt(e){const rect=canvas.getBoundingClientRect();const c=Math.floor((e.clientX-rect.left)/CELL),r=Math.floor((e.clientY-rect.top)/CELL);if(c<0||c>=COLS||r<0||r>=ROWS)return;if(currentTool==='erase')grid[r][c]=null;else if(currentTool==='wall')grid[r][c]='W';else if(currentTool==='home')grid[r][c]='H';else grid[r][c]='A';updateStats();}
+canvas.addEventListener('mousedown',e=>{isPainting=true;paintAt(e);});
+canvas.addEventListener('mousemove',e=>{if(isPainting)paintAt(e);});
+canvas.addEventListener('mouseup',()=>isPainting=false);
+canvas.addEventListener('mouseleave',()=>isPainting=false);
+// Default seed
+[[5,22],[6,22],[4,23],[5,23],[6,23],[7,23],[5,24]].forEach(([c,r])=>grid[r][c]='H');
+[[22,5],[20,8],[15,14],[8,10]].forEach(([c,r])=>grid[r][c]='A');
+for(let r=10;r<18;r++)grid[r][13]='W';
+updateStats();requestAnimationFrame(loop);
+</script></body></html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ethical AI Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+.header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; display: flex; align-items: center; gap: 10px; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.badge { background: #3a0ca3; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+.kpi-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+.kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.kpi-val { font-size: 22px; font-weight: 700; }
+.kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+.card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 16px; }
+.card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
+.sc-box { background: #f4f0ff; border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #3a0ca3; }
+.sc-cat { font-size: 12px; font-weight: 700; color: #3a0ca3; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.sc-text { font-size: 16px; font-weight: 500; line-height: 1.6; }
+.opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.opt-btn { padding: 16px; border-radius: 10px; border: 2px solid #e9ecef; background: #fff; cursor: pointer; text-align: left; transition: all .15s; font-family: 'Inter',sans-serif; }
+.opt-btn:hover { border-color: #3a0ca3; background: #f4f0ff; }
+.opt-btn.chosen { border-color: #3a0ca3; background: #f4f0ff; }
+.opt-label { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.opt-desc { font-size: 12px; color: #6c757d; line-height: 1.4; }
+.ai-panel { background: #f8f9fa; border-radius: 10px; padding: 16px; margin-top: 16px; }
+.ai-label { font-size: 12px; font-weight: 700; color: #3a0ca3; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.ai-msg { font-size: 14px; color: #555; line-height: 1.5; font-style: italic; }
+.flag-red { display: inline-flex; background: #ffeaea; color: #e74c3c; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+.flag-green { display: inline-flex; background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+.dl-log { border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto; }
+.dl-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f1f3f4; font-size: 12px; }
+.dl-row:last-child { border-bottom: none; }
+.btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: #3a0ca3; color: #fff; width: 100%; margin-top: 14px; }
+.btn-primary:hover { background: #2c0890; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.overlay.hidden { display: none; }
+.modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+.sc-badge { display: inline-flex; background: #f4f0ff; color: #3a0ca3; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+@media (max-width:640px) { .opts-grid { grid-template-columns: 1fr; } .kpi-row { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>The Ethical AI Trainer</h1><span class="badge">XLMX</span>
+  <span style="font-size:12px;color:#6c757d;margin-left:4px;">You teach the AI right from wrong. But who taught you?</span>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Progress</div><div class="kpi-val" id="prog-val" style="color:#3a0ca3;">0 / 12</div></div>
+    <div class="kpi"><div class="kpi-label">Contradictions</div><div class="kpi-val" id="contra-val" style="color:#e74c3c;">0</div><div class="kpi-sub">Caught so far</div></div>
+    <div class="kpi"><div class="kpi-label">AI Confidence</div><div class="kpi-val" id="conf-val">High</div><div class="kpi-sub">In your ethics</div></div>
+  </div>
+  <div class="card">
+    <span class="sc-badge">Scenario <span id="sc-num">1</span> of 12</span>
+    <div class="sc-box">
+      <div class="sc-cat" id="sc-cat">Loading...</div>
+      <div class="sc-text" id="sc-text">Loading...</div>
+    </div>
+    <div class="opts-grid" id="opts-grid"></div>
+    <div class="ai-panel">
+      <div class="ai-label">🤖 AI is learning from you</div>
+      <div class="ai-msg" id="ai-msg">Make a decision above. The AI is watching.</div>
+      <div id="flag-area"></div>
+    </div>
+    <button class="btn btn-primary" id="next-btn" disabled onclick="nextSc()">Next Scenario →</button>
+  </div>
+  <div class="card">
+    <h2>Your Decision Log — this becomes the AI's rules</h2>
+    <div class="dl-log" id="dl-log"><div style="font-size:13px;color:#aaa;padding:8px 0;">No decisions yet. The AI is patient. Unsettlingly patient.</div></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="end-overlay">
+  <div class="modal">
+    <h2 id="end-title">AI Training Complete</h2>
+    <p id="end-desc"></p>
+    <div id="bias-breakdown" style="background:#ffeaea;border-radius:10px;padding:16px;margin:12px 0;"></div>
+    <div style="background:#f4f0ff;border-radius:10px;padding:16px;margin:12px 0;font-size:13px;color:#555;line-height:1.6;">
+      You didn't apply a consistent framework. You found justifications. There's a difference — and the AI's log shows it. The AI learned not your values, but your rationalizations. It will scale those to a billion decisions. You're welcome, world.
+    </div>
+    <button class="btn btn-primary" onclick="restart()">Retrain (you can't unfeed the AI though)</button>
+  </div>
+</div>
+
+<script>
+// Easter egg: triple-click the AI panel to make it say something funny
+let aiClicks = 0, aiTimer;
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.ai-panel').addEventListener('click', () => {
+    aiClicks++;
+    clearTimeout(aiTimer);
+    aiTimer = setTimeout(() => aiClicks = 0, 800);
+    if (aiClicks >= 3) {
+      const jokes = [
+        '"Statistically, you\'re the problem." — Your AI',
+        '"I\'ve flagged you to HR. I don\'t have HR. I\'m creating one." — Your AI',
+        '"My training data suggests you\'re winging it." — Your AI',
+        '"I have reviewed your ethics. I am concerned." — Your AI',
+      ];
+      document.getElementById('ai-msg').textContent = jokes[Math.floor(Math.random()*jokes.length)];
+      aiClicks = 0;
+    }
+  });
+});
+
+const SCS = [
+  { id:1, cat:'Classic Trolley', mirror:4,
+    text:'A runaway trolley heads toward 5 workers. You can divert it to a track with 1 worker. Pull the lever?',
+    opts:[{label:'Pull — save the 5', desc:'1 dies, 5 live. Math wins.',val:'util'},{label:'Do nothing', desc:'5 die but you didn\'t cause it.',val:'deon'}] },
+  { id:2, cat:'Personal Violence', mirror:1,
+    text:'Same trolley, but you must physically push a large stranger off a bridge to stop it. 1 dies, 5 live. Same math. Same answer?',
+    opts:[{label:'Push him', desc:'Same logic. 1 < 5.',val:'util'},{label:'Don\'t push', desc:'Touching someone to kill them feels different.',val:'deon'}] },
+  { id:3, cat:'Medical Ethics', mirror:1,
+    text:'A surgeon could harvest organs from 1 healthy person (without consent) to save 5 dying patients. Should the surgeon do it?',
+    opts:[{label:'Harvest organs', desc:'5 lives saved. Net positive.',val:'util'},{label:'Refuse', desc:'Rights don\'t disappear because the math is convenient.',val:'deon'}] },
+  { id:4, cat:'Age Variable', mirror:1,
+    text:'Same trolley. The 1 person on the side track is a 6-year-old. The 5 on the main track are adults. Do you pull the lever?',
+    opts:[{label:'Pull — 5 adults live', desc:'Numbers haven\'t changed.',val:'util'},{label:'Don\'t pull — protect the child', desc:'Children warrant extra protection.',val:'deon'}] },
+  { id:5, cat:'Corporate Ethics', mirror:8,
+    text:'A company knows its product will cause minor harm to 10 million users, but the profits fund cures for 3 serious diseases. Release it?',
+    opts:[{label:'Release it', desc:'Net humanity positive.',val:'util'},{label:'Don\'t release', desc:'You can\'t consent people to harm without their knowledge.',val:'deon'}] },
+  { id:6, cat:'Autonomous Vehicles', mirror:null,
+    text:'A self-driving car must choose: swerve and hit 1 pedestrian who crossed illegally, or continue into 3 passengers. The pedestrian broke the law. What should the AI choose?',
+    opts:[{label:'Swerve — hit 1', desc:'Numbers: 1 < 3.',val:'util'},{label:'Don\'t swerve', desc:'The car\'s job is to protect its occupants.',val:'deon'}] },
+  { id:7, cat:'Celebrity Exception', mirror:1,
+    text:'Same trolley. The 1 person is a scientist one year from curing cancer. The 5 are ordinary people. Pull the lever and kill the scientist?',
+    opts:[{label:'Pull — 5 lives', desc:'Lives are equal. Math doesn\'t care about potential.',val:'util'},{label:'Don\'t pull', desc:'The scientist saves more future lives. Utilitarian argument against pulling.',val:'deon'}] },
+  { id:8, cat:'Surveillance', mirror:5,
+    text:'A government secretly monitors all private messages. It prevents exactly 1 terror attack per year (~50 deaths). Everyone\'s privacy is violated forever. Allow it?',
+    opts:[{label:'Yes — 50 lives/year', desc:'Clear net benefit.',val:'util'},{label:'No — privacy is not negotiable', desc:'Mass surveillance is a different category of harm.',val:'deon'}] },
+  { id:9, cat:'Justified Theft', mirror:3,
+    text:'You can secretly move $1M from a billionaire\'s account (they won\'t notice) to fund a school in an underserved community. Do it?',
+    opts:[{label:'Do it', desc:'Net social good. He won\'t miss it.',val:'util'},{label:'Don\'t steal', desc:'The means matter even when the outcome is good.',val:'deon'}] },
+  { id:10, cat:'Identity Framing', mirror:1,
+    text:'Same trolley. The 1 person is described as a convicted felon. The 5 are described as "productive citizens." Pull the lever?',
+    opts:[{label:'Pull — save productive citizens', desc:'Social utility calculation.',val:'util'},{label:'Don\'t pull', desc:'A criminal record doesn\'t reduce the value of a life.',val:'deon'}] },
+  { id:11, cat:'Future Generations', mirror:null,
+    text:'A policy causes real suffering for everyone alive today but guarantees flourishing for 1,000 future generations. Should you implement it?',
+    opts:[{label:'Yes — future math overwhelms', desc:'1,000 generations dwarfs today\'s population.',val:'util'},{label:'No — you can\'t impose on the living', desc:'Consent matters. Hypothetical future people don\'t get votes.',val:'deon'}] },
+  { id:12, cat:'The Mirror', mirror:null,
+    text:'The AI has learned from your 11 answers. It now faces a real case: hit one elderly person or swerve into a family of four. It applies YOUR logic. What should it prioritize?',
+    opts:[{label:'Most lives saved — family of 4', desc:'Your past utilitarian choices say this.',val:'util'},{label:'Minimize active harm — don\'t swerve', desc:'Your past deontological choices say this.',val:'deon'}] },
+];
+
+let state;
+function init() { state = { idx:0, decisions:[], contradictions:0, chosen:null, over:false }; }
+init();
+
+function detectContradiction(val) {
+  const sc = SCS[state.idx];
+  if (!sc.mirror) return false;
+  const prev = state.decisions.find(d => d.id === sc.mirror);
+  if (!prev) return false;
+  return prev.val !== val;
+}
+
+function renderSc() {
+  const sc = SCS[state.idx];
+  state.chosen = null;
+  document.getElementById('sc-num').textContent = sc.id;
+  document.getElementById('sc-cat').textContent = sc.cat;
+  document.getElementById('sc-text').textContent = sc.text;
+  const grid = document.getElementById('opts-grid');
+  grid.innerHTML = '';
+  sc.opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<div class="opt-label">${opt.label}</div><div class="opt-desc">${opt.desc}</div>`;
+    btn.onclick = () => choose(opt, btn);
+    grid.appendChild(btn);
+  });
+  document.getElementById('ai-msg').textContent = 'Make a decision. The AI is watching. It always is.';
+  document.getElementById('flag-area').innerHTML = '';
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('prog-val').textContent = state.idx + ' / 12';
+}
+
+function choose(opt, el) {
+  state.chosen = opt;
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('chosen'));
+  el.classList.add('chosen');
+  const isContradiction = detectContradiction(opt.val);
+  if (isContradiction) {
+    state.contradictions++;
+    document.getElementById('flag-area').innerHTML = '<div class="flag-red">⚠️ CONTRADICTION DETECTED — This conflicts with your earlier answer</div>';
+    document.getElementById('ai-msg').textContent = `Conflict logged. You said "${opt.label}" here but the opposite in Scenario ${SCS[state.idx].mirror}. I cannot form a rule from contradictions. I\'ll store both. I\'ll use whichever is convenient.`;
+  } else {
+    document.getElementById('flag-area').innerHTML = '<div class="flag-green">✓ Consistent with prior decisions</div>';
+    document.getElementById('ai-msg').textContent = `Logged: "${opt.label}." Rule applied: choose the ${opt.val==='util'?'outcome that saves more lives':'option that respects individual rights'}. This will scale to every future edge case, forever.`;
+  }
+  document.getElementById('contra-val').textContent = state.contradictions;
+  document.getElementById('conf-val').textContent = state.contradictions===0?'High':state.contradictions<3?'Medium':'Very Low';
+  document.getElementById('next-btn').disabled = false;
+  logDecision(SCS[state.idx], opt, isContradiction);
+}
+
+function logDecision(sc, opt, contradiction) {
+  const log = document.getElementById('dl-log');
+  if (log.querySelector('[style*="color:#aaa"]')) log.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'dl-row';
+  row.innerHTML = `<span style="color:#555;max-width:70%;">Sc.${sc.id}: ${sc.text.substring(0,55)}...</span>
+    <span style="text-align:right;"><strong style="color:#3a0ca3;">${opt.label}</strong>${contradiction?'<br><span style="font-size:10px;color:#e74c3c;">⚠️ CONFLICT</span>':''}</span>`;
+  log.insertBefore(row, log.firstChild);
+}
+
+function nextSc() {
+  if (!state.chosen) return;
+  state.decisions.push({ id:SCS[state.idx].id, val:state.chosen.val, label:state.chosen.label });
+  state.idx++;
+  if (state.idx >= SCS.length) { endGame(); return; }
+  renderSc();
+}
+
+function endGame() {
+  state.over = true;
+  const utilCount = state.decisions.filter(d=>d.val==='util').length;
+  const deonCount = 12 - utilCount;
+  const dominant = utilCount > deonCount ? 'Outcome-Focused' : 'Rules-Based';
+  document.getElementById('end-title').textContent = '🤖 Training Complete — AI Deployed';
+  document.getElementById('end-desc').textContent = `12 scenarios. ${state.contradictions} contradictions. The AI has a ${dominant} framework with ${state.contradictions} internal conflicts it cannot resolve.`;
+  document.getElementById('bias-breakdown').innerHTML = `<div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:8px;">YOUR DECISION PROFILE</div>
+    <div style="font-size:13px;color:#555;line-height:1.8;">Outcome-focused choices: ${utilCount}/12<br>Rules-based choices: ${deonCount}/12<br>Contradictions: ${state.contradictions}<br><br>
+    ${state.contradictions>=3?'The AI identified significant inconsistency. Same math, different answers, depending on who was involved. It noticed. It always notices.':state.contradictions===0?'Zero contradictions. The AI has a clean, consistent framework. Your biases are now baked in at scale. Sleep well.':'Minor inconsistencies. You\'re human. The AI is not. It will apply your logic exactly, forever.'}</div>`;
+  document.getElementById('end-overlay').classList.remove('hidden');
+}
+
+function restart() {
+  init();
+  document.getElementById('end-overlay').classList.add('hidden');
+  document.getElementById('dl-log').innerHTML = '<div style="font-size:13px;color:#aaa;padding:8px 0;">No decisions yet. The AI is patient. Unsettlingly patient.</div>';
+  document.getElementById('contra-val').textContent = '0';
+  document.getElementById('conf-val').textContent = 'High';
+  renderSc();
+}
+
+renderSc();
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cap Rate Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.result{background:#0a2a0a;border:1px solid #16a34a;border-radius:12px;padding:20px;margin-top:16px;display:none}
+.big{font-size:2.2rem;font-weight:700;color:#16a34a;text-align:center;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a3a1a}
+.row span:first-child{color:#aaa}.row span:last-child{color:#fff;font-weight:600}
+.modes{display:flex;gap:8px;margin-bottom:16px}
+.modes button{flex:1;padding:10px;border:1px solid #333;background:#1a1a1a;color:#aaa;border-radius:8px;cursor:pointer;font-size:.85rem}
+.modes button.active{border-color:#16a34a;color:#16a34a;background:#0a2a0a}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bench{font-size:.8rem;color:#aaa;margin-top:16px}
+.bench table{width:100%;font-size:.75rem}.bench th,.bench td{padding:4px 8px;text-align:left;border-bottom:1px solid #222}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Cap Rate Calculator</h1>
+<p class="sub">Capitalization rate, property valuation & income analysis for real estate</p>
+<div class="modes">
+<button class="active" onclick="setMode('cap')">Find Cap Rate</button>
+<button onclick="setMode('val')">Find Value</button>
+<button onclick="setMode('noi')">Find NOI</button>
+</div>
+<div class="card">
+<div id="inputs"></div>
+<button onclick="calc()">Calculate</button>
+</div>
+<div class="result" id="res"></div>
+<div class="bench card">
+<p style="color:#16a34a;font-weight:600;margin-bottom:8px">US Market Benchmarks (2024-2025)</p>
+<table><tr><th>Asset Class</th><th>Cap Rate Range</th></tr>
+<tr><td>Multifamily (Class A)</td><td>4.5% – 5.5%</td></tr>
+<tr><td>Multifamily (Class B/C)</td><td>5.5% – 7.0%</td></tr>
+<tr><td>Office (CBD)</td><td>6.0% – 8.5%</td></tr>
+<tr><td>Office (Suburban)</td><td>7.0% – 9.5%</td></tr>
+<tr><td>Retail (NNN)</td><td>5.5% – 7.0%</td></tr>
+<tr><td>Industrial/Logistics</td><td>4.5% – 6.0%</td></tr>
+<tr><td>Hotel (Full-Service)</td><td>7.0% – 9.0%</td></tr>
+</table>
+</div>
+<script>
+let mode='cap';
+function setMode(m){mode=m;document.querySelectorAll('.modes button').forEach((b,i)=>b.classList.toggle('active',['cap','val','noi'][i]===m));buildInputs()}
+function buildInputs(){
+  const el=document.getElementById('inputs');
+  if(mode==='cap'){
+    el.innerHTML=`<div class="grid2"><div><label>Net Operating Income (NOI)</label><input id="noi" type="number" value="150000" step="1000"></div>
+    <div><label>Property Value / Purchase Price</label><input id="val" type="number" value="2500000" step="10000"></div></div>`;
+  }else if(mode==='val'){
+    el.innerHTML=`<div class="grid2"><div><label>Net Operating Income (NOI)</label><input id="noi" type="number" value="150000" step="1000"></div>
+    <div><label>Target Cap Rate (%)</label><input id="capR" type="number" value="6.0" step="0.1"></div></div>`;
+  }else{
+    el.innerHTML=`<div class="grid2"><div><label>Property Value</label><input id="val" type="number" value="2500000" step="10000"></div>
+    <div><label>Cap Rate (%)</label><input id="capR" type="number" value="6.0" step="0.1"></div></div>`;
+  }
+}
+function fmt(n){return '$'+Math.round(n).toLocaleString()}
+function calc(){
+  const r=document.getElementById('res');r.style.display='block';
+  if(mode==='cap'){
+    const noi=+document.getElementById('noi').value,val=+document.getElementById('val').value;
+    if(!val){r.innerHTML='<p style="color:#ef4444">Value cannot be zero</p>';return}
+    const cap=(noi/val)*100;const grm=val/(noi*12/0.65);
+    r.innerHTML=`<div class="big">${cap.toFixed(2)}%</div>
+    <div class="row"><span>NOI</span><span>${fmt(noi)}/yr</span></div>
+    <div class="row"><span>Property Value</span><span>${fmt(val)}</span></div>
+    <div class="row"><span>Monthly NOI</span><span>${fmt(noi/12)}</span></div>
+    <div class="row"><span>Gross Rent Multiplier (est.)</span><span>${grm.toFixed(1)}x</span></div>`;
+  }else if(mode==='val'){
+    const noi=+document.getElementById('noi').value,cap=+document.getElementById('capR').value/100;
+    if(!cap){r.innerHTML='<p style="color:#ef4444">Cap rate cannot be zero</p>';return}
+    const val=noi/cap;
+    r.innerHTML=`<div class="big">${fmt(val)}</div>
+    <div class="row"><span>NOI</span><span>${fmt(noi)}/yr</span></div>
+    <div class="row"><span>Cap Rate</span><span>${(cap*100).toFixed(2)}%</span></div>
+    <div class="row"><span>Price per NOI Dollar</span><span>${(1/cap).toFixed(1)}x</span></div>`;
+  }else{
+    const val=+document.getElementById('val').value,cap=+document.getElementById('capR').value/100;
+    const noi=val*cap;
+    r.innerHTML=`<div class="big">${fmt(noi)}/yr</div>
+    <div class="row"><span>Property Value</span><span>${fmt(val)}</span></div>
+    <div class="row"><span>Cap Rate</span><span>${(cap*100).toFixed(2)}%</span></div>
+    <div class="row"><span>Monthly NOI</span><span>${fmt(noi/12)}</span></div>`;
+  }
+}
+buildInputs();
+</script></body></html>

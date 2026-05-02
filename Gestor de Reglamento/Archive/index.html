@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gestor de Reglamento</title>
+<style>
+:root{--bg:#fff;--text:#111;--dim:#888;--border:#e0e0e0;--hover:#f5f5f5;--ok:#2e7d32;--warn:#b8860b;--alert:#c00}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);max-width:960px;margin:0 auto;padding:16px}
+h1{font-size:1.4em;margin-bottom:4px}.sub{color:var(--dim);font-size:.85em;margin-bottom:16px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 16px;cursor:pointer;border:none;background:none;font-size:.9em;color:var(--dim);border-bottom:2px solid transparent}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:600}
+.panel{display:none}.panel.active{display:block}
+input,select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:4px;font-size:.9em;margin-bottom:12px}
+label{display:block;font-size:.85em;color:var(--dim);margin-bottom:4px;margin-top:10px}
+.rule{padding:12px 0;border-bottom:1px solid var(--border)}
+.rule-title{font-weight:600;font-size:.95em}
+.rule-body{font-size:.85em;color:var(--dim);margin-top:4px}
+.rule-meta{font-size:.78em;margin-top:4px;display:flex;gap:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.73em;background:#eee}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{padding:6px 14px;border:1px solid var(--border);border-radius:4px;background:var(--text);color:var(--bg);cursor:pointer;font-size:.82em;margin-top:8px}
+.btn-sm{padding:4px 8px;font-size:.75em;background:var(--bg);color:var(--text)}
+textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:.85em;resize:vertical;height:80px}
+</style>
+</head>
+<body>
+<h1>Gestor de Reglamento</h1>
+<p class="sub">Motor de reglas para reglamentos de condominio y normativas HOA</p>
+
+<div class="tabs">
+<button class="tab active" onclick="showTab('search')">Buscar Regla</button>
+<button class="tab" onclick="showTab('all')">Todas las Reglas</button>
+<button class="tab" onclick="showTab('add')">Agregar Regla</button>
+<button class="tab" onclick="showTab('cats')">Categorias</button>
+</div>
+
+<div id="search" class="panel active">
+<input type="text" id="q" placeholder="Buscar por palabra clave: mascotas, estacionamiento, ruido, fachada..." oninput="search()">
+<select id="fcat" onchange="search()"><option value="">Todas las Categorias</option></select>
+<div id="results"></div>
+</div>
+
+<div id="all" class="panel"><div id="allRules"></div></div>
+
+<div id="add" class="panel">
+<div class="row">
+<div><label>Articulo / Numero</label><input id="rnum" placeholder="Art. 15"></div>
+<div><label>Categoria</label><select id="rcat"><option>Convivencia</option><option>Estacionamiento</option><option>Mascotas</option><option>Mantenimiento</option><option>Fachadas</option><option>Areas Comunes</option><option>Cuotas</option><option>Seguridad</option><option>Ruido</option><option>Modificaciones</option></select></div>
+</div>
+<label>Titulo</label><input id="rtitle" placeholder="Horario de silencio">
+<label>Contenido de la Regla</label><textarea id="rbody" placeholder="Descripcion completa del articulo..."></textarea>
+<label>Sancion por Incumplimiento</label><input id="rsanc" placeholder="Multa de 5 UMAs, apercibimiento, etc.">
+<button onclick="addRule()">Agregar Regla</button>
+</div>
+
+<div id="cats" class="panel">
+<h3 style="font-size:.95em;margin-bottom:8px">Categorias del Reglamento</h3>
+<table id="catTable"></table>
+</div>
+
+<script>
+let rules=[
+{num:'Art. 1',cat:'Convivencia',title:'Horario de silencio',body:'Queda prohibido generar ruidos que perturben la tranquilidad de los condominios entre las 22:00 y las 7:00 horas de lunes a viernes, y entre las 23:00 y las 8:00 horas los fines de semana.',sanc:'Apercibimiento escrito, multa de 3 UMAs en reincidencia'},
+{num:'Art. 2',cat:'Estacionamiento',title:'Uso de cajones de estacionamiento',body:'Cada unidad tiene derecho a un cajon asignado. No se permite estacionar en cajones ajenos, areas de circulacion, ni bloquear accesos de emergencia. Vehiculos abandonados seran removidos despues de 15 dias.',sanc:'Multa de 2 UMAs, remolque a cargo del infractor'},
+{num:'Art. 3',cat:'Mascotas',title:'Tenencia de mascotas',body:'Se permiten mascotas de compania (perros, gatos). Los propietarios son responsables de recoger desechos en areas comunes y mantener a sus mascotas con correa en espacios compartidos. Maximo 2 mascotas por unidad.',sanc:'Multa de 2 UMAs, restriccion temporal de areas comunes'},
+{num:'Art. 4',cat:'Fachadas',title:'Modificaciones a fachadas',body:'Queda prohibido modificar la fachada exterior sin autorizacion escrita del comite de administracion. Esto incluye cambio de color, instalacion de toldos, rejas, o cualquier elemento visible desde el exterior.',sanc:'Obligacion de restituir a estado original a costo del infractor'},
+{num:'Art. 5',cat:'Areas Comunes',title:'Uso de areas comunes',body:'Las areas comunes (jardin, alberca, salon de eventos) deben reservarse con 48 horas de anticipacion. El usuario es responsable de la limpieza y cualquier dano. Capacidad maxima del salon: 40 personas.',sanc:'Perdida de derecho de reserva por 3 meses'},
+{num:'Art. 6',cat:'Cuotas',title:'Pago de cuota de mantenimiento',body:'La cuota de mantenimiento es pagadera los primeros 5 dias de cada mes. Despues del dia 10 se genera un recargo del 5% mensual. Despues de 3 meses de adeudo, se procedera legalmente.',sanc:'Recargo 5% mensual, accion legal despues de 3 meses'},
+{num:'Art. 7',cat:'Mantenimiento',title:'Mantenimiento de unidad privativa',body:'Cada propietario es responsable del mantenimiento interior de su unidad, incluyendo instalaciones hidraulicas y electricas propias. Cualquier fuga o dano que afecte a terceros sera responsabilidad del propietario.',sanc:'Reparacion a cargo del propietario responsable'},
+{num:'Art. 8',cat:'Seguridad',title:'Registro de visitantes',body:'Todo visitante debe registrarse en caseta de seguridad. Los propietarios deben notificar a seguridad la llegada de proveedores de servicio. Acceso restringido de 23:00 a 6:00.',sanc:'Apercibimiento'},
+{num:'Art. 9',cat:'Ruido',title:'Obras y remodelaciones',body:'Las obras de remodelacion solo se permiten de lunes a viernes de 9:00 a 18:00 y sabados de 9:00 a 14:00. Se requiere autorizacion del comite y deposito de garantia.',sanc:'Suspension de obra, multa de 5 UMAs'},
+{num:'Art. 10',cat:'Modificaciones',title:'Instalacion de aire acondicionado',body:'Los equipos de aire acondicionado deben instalarse unicamente en las areas designadas para condensadores. Se prohíbe el drenado de agua condensada hacia areas comunes o fachadas.',sanc:'Reubicacion a cargo del propietario'},
+];
+
+function addRule(){
+rules.push({num:document.getElementById('rnum').value,cat:document.getElementById('rcat').value,
+title:document.getElementById('rtitle').value,body:document.getElementById('rbody').value,
+sanc:document.getElementById('rsanc').value});
+renderAll();showTab('all');
+}
+function removeRule(i){rules.splice(i,1);renderAll();}
+
+function renderRule(r,i){
+return `<div class="rule"><div class="rule-title">${r.num} — ${r.title}</div><div class="rule-body">${r.body}</div><div class="rule-meta"><span class="tag">${r.cat}</span><span style="color:var(--alert);font-size:.78em">Sancion: ${r.sanc}</span><button class="btn-sm" onclick="removeRule(${i})">Eliminar</button></div></div>`;
+}
+
+function search(){
+const q=document.getElementById('q').value.toLowerCase();
+const fc=document.getElementById('fcat').value;
+let f=rules;
+if(fc)f=f.filter(r=>r.cat===fc);
+if(q)f=f.filter(r=>r.title.toLowerCase().includes(q)||r.body.toLowerCase().includes(q)||r.cat.toLowerCase().includes(q)||r.num.toLowerCase().includes(q));
+document.getElementById('results').innerHTML=f.length?f.map((r,i)=>renderRule(r,rules.indexOf(r))).join(''):'<p style="color:var(--dim);padding:20px 0">No se encontraron reglas con ese criterio</p>';
+}
+
+function renderAll(){
+const cats=[...new Set(rules.map(r=>r.cat))];
+document.getElementById('fcat').innerHTML='<option value="">Todas las Categorias</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+document.getElementById('allRules').innerHTML=rules.map((r,i)=>renderRule(r,i)).join('');
+let ct='<tr><th>Categoria</th><th>Reglas</th></tr>';
+const cm={};rules.forEach(r=>{cm[r.cat]=(cm[r.cat]||0)+1;});
+Object.entries(cm).sort((a,b)=>b[1]-a[1]).forEach(([c,n])=>{ct+=`<tr><td>${c}</td><td>${n}</td></tr>`;});
+document.getElementById('catTable').innerHTML=ct;
+search();
+}
+function showTab(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelector(`[onclick="showTab('${id}')"]`).classList.add('active');
+}
+renderAll();
+</script>
+<div id="pro-gate" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center"><div style="background:#fff;padding:32px;border-radius:8px;max-width:420px;width:90%;text-align:center"><h2 style="font-size:1.2em;margin-bottom:8px">Te esta gustando?</h2><p style="font-size:.85em;color:#888;margin-bottom:16px">Registrate para guardar tus datos y recibir actualizaciones.</p><input id="pro-email" type="email" placeholder="tu@correo.com" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:4px;font-size:.9em;margin-bottom:8px"><button onclick="proUnlock()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:4px;font-size:.9em;cursor:pointer">Continuar Gratis</button><button onclick="document.getElementById('pro-gate').style.display='none';document.body.style.overflow='auto'" style="width:100%;padding:8px;background:none;border:none;color:#aaa;font-size:.8em;cursor:pointer;margin-top:4px">Ahora no</button></div></div>
+<div style="position:fixed;bottom:0;left:0;width:100%;background:#111;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:.82em;z-index:999"><span>Version gratuita. <strong>Pro</strong>: nube, equipos, y API.</span><a href="#" onclick="document.getElementById('pro-gate').style.display='flex';document.body.style.overflow='hidden';return false" style="background:#fff;color:#111;padding:6px 16px;border-radius:4px;text-decoration:none;font-weight:600;white-space:nowrap">Upgrade to Pro</a></div>
+<script>(function(){const key='app_uses_'+location.pathname;let uses=parseInt(localStorage.getItem(key)||'0');uses++;localStorage.setItem(key,uses);if(!localStorage.getItem('pro_email')&&uses>=5){document.getElementById('pro-gate').style.display='flex';document.body.style.overflow='hidden';}document.body.style.paddingBottom='50px';})();function proUnlock(){const e=document.getElementById('pro-email').value;if(e&&e.includes('@'))localStorage.setItem('pro_email',e);document.getElementById('pro-gate').style.display='none';document.body.style.overflow='auto';}</script>
+</body>
+</html>

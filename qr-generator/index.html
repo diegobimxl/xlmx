@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Generator - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:.88rem;font-weight:600;color:#16a34a;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.3rem;margin-top:.75rem}
+label:first-child{margin-top:0}
+input,select,textarea{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .75rem;border-radius:5px;font-size:.85rem;font-family:inherit}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#16a34a}
+.btn{background:#16a34a;color:#fff;border:none;padding:.6rem 1.4rem;border-radius:6px;font-size:.88rem;cursor:pointer;font-family:inherit;font-weight:500;margin-top:1rem}
+.btn:hover{background:#15803d}
+.btn-sec{background:#222;border:1px solid #333;color:#aaa;padding:.55rem 1.1rem;border-radius:6px;font-size:.82rem;cursor:pointer;font-family:inherit;margin-top:1rem;margin-left:.5rem}
+.btn-sec:hover{color:#fff}
+.qr-display{background:#fff;border-radius:8px;padding:1.5rem;display:flex;align-items:center;justify-content:center;min-height:200px;margin-bottom:1rem}
+.qr-label{font-size:.78rem;color:#888;text-align:center;margin-bottom:1rem;word-break:break-all}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.preset{background:#111;border:1px solid #2a2a2a;border-radius:5px;padding:.6rem .75rem;cursor:pointer;font-size:.75rem;color:#888}
+.preset:hover{border-color:#16a34a;color:#16a34a}
+.preset .preset-name{font-weight:500;color:#ccc;margin-bottom:.15rem}
+.tabs{display:flex;gap:.4rem;margin-bottom:1rem}
+.tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.3rem .8rem;border-radius:5px;font-size:.78rem;cursor:pointer}
+.tab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.section{display:none}
+.section.active{display:block}
+.size-row{display:flex;gap:.5rem;align-items:center;margin-top:.5rem}
+.size-row input{width:80px}
+.size-row label{margin:0;white-space:nowrap}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>QR Code Generator</h1>
+<p class="sub">Generate QR codes for project links, site access, portfolio, contacts, and more.</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="setTab('url',this)">URL / Link</div>
+  <div class="tab" onclick="setTab('text',this)">Text / Note</div>
+  <div class="tab" onclick="setTab('contact',this)">Contact Card</div>
+  <div class="tab" onclick="setTab('wifi',this)">WiFi</div>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <div id="urlSection" class="section active">
+        <h2>URL / Project Link</h2>
+        <label>URL</label>
+        <input type="url" id="urlInput" placeholder="https://yourproject.com" oninput="autoGenerate()">
+        <div class="preset-grid">
+          <div class="preset" onclick="setPreset('https://xlmx-bimxl.netlify.app')"><div class="preset-name">XLMX Platform</div>xlmx-bimxl.netlify.app</div>
+          <div class="preset" onclick="setPreset('https://urbiplus.com')"><div class="preset-name">Your Firm</div>urbiplus.com</div>
+          <div class="preset" onclick="setPreset('https://bimxl.com')"><div class="preset-name">BIM XL</div>bimxl.com</div>
+          <div class="preset" onclick="setPreset('')"><div class="preset-name">Custom</div>Enter your URL</div>
+        </div>
+      </div>
+
+      <div id="textSection" class="section">
+        <h2>Text / Site Note</h2>
+        <label>Text Content</label>
+        <textarea id="textInput" placeholder="e.g. Site Access Code: 4421 | Check in at Gate B | Emergency: +52 81 0000 0000" oninput="autoGenerate()"></textarea>
+      </div>
+
+      <div id="contactSection" class="section">
+        <h2>Contact Card (vCard)</h2>
+        <label>Full Name</label>
+        <input type="text" id="vcName" placeholder="Diego Rodriguez">
+        <label>Title</label>
+        <input type="text" id="vcTitle" placeholder="Architect / BIM Director">
+        <label>Company</label>
+        <input type="text" id="vcCompany" placeholder="BIM XL">
+        <label>Phone</label>
+        <input type="tel" id="vcPhone" placeholder="+52 81 1234 5678">
+        <label>Email</label>
+        <input type="email" id="vcEmail" placeholder="diego@bimxl.com">
+        <label>Website</label>
+        <input type="url" id="vcWeb" placeholder="https://bimxl.com">
+      </div>
+
+      <div id="wifiSection" class="section">
+        <h2>WiFi Credentials</h2>
+        <label>Network Name (SSID)</label>
+        <input type="text" id="wfSSID" placeholder="SiteOffice_WiFi">
+        <label>Password</label>
+        <input type="text" id="wfPass" placeholder="sitepassword2025">
+        <label>Security Type</label>
+        <select id="wfSec"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option></select>
+      </div>
+
+      <div class="size-row">
+        <label>Size:</label>
+        <input type="number" id="qrSize" value="220" min="100" max="500" step="20">
+        <label>px</label>
+      </div>
+      <button class="btn" onclick="generate()">Generate QR</button>
+      <button class="btn-sec" onclick="downloadQR()">Download PNG</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="text-align:center">
+      <h2>QR Preview</h2>
+      <div class="qr-display" id="qrDisplay"><div id="qrCode"></div></div>
+      <div class="qr-label" id="qrLabel">Enter content and click Generate</div>
+    </div>
+    <div class="card">
+      <h2>Use Cases</h2>
+      <div style="font-size:.78rem;color:#888;line-height:1.75">
+        Project site entrance → access code or site rules<br>
+        Portfolio review → link to PDF or ACC folder<br>
+        Contact exchange → vCard for quick save<br>
+        RFI / markup → link to ACC issue or revision<br>
+        Signage → link to building specs or manual<br>
+        Presentation → link to 3D model or renders<br>
+        Client package → direct link to deliverables folder
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentTab = 'url';
+var qrInstance = null;
+
+function setTab(tab, el){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(tab+'Section').classList.add('active');
+}
+
+function getContent(){
+  if(currentTab==='url') return document.getElementById('urlInput').value.trim();
+  if(currentTab==='text') return document.getElementById('textInput').value.trim();
+  if(currentTab==='contact'){
+    var n=document.getElementById('vcName').value,t=document.getElementById('vcTitle').value,c=document.getElementById('vcCompany').value;
+    var p=document.getElementById('vcPhone').value,e=document.getElementById('vcEmail').value,w=document.getElementById('vcWeb').value;
+    return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+n+'\nTITLE:'+t+'\nORG:'+c+'\nTEL:'+p+'\nEMAIL:'+e+'\nURL:'+w+'\nEND:VCARD';
+  }
+  if(currentTab==='wifi'){
+    var s=document.getElementById('wfSSID').value,pw=document.getElementById('wfPass').value,sec=document.getElementById('wfSec').value;
+    return 'WIFI:T:'+sec+';S:'+s+';P:'+pw+';;';
+  }
+  return '';
+}
+
+function setPreset(url){
+  document.getElementById('urlInput').value=url;
+  generate();
+}
+
+function autoGenerate(){
+  if(currentTab==='url'||currentTab==='text') generate();
+}
+
+function generate(){
+  var content=getContent();
+  if(!content){document.getElementById('qrLabel').textContent='Nothing to encode yet.';return;}
+  var size=parseInt(document.getElementById('qrSize').value)||220;
+  var container=document.getElementById('qrCode');
+  container.innerHTML='';
+  try{
+    qrInstance=new QRCode(container,{text:content,width:size,height:size,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    document.getElementById('qrLabel').textContent=content.length>60?content.substring(0,60)+'...':content;
+  }catch(e){document.getElementById('qrLabel').textContent='Error: '+e.message;}
+}
+
+function downloadQR(){
+  var canvas=document.querySelector('#qrCode canvas');
+  if(!canvas){alert('Generate a QR code first.');return;}
+  var a=document.createElement('a');
+  a.download='qrcode-xlmx.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+}
+</script>
+</body>
+</html>

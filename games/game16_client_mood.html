@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Mood</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0f0f23; color:#fff; font-family:'Inter',sans-serif;
+  display:flex; flex-direction:column; align-items:center; min-height:100vh;
+  justify-content:center; overflow:hidden; }
+h1 { font-size:1.4rem; letter-spacing:3px; color:#f9c74f; margin-bottom:4px; }
+.sub { font-size:0.75rem; color:#888; margin-bottom:8px; }
+#hud { display:flex; gap:24px; margin-bottom:8px; font-size:0.82rem; }
+.stat { display:flex; flex-direction:column; align-items:center; }
+.stat span { font-size:1.15rem; font-weight:700; color:#f9c74f; }
+.stat label { font-size:0.62rem; color:#666; letter-spacing:1px; }
+#mood-bar-wrap { width:340px; height:14px; background:#1a1a3a;
+  border-radius:7px; margin-bottom:8px; overflow:hidden; }
+#mood-bar { height:100%; width:70%; border-radius:7px;
+  background: linear-gradient(90deg, #f72585, #f9c74f, #4fffb0);
+  transition:width 0.15s; }
+#mood-label { font-size:0.7rem; color:#888; margin-bottom:6px; }
+#gameCanvas { border:1px solid #1a1a3e; background:#0a0a1a; cursor:pointer; }
+#overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+#overlay.hidden { display:none; }
+.card { background:#12122a; border:1px solid #2a2a5a; border-radius:12px;
+  padding:28px 36px; max-width:360px; text-align:center; }
+.card h2 { font-size:1.5rem; color:#f9c74f; margin-bottom:8px; }
+.card p { color:#aaa; font-size:0.85rem; margin-bottom:18px; line-height:1.6; }
+.big { font-size:2.8rem; font-weight:900; color:#f72585; margin:8px 0; }
+button { background:#f9c74f; color:#0f0f23; border:none; border-radius:8px;
+  padding:11px 26px; font-size:0.9rem; font-weight:700; cursor:pointer;
+  font-family:'Inter',sans-serif; transition:opacity 0.2s; }
+button:hover { opacity:0.85; }
+.lb-row { display:flex; justify-content:space-between; font-size:0.78rem;
+  padding:3px 0; border-bottom:1px solid #1a1a3a; }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { color:#f72585; font-weight:700; }
+.lb-score { color:#f9c74f; font-weight:600; }
+#msg-area { height:22px; font-size:0.78rem; color:#f9c74f; margin-bottom:4px;
+  text-align:center; font-style:italic; }
+</style>
+</head>
+<body>
+<h1>CLIENT MOOD</h1>
+<div class="sub">Keep the client happy. Survive design review.</div>
+<div id="hud">
+  <div class="stat"><span id="score-val">0</span><label>SCORE</label></div>
+  <div class="stat"><span id="week-val">1</span><label>WEEK</label></div>
+  <div class="stat"><span id="lives-val">3</span><label>REVISIONS</label></div>
+</div>
+<div id="mood-label">CLIENT MOOD</div>
+<div id="mood-bar-wrap"><div id="mood-bar"></div></div>
+<div id="msg-area"></div>
+<canvas id="gameCanvas" width="340" height="400"></canvas>
+
+<div id="overlay">
+  <div class="card" id="start-card">
+    <h2>CLIENT MOOD</h2>
+    <p>Navigate your design through an endless review.<br>
+    Tap/click to float up. Release to fall.<br>
+    Collect APPROVED stamps. Avoid REVISION requests.<br>
+    Client mood drops every second. Keep it above zero.<br><br>
+    <strong style="color:#f9c74f">Click or tap to control the design.</strong></p>
+    <button onclick="startGame()">ENTER REVIEW</button>
+  </div>
+  <div class="card" id="end-card" style="display:none; margin-top:12px;">
+    <h2 id="end-title">REJECTED.</h2>
+    <p id="end-msg">The client ghosted you.</p>
+    <div class="big" id="end-score">0</div>
+    <p style="color:#666;font-size:0.75rem;margin-bottom:14px">weeks survived</p>
+    <button onclick="startGame()">RESUBMIT</button>
+  </div>
+  <div style="background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:14px 20px;margin-top:12px;min-width:280px;">
+    <div style="font-size:0.65rem;letter-spacing:2px;color:#666;margin-bottom:8px">TOP SURVIVORS</div>
+    <div id="lb-rows"><div class="lb-row"><span class="lb-rank">—</span><span>no scores yet</span></div></div>
+  </div>
+</div>
+</body>
+</html>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const leaderboard = [];
+let state, animId, eggBuf = '';
+
+const GOOD_MSGS = [
+  "Love the fenestration.", "Very Zaha. Very now.",
+  "Can we make it more... expensive-looking?",
+  "My nephew could do this in SketchUp.",
+  "What if it was more... organic?",
+  "The client wants to see the view. FROM INSIDE THE WALL.",
+  "Approved! Wait, no. Different shade of white.",
+  "This reminds me of my divorce attorney's building. Perfect."
+];
+const BAD_MSGS = [
+  "REVISION: Too many right angles.",
+  "REVISION: The proportions feel sad.",
+  "My wife doesn't like it.",
+  "Can it look more like the Eiffel Tower? But modern?",
+  "REVISION: We need another staircase. For vibes.",
+  "The GC says it's unbuilable. Start over.",
+  "REVISION: The renderings need more fog.",
+  "Client wants it 30% bigger. Same budget."
+];
+
+function newState() {
+  const gapH = 120, pipeW = 44;
+  return {
+    bird: { y: H/2, vy: 0, r: 14 },
+    pipes: [], mood: 70, score: 0, week: 1,
+    lives: 3, running: false,
+    moodDrain: 0.04, speed: 2.2,
+    frameCount: 0, spawnTimer: 0, spawnInterval: 90,
+    gapH, pipeW, msg: ''
+  };
+}
+
+function flash(msg) {
+  const el = document.getElementById('msg-area');
+  el.textContent = msg;
+  setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; }, 2000);
+}
+
+function spawnPipe(s) {
+  const gapY = 60 + Math.random() * (H - s.gapH - 100);
+  const good = Math.random() < 0.45;
+  s.pipes.push({ x: W + 10, gapY, good, hit: false });
+}
+
+function startGame() {
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('start-card').style.display = 'block';
+  document.getElementById('end-card').style.display = 'none';
+  state = newState(); state.running = true;
+  if (animId) cancelAnimationFrame(animId);
+  canvas.addEventListener('pointerdown', flap);
+  loop();
+}
+
+function flap() { if (state && state.running) state.bird.vy = -5.5; }
+document.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'ArrowUp') flap();
+  eggBuf += e.key.toUpperCase(); if (eggBuf.length > 9) eggBuf = eggBuf.slice(-9);
+  if (eggBuf.includes('CHARRETTE')) {
+    eggBuf = '';
+    if (state && state.running) {
+      state.mood = Math.min(100, state.mood + 30);
+      flash('DESIGN CHARRETTE! Client suddenly loves everything. +30 mood.');
+    }
+  }
+});
+function update() {
+  const s = state; if (!s.running) return;
+  s.frameCount++;
+  s.bird.vy += 0.32; s.bird.y += s.bird.vy;
+  s.mood -= s.moodDrain + s.week * 0.005;
+  s.score += 0.04; s.week = 1 + Math.floor(s.frameCount / 200);
+  s.speed = 2.2 + s.week * 0.12; s.moodDrain = 0.04 + s.week * 0.004;
+  s.spawnTimer++;
+  if (s.spawnTimer >= s.spawnInterval) { spawnPipe(s); s.spawnTimer = 0; s.spawnInterval = Math.max(60, 90 - s.week*3); }
+
+  for (let i = s.pipes.length - 1; i >= 0; i--) {
+    const p = s.pipes[i]; p.x -= s.speed;
+    if (p.x + s.pipeW < 0) { s.pipes.splice(i, 1); continue; }
+    if (!p.hit) {
+      const bx = 80, by = s.bird.y, br = s.bird.r;
+      const inX = bx + br > p.x && bx - br < p.x + s.pipeW;
+      const inGap = by + br > p.gapY && by - br < p.gapY + s.gapH;
+      if (inX && !inGap) {
+        p.hit = true;
+        if (p.good) {
+          s.mood = Math.min(100, s.mood + 18); s.score += 20;
+          flash(GOOD_MSGS[Math.floor(Math.random()*GOOD_MSGS.length)]);
+        } else {
+          s.lives--; s.mood = Math.max(0, s.mood - 20);
+          flash(BAD_MSGS[Math.floor(Math.random()*BAD_MSGS.length)]);
+          if (s.lives <= 0 || s.mood <= 0) { endGame(); return; }
+        }
+      }
+    }
+  }
+  if (s.bird.y - s.bird.r < 0 || s.bird.y + s.bird.r > H) { endGame(); return; }
+  if (s.mood <= 0) { endGame(); return; }
+  updateHUD();
+}
+
+function draw() {
+  const s = state;
+  ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, 0, W, H);
+  // pipes
+  s.pipes.forEach(p => {
+    ctx.fillStyle = p.good ? '#4fffb0' : '#f72585';
+    ctx.fillRect(p.x, 0, s.pipeW, p.gapY);
+    ctx.fillRect(p.x, p.gapY + s.gapH, s.pipeW, H - p.gapY - s.gapH);
+    ctx.fillStyle = p.good ? '#2a2a2a' : '#1a0a0a';
+    ctx.fillRect(p.x-4, p.gapY-16, s.pipeW+8, 16);
+    ctx.fillRect(p.x-4, p.gapY+s.gapH, s.pipeW+8, 16);
+    ctx.font = 'bold 8px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = p.good ? '#0f0f23' : '#fff';
+    ctx.fillText(p.good ? 'APPROVED' : 'REVISE', p.x + s.pipeW/2, p.gapY - 4);
+  });
+  // bird
+  ctx.save();
+  ctx.translate(80, s.bird.y);
+  ctx.rotate(Math.min(Math.max(s.bird.vy * 0.05, -0.4), 0.6));
+  ctx.fillStyle = '#f9c74f';
+  ctx.beginPath(); ctx.arc(0, 0, s.bird.r, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#0f0f23'; ctx.font = 'bold 11px Inter'; ctx.textAlign = 'center';
+  ctx.fillText('📐', 0, 5);
+  ctx.restore();
+  ctx.textAlign = 'left';
+}
+
+function updateHUD() {
+  document.getElementById('score-val').textContent = Math.floor(state.score);
+  document.getElementById('week-val').textContent = state.week;
+  document.getElementById('lives-val').textContent = state.lives;
+  const mood = Math.max(0, Math.min(100, state.mood));
+  document.getElementById('mood-bar').style.width = mood + '%';
+}
+
+function loop() {
+  update(); draw();
+  animId = requestAnimationFrame(loop);
+}
+
+function endGame() {
+  state.running = false; cancelAnimationFrame(animId);
+  const sc = Math.floor(state.score);
+  leaderboard.push({ score: sc, weeks: state.week });
+  leaderboard.sort((a,b) => b.score - a.score); leaderboard.splice(5);
+  document.getElementById('end-score').textContent = state.week;
+  document.getElementById('end-title').textContent = state.mood <= 0 ? 'FIRED.' : 'GHOSTED.';
+  document.getElementById('end-msg').textContent = `Score: ${sc} | Made it to week ${state.week}`;
+  renderLB();
+  document.getElementById('start-card').style.display = 'none';
+  document.getElementById('end-card').style.display = 'block';
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex'; ov.classList.remove('hidden');
+}
+
+function renderLB() {
+  const el = document.getElementById('lb-rows');
+  if (!leaderboard.length) { el.innerHTML='<div class="lb-row"><span>—</span><span>none</span></div>'; return; }
+  el.innerHTML = leaderboard.map((e,i)=>
+    `<div class="lb-row"><span class="lb-rank">#${i+1}</span><span>wk ${e.weeks}</span><span class="lb-score">${e.score}pts</span></div>`).join('');
+}
+renderLB();
+</script>

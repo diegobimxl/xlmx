@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Revit Family Inspector — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:1.5rem;margin-bottom:4px}
+.sub{font-size:.75rem;color:#888;margin-bottom:20px}
+label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+select{appearance:auto}
+button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}
+button:hover{background:#15803d}
+button.sec{background:#333}
+button.sec:hover{background:#444}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}
+td{padding:6px 8px;border-bottom:1px solid #222}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}
+.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.bo{background:#f9731622;color:#f97316}.bb{background:#3b82f622;color:#3b82f6}
+.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}
+.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head><body>
+<div class="container">
+<h1>Revit Family Inspector</h1>
+<p class="sub">Paste Revit family parameter data to analyze structure, detect issues, and validate standards.</p>
+<div class="card">
+<label>Paste Family Parameters (Name | Type/Instance | DataType | Value — one per line)</label>
+<textarea id="inp" placeholder="Width | Instance | Length | 600mm&#10;Height | Instance | Length | 2400mm&#10;Mark | Instance | Text | &#10;Type Name | Type | Text | Default&#10;Phase Created | Instance | Phase | New Construction"></textarea>
+<div style="margin-top:10px"><button onclick="analyze()">Analyze Family</button> <button class="sec" onclick="loadSample()">Load Sample</button></div>
+</div>
+<div id="results"></div>
+</div>
+<script>
+function loadSample(){
+document.getElementById('inp').value=`Width | Instance | Length | 600mm
+Height | Instance | Length | 2400mm
+Depth | Instance | Length | 200mm
+Mark | Instance | Text |
+Comments | Instance | Text |
+Type Name | Type | Text | Default Wall
+Fire Rating | Type | Text | 1HR
+Cost | Type | Currency | 0
+Phase Created | Instance | Phase | New Construction
+Phase Demolished | Instance | Phase | None
+Structural Usage | Instance | Enum | Non-bearing
+Function | Type | Enum | Exterior
+Keynote | Type | Text |
+Assembly Code | Type | Text | C1010
+Type Mark | Type | Text |
+Type Comments | Type | Text |
+URL | Type | URL |
+Description | Type | Text |
+Manufacturer | Type | Text |
+Model | Type | Text |`;
+}
+function analyze(){
+const raw=document.getElementById('inp').value.trim();
+if(!raw)return;
+const lines=raw.split('\n').filter(l=>l.trim());
+const params=lines.map(l=>{
+const p=l.split('|').map(s=>s.trim());
+return{name:p[0]||'',scope:p[1]||'',dtype:p[2]||'',value:p[3]||''};
+});
+const inst=params.filter(p=>p.scope==='Instance');
+const typ=params.filter(p=>p.scope==='Type');
+const issues=[];
+const names=params.map(p=>p.name);
+const dupes=names.filter((n,i)=>names.indexOf(n)!==i);
+if(dupes.length)issues.push({sev:'error',msg:'Duplicate parameter names: '+[...new Set(dupes)].join(', ')});
+const empty=params.filter(p=>!p.value&&p.dtype!=='Text'&&p.dtype!=='URL');
+if(empty.length>3)issues.push({sev:'warn',msg:empty.length+' parameters have empty values'});
+const noMark=!names.includes('Mark');
+if(noMark)issues.push({sev:'warn',msg:'Missing "Mark" parameter — standard for identification'});
+const noDesc=!names.includes('Description');
+if(noDesc)issues.push({sev:'info',msg:'No "Description" parameter — recommended for documentation'});
+const nonStd=params.filter(p=>p.name.includes(' ')&&!['Phase Created','Phase Demolished','Type Name','Type Mark','Type Comments','Structural Usage','Fire Rating','Assembly Code'].includes(p.name));
+if(nonStd.length)issues.push({sev:'info',msg:'Non-standard naming (spaces): '+nonStd.map(p=>p.name).join(', ')});
+let h=`<div class="card"><div class="grid3">
+<div class="stat"><div class="n">${params.length}</div><div class="l">Total Parameters</div></div>
+<div class="stat"><div class="n">${inst.length}</div><div class="l">Instance</div></div>
+<div class="stat"><div class="n">${typ.length}</div><div class="l">Type</div></div>
+</div></div>`;
+if(issues.length){
+h+=`<div class="card"><h3 style="margin-bottom:8px;font-size:.85rem;">Issues Found (${issues.length})</h3>`;
+issues.forEach(i=>{
+const c=i.sev==='error'?'br':i.sev==='warn'?'by':'bb';
+h+=`<div style="margin:4px 0;"><span class="badge ${c}">${i.sev.toUpperCase()}</span> ${i.msg}</div>`;
+});
+h+=`</div>`;
+}
+h+=`<div class="card"><h3 style="margin-bottom:8px;font-size:.85rem;">Parameter Table</h3><table><tr><th>Name</th><th>Scope</th><th>Type</th><th>Value</th></tr>`;
+params.forEach(p=>{
+h+=`<tr><td>${p.name}</td><td><span class="tag">${p.scope}</span></td><td>${p.dtype}</td><td style="color:${p.value?'#fff':'#555'}">${p.value||'(empty)'}</td></tr>`;
+});
+h+=`</table></div>`;
+document.getElementById('results').innerHTML=h;
+}
+</script></body></html>

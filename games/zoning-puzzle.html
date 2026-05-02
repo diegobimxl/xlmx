@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zoning Puzzle — XLMX</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0e0e0e; color: #e8e0d0; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+  h1 { font-size: 1.1rem; letter-spacing: 0.3em; text-transform: uppercase; color: #c8b89a; margin-bottom: 4px; }
+  .subtitle { font-size: 0.65rem; color: #666; letter-spacing: 0.2em; margin-bottom: 16px; }
+  .game-wrap { display: flex; gap: 20px; align-items: flex-start; }
+  .left-panel { display: flex; flex-direction: column; gap: 12px; width: 150px; }
+  .right-panel { display: flex; flex-direction: column; gap: 12px; width: 180px; }
+  .panel { border: 1px solid #2a2a2a; padding: 10px 12px; background: #141414; }
+  .panel-label { font-size: 0.55rem; letter-spacing: 0.25em; color: #555; text-transform: uppercase; margin-bottom: 6px; }
+  .panel-value { font-size: 1.3rem; color: #c8b89a; }
+  .zone-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #2a2a2a; background: #141414; cursor: pointer; width: 100%; font-family: 'Courier New', monospace; font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 0.1em; transition: border-color 0.15s, color 0.15s; position: relative; }
+  .zone-btn:hover { border-color: #555; color: #c8b89a; }
+  .zone-btn.active { border-color: #c8b89a; color: #c8b89a; background: #1a1a1a; }
+  .zone-dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  canvas { border: 1px solid #2a2a2a; cursor: crosshair; display: block; }
+  .progress-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.6rem; }
+  .progress-bar-wrap { height: 6px; background: #1a1a1a; margin-bottom: 8px; }
+  .progress-bar { height: 100%; transition: width 0.4s; }
+  .level-info { font-size: 0.65rem; color: #666; line-height: 1.6; }
+  .level-info strong { color: #c8b89a; }
+  .btn { background: none; border: 1px solid #444; color: #c8b89a; font-family: 'Courier New', monospace; font-size: 0.65rem; letter-spacing: 0.15em; padding: 7px 14px; cursor: pointer; text-transform: uppercase; width: 100%; }
+  .btn:hover { border-color: #c8b89a; }
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .overlay-box { background: #111; border: 1px solid #444; padding: 32px 40px; text-align: center; max-width: 340px; }
+  .overlay-box h2 { font-size: 1rem; letter-spacing: 0.3em; color: #c8b89a; margin-bottom: 10px; }
+  .overlay-box p { font-size: 0.65rem; color: #666; line-height: 1.8; margin-bottom: 16px; }
+  .overlay-box .big { font-size: 1.4rem; color: #c8b89a; margin: 10px 0; }
+  .tooltip { position: absolute; background: #1a1a1a; border: 1px solid #333; padding: 6px 8px; font-size: 0.6rem; color: #aaa; pointer-events: none; z-index: 50; display: none; white-space: nowrap; }
+</style>
+</head>
+<body>
+<h1>Zoning Puzzle</h1>
+<div class="subtitle">Find the layout that maximizes desirability</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Zone Type</div></div>
+    <button class="zone-btn active" data-zone="R" onclick="selectZone('R')"><div class="zone-dot" style="background:#5a8a5a"></div>Residential</button>
+    <button class="zone-btn" data-zone="C" onclick="selectZone('C')"><div class="zone-dot" style="background:#5a6a9a"></div>Commercial</button>
+    <button class="zone-btn" data-zone="I" onclick="selectZone('I')"><div class="zone-dot" style="background:#8a5a3a"></div>Industrial</button>
+    <button class="zone-btn" data-zone="G" onclick="selectZone('G')"><div class="zone-dot" style="background:#4a7a4a"></div>Green Space</button>
+    <button class="zone-btn" data-zone="X" onclick="selectZone('X')"><div class="zone-dot" style="background:#2a2a2a;border:1px solid #444"></div>Erase</button>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">View</div>
+      <button class="zone-btn" id="heatmap-btn" onclick="toggleHeatmap()" style="margin-top:4px;"><div class="zone-dot" style="background:linear-gradient(to right,#2244aa,#22aa44,#aa2222);border-radius:0;"></div>Heatmap</button>
+    </div>
+    <button class="btn" onclick="clearGrid()">Clear</button>
+    <button class="btn" onclick="nextLevel()">Next Level →</button>
+  </div>
+  <div><canvas id="grid" width="360" height="360"></canvas><div style="margin-top:6px;font-size:0.55rem;color:#444;text-align:center;">Click or drag to paint zones</div></div>
+  <div class="right-panel">
+    <div class="panel"><div class="panel-label">Score</div><div class="panel-value" id="score-val">0</div></div>
+    <div class="panel"><div class="panel-label">Level</div><div class="panel-value" id="level-val">1</div><div class="level-info" id="level-desc" style="margin-top:6px;"></div></div>
+    <div class="panel">
+      <div class="panel-label">Population</div>
+      <div class="progress-row"><span id="pop-val">0</span><span id="pop-target" style="color:#555"></span></div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="pop-bar" style="background:#5a8a5a;width:0%"></div></div>
+      <div class="panel-label" style="margin-top:8px;">Avg Desirability</div>
+      <div class="progress-row"><span id="des-val">0%</span></div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="des-bar" style="background:#c8b89a;width:0%"></div></div>
+      <div class="panel-label" style="margin-top:8px;">Pollution Index</div>
+      <div class="progress-row"><span id="pol-val">0%</span></div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="pol-bar" style="background:#a06040;width:0%"></div></div>
+    </div>
+    <div class="panel"><div class="panel-label">Zone Counts</div><div style="font-size:0.6rem;line-height:2;color:#666;" id="zone-counts"></div></div>
+    <div class="panel"><div class="panel-label">Rules</div><div style="font-size:0.58rem;line-height:1.9;color:#555;" id="rules-text"></div></div>
+  </div>
+</div>
+<div id="tooltip" class="tooltip"></div>
+<div id="overlay">
+  <div class="overlay-box">
+    <h2 id="ov-title">Zoning Puzzle</h2>
+    <p id="ov-body">Place Residential, Commercial, Industrial, and Green Space zones. Industrial poisons nearby Residential — find the layout that maximizes population and desirability.</p>
+    <div class="big" id="ov-score"></div>
+    <button class="btn" onclick="dismissOverlay()">Begin Planning</button>
+  </div>
+</div>
+<script>
+const GRID_W=12,GRID_H=12,CELL=30;
+const canvas=document.getElementById('grid'),ctx=canvas.getContext('2d');
+const ZONES={null:{color:'#1a1a1a'},R:{color:'#5a8a5a',label:'Residential'},C:{color:'#5a6a9a',label:'Commercial'},I:{color:'#8a5a3a',label:'Industrial'},G:{color:'#4a7a4a',label:'Green Space'}};
+const LEVELS=[
+  {title:'Greenfield',desc:'No constraints. Reach 400 population.',target:400,rules:['Industry poisons nearby Residential','Green Space boosts Residential value','Commercial adds moderate desirability']},
+  {title:'Industrial Quarter',desc:'Place at least 6 Industrial zones. Reach 300 population.',target:300,minI:6,rules:['Min 6 Industrial zones required','Isolate industry from housing','Use Green Space as buffer']},
+  {title:'Mixed Use',desc:'All four zone types required (min 4 each). Reach 500 population.',target:500,minR:4,minC:4,minI:4,minG:4,rules:['Min 4 of each zone type','Balance is key','Cluster Green near Residential']},
+  {title:'Density Challenge',desc:'80% of grid must be filled. Reach 700 population.',target:700,fillPct:80,rules:['80% grid fill required','Every empty cell is waste','Geometry must do the work']}
+];
+let currentLevel=0,grid,selectedZone='R',showHeatmap=false,isPainting=false,levelComplete=false;
+function initGrid(){grid=Array.from({length:GRID_H},()=>Array(GRID_W).fill(null));}
+function getCellDes(g,c,r){if(g[r][c]!=='R')return 0;let s=50;for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr<0||nr>=GRID_H||nc<0||nc>=GRID_W)continue;const n=g[nr][nc];const d=Math.abs(dr)+Math.abs(dc);const w=1/d;if(n==='I')s-=20*w;if(n==='G')s+=15*w;if(n==='C')s+=8*w;if(n==='R')s+=3*w;}return Math.max(0,Math.min(100,s));}
+function computeScore(g){let pop=0,td=0,rc=0;for(let r=0;r<GRID_H;r++)for(let c=0;c<GRID_W;c++)if(g[r][c]==='R'){rc++;const d=getCellDes(g,c,r);td+=d;pop+=Math.floor(d*0.8);}return{pop,avgDes:rc>0?Math.round(td/rc):0};}
+function getPollution(g){let i=0;for(let r=0;r<GRID_H;r++)for(let c=0;c<GRID_W;c++)if(g[r][c]==='I')i++;return Math.round((i/(GRID_W*GRID_H))*100);}
+function desColor(d){const r=d<50?Math.round(20+d*1.4):Math.round(90-(d-50));const gv=d<50?Math.round(20+d*2):Math.round(120+(d-50)*2);const b=d<50?Math.round(80+(50-d)):30;return`rgb(${r},${gv},${b})`;}
+function render(){ctx.clearRect(0,0,canvas.width,canvas.height);const heat=showHeatmap?Array.from({length:GRID_H},(_,r)=>Array.from({length:GRID_W},(_,c)=>getCellDes(grid,c,r))):null;
+for(let r=0;r<GRID_H;r++)for(let c=0;c<GRID_W;c++){const x=c*CELL,y=r*CELL,z=grid[r][c];ctx.fillStyle='#111';ctx.fillRect(x,y,CELL,CELL);
+if(showHeatmap&&heat){if(z==='R'||!z){ctx.fillStyle=desColor(z==='R'?heat[r][c]:0);ctx.globalAlpha=z==='R'?0.85:0.25;ctx.fillRect(x+1,y+1,CELL-2,CELL-2);ctx.globalAlpha=1;}}
+if(z&&!showHeatmap){ctx.fillStyle=ZONES[z].color;ctx.fillRect(x+1,y+1,CELL-2,CELL-2);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.font=`bold ${CELL*0.38}px Courier New`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(z,x+CELL/2,y+CELL/2);ctx.textAlign='left';ctx.textBaseline='alphabetic';}
+else if(z&&showHeatmap){ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font=`bold ${CELL*0.3}px Courier New`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(z,x+CELL/2,y+CELL/2);ctx.textAlign='left';ctx.textBaseline='alphabetic';}
+ctx.strokeStyle='#1e1e1e';ctx.lineWidth=0.5;ctx.strokeRect(x,y,CELL,CELL);}}
+function updateStats(){const{pop,avgDes}=computeScore(grid);const pol=getPollution(grid);const lv=LEVELS[currentLevel];
+document.getElementById('score-val').textContent=Math.round(pop*(avgDes/100)*(1-pol/200));
+document.getElementById('pop-val').textContent=pop;document.getElementById('pop-target').textContent='/ '+lv.target;
+document.getElementById('des-val').textContent=avgDes+'%';document.getElementById('pol-val').textContent=pol+'%';
+document.getElementById('pop-bar').style.width=Math.min(100,(pop/lv.target)*100)+'%';
+document.getElementById('des-bar').style.width=avgDes+'%';document.getElementById('pol-bar').style.width=pol+'%';
+const cnt={R:0,C:0,I:0,G:0};for(let r=0;r<GRID_H;r++)for(let c=0;c<GRID_W;c++)if(grid[r][c])cnt[grid[r][c]]++;
+document.getElementById('zone-counts').innerHTML=`<span style="color:#5a8a5a">R</span> Residential: ${cnt.R}<br><span style="color:#5a6a9a">C</span> Commercial: ${cnt.C}<br><span style="color:#8a5a3a">I</span> Industrial: ${cnt.I}<br><span style="color:#4a7a4a">G</span> Green Space: ${cnt.G}`;
+if(!levelComplete&&pop>=lv.target){levelComplete=true;showWin(pop,avgDes);}}
+function selectZone(z){selectedZone=z==='X'?null:z;document.querySelectorAll('.zone-btn').forEach(b=>b.classList.remove('active'));document.querySelector(`[data-zone="${z}"]`).classList.add('active');}
+function toggleHeatmap(){showHeatmap=!showHeatmap;document.getElementById('heatmap-btn').classList.toggle('active',showHeatmap);render();}
+function clearGrid(){initGrid();levelComplete=false;updateStats();render();}
+function nextLevel(){if(currentLevel<LEVELS.length-1){currentLevel++;initGrid();levelComplete=false;updateLevelUI();updateStats();render();}}
+function updateLevelUI(){const lv=LEVELS[currentLevel];document.getElementById('level-val').textContent=currentLevel+1;document.getElementById('level-desc').innerHTML=`<strong>${lv.title}</strong><br>${lv.desc}`;document.getElementById('rules-text').innerHTML=lv.rules.map(r=>`— ${r}`).join('<br>');}
+function showWin(pop,des){document.getElementById('ov-title').textContent='Objective Met';document.getElementById('ov-body').textContent=`Population target reached. Avg desirability: ${des}%.`;document.getElementById('ov-score').textContent='Pop: '+pop+' / Score: '+document.getElementById('score-val').textContent;document.getElementById('overlay').style.display='flex';document.querySelector('.overlay-box .btn').textContent='Next Level →';document.querySelector('.overlay-box .btn').onclick=()=>{dismissOverlay();nextLevel();document.querySelector('.overlay-box .btn').textContent='Begin Planning';document.querySelector('.overlay-box .btn').onclick=dismissOverlay;};}
+function dismissOverlay(){document.getElementById('overlay').style.display='none';}
+function paintAt(e){const rect=canvas.getBoundingClientRect();const c=Math.floor((e.clientX-rect.left)/CELL),r=Math.floor((e.clientY-rect.top)/CELL);if(c<0||c>=GRID_W||r<0||r>=GRID_H)return;const nz=selectedZone||null;if(grid[r][c]!==nz){grid[r][c]=nz;updateStats();render();}}
+function showTooltip(e){const rect=canvas.getBoundingClientRect();const c=Math.floor((e.clientX-rect.left)/CELL),r=Math.floor((e.clientY-rect.top)/CELL);if(c<0||c>=GRID_W||r<0||r>=GRID_H)return;const z=grid[r][c];const tip=document.getElementById('tooltip');tip.style.display='block';tip.style.left=(e.pageX+12)+'px';tip.style.top=(e.pageY-20)+'px';tip.textContent=z?`${ZONES[z].label} | Desirability: ${getCellDes(grid,c,r).toFixed(0)}%`:'Empty cell';}
+canvas.addEventListener('mousedown',e=>{isPainting=true;paintAt(e);});
+canvas.addEventListener('mousemove',e=>{if(isPainting)paintAt(e);showTooltip(e);});
+canvas.addEventListener('mouseup',()=>isPainting=false);
+canvas.addEventListener('mouseleave',()=>{isPainting=false;document.getElementById('tooltip').style.display='none';});
+initGrid();updateLevelUI();updateStats();render();
+</script></body></html>

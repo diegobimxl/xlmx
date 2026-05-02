@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elevator Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.kbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.68rem;margin-top:3px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}
+.grade{padding:2px 8px;border-radius:4px;font-size:.78rem;font-weight:600}
+.A{background:#0a2a0a;color:#16a34a}.B{background:#1a2a00;color:#86efac}.C{background:#332b00;color:#f59e0b}.D{background:#2a0a0a;color:#ef4444}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:700px){.grid2,.kpi{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Elevator Traffic Calculator</h1>
+<p class="sub">5-minute handling capacity, interval, and number of cars required — CIBSE Guide D method</p>
+<div class="card">
+<div class="grid2">
+<div><label>Building Population</label><input id="pop" type="number" value="400" step="10"></div>
+<div><label>Number of Floors (above ground)</label><input id="floors" type="number" value="12" step="1"></div>
+<div><label>Floor-to-Floor Height (m)</label><input id="fh" type="number" value="3.5" step="0.1"></div>
+<div><label>Car Capacity (persons)</label>
+<select id="cap"><option value="8">8 — small (630 kg)</option><option value="10">10 — standard (800 kg)</option><option value="13" selected>13 — standard (1000 kg)</option><option value="17">17 — large (1275 kg)</option><option value="21">21 — extra large (1600 kg)</option></select></div>
+<div><label>Rated Speed (m/s)</label>
+<select id="spd"><option value="1.0">1.0</option><option value="1.6" selected>1.6</option><option value="2.5">2.5</option><option value="4.0">4.0</option><option value="6.0">6.0</option></select></div>
+<div><label>Building Use</label>
+<select id="use"><option value="0.12">Office — 12% peak</option><option value="0.17">Office (financial) — 17%</option><option value="0.10">Hotel — 10%</option><option value="0.08">Residential — 8%</option><option value="0.15">Mixed-use — 15%</option></select></div>
+</div>
+<button onclick="calc()">Calculate</button>
+</div>
+<div id="res" style="display:none">
+<div class="kpi" id="kpi"></div>
+<div class="card" id="det"></div>
+</div>
+<script>
+function calc(){
+  const pop=+document.getElementById('pop').value;
+  const floors=+document.getElementById('floors').value;
+  const fh=+document.getElementById('fh').value;
+  const cap=+document.getElementById('cap').value;
+  const spd=+document.getElementById('spd').value;
+  const peakPct=+document.getElementById('use').value;
+  // 5-minute peak demand
+  const demand5=pop*peakPct;
+  // Round-trip time (simplified CIBSE)
+  const H=floors*fh; // total rise
+  const avgStops=Math.floor(floors*0.75);
+  const tv=2*H/spd; // travel time up+down
+  const ts=avgStops*2.0; // door open/close per stop (2s each)
+  const tl=cap*0.8*1.2; // loading time (80% capacity, 1.2s/person)
+  const RTT=tv+ts+tl+10; // +10s for door times, misc
+  // Cars needed
+  const HC_per_car=Math.floor((cap*0.8)/RTT*300); // 5 min = 300s
+  const carsRequired=Math.ceil(demand5/HC_per_car);
+  const interval=RTT/carsRequired;
+  const HC_total=HC_per_car*carsRequired;
+  const handling=(HC_total/pop)*100;
+  const grade=interval<=25?'A':interval<=30?'B':interval<=40?'C':'D';
+  document.getElementById('res').style.display='block';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v">${carsRequired}</div><div class="l">Cars Required</div></div>`+
+    `<div class="kbox"><div class="v">${interval.toFixed(0)}s</div><div class="l">Avg Interval</div></div>`+
+    `<div class="kbox"><div class="v">${handling.toFixed(1)}%</div><div class="l">5-min Handling</div></div>`+
+    `<div class="kbox"><div class="v"><span class="grade ${grade}">${grade}</span></div><div class="l">Service Grade</div></div>`;
+  document.getElementById('det').innerHTML=
+    `<p style="color:#16a34a;font-weight:600;margin-bottom:10px">Traffic Analysis (CIBSE Guide D)</p>`+
+    `<div class="row"><span>Peak 5-min demand</span><span>${Math.round(demand5)} persons</span></div>`+
+    `<div class="row"><span>Car capacity (80% fill)</span><span>${Math.floor(cap*0.8)} persons</span></div>`+
+    `<div class="row"><span>Round-trip time</span><span>${RTT.toFixed(0)} s</span></div>`+
+    `<div class="row"><span>Handling per car (5 min)</span><span>${HC_per_car} persons</span></div>`+
+    `<div class="row"><span>Cars required</span><span>${carsRequired}</span></div>`+
+    `<div class="row"><span>Average interval</span><span>${interval.toFixed(0)}s — Grade ${grade} (${interval<=25?'Excellent':interval<=30?'Good':interval<=40?'Acceptable':'Poor'})</span></div>`+
+    `<div class="row"><span>Total rise</span><span>${H.toFixed(1)} m</span></div>`+
+    `<div class="row"><span>Rated speed</span><span>${spd} m/s</span></div>`;
+}
+calc();
+</script></body></html>

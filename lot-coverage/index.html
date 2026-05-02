@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lot Coverage Calculator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:600px){.app{grid-template-columns:1fr}}
+.panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.field{padding:12px 16px;border-bottom:1px solid #f0f0f0}
+.field:last-child{border:none}
+.field label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.field-row{display:flex;gap:8px;align-items:center}
+.field-row input{flex:1;padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.field-row select{padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.field input,.field select{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.result-panel{grid-column:1/-1;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.result-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+@media(max-width:550px){.result-grid{grid-template-columns:1fr 1fr}}
+.result-cell{padding:18px;text-align:center;border-right:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5}
+.result-cell:last-child{border-right:none}
+.result-val{font-size:22px;font-weight:800}
+.result-val.ok{color:#2e7d32}
+.result-val.fail{color:#c62828}
+.result-val.warn{color:#e65100}
+.result-label{font-size:11px;color:#888;margin-top:2px}
+.compliance-bar{padding:16px;display:flex;flex-direction:column;gap:10px}
+.comp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
+.comp-name{min-width:160px;font-weight:500}
+.comp-track{flex:1;height:10px;background:#e5e5e5;border-radius:5px;overflow:visible;position:relative}
+.comp-fill{height:100%;border-radius:5px}
+.comp-limit{position:absolute;top:-3px;bottom:-3px;width:2px;background:#c62828;border-radius:1px}
+.comp-result{min-width:60px;text-align:right;font-weight:600}
+.ok-txt{color:#2e7d32}
+.fail-txt{color:#c62828}
+.warn-txt{color:#e65100}
+.comp-val{min-width:50px;text-align:right;color:#888}
+.viz{grid-column:1/-1;padding:20px;border-top:1px solid #e5e5e5;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.lot-diagram{position:relative;background:#e8f5e9;border:2px solid #a5d6a7;flex-shrink:0}
+.footprint-overlay{position:absolute;background:rgba(21,101,192,.3);border:2px solid #1565c0;bottom:0;left:0}
+.viz-legend{font-size:11px;color:#555;display:flex;flex-direction:column;gap:6px}
+.leg-item{display:flex;align-items:center;gap:6px}
+.leg-dot{width:14px;height:14px;flex-shrink:0;border:2px solid}
+.notes{padding:14px 16px;background:#f9f9f9;border-top:1px solid #e5e5e5;font-size:12px;color:#555;line-height:1.7}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Lot Coverage Calculator</h1>
+<p>Enter lot size, building footprint, and number of floors. Get lot coverage %, FAR, open space ratio, and zoning compliance flags instantly.</p>
+<div class="badge">FREE TOOL — AEC / REAL ESTATE</div>
+</div>
+<div class="app">
+<div class="panel">
+<div class="panel-header">Lot & Building</div>
+<div class="field"><label>Lot area</label>
+<div class="field-row"><input type="number" id="lotArea" value="10000" oninput="calc()">
+<select id="lotUnit" onchange="calc()"><option value="sqft">sq ft</option><option value="sqm">m²</option><option value="acres">acres</option></select>
+</div></div>
+<div class="field"><label>Building footprint</label>
+<div class="field-row"><input type="number" id="footprint" value="4500" oninput="calc()">
+<select id="fpUnit" onchange="calc()"><option value="sqft">sq ft</option><option value="sqm">m²</option></select>
+</div></div>
+<div class="field"><label>Number of floors</label><input type="number" id="floors" value="3" min="1" oninput="calc()"></div>
+<div class="field"><label>Parking / hardscape area</label>
+<div class="field-row"><input type="number" id="paving" value="1500" oninput="calc()">
+<select id="pvUnit" onchange="calc()"><option value="sqft">sq ft</option><option value="sqm">m²</option></select>
+</div></div>
+</div>
+<div class="panel">
+<div class="panel-header">Zoning Limits</div>
+<div class="field"><label>Zone type</label>
+<select id="zoneType" onchange="applyZone()">
+<option value="custom">Custom limits</option>
+<option value="r1">R-1 Single Family</option>
+<option value="r2">R-2 Multi-Family</option>
+<option value="c1">C-1 Neighborhood Commercial</option>
+<option value="c2">C-2 General Commercial</option>
+<option value="mx">Mixed-Use</option>
+<option value="ind">Industrial</option>
+</select>
+</div>
+<div class="field"><label>Max lot coverage (%)</label><input type="number" id="maxCoverage" value="50" oninput="calc()"></div>
+<div class="field"><label>Max FAR</label><input type="number" id="maxFAR" value="1.5" step="0.1" oninput="calc()"></div>
+<div class="field"><label>Min open space (%)</label><input type="number" id="minOpen" value="25" oninput="calc()"></div>
+</div>
+<div class="result-panel">
+<div class="panel-header">Results</div>
+<div class="result-grid">
+<div class="result-cell"><div class="result-val" id="rCoverage">--</div><div class="result-label">Lot coverage</div></div>
+<div class="result-cell"><div class="result-val" id="rFAR">--</div><div class="result-label">FAR</div></div>
+<div class="result-cell"><div class="result-val" id="rOpenSpace">--</div><div class="result-label">Open space</div></div>
+<div class="result-cell"><div class="result-val" id="rGFA">--</div><div class="result-label">Gross floor area</div></div>
+</div>
+<div class="compliance-bar" id="complianceBar"></div>
+<div class="viz">
+<div class="lot-diagram" id="lotDiagram" style="width:160px;height:160px">
+<div class="footprint-overlay" id="fpOverlay"></div>
+</div>
+<div class="viz-legend">
+<div class="leg-item"><div class="leg-dot" style="background:#e8f5e9;border-color:#a5d6a7"></div>Lot boundary</div>
+<div class="leg-item"><div class="leg-dot" style="background:rgba(21,101,192,.3);border-color:#1565c0"></div>Building footprint</div>
+<div style="margin-top:8px;font-size:11px;color:#888">Diagram is proportional</div>
+</div>
+</div>
+<div class="notes" id="notesArea"></div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+const zones={r1:{cov:40,far:0.5,open:35},r2:{cov:50,far:1.0,open:25},c1:{cov:60,far:1.5,open:20},c2:{cov:80,far:2.5,open:10},mx:{cov:75,far:3.0,open:15},ind:{cov:70,far:2.0,open:10}};
+function toSqft(val,unit){if(unit==='sqm')return val*10.764;if(unit==='acres')return val*43560;return val;}
+function fmt(n){return n>=10000?Math.round(n/100)/10+'k':Math.round(n).toLocaleString();}
+function applyZone(){
+  const z=document.getElementById('zoneType').value;
+  if(zones[z]){
+    document.getElementById('maxCoverage').value=zones[z].cov;
+    document.getElementById('maxFAR').value=zones[z].far;
+    document.getElementById('minOpen').value=zones[z].open;
+  }
+  calc();
+}
+function calc(){
+  const lotArea=toSqft(parseFloat(document.getElementById('lotArea').value)||0,document.getElementById('lotUnit').value);
+  const footprint=toSqft(parseFloat(document.getElementById('footprint').value)||0,document.getElementById('fpUnit').value);
+  const floors=parseFloat(document.getElementById('floors').value)||1;
+  const paving=toSqft(parseFloat(document.getElementById('paving').value)||0,document.getElementById('pvUnit').value);
+  const maxCov=parseFloat(document.getElementById('maxCoverage').value)||100;
+  const maxFAR=parseFloat(document.getElementById('maxFAR').value)||999;
+  const minOpen=parseFloat(document.getElementById('minOpen').value)||0;
+  if(!lotArea){return;}
+  const gfa=footprint*floors;
+  const coverage=(footprint/lotArea)*100;
+  const far=gfa/lotArea;
+  const hardscape=footprint+paving;
+  const openSpace=((lotArea-hardscape)/lotArea)*100;
+  const covOk=coverage<=maxCov;
+  const farOk=far<=maxFAR;
+  const openOk=openSpace>=minOpen;
+  const covClass=coverage>maxCov?'fail':coverage>maxCov*0.9?'warn':'ok';
+  const farClass=far>maxFAR?'fail':far>maxFAR*0.9?'warn':'ok';
+  const openClass=openSpace<minOpen?'fail':openSpace<minOpen*1.1?'warn':'ok';
+  document.getElementById('rCoverage').textContent=coverage.toFixed(1)+'%';
+  document.getElementById('rCoverage').className='result-val '+covClass;
+  document.getElementById('rFAR').textContent=far.toFixed(2);
+  document.getElementById('rFAR').className='result-val '+farClass;
+  document.getElementById('rOpenSpace').textContent=openSpace.toFixed(1)+'%';
+  document.getElementById('rOpenSpace').className='result-val '+openClass;
+  document.getElementById('rGFA').textContent=fmt(gfa)+' sf';
+  const checks=[
+    {name:'Lot coverage',actual:coverage.toFixed(1)+'%',limit:'≤'+maxCov+'%',pct:(coverage/maxCov)*100,ok:covOk,warn:coverage>maxCov*0.9&&covOk},
+    {name:'FAR',actual:far.toFixed(2),limit:'≤'+maxFAR,pct:(far/maxFAR)*100,ok:farOk,warn:far>maxFAR*0.9&&farOk},
+    {name:'Open space',actual:openSpace.toFixed(1)+'%',limit:'≥'+minOpen+'%',pct:(openSpace/Math.max(openSpace,minOpen))*100,ok:openOk,warn:openSpace<minOpen*1.1&&openOk},
+  ];
+  const cb=document.getElementById('complianceBar');
+  cb.innerHTML='';
+  checks.forEach(c=>{
+    const div=document.createElement('div');div.className='comp-row';
+    const fillColor=!c.ok?'#c62828':c.warn?'#e65100':'#2e7d32';
+    const resultClass=!c.ok?'fail-txt':c.warn?'warn-txt':'ok-txt';
+    const resultLabel=!c.ok?'OVER LIMIT':c.warn?'BORDERLINE':'OK';
+    const fillPct=Math.min(100,c.pct).toFixed(0);
+    div.innerHTML=`<span class="comp-name">${c.name}</span>
+      <div class="comp-track"><div class="comp-fill" style="width:${fillPct}%;background:${fillColor}"></div>
+      <div class="comp-limit" style="left:${c.name==='Open space'?Math.min(100,(minOpen/Math.max(openSpace,minOpen)*100)):100}%"></div></div>
+      <span class="comp-val">${c.actual}</span>
+      <span class="comp-result ${resultClass}">${resultLabel}</span>`;
+    cb.appendChild(div);
+  });
+  const diagramSize=160;
+  const fp=document.getElementById('fpOverlay');
+  const fpW=Math.min(diagramSize-4,Math.round(Math.sqrt(footprint/lotArea)*diagramSize));
+  const fpH=Math.min(diagramSize-4,fpW*0.75);
+  fp.style.width=fpW+'px';fp.style.height=fpH+'px';
+  const notes=[];
+  if(!covOk)notes.push(`Reduce footprint by ${fmt(footprint-lotArea*maxCov/100)} sf to meet coverage limit.`);
+  if(!farOk)notes.push(`Reduce GFA by ${fmt(gfa-lotArea*maxFAR)} sf to meet FAR limit.`);
+  if(!openOk)notes.push(`Increase open space by ${fmt((minOpen-openSpace)/100*lotArea)} sf.`);
+  if(covOk&&farOk&&openOk)notes.push(`All zoning parameters compliant. Remaining coverage capacity: ${fmt(lotArea*maxCov/100-footprint)} sf.`);
+  document.getElementById('notesArea').textContent=notes.join(' ');
+}
+calc();
+</script>
+</body>
+</html>

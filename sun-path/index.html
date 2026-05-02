@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sun Path Diagram — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.sbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.sbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.sbox .l{color:#aaa;font-size:.7rem;margin-top:3px}
+canvas{display:block;width:100%;max-width:480px;margin:0 auto;border-radius:8px}
+.time-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #222;font-size:.82rem}
+.time-row span:first-child{color:#aaa}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.preset{padding:6px 12px;background:#222;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:.78rem}
+.preset:hover{border-color:#16a34a;color:#16a34a}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Sun Path Diagram</h1>
+<p class="sub">Solar altitude and azimuth by location, date, and hour — for daylighting and shading design</p>
+<div class="card">
+<div class="presets">
+<span style="color:#aaa;font-size:.78rem;align-self:center">Quick:</span>
+<div class="preset" onclick="setCity(25.67,-100.31,'Monterrey')">Monterrey</div>
+<div class="preset" onclick="setCity(19.43,-99.13,'Mexico City')">CDMX</div>
+<div class="preset" onclick="setCity(20.97,-89.62,'Merida')">Merida</div>
+<div class="preset" onclick="setCity(39.74,-104.98,'Denver')">Denver</div>
+<div class="preset" onclick="setCity(33.45,-112.07,'Phoenix')">Phoenix</div>
+<div class="preset" onclick="setCity(40.71,-74.01,'New York')">NYC</div>
+<div class="preset" onclick="setCity(29.42,-98.49,'San Antonio')">San Antonio</div>
+</div>
+<div class="grid2">
+<div><label>Latitude (°)</label><input id="lat" type="number" value="25.67" step="0.01"></div>
+<div><label>Longitude (°)</label><input id="lon" type="number" value="-100.31" step="0.01"></div>
+</div>
+<div class="grid2">
+<div><label>Date</label><input id="date" type="date"></div>
+<div><label>Time Zone Offset (hrs from UTC)</label><input id="tz" type="number" value="-6" step="1"></div>
+</div>
+<button onclick="calculate()">Generate Sun Path</button>
+</div>
+<div class="grid3" id="kpis" style="display:none"></div>
+<div class="card" id="canvas-card" style="display:none">
+<canvas id="cv" width="480" height="300"></canvas>
+</div>
+<div class="card" id="table-card" style="display:none">
+<p style="color:#16a34a;font-size:.85rem;font-weight:600;margin-bottom:10px">Hourly Solar Position</p>
+<div id="tableRows"></div>
+</div>
+<script>
+document.getElementById('date').value=new Date().toISOString().slice(0,10);
+function setCity(lat,lon,name){document.getElementById('lat').value=lat;document.getElementById('lon').value=lon;document.getElementById('date').title=name}
+function toRad(d){return d*Math.PI/180}function toDeg(r){return r*180/Math.PI}
+function solarPos(lat,lon,year,month,day,hour,tzOff){
+  const N=Math.floor(275*month/9)-Math.floor((month+9)/12)*(1+Math.floor((year-4*Math.floor(year/4)+2)/3))+day-30;
+  const L=280.460+0.9856474*N;const g=357.528+0.9856003*N;
+  const lam=L+1.915*Math.sin(toRad(g))+0.020*Math.sin(toRad(2*g));
+  const eps=23.439-0.0000004*N;
+  const sinDec=Math.sin(toRad(eps))*Math.sin(toRad(lam));
+  const dec=Math.asin(sinDec);
+  const RA=toDeg(Math.atan2(Math.cos(toRad(eps))*Math.sin(toRad(lam)),Math.cos(toRad(lam))))/15;
+  const EoT=(L/15-RA)*60;const solarNoon=12-lon/15-tzOff-EoT/60;
+  const HA=(hour-solarNoon)*15;
+  const alt=toDeg(Math.asin(Math.sin(toRad(lat))*sinDec+Math.cos(toRad(lat))*Math.cos(dec)*Math.cos(toRad(HA))));
+  let az=toDeg(Math.atan2(-Math.cos(dec)*Math.sin(toRad(HA)),Math.sin(toRad(lat))*Math.cos(dec)*Math.cos(toRad(HA))-Math.cos(toRad(lat))*sinDec));
+  if(az<0)az+=360;
+  return{alt,az,rise:solarNoon};
+}
+function calculate(){
+  const lat=+document.getElementById('lat').value,lon=+document.getElementById('lon').value;
+  const tz=+document.getElementById('tz').value;
+  const [y,m,d]=document.getElementById('date').value.split('-').map(Number);
+  let sunrise=null,sunset=null,maxAlt=0,maxAltH=0;
+  const data=[];
+  for(let h=5;h<=20;h+=0.5){
+    const p=solarPos(lat,lon,y,m,d,h,tz);
+    data.push({h,alt:p.alt,az:p.az});
+    if(p.alt>0){if(sunrise===null)sunrise=h;sunset=h}
+    if(p.alt>maxAlt){maxAlt=p.alt;maxAltH=h}
+  }
+  const noon=solarPos(lat,lon,y,m,d,12,tz);
+  document.getElementById('kpis').style.display='grid';
+  document.getElementById('kpis').innerHTML=
+    `<div class="sbox"><div class="v">${sunrise?fmtT(sunrise):'—'}</div><div class="l">Sunrise (approx.)</div></div>`+
+    `<div class="sbox"><div class="v">${maxAlt.toFixed(1)}°</div><div class="l">Peak Altitude @ ${fmtT(maxAltH)}</div></div>`+
+    `<div class="sbox"><div class="v">${sunset?fmtT(sunset):'—'}</div><div class="l">Sunset (approx.)</div></div>`;
+  drawDiagram(data);drawTable(data);
+}
+function fmtT(h){const hr=Math.floor(h);const mn=Math.round((h-hr)*60);return`${String(hr).padStart(2,'0')}:${String(mn).padStart(2,'0')}`}
+function drawDiagram(data){
+  document.getElementById('canvas-card').style.display='block';
+  const cv=document.getElementById('cv');const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,480,300);ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,480,300);
+  const cx=240,cy=260,r=220;
+  ctx.strokeStyle='#333';ctx.lineWidth=1;
+  [30,60,90].forEach(a=>{const ry=r*(1-a/90);ctx.beginPath();ctx.arc(cx,cy,ry,Math.PI,2*Math.PI);ctx.stroke();ctx.fillStyle='#555';ctx.font='10px monospace';ctx.fillText(a+'°',cx+ry+2,cy-2)});
+  ['N','E','S','W'].forEach((d,i)=>{const a=i*90-90;const x=cx+r*Math.cos(toRad(a));const y=cy-r*Math.sin(toRad(a));ctx.fillStyle='#888';ctx.font='12px sans-serif';ctx.fillText(d,x-4,y+4)});
+  const visible=data.filter(p=>p.alt>0);
+  if(visible.length<2)return;
+  ctx.beginPath();ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;
+  visible.forEach((p,i)=>{
+    const angRad=toRad(p.az-90);const dist=r*(1-p.alt/90);
+    const x=cx+dist*Math.cos(angRad),yy=cy-dist*Math.sin(angRad)*(cy/r)*0.5+dist*0.5;
+    const plotY=cy-(r-dist)*(cy/r);
+    const px=cx+dist*Math.cos(toRad(p.az-90)),py=cy-r*(p.alt/90);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  const noon=visible.reduce((a,b)=>b.alt>a.alt?b:a);
+  const px=cx+r*(1-noon.alt/90)*Math.cos(toRad(noon.az-90));
+  const py=cy-r*(noon.alt/90);
+  ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.fillText(`${noon.alt.toFixed(0)}°`,px+7,py);
+}
+function drawTable(data){
+  document.getElementById('table-card').style.display='block';
+  const el=document.getElementById('tableRows');el.innerHTML='';
+  data.filter(p=>p.alt>0&&p.h%1===0).forEach(p=>{
+    el.innerHTML+=`<div class="time-row"><span>${fmtT(p.h)}</span><span>Alt: ${p.alt.toFixed(1)}°</span><span>Az: ${p.az.toFixed(0)}°</span></div>`;
+  });
+}
+function toRad(d){return d*Math.PI/180}
+</script></body></html>

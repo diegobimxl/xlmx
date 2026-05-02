@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Travel Guide - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.controls{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+input[type=text]{flex:1;min-width:180px;background:#1a1a1a;border:1px solid #333;color:#fff;padding:.5rem .85rem;border-radius:6px;font-size:.88rem;font-family:inherit}
+input[type=text]:focus{outline:none;border-color:#16a34a}
+.filter-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.3rem .8rem;border-radius:5px;font-size:.78rem;cursor:pointer}
+.tab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.city-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem}
+.city-card{background:#1a1a1a;border:1px solid #333;border-radius:8px;overflow:hidden}
+.city-header{padding:1rem 1.25rem .75rem;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:flex-start}
+.city-name{font-size:1.05rem;font-weight:600}
+.city-country{font-size:.72rem;color:#888}
+.city-tag{font-size:.68rem;background:#16a34a22;color:#16a34a;padding:.1rem .45rem;border-radius:3px}
+.buildings{padding:.75rem 1.25rem}
+.building{padding:.5rem 0;border-bottom:1px solid #1f1f1f;display:flex;gap:.75rem;align-items:flex-start}
+.building:last-child{border-bottom:none}
+.b-num{background:#16a34a;color:#fff;border-radius:3px;padding:.1rem .4rem;font-size:.68rem;font-weight:600;min-width:18px;text-align:center;margin-top:.1rem}
+.b-info{flex:1}
+.b-name{font-size:.85rem;font-weight:500;margin-bottom:.15rem}
+.b-arch{font-size:.72rem;color:#16a34a}
+.b-desc{font-size:.72rem;color:#888;line-height:1.4;margin-top:.1rem}
+.b-tags{display:flex;gap:.25rem;margin-top:.2rem;flex-wrap:wrap}
+.b-tag{font-size:.65rem;background:#222;color:#666;padding:.1rem .35rem;border-radius:3px}
+.count{color:#888;font-size:.82rem;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Architecture Travel Guide</h1>
+<p class="sub">Must-see buildings and architectural landmarks by city. For the practicing architect on the road.</p>
+<div class="controls">
+  <input type="text" id="search" placeholder="Search cities, architects, building names..." oninput="render()">
+</div>
+<div class="filter-tabs" id="tabs"></div>
+<div class="count" id="count"></div>
+<div class="city-grid" id="grid"></div>
+<script>
+var cities = [
+  {city:'Mexico City',country:'Mexico',region:'LatAm',buildings:[
+    {name:'Museo Soumaya',arch:'Fernando Romero',desc:'Iconic aluminum-clad free-form museum housing the Soumaya art collection.',tags:['museum','iconic','parametric']},
+    {name:'UNAM Central Library',arch:'Juan O\'Gorman',desc:'Mosaic-covered masterpiece — 10 stories of pre-Hispanic imagery. UNESCO World Heritage.',tags:['modernism','muralism','campus']},
+    {name:'Casa Gilardi',arch:'Luis Barragan',desc:'Late career Barragan. Pool room with red wall and natural light is architecture at its purest.',tags:['barragan','light','color']},
+    {name:'Torre Mayor',arch:'Adamson Associates',desc:'Latin America tallest tower for years. Earthquake-resistant design. Downtown financial district.',tags:['supertall','corporate','seismic']},
+    {name:'Museo Jumex',arch:'David Chipperfield',desc:'Sawtooth roof galleries. Subtle material palette. Contemporary art in Polanco.',tags:['museum','chipperfield','contemporary']}
+  ]},
+  {city:'Monterrey',country:'Mexico',region:'LatAm',buildings:[
+    {name:'MARCO - Museo de Arte Contemporaneo',arch:'Ricardo Legorreta',desc:'Bold geometric forms in signature Legorreta pink. Central dove sculpture by Juan Soriano.',tags:['legorreta','museum','color']},
+    {name:'Macroplaza',arch:'Various',desc:'One of the largest public plazas in the world. Laser lighthouse, fountains and civic monuments.',tags:['urban','plaza','civic']},
+    {name:'FEMSA / Cerveceria Cuauhtemoc',arch:'Various',desc:'Industrial heritage complex with cultural programs. Beer museum, sports halls, gardens.',tags:['industrial heritage','culture','adaptive reuse']},
+    {name:'Torre KOI',arch:'Various',desc:'Mixed-use tower in Valle Oriente. Symbol of Monterrey\'s vertical growth.',tags:['mixed-use','tower','contemporary']}
+  ]},
+  {city:'Chicago',country:'USA',region:'North America',buildings:[
+    {name:'Crown Hall IIT',arch:'Mies van der Rohe',desc:'The purest expression of the steel-and-glass universal space. Architecture school as manifesto.',tags:['mies','modernism','steel']},
+    {name:'Marina City',arch:'Bertrand Goldberg',desc:'Corncob towers — 1960s mixed-use vision. Still radical today.',tags:['1960s','mixed-use','iconic']},
+    {name:'Aqua Tower',arch:'Jeanne Gang / Studio Gang',desc:'Undulating balconies create a sculptural facade. LEED Gold. 82 floors.',tags:['studio gang','supertall','biomorphic']},
+    {name:'Chicago Athletic Association',arch:'Henry Ives Cobb',desc:'Venetian Gothic club now adaptive-reused hotel. Rooftop bar with lake view.',tags:['adaptive reuse','gothic','hotel']}
+  ]},
+  {city:'New York',country:'USA',region:'North America',buildings:[
+    {name:'Guggenheim Museum',arch:'Frank Lloyd Wright',desc:'The spiral ramp as gallery. Wright\'s only major NYC building. Constantly debated, universally loved.',tags:['FLW','museum','spiral']},
+    {name:'High Line',arch:'Diller Scofidio + Renfro',desc:'Elevated rail park. Landscape urbanism that redefined Chelsea and urban regeneration globally.',tags:['landscape','urbanism','adaptive reuse']},
+    {name:'Seagram Building',arch:'Mies van der Rohe',desc:'Bronze and glass perfection. The benchmark for the curtain wall office tower.',tags:['mies','curtain wall','modernism']},
+    {name:'The Vessel / Hudson Yards',arch:'Thomas Heatherwick',desc:'Climbable sculptural structure. Controversial but undeniably photogenic.',tags:['sculptural','landmark','heatherwick']}
+  ]},
+  {city:'Barcelona',country:'Spain',region:'Europe',buildings:[
+    {name:'Sagrada Familia',arch:'Antoni Gaudi',desc:'Still under construction after 140+ years. The most complex building ever attempted. Non-negotiable visit.',tags:['gaudi','cathedral','parametric avant-garde']},
+    {name:'Mies Barcelona Pavilion',arch:'Mies van der Rohe',desc:'The building that defined modern architecture. Onyx walls, reflecting pool, Barcelona chair.',tags:['mies','modernism','pilgrimage']},
+    {name:'MACBA',arch:'Richard Meier',desc:'White rationalist mass in the Raval. Skateboard culture and Meier — perfect collision.',tags:['meier','museum','white']},
+    {name:'Torre Glories',arch:'Jean Nouvel',desc:'Pixelated glass tower that glows at night. 144 colors. Energy performance skin.',tags:['nouvel','tower','facade']}
+  ]},
+  {city:'Tokyo',country:'Japan',region:'Asia',buildings:[
+    {name:'21_21 Design Sight',arch:'Tadao Ando',desc:'Folded steel roof emerging from ground. Minimalist masterpiece in Roppongi.',tags:['ando','minimalism','steel']},
+    {name:'Nakagin Capsule Tower',arch:'Kisho Kurokawa',desc:'Metabolism movement landmark. Capsule hotel system. Demolished 2022 — see archive.',tags:['metabolism','capsule','demolished']},
+    {name:'Prada Omotesando',arch:'Herzog & de Meuron',desc:'Crystal lattice facade. Convex and concave glass panels. Fashion and architecture converge.',tags:['H&dM','facade','retail']},
+    {name:'Sendai Mediatheque',arch:'Toyo Ito',desc:'Steel tubes as structural tree columns. Open floor plates. Radical transparency.',tags:['ito','structure','transparency']}
+  ]},
+  {city:'Porto',country:'Portugal',region:'Europe',buildings:[
+    {name:'Casa da Musica',arch:'Rem Koolhaas / OMA',desc:'Faceted concrete polyhedron. Concert hall as city catalyst. No acoustic compromise.',tags:['OMA','concert hall','polyhedron']},
+    {name:'Serralves Museum',arch:'Alvaro Siza',desc:'White plaster precision. Garden and building as unified experience. Art meets landscape.',tags:['siza','museum','white']},
+    {name:'Livraria Lello',arch:'Xavier Esteves',desc:'Neo-Gothic bookshop. Staircase as theater. Rumored to inspire Hogwarts.',tags:['neo-gothic','heritage','retail']}
+  ]},
+  {city:'Rotterdam',country:'Netherlands',region:'Europe',buildings:[
+    {name:'Kunsthal',arch:'Rem Koolhaas / OMA',desc:'Single ramp threading four galleries. Section drawing made real. Program machine.',tags:['OMA','museum','ramp']},
+    {name:'Cube Houses',arch:'Piet Blom',desc:'Tilted cubes on pylons. Raised village concept. Liveable experimentation.',tags:['experimental','housing','iconic']},
+    {name:'Markthal',arch:'MVRDV',desc:'Arch-shaped residential block over market. Interior mural 11,000 sqm. Food and dwelling.',tags:['MVRDV','mixed-use','market']}
+  ]}
+];
+
+var regions = ['All',...[...new Set(cities.map(function(c){return c.region;}))].sort()];
+var activeRegion = 'All';
+
+function buildTabs(){
+  document.getElementById('tabs').innerHTML=regions.map(function(r){
+    return '<div class="tab'+(r===activeRegion?' active':'')+'" onclick="setR(\''+r+'\',this)">'+r+'</div>';
+  }).join('');
+}
+
+function setR(r,el){
+  activeRegion=r;
+  buildTabs(); render();
+}
+
+function render(){
+  var q=document.getElementById('search').value.toLowerCase();
+  var filtered=cities.filter(function(c){
+    var inRegion=activeRegion==='All'||c.region===activeRegion;
+    if(!q)return inRegion;
+    var textMatch=c.city.toLowerCase().includes(q)||c.country.toLowerCase().includes(q)||
+      c.buildings.some(function(b){return b.name.toLowerCase().includes(q)||b.arch.toLowerCase().includes(q)||b.desc.toLowerCase().includes(q)||(b.tags||[]).join(' ').includes(q);});
+    return inRegion&&textMatch;
+  });
+
+  document.getElementById('count').textContent=filtered.length+' cities, '+filtered.reduce(function(s,c){return s+c.buildings.length;},0)+' buildings';
+  document.getElementById('grid').innerHTML=filtered.map(function(c){
+    var bHtml=c.buildings.filter(function(b){
+      if(!q)return true;
+      return b.name.toLowerCase().includes(q)||b.arch.toLowerCase().includes(q)||b.desc.toLowerCase().includes(q)||(b.tags||[]).join(' ').includes(q)||c.city.toLowerCase().includes(q);
+    }).map(function(b,i){
+      return '<div class="building"><span class="b-num">'+(i+1)+'</span><div class="b-info"><div class="b-name">'+b.name+'</div><div class="b-arch">'+b.arch+'</div><div class="b-desc">'+b.desc+'</div><div class="b-tags">'+b.tags.map(function(t){return '<span class="b-tag">'+t+'</span>';}).join('')+'</div></div></div>';
+    }).join('');
+    if(!bHtml)return '';
+    return '<div class="city-card"><div class="city-header"><div><div class="city-name">'+c.city+'</div><div class="city-country">'+c.country+'</div></div><span class="city-tag">'+c.region+'</span></div><div class="buildings">'+bHtml+'</div></div>';
+  }).filter(Boolean).join('');
+}
+
+buildTabs(); render();
+</script>
+</body>
+</html>

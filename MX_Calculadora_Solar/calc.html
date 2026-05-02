@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Calculadora Solar</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111;line-height:1.4}
+.wrap{max-width:700px;margin:0 auto;padding:24px 20px}
+h1{font-size:22px;font-weight:600;letter-spacing:-0.5px}
+.sub{font-size:13px;color:#888;margin-top:2px;margin-bottom:24px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:6px}
+.sr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sr input[type=range]{flex:1;-webkit-appearance:none;height:2px;background:#ccc;outline:none}
+.sr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#2563eb;cursor:pointer}
+a.back{display:inline-block;font-size:13px;color:#228b22;text-decoration:none;margin-bottom:16px}
+a.back:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="main.html">&larr; Todas las ciudades</a>
+<h1 id="title">Calculadora Solar</h1>
+<p class="sub" id="subtitle">Cargando...</p>
+<div class="lbl">Recibo mensual CFE (MXN)</div>
+<div class="sr">
+<input type="range" id="bill" min="500" max="30000" step="100" value="5000">
+<span id="billV" style="min-width:80px;text-align:right;font-weight:600">$5,000</span>
+</div>
+<div class="lbl">Area de techo (m²)</div>
+<div class="sr">
+<input type="range" id="roof" min="5" max="200" step="1" value="40">
+<span id="roofV" style="min-width:80px;text-align:right;font-weight:600">40 m²</span>
+</div>
+<div class="lbl">Inclinacion del techo (grados)</div>
+<div class="sr">
+<input type="range" id="pitch" min="0" max="45" step="1" value="15">
+<span id="pitchV" style="min-width:80px;text-align:right;font-weight:600">15°</span>
+</div>
+<div class="lbl">Orientacion del techo</div>
+<div id="oWrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px"></div>
+<div id="hero" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e0e0e0;border:1px solid #e0e0e0;margin-bottom:20px"></div>
+<div id="metrics" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#e0e0e0;border:1px solid #e0e0e0;margin-bottom:24px"></div>
+<div class="lbl">Linea de tiempo ROI</div>
+<p id="brkLabel" style="font-size:13px;color:#444;margin:4px 0 10px"></p>
+<canvas id="chart" style="width:100%;display:block"></canvas>
+<div style="display:flex;gap:16px;margin:8px 0 24px;font-size:11px;color:#888">
+<span style="color:#228b22">&#9679; Ahorro acumulado</span>
+<span style="color:#d44">&#9679; Inversion</span>
+<span style="color:#b80">&#9679; Punto de equilibrio</span>
+</div>
+<div id="details"></div>
+<div style="font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
+NASA POWER / INEGI-CONAGUA datos solares · CFE DAC 2026 · SEMARNAT factor CO2<br>
+ROI asume tarifa plana. CFE DAC sube 5-8%/ano - recuperacion real es mas rapida.
+</div>
+</div>
+<script>
+var params=new URLSearchParams(window.location.search);
+var CITY=params.get('city')||'Saltillo';
+var STATE=params.get('state')||'Coahuila';
+var SUN=parseFloat(params.get('sun'))||5.5;
+var LAT=parseFloat(params.get('lat'))||25.42;
+document.getElementById('title').textContent='Calculadora Solar - '+CITY;
+document.getElementById('subtitle').textContent=CITY+', '+STATE+' - CFE Tarifa DAC';
+document.title='Calculadora Solar - '+CITY;
+var D={sun:SUN,wp:550,pa:2.58,eff:0.80,tar:6.50,cost:18,co2:0.435,life:25,lat:LAT};
+var OF={S:1.0,SSE:0.97,SSW:0.97,SE:0.92,SW:0.92,E:0.82,W:0.82,NE:0.60,NW:0.60,N:0.50};
+var OL=['S','SSE','SSO','SE','SO','E','O','NE','NO','N'];
+var OKeys=['S','SSE','SSW','SE','SW','E','W','NE','NW','N'];
+var curO='S';
+function fmt(n,d){d=d||0;return n.toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fm(n){return '$'+fmt(n);}
+function tiltF(p,o){
+  var of2=OF[o]||1;var tg;
+  if(o==='N'||o==='NE'||o==='NW'){tg=1.0-(0.02*p);}
+  else if(p<=D.lat){tg=1.0+(0.15*(p/D.lat));}
+  else{tg=1.15-(0.15*((p-D.lat)/(45-D.lat)));}
+  return Math.max(0.3,tg*of2);
+}
+function calc(bill,roof,pitch){
+  var tf=tiltF(pitch,curO);var sh=D.sun*tf;
+  var mk=bill/D.tar,ak=mk*12,dk=ak/365;
+  var kw=dk/(sh*D.eff);
+  var raw=Math.ceil(kw*1000/D.wp),mx=Math.floor(roof/D.pa);
+  var n=Math.min(raw,mx),akw=n*D.wp/1000;
+  var gen=akw*sh*365*D.eff;
+  var cov=Math.min(gen/ak*100,100);
+  var inv=akw*1000*D.cost,as2=gen*D.tar,ms=as2/12;
+  var roi=as2>0?inv/as2:0;
+  var c2=gen*D.co2/1000,c2l=c2*D.life*0.95;
+  var brk=ms>0?Math.ceil(inv/ms):0;
+  var p25=as2*25-inv;
+  return{mk:mk,n:n,akw:akw,gen:gen,cov:cov,inv:inv,as:as2,ms:ms,roi:roi,c2:c2,c2l:c2l,brk:brk,p25:p25,sh:sh,tf:tf};
+}
+var CHART_Y_MAX=10000000;
+function drawChart(inv,ms){
+  var c=document.getElementById('chart');var ctx=c.getContext('2d');
+  var W=c.parentElement.getBoundingClientRect().width;if(W<50)W=600;
+  var H=280,dpr=window.devicePixelRatio||1;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(inv<=0||ms<=0){ctx.fillStyle='#aaa';ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('Ajusta los controles',W/2,H/2);return;}
+  var mo=300,brk=-1,data=[];
+  for(var i=0;i<=mo;i++){var s=ms*i;data.push(s);if(brk<0&&s>=inv)brk=i;}
+  var top2=CHART_Y_MAX;
+  var L=62,R=18,T=28,B=38,cW=W-L-R,cH=H-T-B;
+  ctx.fillStyle='#fafafa';ctx.fillRect(L,T,cW,cH);
+  for(var i=0;i<=5;i++){
+    var y=T+cH-(cH/5)*i;
+    ctx.strokeStyle='#eee';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(W-R,y);ctx.stroke();
+    var v=top2/5*i;ctx.fillStyle='#999';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText('$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v.toFixed(0)),L-6,y+3);
+  }
+  ctx.textAlign='center';ctx.fillStyle='#999';
+  for(var yr=0;yr<=25;yr+=5){ctx.fillText(yr+'a',L+(yr*12/mo)*cW,H-B+16);}
+  var iy=T+cH-(inv/top2)*cH;
+  ctx.strokeStyle='#d44';ctx.lineWidth=1.5;ctx.setLineDash([8,4]);
+  ctx.beginPath();ctx.moveTo(L,iy);ctx.lineTo(W-R,iy);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#d44';ctx.font='11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Inversion '+fm(inv),L+4,iy-8);
+  ctx.beginPath();ctx.moveTo(L,T+cH);
+  for(var i=0;i<=mo;i++){ctx.lineTo(L+(i/mo)*cW,T+cH-(data[i]/top2)*cH);}
+  ctx.lineTo(L+cW,T+cH);ctx.closePath();
+  var g=ctx.createLinearGradient(0,T,0,T+cH);
+  g.addColorStop(0,'rgba(34,139,34,0.15)');g.addColorStop(1,'rgba(34,139,34,0.02)');
+  ctx.fillStyle=g;ctx.fill();
+  ctx.strokeStyle='#228b22';ctx.lineWidth=2;ctx.beginPath();
+  for(var i=0;i<=mo;i++){var x=L+(i/mo)*cW,y=T+cH-(data[i]/top2)*cH;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+  ctx.stroke();
+  var endY=T+cH-(data[mo]/top2)*cH;
+  ctx.fillStyle='#228b22';ctx.font='11px sans-serif';ctx.textAlign='right';
+  ctx.fillText(fm(data[mo]),W-R-4,endY-8);
+  if(brk>=0&&brk<=mo){
+    var bx=L+(brk/mo)*cW;
+    ctx.beginPath();ctx.moveTo(bx,iy);
+    for(var i=brk;i<=mo;i++){ctx.lineTo(L+(i/mo)*cW,T+cH-(data[i]/top2)*cH);}
+    ctx.lineTo(L+cW,iy);ctx.closePath();
+    var pg=ctx.createLinearGradient(0,T,0,iy);
+    pg.addColorStop(0,'rgba(34,139,34,0.2)');pg.addColorStop(1,'rgba(34,139,34,0.03)');
+    ctx.fillStyle=pg;ctx.fill();
+    ctx.strokeStyle='#b80';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(bx,T);ctx.lineTo(bx,T+cH);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(bx,iy,6,0,Math.PI*2);ctx.fillStyle='#b80';ctx.fill();
+    ctx.beginPath();ctx.arc(bx,iy,2.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.fillStyle='#b80';ctx.font='11px sans-serif';ctx.textAlign='center';
+    var by=Math.floor(brk/12),bm=brk%12;
+    ctx.fillText((by>0?by+'a ':'')+ bm+'m',bx,T-6);
+  }
+}
+function render(){
+  var bill=Number(document.getElementById('bill').value)||5000;
+  var roof=Number(document.getElementById('roof').value)||40;
+  var pitch=Number(document.getElementById('pitch').value)||15;
+  var r=calc(bill,roof,pitch);
+  var bY=Math.floor(r.brk/12),bM=r.brk%12;
+  document.getElementById('billV').textContent=fm(bill);
+  document.getElementById('roofV').textContent=fmt(roof)+' m\u00B2';
+  document.getElementById('pitchV').textContent=pitch+'\u00B0';
+  document.getElementById('hero').innerHTML=
+    '<div style="background:#fff;padding:20px;text-align:center"><div style="font-size:36px;font-weight:700">'+r.n+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:4px">Paneles</div></div>'+
+    '<div style="background:#fff;padding:20px;text-align:center"><div style="font-size:36px;font-weight:700">'+fmt(r.roi,1)+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:4px">Anos para ROI</div></div>'+
+    '<div style="background:#fff;padding:20px;text-align:center"><div style="font-size:36px;font-weight:700">'+fmt(r.c2,1)+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:4px">Ton CO2/ano</div></div>';
+  document.getElementById('metrics').innerHTML=
+    '<div style="background:#fff;padding:14px 16px"><div style="font-size:20px;font-weight:600">'+fm(r.ms)+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px">Ahorro mensual</div></div>'+
+    '<div style="background:#fff;padding:14px 16px"><div style="font-size:20px;font-weight:600">'+fm(r.as)+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px">Ahorro anual</div></div>'+
+    '<div style="background:#fff;padding:14px 16px"><div style="font-size:20px;font-weight:600">'+fm(r.inv)+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px">Inversion total</div></div>'+
+    '<div style="background:#fff;padding:14px 16px"><div style="font-size:20px;font-weight:600">'+fm(r.p25)+'</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px">Ganancia neta 25 anos</div></div>'+
+    '<div style="background:#fff;padding:14px 16px"><div style="font-size:20px;font-weight:600">'+fmt(r.mk)+' kWh</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px">Consumo mensual</div></div>'+
+    '<div style="background:#fff;padding:14px 16px"><div style="font-size:20px;font-weight:600">'+fmt(r.cov,1)+'%</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:2px">Cobertura</div></div>';
+  document.getElementById('brkLabel').innerHTML='Punto de equilibrio en <strong>'+(bY>0?bY+'a ':'')+ bM+'m</strong> &mdash; ganancia 25 anos: <strong>'+fm(r.p25)+'</strong>';
+  var on='';
+  if(curO==='S')on='Optimo';
+  else if(curO==='N')on='Pobre - paneles opuestos al sol';
+  else if(curO==='E'||curO==='W')on='Regular - solo manana/tarde';
+  else if(curO==='NE'||curO==='NW')on='Pobre - sol directo minimo';
+  var ds='',rows=[
+    ['Tamano del sistema',fmt(r.akw,2)+' kWp'],
+    ['Generacion anual',fmt(r.gen)+' kWh'],
+    ['Hrs sol efectivas',fmt(r.sh,1)+' hrs/dia'],
+    ['Factor orientacion',fmt(r.tf*100,0)+'% '+on],
+    ['Especificacion panel',D.wp+' Wp monocristalino ('+fmt(D.pa,2)+' m\u00B2)'],
+    ['Eficiencia del sistema',fmt(D.eff*100,0)+'%'],
+    ['Tarifa CFE DAC','$'+D.tar+' MXN/kWh'],
+    ['Costo de instalacion','$'+D.cost+' MXN/Wp'],
+    ['Compensacion CO2 25a',fmt(r.c2l,1)+' toneladas']
+  ];
+  for(var i=0;i<rows.length;i++){ds+='<div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between"><span style="font-size:11px;color:#888">'+rows[i][0]+'</span><span style="font-size:13px">'+rows[i][1]+'</span></div>';}
+  document.getElementById('details').innerHTML=ds;
+  drawChart(r.inv,r.ms);
+}
+var ow=document.getElementById('oWrap');
+for(var i=0;i<OL.length;i++){
+  var b=document.createElement('button');b.textContent=OL[i];b.setAttribute('data-o',OKeys[i]);
+  var isSel=OKeys[i]==='S';
+  b.style.cssText='padding:6px 12px;border:1px solid #ccc;background:'+(isSel?'#111':'#fff')+';color:'+(isSel?'#fff':'#111')+';font-size:12px;cursor:pointer;border-radius:3px';
+  b.addEventListener('click',(function(key){return function(){
+    curO=key;var bs=ow.querySelectorAll('button');
+    for(var j=0;j<bs.length;j++){var sel=bs[j].getAttribute('data-o')===key;bs[j].style.background=sel?'#111':'#fff';bs[j].style.color=sel?'#fff':'#111';}
+    render();
+  };})(OKeys[i]));
+  ow.appendChild(b);
+}
+document.getElementById('bill').addEventListener('input',render);
+document.getElementById('roof').addEventListener('input',render);
+document.getElementById('pitch').addEventListener('input',render);
+window.addEventListener('resize',render);
+render();
+</script>
+</body>
+</html>

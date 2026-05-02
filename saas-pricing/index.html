@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Pricing Calculator — XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#111;font-size:14px;padding-bottom:60px}
+header{padding:24px 32px 16px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:16px}
+header a{color:#111;text-decoration:none;font-size:13px;opacity:.5}
+header a:hover{opacity:1}
+header h1{font-size:18px;font-weight:600}
+.main{max-width:1100px;margin:0 auto;padding:24px 32px;display:grid;grid-template-columns:340px 1fr;gap:32px}
+@media(max-width:800px){.main{grid-template-columns:1fr}}
+.panel{border:1px solid #e5e5e5;border-radius:8px;padding:20px}
+.panel h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#666;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:4px}
+.field input,.field select{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit;color:#111}
+.field input:focus,.field select:focus{outline:none;border-color:#999}
+.tier-row{display:grid;grid-template-columns:1fr 80px 80px 28px;gap:6px;align-items:center;margin-bottom:6px}
+.tier-row input{padding:6px 8px;border:1px solid #e5e5e5;border-radius:6px;font-size:12px;font-family:inherit}
+.tier-row .del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px}
+.tier-row .del-btn:hover{color:#ef4444}
+.tier-head{display:grid;grid-template-columns:1fr 80px 80px 28px;gap:6px;margin-bottom:4px}
+.tier-head span{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.04em}
+button.add{margin-top:8px;padding:6px 12px;border:1px dashed #ccc;border-radius:6px;background:#fff;font-size:12px;cursor:pointer;color:#666;font-family:inherit}
+button.add:hover{border-color:#999;color:#111}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.kpi{border:1px solid #e5e5e5;border-radius:8px;padding:14px}
+.kpi .label{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.kpi .value{font-size:20px;font-weight:600}
+.kpi .sub{font-size:11px;color:#888;margin-top:2px}
+.tier-cards{display:flex;flex-direction:column;gap:10px}
+.tier-card{border:1px solid #e5e5e5;border-radius:8px;padding:14px}
+.tier-card .name{font-weight:600;font-size:14px;margin-bottom:4px}
+.tier-card .price{font-size:22px;font-weight:700;margin:4px 0}
+.tier-card .price span{font-size:13px;font-weight:400;color:#666}
+.tier-card .metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.tier-card .metric{font-size:11px;color:#666}
+.tier-card .metric strong{display:block;font-size:13px;color:#111}
+.bar-wrap{margin-top:6px;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;background:#111;border-radius:3px}
+.scenario-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.scenario-row label{font-size:12px;color:#666;width:120px;flex-shrink:0}
+.scenario-row input{flex:1;padding:5px 8px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;padding:12px 32px;font-size:11px;color:#999;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<header>
+  <a href="../">← Back</a>
+  <h1>SaaS Pricing Calculator</h1>
+</header>
+<div class="main">
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div class="panel">
+      <h2>Product Setup</h2>
+      <div class="field"><label>Product Name</label><input id="productName" value="XLOS Autopilot" oninput="calc()"></div>
+      <div class="field"><label>Billing Cycle</label>
+        <select id="billing" onchange="calc()">
+          <option value="12">Monthly (billed monthly)</option>
+          <option value="10" selected>Annual (2 months free)</option>
+        </select>
+      </div>
+      <div class="field"><label>Cost of Goods / customer / month ($)</label><input type="number" id="cogs" value="180" oninput="calc()"></div>
+      <div class="field"><label>CAC — Customer Acquisition Cost ($)</label><input type="number" id="cac" value="1200" oninput="calc()"></div>
+      <div class="field"><label>Monthly Churn Rate (%)</label><input type="number" id="churn" value="2.5" step=".1" oninput="calc()"></div>
+    </div>
+    <div class="panel">
+      <h2>Pricing Tiers</h2>
+      <div class="tier-head"><span>Tier</span><span>Price/mo</span><span># Users</span><span></span></div>
+      <div id="tierRows"></div>
+      <button class="add" onclick="addTier()">+ Add tier</button>
+    </div>
+    <div class="panel">
+      <h2>Growth Scenario</h2>
+      <div class="scenario-row"><label>Starting customers</label><input type="number" id="startCust" value="10" oninput="calc()"></div>
+      <div class="scenario-row"><label>New customers/mo</label><input type="number" id="newPerMo" value="5" oninput="calc()"></div>
+      <div class="scenario-row"><label>Months to project</label><input type="number" id="horizon" value="24" min="1" max="60" oninput="calc()"></div>
+    </div>
+  </div>
+  <div>
+    <div class="kpi-grid" id="kpis"></div>
+    <div id="tierCards" style="margin-bottom:20px"></div>
+    <div class="panel" id="projPanel">
+      <h2>MRR Projection</h2>
+      <svg id="projChart" width="100%" height="200" viewBox="0 0 600 200" style="display:block"></svg>
+    </div>
+  </div>
+</div>
+<footer>
+  <span id="footerProd">XLMX — SaaS Pricing</span>
+  <span id="footerDate"></span>
+</footer>
+
+<script>
+let tiers=[
+  {id:1,name:'Starter',price:350,users:1},
+  {id:2,name:'Professional',price:700,users:5},
+  {id:3,name:'Enterprise',price:1500,users:20}
+];
+let tid=4;
+
+function addTier(){tiers.push({id:tid++,name:'New Tier',price:0,users:1});renderTiers();calc();}
+function removeTier(id){tiers=tiers.filter(t=>t.id!==id);renderTiers();calc();}
+function updateTier(id,field,val){const t=tiers.find(t=>t.id===id);if(t)t[field]=field==='name'?val:(parseFloat(val)||0);calc();}
+
+function renderTiers(){
+  document.getElementById('tierRows').innerHTML=tiers.map(t=>`
+    <div class="tier-row">
+      <input value="${t.name}" onchange="updateTier(${t.id},'name',this.value)" onkeyup="updateTier(${t.id},'name',this.value)">
+      <input type="number" value="${t.price}" onchange="updateTier(${t.id},'price',this.value)" oninput="updateTier(${t.id},'price',this.value)">
+      <input type="number" value="${t.users}" onchange="updateTier(${t.id},'users',this.value)" oninput="updateTier(${t.id},'users',this.value)">
+      <button class="del-btn" onclick="removeTier(${t.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function calc(){
+  const billing=parseFloat(document.getElementById('billing').value)||12;
+  const cogs=parseFloat(document.getElementById('cogs').value)||0;
+  const cac=parseFloat(document.getElementById('cac').value)||0;
+  const churnPct=parseFloat(document.getElementById('churn').value)||0;
+  const churnRate=churnPct/100;
+  const startCust=parseInt(document.getElementById('startCust').value)||1;
+  const newPerMo=parseInt(document.getElementById('newPerMo').value)||0;
+  const horizon=parseInt(document.getElementById('horizon').value)||12;
+  const prod=document.getElementById('productName').value||'Product';
+
+  // blend across tiers (equal weight for KPIs)
+  const avgPrice=tiers.length?tiers.reduce((s,t)=>s+t.price,0)/tiers.length:0;
+  const annualAdj=billing<12?(avgPrice*billing/12):avgPrice;
+  const grossMargin=annualAdj>0?Math.max(0,(annualAdj-cogs)/annualAdj*100):0;
+  const ltv=churnRate>0?annualAdj/churnRate:annualAdj*36;
+  const ltvCac=cac>0?ltv/cac:0;
+  const payback=annualAdj>cogs?(cac/(annualAdj-cogs)).toFixed(1):'∞';
+
+  // KPIs
+  const fmt=n=>'$'+(n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':n.toFixed(0));
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="label">Avg Gross Margin</div><div class="value">${grossMargin.toFixed(1)}%</div><div class="sub">Target 70%+</div></div>
+    <div class="kpi"><div class="label">Avg LTV</div><div class="value">${fmt(ltv)}</div><div class="sub">Per customer</div></div>
+    <div class="kpi"><div class="label">LTV:CAC Ratio</div><div class="value">${ltvCac>0?ltvCac.toFixed(1)+'x':'—'}</div><div class="sub">Target 3x+</div></div>
+    <div class="kpi"><div class="label">CAC Payback</div><div class="value">${payback} mo</div><div class="sub">Target &lt;12 mo</div></div>
+  `;
+
+  // Tier cards
+  const maxRev=Math.max(...tiers.map(t=>t.price));
+  document.getElementById('tierCards').innerHTML=tiers.map(t=>{
+    const mg=t.price>0?Math.max(0,(t.price-cogs)/t.price*100):0;
+    const tltv=churnRate>0?t.price/churnRate:t.price*36;
+    const pct=maxRev>0?t.price/maxRev*100:0;
+    return `<div class="tier-card">
+      <div class="name">${t.name}</div>
+      <div class="price">$${t.price}<span>/mo · up to ${t.users} user${t.users>1?'s':''}</span></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="metrics">
+        <div class="metric"><strong>${mg.toFixed(0)}%</strong>Gross Margin</div>
+        <div class="metric"><strong>${fmt(tltv)}</strong>LTV</div>
+        <div class="metric"><strong>$${(t.price*12).toLocaleString()}</strong>Annual ARR/seat</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // MRR Projection chart
+  const mrrData=[];
+  let cust=startCust;
+  for(let m=1;m<=horizon;m++){
+    cust=Math.round(cust*(1-churnRate)+newPerMo);
+    mrrData.push({m,mrr:cust*avgPrice});
+  }
+  const maxMRR=Math.max(...mrrData.map(d=>d.mrr),1);
+  const W=600,H=200,pad=40;
+  const pts=mrrData.map((d,i)=>{
+    const x=pad+(i/(horizon-1||1))*(W-pad*2);
+    const y=H-pad-(d.mrr/maxMRR)*(H-pad*2);
+    return `${x},${y}`;
+  }).join(' ');
+  const finalMRR=mrrData[mrrData.length-1]?.mrr||0;
+  document.getElementById('projChart').innerHTML=`
+    <polyline points="${pts}" fill="none" stroke="#111" stroke-width="2"/>
+    ${mrrData.map((d,i)=>{
+      const x=pad+(i/(horizon-1||1))*(W-pad*2);
+      const y=H-pad-(d.mrr/maxMRR)*(H-pad*2);
+      return i===mrrData.length-1?`<circle cx="${x}" cy="${y}" r="4" fill="#111"/>`:''
+    }).join('')}
+    <text x="${W-pad}" y="${H-pad-(finalMRR/maxMRR)*(H-pad*2)-8}" text-anchor="end" font-size="11" fill="#666">${fmt(finalMRR)}/mo</text>
+    <text x="${pad}" y="${H-8}" font-size="10" fill="#999">Month 1</text>
+    <text x="${W-pad}" y="${H-8}" text-anchor="end" font-size="10" fill="#999">Month ${horizon}</text>
+  `;
+  document.getElementById('footerProd').textContent=`${prod} — SaaS Pricing`;
+  document.getElementById('footerDate').textContent=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+renderTiers();calc();
+</script>
+</body>
+</html>

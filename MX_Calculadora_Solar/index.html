@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Solar Calculator - Saltillo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111;line-height:1.4}
+.wrap{max-width:700px;margin:0 auto;padding:24px 20px}
+h1{font-size:22px;font-weight:600;letter-spacing:-0.5px}
+.sub{font-size:13px;color:#888;margin-top:2px;margin-bottom:24px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:6px}
+.sr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sr input[type=range]{flex:1;-webkit-appearance:none;height:2px;background:#ccc;outline:none}
+.sr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#2563eb;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Solar Calculator</h1>
+<p class="sub">Saltillo, Coahuila — CFE Tarifa DAC</p>
+<div class="lbl">Monthly CFE Bill (MXN)</div>
+<div class="sr">
+<input type="range" id="bill" min="500" max="30000" step="100" value="5000">
+<span id="billV" style="min-width:80px;text-align:right;font-weight:600">$5,000</span>
+</div>
+<div class="lbl">Roof Area (m²)</div>
+<div class="sr">
+<input type="range" id="roof" min="5" max="200" step="1" value="40">
+<span id="roofV" style="min-width:80px;text-align:right;font-weight:600">40 m²</span>
+</div>
+<div class="lbl">Roof Pitch (degrees)</div>
+<div class="sr">
+<input type="range" id="pitch" min="0" max="45" step="1" value="15">
+<span id="pitchV" style="min-width:80px;text-align:right;font-weight:600">15°</span>
+</div>
+<div class="lbl">Roof Orientation</div>
+<div id="oWrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px"></div>
+<div id="hero" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e0e0e0;border:1px solid #e0e0e0;margin-bottom:20px"></div>
+<div id="metrics" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#e0e0e0;border:1px solid #e0e0e0;margin-bottom:24px"></div>
+<div class="lbl">ROI Timeline</div>
+<p id="brkLabel" style="font-size:13px;color:#444;margin:4px 0 10px"></p>
+<canvas id="chart" style="width:100%;display:block"></canvas>
+<div style="display:flex;gap:16px;margin:8px 0 24px;font-size:11px;color:#888">
+<span style="color:#228b22">&#9679; Savings</span>
+<span style="color:#d44">&#9679; Investment</span>
+<span style="color:#b80">&#9679; Breakeven</span>
+</div>
+<div id="details"></div>
+<div style="font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
+INEGI/CONAGUA solar data · CFE DAC Mar 2026 · SEMARNAT CO2 factor<br>
+ROI assumes flat tariff. CFE DAC rises 5-8%/yr — real payback is faster.
+</div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

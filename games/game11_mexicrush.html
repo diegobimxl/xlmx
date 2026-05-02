@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dulcería Crush — Glorias y Mazapanes</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+    }
+    h1 {
+      font-size: 1.3rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      color: #f5deb3;
+      text-transform: uppercase;
+    }
+    #score-display {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #ffa500;
+      letter-spacing: 0.08em;
+    }
+    canvas {
+      border: 2px solid #333;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+    }
+    #msg {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #888;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Dulcería Crush</h1>
+<div id="score-display">Score: <span id="score">0</span></div>
+<canvas id="board" width="560" height="560"></canvas>
+<div id="msg">Selecciona dos piezas adyacentes para intercambiarlas.</div>
+
+<script>
+  const ROWS = 8, COLS = 8;
+  const TILE = 560 / COLS;
+  const RADIUS = 8;
+
+  const SWEETS = [
+    { name: "Gloria",    bg: "#8B4513", fg: "#ffffff" },
+    { name: "Mazapán",   bg: "#F5DEB3", fg: "#111111" },
+    { name: "Cacahuate", bg: "#D2691E", fg: "#ffffff" },
+    { name: "Naranja",   bg: "#FF8C00", fg: "#111111" },
+    { name: "Caña",      bg: "#9ACD32", fg: "#111111" },
+  ];
+
+  let board = [];
+  let selected = null;
+  let score = 0;
+  let busy = false;
+
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const msgEl = document.getElementById('msg');
+
+  function randomSweet() {
+    return SWEETS[Math.floor(Math.random() * SWEETS.length)];
+  }
+
+  function createBoard() {
+    board = [];
+    for (let y = 0; y < ROWS; y++) {
+      const row = [];
+      for (let x = 0; x < COLS; x++) {
+        let sweet;
+        do {
+          sweet = randomSweet();
+        } while (
+          (x >= 2 && row[x-1] === row[x-2] && row[x-2] === sweet) ||
+          (y >= 2 && board[y-1][x] === board[y-2][x] && board[y-2][x] === sweet)
+        );
+        row.push(sweet);
+      }
+      board.push(row);
+    }
+  }
+
+  function findMatches() {
+    const matched = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS - 2; x++) {
+        if (board[y][x] && board[y][x] === board[y][x+1] && board[y][x] === board[y][x+2]) {
+          matched[y][x] = matched[y][x+1] = matched[y][x+2] = true;
+        }
+      }
+    }
+    for (let x = 0; x < COLS; x++) {
+      for (let y = 0; y < ROWS - 2; y++) {
+        if (board[y][x] && board[y][x] === board[y+1][x] && board[y][x] === board[y+2][x]) {
+          matched[y][x] = matched[y+1][x] = matched[y+2][x] = true;
+        }
+      }
+    }
+    return matched;
+  }
+
+  function hasAnyMatch(matched) {
+    return matched.some(row => row.some(v => v));
+  }
+
+  function countMatches(matched) {
+    return matched.flat().filter(Boolean).length;
+  }
+
+  function dropSweets(matched) {
+    for (let x = 0; x < COLS; x++) {
+      const survivors = [];
+      for (let y = ROWS - 1; y >= 0; y--) {
+        if (!matched[y][x]) survivors.push(board[y][x]);
+      }
+      while (survivors.length < ROWS) survivors.push(randomSweet());
+      for (let y = ROWS - 1; y >= 0; y--) {
+        board[y][x] = survivors[ROWS - 1 - y];
+      }
+    }
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function drawBoard(highlightMatches) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const matched = highlightMatches ? findMatches() : null;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const sweet = board[y][x];
+        if (!sweet) continue;
+        const px = x * TILE + 1;
+        const py = y * TILE + 1;
+        const size = TILE - 2;
+        const isMatch = matched && matched[y][x];
+        ctx.fillStyle = isMatch ? '#ffffff' : sweet.bg;
+        roundRect(px, py, size, size, RADIUS);
+        ctx.fill();
+        if (selected && selected.col === x && selected.row === y) {
+          ctx.strokeStyle = '#ff2222';
+          ctx.lineWidth = 4;
+          roundRect(px, py, size, size, RADIUS);
+          ctx.stroke();
+        }
+        ctx.fillStyle = isMatch ? '#111' : sweet.fg;
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sweet.name, px + size / 2, py + size / 2);
+      }
+    }
+  }
+
+  async function processCascade() {
+    busy = true;
+    let matched = findMatches();
+    while (hasAnyMatch(matched)) {
+      drawBoard(true);
+      await sleep(280);
+      score += countMatches(matched) * 10;
+      scoreEl.textContent = score;
+      dropSweets(matched);
+      drawBoard(false);
+      await sleep(180);
+      matched = findMatches();
+    }
+    busy = false;
+    msgEl.textContent = 'Selecciona dos piezas adyacentes para intercambiarlas.';
+  }
+
+  function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  canvas.addEventListener('click', async (e) => {
+    if (busy) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const col = Math.floor(mx / TILE);
+    const row = Math.floor(my / TILE);
+    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
+    if (selected === null) {
+      selected = { col, row };
+      drawBoard(false);
+    } else {
+      const { col: sc, row: sr } = selected;
+      if (sc === col && sr === row) {
+        selected = null;
+        drawBoard(false);
+        return;
+      }
+      const isAdjacent = Math.abs(sc - col) + Math.abs(sr - row) === 1;
+      if (!isAdjacent) {
+        selected = { col, row };
+        drawBoard(false);
+        return;
+      }
+      [board[sr][sc], board[row][col]] = [board[row][col], board[sr][sc]];
+      selected = null;
+      drawBoard(false);
+      const matched = findMatches();
+      if (!hasAnyMatch(matched)) {
+        await sleep(150);
+        [board[sr][sc], board[row][col]] = [board[row][col], board[sr][sc]];
+        drawBoard(false);
+        msgEl.textContent = 'Esa jugada no genera match. Intenta otra.';
+      } else {
+        await processCascade();
+      }
+    }
+  });
+
+  createBoard();
+  drawBoard(false);
+</script>
+</body>
+</html>

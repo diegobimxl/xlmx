@@ -1,0 +1,118 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daylighting Estimator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;text-align:center}
+.kbox .v{font-size:1.3rem;font-weight:700}.kbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+.plan{background:#0a0a0a;border-radius:8px;padding:16px;margin-bottom:16px}
+canvas{display:block;margin:0 auto;border-radius:4px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}
+.good{color:#16a34a}.ok{color:#f59e0b}.poor{color:#ef4444}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.75rem;margin-top:8px}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-box{width:14px;height:14px;border-radius:3px}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.kpi{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Daylighting Estimator</h1>
+<p class="sub">Daylight Factor and useful daylit area by room geometry, glazing, and orientation</p>
+<div class="card">
+<div class="grid2">
+<div><label>Room Width (m)</label><input id="W" type="number" value="8" step="0.5"></div>
+<div><label>Room Depth (m)</label><input id="D" type="number" value="10" step="0.5"></div>
+<div><label>Room Height (m)</label><input id="H" type="number" value="3" step="0.1"></div>
+<div><label>Window Height (m)</label><input id="wh" type="number" value="1.8" step="0.1"></div>
+<div><label>Window Width (m)</label><input id="ww" type="number" value="5" step="0.1"></div>
+<div><label>Glazing VLT (%)</label><input id="vlt" type="number" value="68" step="1" title="Visible Light Transmittance"></div>
+<div><label>Orientation</label>
+<select id="orient"><option>South</option><option>North</option><option>East</option><option>West</option></select></div>
+<div><label>Climate</label>
+<select id="climate"><option value="0.12">Overcast (UK/Pacific NW)</option><option value="0.18" selected>Mixed (Central US/MX)</option><option value="0.25">Sunny (SW US/Monterrey)</option></select></div>
+</div>
+<div class="grid2">
+<div><label>Ceiling Reflectance (%)</label><input id="rC" type="number" value="80" step="5"></div>
+<div><label>Wall Reflectance (%)</label><input id="rW" type="number" value="50" step="5"></div>
+<div><label>Floor Reflectance (%)</label><input id="rF" type="number" value="20" step="5"></div>
+<div><label>Room Use</label>
+<select id="use"><option value="300">Office — 300 lux</option><option value="500">Design Studio — 500 lux</option><option value="200">Conference — 200 lux</option><option value="750">Drafting — 750 lux</option><option value="150">Corridor — 150 lux</option><option value="100">Storage — 100 lux</option></select></div>
+</div>
+<button onclick="calc()">Estimate Daylighting</button>
+</div>
+<div id="res" style="display:none">
+<div class="kpi" id="kpi"></div>
+<div class="plan card">
+<p style="color:#16a34a;font-size:.82rem;font-weight:600;margin-bottom:10px">Daylight Distribution Plan (top view)</p>
+<canvas id="cv" width="400" height="300"></canvas>
+<div class="legend">
+<div class="leg"><div class="leg-box" style="background:#16a34a"></div><span>Well-lit (&gt;2% DF)</span></div>
+<div class="leg"><div class="leg-box" style="background:#f59e0b"></div><span>Adequate (1–2% DF)</span></div>
+<div class="leg"><div class="leg-box" style="background:#ef444466"></div><span>Insufficient (&lt;1% DF)</span></div>
+</div>
+</div>
+<div class="card" id="details"></div>
+</div>
+<script>
+function calc(){
+  const W=+document.getElementById('W').value,D=+document.getElementById('D').value,H=+document.getElementById('H').value;
+  const wh=+document.getElementById('wh').value,ww=+document.getElementById('ww').value;
+  const vlt=+document.getElementById('vlt').value/100;
+  const rC=+document.getElementById('rC').value/100,rW=+document.getElementById('rW').value/100,rF=+document.getElementById('rF').value/100;
+  const climate=+document.getElementById('climate').value;
+  const reqLux=+document.getElementById('use').value;
+  // Glazed area
+  const Ag=wh*ww;const Afloor=W*D;
+  // Mean Room Surface Reflectance
+  const Awall=2*(W+D)*H;const Aceil=Afloor;
+  const Atotal=Afloor+Awall+Aceil;
+  const rMean=(rC*Aceil+rW*Awall+rF*Afloor)/Atotal;
+  // Daylight Factor (simplified BRE formula)
+  // DF = (T × Ag × θ) / (Af × (1 - ρ²)) where θ=sky angle
+  const theta=Math.atan(H/D)*180/Math.PI/90; // simplified sky angle factor
+  const DF_mean=(vlt*Ag*theta*0.85)/(Afloor*(1-rMean*rMean))*100;
+  // Depth at which DF=2% and DF=1%
+  const depthat2=wh*1.5*Math.sqrt(vlt*rMean);
+  const depthat1=depthat2*1.6;
+  const externalIlluminance=climate*100000; // lux
+  const avgLux=DF_mean/100*externalIlluminance*0.5; // diffuse component
+  const pctAdequate=Math.min(100,(depthat2/D)*100);
+  document.getElementById('res').style.display='block';
+  const color=DF_mean>=2?'#16a34a':DF_mean>=1?'#f59e0b':'#ef4444';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v" style="color:${color}">${DF_mean.toFixed(1)}%</div><div class="l">Mean Daylight Factor</div></div>`+
+    `<div class="kbox"><div class="v">${avgLux.toFixed(0)} lux</div><div class="l">Avg Workplane (overcast)</div></div>`+
+    `<div class="kbox"><div class="v">${pctAdequate.toFixed(0)}%</div><div class="l">Well-Daylit Floor Area</div></div>`;
+  // Draw plan
+  const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,400,300);const sx=380/D,sy=280/W;
+  for(let x=0;x<D;x+=0.5){
+    const df=DF_mean*Math.exp(-x/(depthat2||3));
+    const c=df>=2?'#16a34a33':df>=1?'#f59e0b33':'#ef444422';
+    ctx.fillStyle=c;ctx.fillRect(10+x*sx,10,0.5*sx,W*sy);
+  }
+  ctx.strokeStyle='#555';ctx.lineWidth=1;ctx.strokeRect(10,10,D*sx,W*sy);
+  ctx.fillStyle='#3b82f6';ctx.fillRect(8,10+(W-ww)*sy/2,4,ww*sy);
+  ctx.fillStyle='#fff';ctx.font='11px sans-serif';ctx.fillText('Window',14,20);
+  // Depth lines
+  [[depthat2,'#16a34a','2% DF'],[depthat1,'#f59e0b','1% DF']].forEach(([dep,col,lbl])=>{
+    if(dep<D){ctx.strokeStyle=col;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(10+dep*sx,10);ctx.lineTo(10+dep*sx,10+W*sy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=col;ctx.font='10px sans-serif';ctx.fillText(lbl,12+dep*sx,25)}
+  });
+  document.getElementById('details').innerHTML=
+    `<div class="row"><span>Glazed area</span><span>${Ag.toFixed(1)} m²</span></div>`+
+    `<div class="row"><span>Floor area</span><span>${Afloor.toFixed(1)} m²</span></div>`+
+    `<div class="row"><span>WWR</span><span>${(Ag/((W)*H)*100).toFixed(1)}%</span></div>`+
+    `<div class="row"><span>Mean room reflectance</span><span>${(rMean*100).toFixed(0)}%</span></div>`+
+    `<div class="row"><span>Well-daylit depth (DF≥2%)</span><span>${depthat2.toFixed(1)} m from window</span></div>`+
+    `<div class="row"><span>Target illuminance (${document.getElementById('use').options[document.getElementById('use').selectedIndex].text})</span><span>${reqLux} lux</span></div>`+
+    `<div class="row"><span>Assessment</span><span class="${DF_mean>=2?'good':DF_mean>=1?'ok':'poor'}">${DF_mean>=2?'Good daylight levels':DF_mean>=1?'Adequate — consider supplemental lighting':'Insufficient — increase glazing or reflectances'}</span></div>`;
+}
+calc();
+</script></body></html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Window Schedule — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;overflow-x:auto}
+th{text-align:left;padding:8px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase;white-space:nowrap}
+td{padding:7px 6px;border-bottom:1px solid #1e1e1e;white-space:nowrap}
+.del{color:#ef4444;cursor:pointer}
+.badge{padding:2px 7px;border-radius:4px;font-size:.7rem;font-weight:600}
+.pass{background:#0a2a0a;color:#16a34a}.fail{background:#2a0a0a;color:#ef4444}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.sbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.sbox .l{color:#aaa;font-size:.7rem;margin-top:3px}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+#form{display:none}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Window Schedule</h1>
+<p class="sub">Generate a full window schedule with dimensions, glazing type, U-value, SHGC, and code compliance</p>
+<div class="stats">
+<div class="sbox"><div class="v" id="sCount">0</div><div class="l">Total Windows</div></div>
+<div class="sbox"><div class="v" id="sArea">0 ft²</div><div class="l">Total Glazed Area</div></div>
+<div class="sbox"><div class="v" id="sAvgU">—</div><div class="l">Avg U-Factor</div></div>
+<div class="sbox"><div class="v" id="sPass">—</div><div class="l">Code Compliance</div></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+<button onclick="document.getElementById('form').style.display='block'">+ Add Window</button>
+<button class="sec" onclick="expCSV()">Export CSV</button>
+</div>
+<div class="card" id="form">
+<div class="grid3">
+<div><label>Mark</label><input id="fMark" placeholder="W-01"></div>
+<div><label>Width (in)</label><input id="fW" type="number" value="36" step="1"></div>
+<div><label>Height (in)</label><input id="fH" type="number" value="48" step="1"></div>
+<div><label>Quantity</label><input id="fQty" type="number" value="1"></div>
+<div><label>Location</label><input id="fLoc" placeholder="Level 1 - North"></div>
+<div><label>Frame Type</label>
+<select id="fFrame"><option>Aluminum</option><option>Aluminum Thermally Broken</option><option>Wood</option><option>Vinyl</option><option>Fiberglass</option><option>Steel</option></select></div>
+<div><label>Glazing</label>
+<select id="fGlaze"><option value="1.1|0.87">Single Pane Clear</option><option value="0.48|0.56">Double Pane Clear</option><option value="0.32|0.4" selected>Double Low-E</option><option value="0.28|0.25">Double Low-E Tinted</option><option value="0.22|0.27">Triple Low-E</option><option value="0.18|0.2">Triple Low-E Argon</option></select></div>
+<div><label>Operation</label>
+<select id="fOp"><option>Fixed</option><option>Casement</option><option>Double Hung</option><option>Sliding</option><option>Awning</option><option>Hopper</option></select></div>
+<div><label>Climate Zone</label>
+<select id="fZone"><option>1</option><option>2</option><option>3</option><option value="4" selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+</div>
+<button onclick="addW()">Save</button><button class="sec" onclick="document.getElementById('form').style.display='none'">Cancel</button>
+</div>
+<div class="card" style="overflow-x:auto">
+<table><thead><tr><th>Mark</th><th>W×H (in)</th><th>Qty</th><th>Area (ft²)</th><th>Location</th><th>Frame</th><th>Glazing</th><th>Operation</th><th>U-Factor</th><th>SHGC</th><th>ASHRAE</th><th></th></tr></thead>
+<tbody id="tb"></tbody></table>
+</div>
+<script>
+let items=[];let nid=1;
+// ASHRAE 90.1 max U-factor by zone (simplified)
+const MAX_U={1:1.2,2:0.75,3:0.65,4:0.4,5:0.35,6:0.35,7:0.32,8:0.32};
+function addW(){
+  const [u,shgc]=document.getElementById('fGlaze').value.split('|').map(Number);
+  items.push({id:nid++,mark:document.getElementById('fMark').value||`W-${String(nid).padStart(2,'0')}`,
+    w:+document.getElementById('fW').value,h:+document.getElementById('fH').value,
+    qty:+document.getElementById('fQty').value,loc:document.getElementById('fLoc').value||'—',
+    frame:document.getElementById('fFrame').value,glaze:document.getElementById('fGlaze').options[document.getElementById('fGlaze').selectedIndex].text.split(' U')[0],
+    op:document.getElementById('fOp').value,u,shgc,zone:+document.getElementById('fZone').value});
+  render();document.getElementById('form').style.display='none';
+  document.getElementById('fMark').value='';document.getElementById('fLoc').value='';
+}
+function del(id){items=items.filter(x=>x.id!==id);render()}
+function render(){
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  let totalArea=0,totalU=0,passCount=0;
+  items.forEach(r=>{
+    const areaSF=(r.w/12)*(r.h/12)*r.qty;totalArea+=areaSF;
+    const maxU=MAX_U[r.zone]||0.4;const pass=r.u<=maxU;if(pass)passCount++;totalU+=r.u;
+    tb.innerHTML+=`<tr><td>${r.mark}</td><td>${r.w}×${r.h}</td><td>${r.qty}</td><td>${areaSF.toFixed(1)}</td>
+    <td>${r.loc}</td><td>${r.frame}</td><td>${r.glaze}</td><td>${r.op}</td>
+    <td>${r.u}</td><td>${r.shgc}</td>
+    <td><span class="badge ${pass?'pass':'fail'}">${pass?'PASS':'FAIL'}</span></td>
+    <td class="del" onclick="del(${r.id})">×</td></tr>`;
+  });
+  document.getElementById('sCount').textContent=items.reduce((a,b)=>a+b.qty,0);
+  document.getElementById('sArea').textContent=totalArea.toFixed(1)+' ft²';
+  document.getElementById('sAvgU').textContent=items.length?(totalU/items.length).toFixed(3):'—';
+  document.getElementById('sPass').textContent=items.length?`${passCount}/${items.length}`:'—';
+}
+function expCSV(){
+  let c='Mark,Width(in),Height(in),Qty,Area(ft²),Location,Frame,Glazing,Operation,U-Factor,SHGC\n';
+  items.forEach(r=>c+=`${r.mark},${r.w},${r.h},${r.qty},${((r.w/12)*(r.h/12)*r.qty).toFixed(1)},"${r.loc}",${r.frame},"${r.glaze}",${r.op},${r.u},${r.shgc}\n`);
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(c);a.download='window_schedule.csv';a.click();
+}
+render();
+</script></body></html>

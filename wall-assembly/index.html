@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wall Assembly Builder — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.layer{display:flex;align-items:center;gap:10px;padding:10px;background:#222;border-radius:8px;margin-bottom:8px;border-left:4px solid #16a34a}
+.layer .name{flex:1;font-weight:600;font-size:.9rem}
+.layer .info{color:#aaa;font-size:.78rem}
+.layer .del{color:#ef4444;cursor:pointer;margin-left:8px;font-size:1.1rem}
+.visual{display:flex;height:200px;border-radius:8px;overflow:hidden;margin-bottom:16px}
+.v-layer{display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:.65rem;text-align:center;color:#fff;transition:flex .3s}
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #222;font-size:.88rem}
+.result-row span:first-child{color:#aaa}.result-row span:last-child{color:#fff;font-weight:600}
+.result-row.total span{color:#16a34a;font-weight:700}
+.perf{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.pbox{background:#0a2a0a;border:1px solid #16a34a33;border-radius:8px;padding:12px;text-align:center}
+.pbox .v{font-size:1.3rem;font-weight:700;color:#16a34a}.pbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Wall Assembly Builder</h1>
+<p class="sub">Layer-by-layer wall section — total R-value, U-factor, thickness, and thermal mass</p>
+
+<div class="card">
+<div class="grid2">
+<div><label>Assembly Name</label><input id="aname" placeholder="Exterior Cavity Wall"></div>
+<div><label>Climate Zone</label>
+<select id="zone"><option>1 (Hot-Humid)</option><option>2 (Hot-Dry)</option><option>3 (Mixed-Humid)</option><option value="4" selected>4 (Mixed)</option><option>5 (Cool)</option><option>6 (Cold)</option><option>7 (Very Cold)</option><option>8 (Subarctic)</option></select></div>
+</div>
+<label>Add Layer</label>
+<div class="grid2">
+<div>
+<select id="layerPick">
+<option value="5x8|0.625|brick|#c1440e">Brick Veneer 3" | R-0.44</option>
+<option value="1|1|air-gap|#555">Air Gap 1" | R-1.0</option>
+<option value="15|3.5|batt-insul|#f0c040">Batt Insulation 3.5" | R-15</option>
+<option value="19|5.5|batt-insul|#f0c040">Batt Insulation 5.5" | R-19</option>
+<option value="5|2|rigid-insul|#e0a040">Rigid Insulation 2" | R-10</option>
+<option value="10|4|rigid-insul|#e0a040">Rigid Insulation 4" | R-20</option>
+<option value="0.45|0.5|osb|#a07030">OSB 1/2" | R-0.45</option>
+<option value="0.9|0.75|plywood|#b08040">Plywood 3/4" | R-0.9</option>
+<option value="0.9|3.5|stud-wall|#888">2×4 Stud Wall 3.5" | R-0.9</option>
+<option value="1.1|5.5|stud-wall|#888">2×6 Stud Wall 5.5" | R-1.1</option>
+<option value="0.45|0.5|drywall|#ddd">Drywall 1/2" | R-0.45</option>
+<option value="0.56|0.625|drywall|#ddd">Drywall 5/8" | R-0.56</option>
+<option value="0.08|0|vapor-barrier|#3b82f6">Vapor Barrier | R-0.08</option>
+<option value="0.17|0|air-film-ext|#6ee7b7">Ext. Air Film | R-0.17</option>
+<option value="0.68|0|air-film-int|#6ee7b7">Int. Air Film | R-0.68</option>
+<option value="1.25|4|CMU|#9ca3af">CMU 4" | R-1.25</option>
+<option value="2.0|8|CMU|#9ca3af">CMU 8" | R-2.0</option>
+<option value="2.5|12|CMU|#9ca3af">CMU 12" | R-2.5</option>
+<option value="0.2|4|concrete|#6b7280">Concrete 4" | R-0.2</option>
+</select>
+</div>
+<div><button onclick="addLayer()">Add Layer</button></div>
+</div>
+</div>
+
+<div class="card">
+<h3 style="color:#16a34a;font-size:.9rem;margin-bottom:12px">Assembly Visualization</h3>
+<div class="visual" id="visual"></div>
+<div id="layerList"></div>
+</div>
+
+<div class="perf" id="perf"></div>
+
+<div class="card" id="results"></div>
+
+<script>
+const ASHRAE_MIN={1:13,2:13,3:13,4:13,5:20,6:20,7:21,8:21};
+let layers=[];
+function addLayer(){
+  const sel=document.getElementById('layerPick');
+  const [r,t,type,color]=sel.value.split('|');
+  const names={'brick':'Brick Veneer','air-gap':'Air Gap','batt-insul':'Batt Insulation','rigid-insul':'Rigid Insulation',
+    'osb':'OSB Sheathing','plywood':'Plywood','stud-wall':'Stud Cavity','drywall':'Drywall','vapor-barrier':'Vapor Barrier',
+    'air-film-ext':'Ext. Air Film','air-film-int':'Int. Air Film','CMU':'CMU Block','concrete':'Concrete'};
+  layers.push({r:+r,t:+t,type,color,name:names[type]||type});render();
+}
+function delLayer(i){layers.splice(i,1);render()}
+function render(){
+  const totalR=layers.reduce((a,b)=>a+b.r,0);
+  const totalT=layers.reduce((a,b)=>a+b.t,0);
+  const uFactor=totalR>0?(1/totalR):999;
+  const zone=+document.getElementById('zone').value||4;
+  const minR=ASHRAE_MIN[zone]||13;
+  const pass=totalR>=minR;
+
+  // Visual
+  const vis=document.getElementById('visual');
+  if(layers.length===0){vis.innerHTML='<div style="width:100%;display:flex;align-items:center;justify-content:center;color:#555;font-size:.85rem">Add layers above</div>';
+  }else{
+    vis.innerHTML=layers.map(l=>`<div class="v-layer" style="background:${l.color};flex:${Math.max(l.t||0.5,0.5)}">${l.name}<br>${l.t?""+l.t+'"':''}<br>R-${l.r}</div>`).join('');
+  }
+
+  // Layer list
+  const ll=document.getElementById('layerList');ll.innerHTML='';
+  layers.forEach((l,i)=>{
+    ll.innerHTML+=`<div class="layer"><div style="width:14px;height:14px;border-radius:3px;background:${l.color};flex-shrink:0"></div>
+    <div class="name">${l.name}</div><div class="info">${l.t?""+l.t+'" — ':''} R-${l.r}</div>
+    <span class="del" onclick="delLayer(${i})">×</span></div>`;
+  });
+
+  // KPIs
+  document.getElementById('perf').innerHTML=
+    `<div class="pbox"><div class="v">R-${totalR.toFixed(1)}</div><div class="l">Total R-Value</div></div>`+
+    `<div class="pbox"><div class="v">U-${uFactor.toFixed(3)}</div><div class="l">U-Factor (BTU/hr·ft²·°F)</div></div>`+
+    `<div class="pbox"><div class="v" style="color:${pass?'#16a34a':'#ef4444'}">${pass?'PASS':'FAIL'}</div><div class="l">ASHRAE 90.1 Zone ${zone} (min R-${minR})</div></div>`;
+
+  // Results
+  document.getElementById('results').innerHTML=
+    `<div class="result-row"><span>Total thickness</span><span>${totalT}" (${(totalT*25.4).toFixed(0)} mm)</span></div>`+
+    `<div class="result-row"><span>Total R-Value</span><span>R-${totalR.toFixed(2)} (hr·ft²·°F/BTU)</span></div>`+
+    `<div class="result-row"><span>U-Factor</span><span>${uFactor.toFixed(4)} BTU/hr·ft²·°F</span></div>`+
+    `<div class="result-row total"><span>ASHRAE 90.1 min (Zone ${zone})</span><span>R-${minR} — ${pass?'✓ Compliant':'✗ Non-Compliant'}</span></div>`;
+}
+render();
+</script></body></html>

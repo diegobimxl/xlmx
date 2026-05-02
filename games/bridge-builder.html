@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridge Builder — XLMX</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#e8e0d0; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; }
+h1 { font-size:1rem; letter-spacing:0.3em; text-transform:uppercase; color:#c8b89a; margin-bottom:3px; }
+.subtitle { font-size:0.6rem; color:#555; letter-spacing:0.2em; margin-bottom:14px; }
+.game-wrap { display:flex; gap:14px; align-items:flex-start; }
+.panel { border:1px solid #2a2a2a; background:#141414; padding:10px; }
+.panel-label { font-size:0.5rem; letter-spacing:0.25em; color:#555; text-transform:uppercase; margin-bottom:8px; }
+.left-panel { width:155px; display:flex; flex-direction:column; gap:8px; }
+.right-panel { width:155px; display:flex; flex-direction:column; gap:8px; }
+canvas { border:1px solid #2a2a2a; display:block; background:#0a0a14; cursor:crosshair; }
+.mat-btn { display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid #222; cursor:pointer; width:100%; font-family:'Courier New',monospace; font-size:0.58rem; color:#777; text-transform:uppercase; transition:all .15s; }
+.mat-btn:hover { border-color:#555; color:#c8b89a; }
+.mat-btn.active { border-color:#c8b89a; color:#c8b89a; background:#1a1a1a; }
+.mat-dot { width:10px; height:4px; border-radius:1px; flex-shrink:0; }
+.mat-info { font-size:0.5rem; color:#555; }
+.btn { background:none; border:1px solid #444; color:#c8b89a; font-family:'Courier New',monospace; font-size:0.58rem; letter-spacing:.12em; padding:6px 10px; cursor:pointer; text-transform:uppercase; width:100%; margin-top:4px; }
+.btn:hover { border-color:#c8b89a; }
+.btn.danger { border-color:#a04040; color:#c06060; }
+.btn.danger:hover { border-color:#c04040; color:#e08080; }
+.stat-row { display:flex; justify-content:space-between; font-size:0.58rem; margin-bottom:5px; }
+.stat-row span { color:#c8b89a; }
+.budget-bar-wrap { height:6px; background:#1a1a1a; margin-bottom:8px; }
+.budget-bar { height:100%; background:#5a9a5a; transition:width .3s, background .3s; }
+.big-score { font-size:1.5rem; color:#c8b89a; text-align:center; }
+#msg { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border:1px solid #555; padding:28px 36px; text-align:center; z-index:100; display:none; min-width:280px; }
+#msg h2 { font-size:.9rem; letter-spacing:.3em; color:#c8b89a; margin-bottom:10px; }
+#msg p { font-size:.62rem; color:#666; margin-bottom:16px; line-height:1.9; }
+</style>
+</head>
+<body>
+<h1>Bridge Builder</h1>
+<div class="subtitle">Connect nodes. Simulate stress. Don't snap.</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Material</div></div>
+    <button class="mat-btn active" data-mat="steel" onclick="setMat('steel')">
+      <div class="mat-dot" style="background:#8899aa"></div>
+      <div><strong style="color:#c8b89a;">Steel</strong><div class="mat-info">$20/m · limit 800N</div></div>
+    </button>
+    <button class="mat-btn" data-mat="wood" onclick="setMat('wood')">
+      <div class="mat-dot" style="background:#9a7050"></div>
+      <div><strong style="color:#c8b89a;">Wood</strong><div class="mat-info">$8/m · limit 300N</div></div>
+    </button>
+    <button class="mat-btn" data-mat="cable" onclick="setMat('cable')">
+      <div class="mat-dot" style="background:#c8b89a; height:2px; margin-top:1px;"></div>
+      <div><strong style="color:#c8b89a;">Cable</strong><div class="mat-info">$12/m · tension only</div></div>
+    </button>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">Mode</div>
+      <button class="mat-btn active" id="mode-build" onclick="setMode('build')" style="margin-bottom:4px;"><div class="mat-dot" style="background:#5a9a5a"></div>Build</button>
+      <button class="mat-btn" id="mode-delete" onclick="setMode('delete')"><div class="mat-dot" style="background:#9a4040"></div>Delete</button>
+    </div>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">Controls</div>
+      <div style="font-size:0.52rem;color:#555;line-height:1.8;">
+        Click node → click node<br>
+        to add a beam<br>
+        Delete mode: click beam<br>
+        to remove it
+      </div>
+    </div>
+  </div>
+  <canvas id="canvas" width="580" height="420"></canvas>
+  <div class="right-panel">
+    <div class="panel">
+      <div class="panel-label">Budget</div>
+      <div class="stat-row">Spent <span id="spent">$0</span></div>
+      <div class="stat-row">Limit <span id="budget-limit">$0</span></div>
+      <div class="budget-bar-wrap"><div class="budget-bar" id="budget-bar" style="width:0%"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Structure</div>
+      <div class="stat-row">Beams <span id="beam-count">0</span></div>
+      <div class="stat-row">Max Stress <span id="max-stress">—</span></div>
+      <div class="stat-row">Status <span id="struct-status">—</span></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Level</div>
+      <div id="level-info" style="font-size:0.58rem;color:#666;line-height:1.7;"></div>
+    </div>
+    <button class="btn danger" onclick="runSim()">▶ Test Bridge</button>
+    <button class="btn" onclick="clearBeams()">Clear Beams</button>
+    <button class="btn" onclick="nextLevel()" id="next-btn" style="display:none;">Next Level →</button>
+  </div>
+</div>
+<div id="msg">
+  <h2 id="msg-title">Bridge Holds!</h2>
+  <p id="msg-body"></p>
+  <button class="btn" onclick="document.getElementById('msg').style.display='none';nextLevel()">Next Level →</button>
+  <button class="btn" style="margin-top:6px;" onclick="document.getElementById('msg').style.display='none'">Keep Building</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const CW = 580, CH = 420;
+const LEVELS = [
+  { name:'Simple Span', budget:2000, load:3000, desc:'Span a 200px gap. Budget: $2000. Load: 3000N.', anchorNodes:[{x:80,y:280},{x:500,y:280}], loadNodes:[{x:290,y:280}], hintNodes:[{x:180,y:280},{x:290,y:200},{x:400,y:280}] },
+  { name:'Wide Gap', budget:3500, load:5000, desc:'Span 380px. More complex truss needed. Budget: $3500.', anchorNodes:[{x:60,y:300},{x:520,y:300}], loadNodes:[{x:195,y:300},{x:290,y:300},{x:385,y:300}], hintNodes:[{x:145,y:300},{x:195,y:220},{x:240,y:300},{x:290,y:200},{x:340,y:300},{x:385,y:220},{x:435,y:300}] },
+  { name:'Valley Crossing', budget:5000, load:8000, desc:'Cross a valley — anchors are elevated. Budget: $5000.', anchorNodes:[{x:60,y:200},{x:520,y:200}], loadNodes:[{x:200,y:340},{x:290,y:360},{x:380,y:340}], hintNodes:[{x:140,y:200},{x:200,y:280},{x:200,y:340},{x:245,y:340},{x:290,y:300},{x:290,y:360},{x:335,y:340},{x:380,y:280},{x:380,y:340},{x:440,y:200}] }
+];
+const MATERIALS = { steel:{color:'#8899aa',limit:800,costPerPx:0.067,label:'Steel',compression:true}, wood:{color:'#9a7050',limit:300,costPerPx:0.027,label:'Wood',compression:true}, cable:{color:'#c8b89a',limit:600,costPerPx:0.040,label:'Cable',compression:false} };
+let currentLevel=0, nodes=[], beams=[], selectedNode=null, currentMat='steel', mode='build', simRunning=false, truckX=-80, levelPassed=false;
+function initLevel(){const lv=LEVELS[currentLevel];nodes=[];beams=[];selectedNode=null;simRunning=false;truckX=-80;levelPassed=false;document.getElementById('next-btn').style.display='none';lv.anchorNodes.forEach(n=>nodes.push({...n,fixed:true,load:false}));lv.loadNodes.forEach(n=>nodes.push({...n,fixed:false,load:true,vy:0,vx:0}));lv.hintNodes.forEach(n=>nodes.push({...n,fixed:false,load:false,vy:0,vx:0}));document.getElementById('budget-limit').textContent='$'+lv.budget;document.getElementById('level-info').innerHTML=`<strong>Level ${currentLevel+1}: ${lv.name}</strong><br>${lv.desc}`;updateStats();render();}
+function setMat(m){currentMat=m;document.querySelectorAll('.mat-btn[data-mat]').forEach(b=>b.classList.toggle('active',b.dataset.mat===m));}
+function setMode(m){mode=m;document.getElementById('mode-build').classList.toggle('active',m==='build');document.getElementById('mode-delete').classList.toggle('active',m==='delete');canvas.style.cursor=m==='delete'?'not-allowed':'crosshair';selectedNode=null;render();}
+function getTotalCost(){return beams.reduce((s,b)=>{if(b.broken)return s;const dx=nodes[b.b].x-nodes[b.a].x,dy=nodes[b.b].y-nodes[b.a].y;const len=Math.sqrt(dx*dx+dy*dy);return s+len*MATERIALS[b.mat].costPerPx;},0);}
+function updateStats(){const cost=getTotalCost();const lv=LEVELS[currentLevel];document.getElementById('spent').textContent='$'+Math.round(cost);document.getElementById('budget-bar').style.width=Math.min(100,(cost/lv.budget)*100)+'%';document.getElementById('budget-bar').style.background=cost>lv.budget?'#a04040':'#5a9a5a';document.getElementById('beam-count').textContent=beams.filter(b=>!b.broken).length;const maxS=beams.length>0?Math.max(...beams.map(b=>Math.abs(b.stress||0))).toFixed(0):'—';document.getElementById('max-stress').textContent=maxS!=='—'?maxS+'N':'—';const over=beams.some(b=>(b.stress||0)>MATERIALS[b.mat].limit);document.getElementById('struct-status').textContent=over?'OVERSTRESSED':beams.length>0?'OK':'—';document.getElementById('struct-status').style.color=over?'#c04040':'#40a060';}
+function runSim(){if(beams.length===0)return;const cost=getTotalCost();const lv=LEVELS[currentLevel];if(cost>lv.budget){document.getElementById('msg-title').textContent='Over Budget';document.getElementById('msg-body').textContent=`Cost $${Math.round(cost)} exceeds budget of $${lv.budget}.`;document.getElementById('msg').style.display='block';document.querySelector('#msg .btn').onclick=()=>document.getElementById('msg').style.display='none';document.querySelector('#msg .btn').textContent='Back to Building';document.querySelectorAll('#msg .btn')[1].style.display='none';return;}const savedBeams=JSON.parse(JSON.stringify(beams));initLevel();beams=savedBeams;simRunning=true;truckX=-60;requestAnimationFrame(simStep);}
+function simStep(){if(!simRunning)return;const lv=LEVELS[currentLevel];truckX+=1.2;const dt=0.3,GRAVITY=0.8,DAMPING=0.88;nodes.forEach((n,i)=>{if(!n.fixed){n.vy+=GRAVITY*dt;}});beams.forEach(b=>{if(b.broken)return;const na=nodes[b.a],nb=nodes[b.b];const dx=nb.x-na.x,dy=nb.y-na.y;const len=Math.sqrt(dx*dx+dy*dy);if(len<0.1)return;const ux=dx/len,uy=dy/len;const mat=MATERIALS[b.mat];const restLen=b.restLen||len;if(!b.restLen)b.restLen=len;const strain=(len-restLen)/restLen;const force=strain*mat.limit*3;b.stress=Math.abs(force);if(mat.compression===false&&strain<0){b.stress=0;return;}if(!na.fixed){na.vx+=ux*force*dt/20;na.vy+=uy*force*dt/20;}if(!nb.fixed){nb.vx-=ux*force*dt/20;nb.vy-=uy*force*dt/20;}if(b.stress>mat.limit*2.5){b.broken=true;}});nodes.forEach(n=>{if(n.fixed)return;n.vx*=DAMPING;n.vy*=DAMPING;n.x+=n.vx*dt;n.y+=n.vy*dt;if(n.y>CH+50)n.y=CH+50;});render(true);updateStats();const anyBroken=beams.some(b=>b.broken);const loadNodesFallen=nodes.filter(n=>n.load).every(n=>n.y>CH-20);if(anyBroken||loadNodesFallen){simRunning=false;document.getElementById('msg-title').textContent='Bridge Collapsed';document.getElementById('msg-body').textContent='A beam snapped under stress. Reinforce with more triangulation or stronger material.';document.querySelector('#msg button:first-child').textContent='Rebuild';document.querySelector('#msg button:first-child').onclick=()=>{document.getElementById('msg').style.display='none';initLevel();};document.querySelectorAll('#msg .btn')[1].style.display='none';document.getElementById('msg').style.display='block';return;}if(truckX>CW+80){simRunning=false;levelPassed=true;document.getElementById('next-btn').style.display='block';document.getElementById('msg-title').textContent='Bridge Holds!';const cost=getTotalCost();document.getElementById('msg-body').textContent=`The truck crossed safely. Cost: $${Math.round(cost)} / $${lv.budget}.`;document.querySelector('#msg button:first-child').textContent='Next Level →';document.querySelector('#msg button:first-child').onclick=()=>{document.getElementById('msg').style.display='none';nextLevel();};document.querySelectorAll('#msg .btn')[1].style.display='block';document.getElementById('msg').style.display='block';return;}requestAnimationFrame(simStep);}
+function render(sim){ctx.clearRect(0,0,CW,CH);ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,CW,CH);const lv=LEVELS[currentLevel];ctx.fillStyle='#1a1a2a';ctx.fillRect(0,CH-30,CW,30);ctx.strokeStyle='#2a2a4a';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,CH-30);ctx.lineTo(CW,CH-30);ctx.stroke();if(!sim){const a1=lv.anchorNodes[0],a2=lv.anchorNodes[lv.anchorNodes.length-1];ctx.strokeStyle='rgba(200,184,154,0.1)';ctx.lineWidth=1;ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(a1.x,a1.y);ctx.lineTo(a2.x,a2.y);ctx.stroke();ctx.setLineDash([]);}beams.forEach(b=>{if(b.broken){ctx.strokeStyle='#552222';ctx.lineWidth=1;}else{const mat=MATERIALS[b.mat];const stress=b.stress||0;const t=Math.min(1,stress/mat.limit);const r=Math.round(80+t*150),g=Math.round(120-t*80);ctx.strokeStyle=t>0.8?`rgb(${r},${Math.round(g*0.3)},30)`:mat.color;ctx.lineWidth=b.mat==='cable'?1.5:b.mat==='steel'?3.5:2.5;ctx.globalAlpha=b.mat==='cable'?0.8:1;}const na=nodes[b.a],nb=nodes[b.b];ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);ctx.stroke();ctx.globalAlpha=1;});nodes.forEach((n,i)=>{ctx.beginPath();ctx.arc(n.x,n.y,n.fixed?7:5,0,Math.PI*2);ctx.fillStyle=n.fixed?'#c8b89a':n.load?'#c04040':'#5a7a9a';ctx.fill();ctx.strokeStyle=i===selectedNode?'#ffffff':'rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.stroke();if(n.fixed){ctx.strokeStyle='#c8b89a';ctx.lineWidth=1;for(let j=-3;j<=3;j+=2){ctx.beginPath();ctx.moveTo(n.x-6,n.y+7+j);ctx.lineTo(n.x+6,n.y+7+j);ctx.stroke();}}});if(sim){const ty=lv.loadNodes[0].y;drawTruck(truckX,ty-24);}if(selectedNode!==null&&mode==='build'){const n=nodes[selectedNode];ctx.beginPath();ctx.arc(n.x,n.y,10,0,Math.PI*2);ctx.strokeStyle='rgba(200,184,154,0.5)';ctx.lineWidth=2;ctx.stroke();}const cost=getTotalCost();if(cost>lv.budget){ctx.fillStyle='rgba(192,64,64,0.15)';ctx.fillRect(0,0,CW,CH);ctx.fillStyle='#c06060';ctx.font='bold 13px Courier New';ctx.textAlign='center';ctx.fillText('OVER BUDGET',CW/2,20);ctx.textAlign='left';}}
+function drawTruck(x,y){ctx.fillStyle='#4a5a6a';ctx.fillRect(x,y+8,50,16);ctx.fillRect(x+32,y,18,16);ctx.fillStyle='#888';ctx.beginPath();ctx.arc(x+10,y+24,6,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x+40,y+24,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#9aaa4a';ctx.fillRect(x+34,y+2,14,8);}
+function getPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function nearestNode(x,y,maxDist=20){let best=-1,bestD=maxDist;nodes.forEach((n,i)=>{const d=Math.sqrt((n.x-x)**2+(n.y-y)**2);if(d<bestD){bestD=d;best=i;}});return best;}
+function nearestBeam(x,y,maxDist=12){let best=-1,bestD=maxDist;beams.forEach((b,i)=>{if(b.broken)return;const na=nodes[b.a],nb=nodes[b.b];const dx=nb.x-na.x,dy=nb.y-na.y;const len=Math.sqrt(dx*dx+dy*dy);const t=Math.max(0,Math.min(1,((x-na.x)*dx+(y-na.y)*dy)/(len*len)));const px=na.x+t*dx,py=na.y+t*dy;const d=Math.sqrt((x-px)**2+(y-py)**2);if(d<bestD){bestD=d;best=i;}});return best;}
+canvas.addEventListener('click',e=>{if(simRunning)return;const{x,y}=getPos(e);if(mode==='delete'){const bi=nearestBeam(x,y);if(bi>=0){beams.splice(bi,1);updateStats();render();}return;}const ni=nearestNode(x,y);if(ni>=0){if(selectedNode===null){selectedNode=ni;render();return;}if(selectedNode===ni){selectedNode=null;render();return;}const exists=beams.some(b=>(b.a===selectedNode&&b.b===ni)||(b.a===ni&&b.b===selectedNode));if(!exists){beams.push({a:selectedNode,b:ni,mat:currentMat,stress:0,broken:false});}selectedNode=null;updateStats();render();}else{if(mode==='build'){nodes.push({x:Math.round(x),y:Math.round(y),fixed:false,load:false,vx:0,vy:0});if(selectedNode!==null){beams.push({a:selectedNode,b:nodes.length-1,mat:currentMat,stress:0,broken:false});selectedNode=null;}else{selectedNode=nodes.length-1;}updateStats();render();}}});
+function clearBeams(){beams=[];updateStats();render();}
+function nextLevel(){if(currentLevel<LEVELS.length-1){currentLevel++;initLevel();}}
+initLevel();
+</script>
+</body>
+</html>

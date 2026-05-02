@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pipe Sizing Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;text-align:center}
+.kbox .v{font-size:1.2rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}
+.rec{background:#0a1a2a;border:1px solid #3b82f633;border-radius:8px;padding:14px;margin-top:12px}
+.rec-title{color:#3b82f6;font-weight:600;margin-bottom:8px;font-size:.85rem}
+.pipe-opt{padding:6px 0;border-bottom:1px solid #0a1a2a;font-size:.82rem;display:flex;justify-content:space-between}
+.pass{color:#16a34a}.fail{color:#ef4444}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.kpi{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Pipe Sizing Calculator</h1>
+<p class="sub">Hazen-Williams method — flow velocity, pressure drop, and recommended pipe diameter</p>
+<div class="card">
+<div class="grid2">
+<div><label>Flow Rate (L/s)</label><input id="Q" type="number" value="2.5" step="0.1"></div>
+<div><label>Pipe Length (m)</label><input id="Lp" type="number" value="50" step="1"></div>
+<div><label>Fluid</label>
+<select id="fluid"><option value="water">Water (20°C)</option><option value="hotwater">Hot Water (60°C)</option><option value="chwater">Chilled Water (7°C)</option><option value="cond">Condenser Water (30°C)</option></select></div>
+<div><label>Pipe Material</label>
+<select id="mat"><option value="150">Copper (C=150)</option><option value="140" selected>Steel/Galvanized (C=140)</option><option value="150">CPVC (C=150)</option><option value="140">Cast Iron (C=140)</option><option value="130">Old Steel (C=130)</option><option value="150">PEX (C=150)</option><option value="150">HDPE (C=150)</option></select></div>
+<div><label>System Type</label>
+<select id="sys"><option value="domestic">Domestic Water Supply</option><option value="hvac">HVAC Hydronic</option><option value="fire">Fire Suppression</option><option value="drain">Gravity Drain</option></select></div>
+<div><label>Allowable Pressure Drop (Pa/m)</label><input id="pdrop" type="number" value="400" step="50" title="Typical: 200-500 Pa/m for HVAC, 300-600 for domestic"></div>
+</div>
+<button onclick="calc()">Size Pipe</button>
+</div>
+<div id="res" style="display:none">
+<div class="kpi" id="kpi"></div>
+<div class="card" id="det"></div>
+<div class="rec" id="rec"></div>
+</div>
+<script>
+// Standard pipe sizes (nominal mm → ID mm)
+const PIPES=[[15,12.5],[20,16.1],[25,21.6],[32,27.9],[40,35.0],[50,47.2],[65,62.0],[80,77.9],[100,102.3],[125,128.2],[150,154.1],[200,205.1]];
+function calc(){
+  const Q=+document.getElementById('Q').value/1000; // m³/s
+  const L=+document.getElementById('Lp').value;
+  const C=+document.getElementById('mat').value;
+  const pdropAllow=+document.getElementById('pdrop').value;
+  const sys=document.getElementById('sys').value;
+  // Velocity limits by system
+  const vMax={'domestic':2.5,'hvac':2.0,'fire':4.0,'drain':1.5}[sys];
+  const vRec={'domestic':1.5,'hvac':1.2,'fire':2.5,'drain':0.9}[sys];
+  // Find smallest compliant pipe
+  let chosen=null,results=[];
+  PIPES.forEach(([nom,id])=>{
+    const D=id/1000; // m
+    const A=Math.PI*D*D/4;
+    const v=Q/A;
+    // Hazen-Williams pressure drop Pa/m
+    const hf=10.67*L*Math.pow(Q,1.852)/(Math.pow(C,1.852)*Math.pow(D,4.87));
+    const pdm=hf*1000*9.81/L; // Pa/m (approx)
+    const ok=v<=vMax&&pdm<=pdropAllow;
+    if(ok&&!chosen)chosen={nom,id,v,pdm,hf};
+    results.push({nom,id,v,pdm,ok});
+  });
+  if(!chosen)chosen=results[results.length-1]; // largest if nothing fits
+  document.getElementById('res').style.display='block';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v">${chosen.nom} mm</div><div class="l">Recommended Nominal</div></div>`+
+    `<div class="kbox"><div class="v">${chosen.v.toFixed(2)} m/s</div><div class="l">Velocity</div></div>`+
+    `<div class="kbox"><div class="v">${chosen.pdm.toFixed(0)} Pa/m</div><div class="l">Pressure Drop</div></div>`;
+  document.getElementById('det').innerHTML=
+    `<div class="row"><span>Flow rate</span><span>${(Q*1000).toFixed(1)} L/s</span></div>`+
+    `<div class="row"><span>Pipe length</span><span>${L} m</span></div>`+
+    `<div class="row"><span>Max allowable velocity (${sys})</span><span>${vMax} m/s</span></div>`+
+    `<div class="row"><span>Recommended velocity</span><span>${vRec} m/s</span></div>`+
+    `<div class="row"><span>Total head loss</span><span>${(chosen.hf||0).toFixed(2)} m H₂O</span></div>`+
+    `<div class="row"><span>Selected pipe</span><span>${chosen.nom} mm nominal (${chosen.id} mm ID)</span></div>`;
+  const rec=document.getElementById('rec');rec.innerHTML=`<div class="rec-title">All Pipe Sizes — Compliance</div>`;
+  results.slice(0,8).forEach(r=>{
+    rec.innerHTML+=`<div class="pipe-opt"><span>${r.nom} mm</span><span>v=${r.v.toFixed(2)} m/s</span><span>${r.pdm.toFixed(0)} Pa/m</span><span class="${r.ok?'pass':'fail'}">${r.ok?'✓':'✗'}</span></div>`;
+  });
+}
+calc();
+</script></body></html>

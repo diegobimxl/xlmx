@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xlmx / mapa de viajes</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;color:#222;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:1.8;padding:40px 20px;max-width:900px;margin:0 auto}
+a{color:#222}
+.sep{border:none;border-top:1px solid #ddd;margin:30px 0}
+.tag{font-size:10px;color:#999;letter-spacing:2px;text-transform:uppercase}
+#map{height:500px;width:100%;border:1px solid #ddd;margin:20px 0}
+select{font-family:'Courier New',Courier,monospace;font-size:13px;border:1px solid #ccc;padding:8px;background:#fafafa;color:#222;margin:8px 4px 8px 0}
+.stats{font-size:12px;color:#666;margin:12px 0}
+.stats span{margin-right:16px}
+.footer{margin-top:60px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:20px}
+.leaflet-popup-content{font-family:'Courier New',monospace;font-size:12px}
+</style>
+</head>
+<body>
+<p class="tag">xlmx / mapa-de-viajes</p>
+<hr class="sep">
+<p>// donde ha estado el gordo (y los presidentes de mexico, porque por que no).</p><hr class="sep">
+<label>filtrar por:</label>
+<select id="filterPerson" onchange="updateMap()">
+<option value="all">todos</option>
+<option value="gordo">el gordo</option>
+<option value="zedillo">zedillo (1994-2000)</option>
+<option value="fox">fox (2000-2006)</option>
+<option value="calderon">calderon (2006-2012)</option>
+<option value="pena">pena nieto (2012-2018)</option>
+<option value="amlo">amlo (2018-2024)</option>
+<option value="sheinbaum">sheinbaum (2024-2026)</option>
+</select>
+<select id="filterDecade" onchange="updateMap()">
+<option value="all">todas las epocas</option>
+<option value="1994-2000">1994-2000</option>
+<option value="2000-2006">2000-2006</option>
+<option value="2006-2012">2006-2012</option>
+<option value="2012-2018">2012-2018</option>
+<option value="2018-2024">2018-2024</option>
+<option value="2024-2026">2024-2026</option>
+</select>
+<div id="map"></div>
+<div class="stats" id="stats"></div>
+<hr class="sep">
+<div class="footer">
+<p>xlmx — un gordo programando en su garage</p>
+<p><a href="index.html">&lt; volver</a></p>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const D=[{c:"Saltillo",lat:25.42,lng:-100.99,who:"gordo",date:"1994-2026",y:1994},
+{c:"Monterrey",lat:25.67,lng:-100.31,who:"gordo",date:"1996-2026",y:1996},
+{c:"CDMX",lat:19.43,lng:-99.13,who:"gordo",date:"1998-2026",y:1998},
+{c:"Eagle Pass TX",lat:28.71,lng:-100.50,who:"gordo",date:"1994-2026",y:1994},
+{c:"San Antonio TX",lat:29.42,lng:-98.49,who:"gordo",date:"1997-2026",y:1997},
+{c:"Monclova",lat:26.91,lng:-101.42,who:"gordo",date:"1994-2026",y:1994},
+{c:"Piedras Negras",lat:28.70,lng:-100.52,who:"gordo",date:"1995-2020",y:1995},
+{c:"Queretaro",lat:20.59,lng:-100.39,who:"gordo",date:"2003-2024",y:2003},
+{c:"San Miguel de Allende",lat:20.91,lng:-100.74,who:"gordo",date:"2008,2015,2022",y:2008},
+{c:"Cancun",lat:21.16,lng:-86.85,who:"gordo",date:"2001,2010,2018,2023",y:2001},
+{c:"Playa del Carmen",lat:20.63,lng:-87.08,who:"gordo",date:"2010,2019",y:2010},
+{c:"Los Cabos",lat:22.89,lng:-109.92,who:"gordo",date:"2012,2019,2024",y:2012},
+{c:"Puerto Vallarta",lat:20.65,lng:-105.23,who:"gordo",date:"2005,2016",y:2005},
+{c:"Guadalajara",lat:20.67,lng:-103.35,who:"gordo",date:"2002,2009,2017",y:2002},
+{c:"Merida",lat:20.97,lng:-89.59,who:"gordo",date:"2014,2022",y:2014},
+{c:"Oaxaca",lat:17.07,lng:-96.72,who:"gordo",date:"2011,2020",y:2011},
+{c:"Puebla",lat:19.04,lng:-98.20,who:"gordo",date:"2006,2018",y:2006},
+{c:"Aguascalientes",lat:21.88,lng:-102.29,who:"gordo",date:"2007,2015",y:2007},
+{c:"Leon",lat:21.12,lng:-101.68,who:"gordo",date:"2009,2016",y:2009},
+{c:"Chihuahua",lat:28.63,lng:-106.09,who:"gordo",date:"2004,2013",y:2004},
+{c:"Acapulco",lat:16.86,lng:-99.88,who:"gordo",date:"1999,2008",y:1999},
+{c:"Mazatlan",lat:23.24,lng:-106.41,who:"gordo",date:"2013,2021",y:2013},
+{c:"Tijuana",lat:32.51,lng:-117.02,who:"gordo",date:"2010,2017",y:2010},
+{c:"Ensenada",lat:31.87,lng:-116.60,who:"gordo",date:"2017",y:2017},
+{c:"Guanajuato",lat:21.02,lng:-101.26,who:"gordo",date:"2005,2014",y:2005},
+{c:"Houston TX",lat:29.76,lng:-95.37,who:"gordo",date:"2000,2008,2015,2022",y:2000},
+{c:"Dallas TX",lat:32.78,lng:-96.80,who:"gordo",date:"2003,2012,2019",y:2003},
+{c:"Austin TX",lat:30.27,lng:-97.74,who:"gordo",date:"2016,2023",y:2016},
+{c:"New York",lat:40.71,lng:-74.01,who:"gordo",date:"2006,2014,2022",y:2006},
+{c:"Los Angeles",lat:34.05,lng:-118.24,who:"gordo",date:"2011,2019",y:2011},{c:"Chicago",lat:41.88,lng:-87.63,who:"gordo",date:"2009",y:2009},
+{c:"Miami",lat:25.76,lng:-80.19,who:"gordo",date:"2015,2024",y:2015},
+{c:"Denver",lat:39.74,lng:-104.99,who:"gordo",date:"2018",y:2018},
+{c:"Las Vegas",lat:36.17,lng:-115.14,who:"gordo",date:"2012,2020",y:2012},
+{c:"Phoenix",lat:33.45,lng:-112.07,who:"gordo",date:"2016",y:2016},
+{c:"San Francisco",lat:37.77,lng:-122.42,who:"gordo",date:"2014",y:2014},
+{c:"Madrid",lat:40.42,lng:-3.70,who:"gordo",date:"2007,2018",y:2007},
+{c:"Barcelona",lat:41.39,lng:2.17,who:"gordo",date:"2018",y:2018},
+{c:"Paris",lat:48.86,lng:2.35,who:"gordo",date:"2007,2019",y:2007},
+{c:"Rome",lat:41.90,lng:12.50,who:"gordo",date:"2019",y:2019},
+{c:"London",lat:51.51,lng:-0.13,who:"gordo",date:"2018",y:2018},
+{c:"Tokyo",lat:35.68,lng:139.69,who:"gordo",date:"2016",y:2016},
+{c:"Buenos Aires",lat:-34.60,lng:-58.38,who:"gordo",date:"2013",y:2013},
+{c:"Bogota",lat:4.71,lng:-74.07,who:"gordo",date:"2020",y:2020},
+{c:"Lima",lat:-12.05,lng:-77.04,who:"gordo",date:"2015",y:2015},
+{c:"Santiago",lat:-33.45,lng:-70.67,who:"gordo",date:"2017",y:2017},
+// ZEDILLO 1994-2000
+{c:"Washington DC",lat:38.90,lng:-77.04,who:"zedillo",date:"1995,1997,1999",y:1995},
+{c:"New York (ONU)",lat:40.71,lng:-74.01,who:"zedillo",date:"1995,1997,1999",y:1995},
+{c:"Tokyo",lat:35.68,lng:139.69,who:"zedillo",date:"1996",y:1996},
+{c:"Madrid",lat:40.42,lng:-3.70,who:"zedillo",date:"1996,2000",y:1996},
+{c:"Paris",lat:48.86,lng:2.35,who:"zedillo",date:"1997",y:1997},
+{c:"London",lat:51.51,lng:-0.13,who:"zedillo",date:"1998",y:1998},
+{c:"Davos",lat:46.80,lng:9.84,who:"zedillo",date:"1996,1999",y:1996},
+{c:"Santiago",lat:-33.45,lng:-70.67,who:"zedillo",date:"1996,1998",y:1996},
+{c:"Buenos Aires",lat:-34.60,lng:-58.38,who:"zedillo",date:"1997",y:1997},
+{c:"Bogota",lat:4.71,lng:-74.07,who:"zedillo",date:"1998",y:1998},
+{c:"La Habana",lat:23.11,lng:-82.37,who:"zedillo",date:"1999",y:1999},
+{c:"Beijing",lat:39.90,lng:116.40,who:"zedillo",date:"1996",y:1996},
+{c:"Ottawa",lat:45.42,lng:-75.70,who:"zedillo",date:"1999",y:1999},{c:"Guatemala City",lat:14.63,lng:-90.51,who:"zedillo",date:"1996",y:1996},
+// FOX 2000-2006
+{c:"Washington DC",lat:38.90,lng:-77.04,who:"fox",date:"2001,2004,2005",y:2001},
+{c:"Crawford TX",lat:31.53,lng:-97.46,who:"fox",date:"2001",y:2001},
+{c:"Madrid",lat:40.42,lng:-3.70,who:"fox",date:"2002,2005",y:2002},
+{c:"Rome",lat:41.90,lng:12.50,who:"fox",date:"2002,2005",y:2002},
+{c:"Tokyo",lat:35.68,lng:139.69,who:"fox",date:"2003",y:2003},
+{c:"Beijing",lat:39.90,lng:116.40,who:"fox",date:"2004",y:2004},
+{c:"Moscow",lat:55.76,lng:37.62,who:"fox",date:"2005",y:2005},
+{c:"Santiago",lat:-33.45,lng:-70.67,who:"fox",date:"2002,2004",y:2002},
+{c:"Buenos Aires",lat:-34.60,lng:-58.38,who:"fox",date:"2004",y:2004},
+{c:"Lima",lat:-12.05,lng:-77.04,who:"fox",date:"2003",y:2003},
+{c:"Bogota",lat:4.71,lng:-74.07,who:"fox",date:"2003",y:2003},
+{c:"Berlin",lat:52.52,lng:13.40,who:"fox",date:"2003",y:2003},
+{c:"London",lat:51.51,lng:-0.13,who:"fox",date:"2002",y:2002},
+{c:"Seoul",lat:37.57,lng:126.98,who:"fox",date:"2005",y:2005},
+// CALDERON 2006-2012
+{c:"Washington DC",lat:38.90,lng:-77.04,who:"calderon",date:"2007,2009,2011",y:2007},
+{c:"New York (ONU)",lat:40.71,lng:-74.01,who:"calderon",date:"2007,2009,2011",y:2007},
+{c:"London",lat:51.51,lng:-0.13,who:"calderon",date:"2009",y:2009},
+{c:"Paris",lat:48.86,lng:2.35,who:"calderon",date:"2009",y:2009},
+{c:"Tokyo",lat:35.68,lng:139.69,who:"calderon",date:"2010",y:2010},
+{c:"Beijing",lat:39.90,lng:116.40,who:"calderon",date:"2008",y:2008},
+{c:"Berlin",lat:52.52,lng:13.40,who:"calderon",date:"2008",y:2008},
+{c:"Seoul",lat:37.57,lng:126.98,who:"calderon",date:"2010",y:2010},
+{c:"Sydney",lat:-33.87,lng:151.21,who:"calderon",date:"2007",y:2007},
+{c:"Los Cabos (G20)",lat:22.89,lng:-109.92,who:"calderon",date:"2012",y:2012},
+{c:"Cartagena",lat:10.39,lng:-75.51,who:"calderon",date:"2012",y:2012},
+{c:"Santiago",lat:-33.45,lng:-70.67,who:"calderon",date:"2008",y:2008},
+{c:"Lima",lat:-12.05,lng:-77.04,who:"calderon",date:"2008",y:2008},
+{c:"La Habana",lat:23.11,lng:-82.37,who:"calderon",date:"2012",y:2012},// PENA NIETO 2012-2018
+{c:"Washington DC",lat:38.90,lng:-77.04,who:"pena",date:"2013,2015,2017",y:2013},
+{c:"New York (ONU)",lat:40.71,lng:-74.01,who:"pena",date:"2013,2014,2016",y:2013},
+{c:"London",lat:51.51,lng:-0.13,who:"pena",date:"2015",y:2015},
+{c:"Paris",lat:48.86,lng:2.35,who:"pena",date:"2014,2015",y:2014},
+{c:"Berlin",lat:52.52,lng:13.40,who:"pena",date:"2014",y:2014},
+{c:"Madrid",lat:40.42,lng:-3.70,who:"pena",date:"2014",y:2014},
+{c:"Rome / Vaticano",lat:41.90,lng:12.50,who:"pena",date:"2016",y:2016},
+{c:"Tokyo",lat:35.68,lng:139.69,who:"pena",date:"2014",y:2014},
+{c:"Beijing",lat:39.90,lng:116.40,who:"pena",date:"2014",y:2014},
+{c:"Hamburg (G20)",lat:53.55,lng:9.99,who:"pena",date:"2017",y:2017},
+{c:"Buenos Aires",lat:-34.60,lng:-58.38,who:"pena",date:"2016,2018",y:2016},
+{c:"Santiago",lat:-33.45,lng:-70.67,who:"pena",date:"2016",y:2016},
+{c:"Lima",lat:-12.05,lng:-77.04,who:"pena",date:"2014",y:2014},
+{c:"Davos",lat:46.80,lng:9.84,who:"pena",date:"2014,2016",y:2014},
+{c:"La Habana",lat:23.11,lng:-82.37,who:"pena",date:"2014",y:2014},
+// AMLO 2018-2024 — famously almost never left Mexico
+{c:"Washington DC",lat:38.90,lng:-77.04,who:"amlo",date:"2020 (unica vez)",y:2020},
+{c:"CDMX",lat:19.43,lng:-99.13,who:"amlo",date:"2018-2024",y:2018},
+{c:"Villahermosa, Tabasco",lat:17.99,lng:-92.93,who:"amlo",date:"2018-2024",y:2018},
+{c:"Campeche",lat:19.84,lng:-90.53,who:"amlo",date:"2019-2024",y:2019},
+{c:"Palenque, Chiapas",lat:17.48,lng:-92.05,who:"amlo",date:"2019-2024",y:2019},
+{c:"Oaxaca",lat:17.07,lng:-96.72,who:"amlo",date:"2019-2023",y:2019},
+{c:"Quintana Roo",lat:20.21,lng:-87.46,who:"amlo",date:"2019-2023",y:2019},
+// SHEINBAUM 2024-2026
+{c:"CDMX",lat:19.43,lng:-99.13,who:"sheinbaum",date:"2024-2026",y:2024},
+{c:"Brasilia",lat:-15.79,lng:-47.88,who:"sheinbaum",date:"2025",y:2025},
+{c:"Rio de Janeiro",lat:-22.91,lng:-43.17,who:"sheinbaum",date:"2025",y:2025},
+{c:"Baku, Azerbaijan (COP29)",lat:40.41,lng:49.87,who:"sheinbaum",date:"2024",y:2024},
+{c:"Washington DC (planned)",lat:38.90,lng:-77.04,who:"sheinbaum",date:"2025",y:2025}
+];const colors={gordo:'#222',zedillo:'#666',fox:'#777',calderon:'#888',pena:'#999',amlo:'#555',sheinbaum:'#444'};
+const names={gordo:'El Gordo',zedillo:'Zedillo',fox:'Fox',calderon:'Calderon',pena:'Pena Nieto',amlo:'AMLO',sheinbaum:'Sheinbaum'};
+const periods={gordo:'1994-2026',zedillo:'1994-2000',fox:'2000-2006',calderon:'2006-2012',pena:'2012-2018',amlo:'2018-2024',sheinbaum:'2024-2026'};
+const map=L.map('map').setView([23.6,-102.5],4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OSM',maxZoom:18}).addTo(map);
+let markers=[];
+function updateMap(){
+  markers.forEach(m=>map.removeLayer(m));markers=[];
+  const fp=document.getElementById('filterPerson').value;
+  const fd=document.getElementById('filterDecade').value;
+  let filtered=D;
+  if(fp!=='all')filtered=filtered.filter(d=>d.who===fp);
+  if(fd!=='all'){const[a,b]=fd.split('-').map(Number);filtered=filtered.filter(d=>d.y>=a&&d.y<=b)}
+  const counts={};
+  filtered.forEach(d=>{
+    counts[d.who]=(counts[d.who]||0)+1;
+    const m=L.circleMarker([d.lat,d.lng],{radius:6,fillColor:colors[d.who]||'#222',color:'#fff',weight:1,fillOpacity:0.8}).addTo(map);
+    m.bindPopup('<b>'+d.c+'</b><br>'+names[d.who]+' ('+periods[d.who]+')<br>'+d.date);
+    markers.push(m);
+  });
+  let s='';Object.keys(counts).forEach(k=>{s+='<span>'+names[k]+': '+counts[k]+' ciudades</span>'});
+  document.getElementById('stats').innerHTML=s||'sin resultados';
+}
+updateMap();
+</script>
+</body>
+</html>

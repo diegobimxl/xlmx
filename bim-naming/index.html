@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIM Naming Validator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+textarea{resize:vertical;min-height:100px;font-family:monospace;font-size:.85rem}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.result-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;margin-bottom:8px;font-size:.85rem}
+.result-item.ok{background:#0a2a0a;border:1px solid #16a34a33}
+.result-item.warn{background:#1a1a00;border:1px solid #f59e0b33}
+.result-item.err{background:#2a0a0a;border:1px solid #ef444433}
+.icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.fname{font-weight:600;word-break:break-all}.issues{color:#aaa;font-size:.78rem;margin-top:3px}
+.stats{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.sbox{flex:1;min-width:100px;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.sbox .v{font-size:1.3rem;font-weight:700}.sbox .l{color:#aaa;font-size:.7rem;margin-top:3px}
+.ok-color{color:#16a34a}.warn-color{color:#f59e0b}.err-color{color:#ef4444}
+.format-box{background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:14px;margin-bottom:12px;font-size:.8rem;line-height:1.8}
+.token{background:#1a2a1a;border:1px solid #16a34a33;padding:1px 6px;border-radius:3px;color:#16a34a;font-family:monospace}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>BIM Naming Validator</h1>
+<p class="sub">Validate Revit file and model element names against ISO 19650 and BIM Execution Plan conventions</p>
+
+<div class="card">
+<label>Naming Standard</label>
+<select id="std" onchange="showFormat()">
+<option value="iso">ISO 19650 — Recommended</option>
+<option value="usa">US BIM Forum / BIMForum</option>
+<option value="uk">UK BIM Level 2 (BS 1192)</option>
+<option value="bimxl">BIM XL Internal Standard</option>
+</select>
+<div class="format-box" id="fmtBox"></div>
+<div class="grid2">
+<div><label>Project Code</label><input id="proj" placeholder="PRJ" maxlength="6"></div>
+<div><label>Company Code</label><input id="co" placeholder="XL" maxlength="4"></div>
+</div>
+<label>File / Element Names to Validate (one per line)</label>
+<textarea id="names" placeholder="PRJ-XL-ZZ-ZZ-M3-A-0001&#10;PRJ-XL-01-A-M3-FLOOR PLAN&#10;Model_Structural_Level2&#10;A-001_FLOOR PLAN.rvt"></textarea>
+<button onclick="validate()">Validate Names</button>
+<button class="sec" onclick="document.getElementById('names').value=getSamples()">Load Samples</button>
+</div>
+
+<div class="stats" id="stats" style="display:none">
+<div class="sbox"><div class="v ok-color" id="sOk">0</div><div class="l">Pass</div></div>
+<div class="sbox"><div class="v warn-color" id="sWarn">0</div><div class="l">Warnings</div></div>
+<div class="sbox"><div class="v err-color" id="sErr">0</div><div class="l">Errors</div></div>
+</div>
+<div id="results"></div>
+
+<script>
+const FORMATS={
+  iso:{label:'ISO 19650',pattern:'[ProjectCode]-[OriginatorCode]-[Volume/System]-[Level]-[Type]-[Role]-[Number]',example:'PRJ-XL-ZZ-00-M3-A-0001'},
+  usa:{label:'US BIMForum',pattern:'[DisciplineCode]-[SheetType]-[Number]',example:'A-FP-001'},
+  uk:{label:'UK BS 1192',pattern:'[Project]-[Originator]-[Facility]-[Building]-[Type]-[Discipline]-[Number]',example:'PRJ-XL-00-ZZ-DR-A-0001'},
+  bimxl:{label:'BIM XL Standard',pattern:'[ProjectCode]-[Discipline]-[Level]-[Type]-[Number]',example:'PRJ-ARC-L01-FP-001'}
+};
+function showFormat(){
+  const s=FORMATS[document.getElementById('std').value];
+  document.getElementById('fmtBox').innerHTML=`<strong style="color:#16a34a">${s.label}</strong><br>Pattern: <span class="token">${s.pattern}</span><br>Example: <span class="token">${s.example}</span>`;
+}
+showFormat();
+function getSamples(){return`PRJ-XL-ZZ-00-M3-A-0001\nPRJ-XL-01-A-DR-S-0010\nArchitectural Model Level 2.rvt\nPRJ XL 00 ZZ M3 A 001\nprj-xl-zz-00-m3-a-0001\nPRJ-XL-ZZ-00-M3-A-0001.rvt\nFLOOR PLAN LEVEL 1\nPRJ-XL-00-ZZ-DR-A-0099`}
+function validate(){
+  const std=document.getElementById('std').value;
+  const proj=document.getElementById('proj').value.toUpperCase()||'PRJ';
+  const co=document.getElementById('co').value.toUpperCase()||'XL';
+  const lines=document.getElementById('names').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length)return;
+  let ok=0,warn=0,err=0;
+  const res=document.getElementById('results');res.innerHTML='';
+  document.getElementById('stats').style.display='flex';
+  lines.forEach(name=>{
+    const issues=[];const warnings=[];
+    const clean=name.replace(/\.rvt$/i,'').replace(/\.nwd$/i,'').replace(/\.ifc$/i,'');
+    if(/\s/.test(clean))errors.push('Contains spaces — use hyphens');
+    if(/[^a-zA-Z0-9\-_]/.test(clean))issues.push('Special characters detected (only A-Z, 0-9, hyphens allowed)');
+    if(clean!==clean&&clean.toUpperCase()!==clean&&clean.toLowerCase()!==clean)warnings.push('Mixed case — consider all-uppercase for consistency');
+    if(clean.length>60)issues.push('Name exceeds 60 characters');
+    if(clean.length<5)issues.push('Name too short — check convention');
+    if(std==='iso'||std==='uk'){
+      const parts=clean.split('-');
+      if(parts.length<6)issues.push(`ISO 19650 expects 6+ hyphen-separated fields, found ${parts.length}`);
+      if(parts[0]&&parts[0].toUpperCase()!==proj)warnings.push(`Project code "${parts[0]}" doesn't match "${proj}"`);
+      if(parts[1]&&parts[1].toUpperCase()!==co)warnings.push(`Originator code "${parts[1]}" doesn't match "${co}"`);
+      const numPart=parts[parts.length-1];if(numPart&&!/^\d{4}$/.test(numPart))warnings.push('Last field should be 4-digit number (e.g., 0001)');
+    }
+    if(/[A-Z].*[a-z]/.test(clean)||/[a-z].*[A-Z]/.test(clean))warnings.push('Mixed case detected — use consistent casing');
+    if(/_/.test(clean)&&/-/.test(clean))warnings.push('Mixed separators (hyphens and underscores) — pick one');
+    const level=issues.length>0?'err':warnings.length>0?'warn':'ok';
+    if(level==='ok')ok++;else if(level==='warn')warn++;else err++;
+    const icon=level==='ok'?'✓':level==='warn'?'⚠':' ✗';
+    const allIssues=[...issues.map(i=>'Error: '+i),...warnings.map(w=>'Warning: '+w)];
+    res.innerHTML+=`<div class="result-item ${level}"><span class="icon">${icon}</span><div>
+    <div class="fname">${name}</div>
+    ${allIssues.length?`<div class="issues">${allIssues.join(' · ')}</div>`:'<div class="issues" style="color:#16a34a">All checks passed</div>'}
+    </div></div>`;
+  });
+  document.getElementById('sOk').textContent=ok;
+  document.getElementById('sWarn').textContent=warn;
+  document.getElementById('sErr').textContent=err;
+}
+</script></body></html>

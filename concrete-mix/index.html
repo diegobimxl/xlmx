@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Concrete Mix — XLMX</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}.container{max-width:900px;margin:0 auto;padding:20px}h1{font-size:1.5rem;margin-bottom:4px}.sub{font-size:.75rem;color:#888;margin-bottom:20px}label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}textarea{min-height:80px;resize:vertical}button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}button.del{background:#dc2626;padding:4px 8px;font-size:.7rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}table{width:100%;border-collapse:collapse;font-size:.78rem}th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}td{padding:6px 8px;border-bottom:1px solid #222}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></head><body>
+<div class="container">
+<h1>Concrete Mix Calculator</h1>
+<p class="sub">Calculate proportions, materials, and cost for concrete by strength and volume.</p>
+<div class="card">
+<div class="grid3">
+<div><label>Concrete Strength</label><select id="fc" onchange="calc()">
+<option value="150">f'c 150 kg/cm² (2100 PSI)</option><option value="200">f'c 200 kg/cm² (2850 PSI)</option>
+<option value="250" selected>f'c 250 kg/cm² (3550 PSI)</option><option value="300">f'c 300 kg/cm² (4250 PSI)</option>
+<option value="350">f'c 350 kg/cm² (5000 PSI)</option><option value="400">f'c 400 kg/cm² (5700 PSI)</option></select></div>
+<div><label>Volume (m³)</label><input id="vol" type="number" value="10" step="0.5" oninput="calc()"></div>
+<div><label>Slump</label><select id="slump" onchange="calc()">
+<option value="stiff">3-5 cm (Stiff)</option><option value="plastic" selected>6-8 cm (Plastic)</option><option value="fluid">8-10 cm (Fluid)</option></select></div>
+</div>
+<label>Unit Prices (MXN)</label>
+<div class="grid3" style="margin-top:4px;">
+<div><label>Cement (50kg bag)</label><input id="pCem" type="number" value="220" oninput="calc()"></div>
+<div><label>Sand (m³)</label><input id="pSand" type="number" value="350" oninput="calc()"></div>
+<div><label>Gravel (m³)</label><input id="pGrav" type="number" value="400" oninput="calc()"></div>
+</div>
+</div>
+<div id="result"></div>
+</div>
+<script>
+const MIXES={
+150:{cement:250,sand:850,gravel:1000,water:190},
+200:{cement:300,sand:800,gravel:1000,water:185},
+250:{cement:350,sand:750,gravel:1000,water:180},
+300:{cement:400,sand:700,gravel:1000,water:175},
+350:{cement:430,sand:680,gravel:980,water:170},
+400:{cement:470,sand:650,gravel:970,water:165},
+};
+const SLUMP={stiff:0.92,plastic:1,fluid:1.08};
+function calc(){
+const fc=document.getElementById('fc').value;
+const vol=parseFloat(document.getElementById('vol').value)||1;
+const slump=document.getElementById('slump').value;
+const m=MIXES[fc];
+const sf=SLUMP[slump];
+const cem=m.cement*sf*vol;
+const sand=m.sand*sf*vol;
+const grav=m.gravel*sf*vol;
+const water=m.water*sf*vol;
+const bags=Math.ceil(cem/50);
+const pCem=parseFloat(document.getElementById('pCem').value)||0;
+const pSand=parseFloat(document.getElementById('pSand').value)||0;
+const pGrav=parseFloat(document.getElementById('pGrav').value)||0;
+const sandVol=sand/1600;
+const gravVol=grav/1500;
+const costCem=bags*pCem;
+const costSand=sandVol*pSand;
+const costGrav=gravVol*pGrav;
+const total=costCem+costSand+costGrav;
+document.getElementById('result').innerHTML=`
+<div class="card"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+<div class="stat"><div class="n" style="color:#16a34a;">${bags}</div><div class="l">Cement Bags</div></div>
+<div class="stat"><div class="n">${sandVol.toFixed(1)}</div><div class="l">Sand (m³)</div></div>
+<div class="stat"><div class="n">${gravVol.toFixed(1)}</div><div class="l">Gravel (m³)</div></div>
+<div class="stat"><div class="n">${(water/1000).toFixed(1)}</div><div class="l">Water (m³)</div></div>
+</div></div>
+<div class="card"><h3 style="font-size:.85rem;margin-bottom:8px;">Material Quantities per m³ / Total (${vol} m³)</h3>
+<table><tr><th>Material</th><th>Per m³ (kg)</th><th>Total (kg)</th><th>Cost (MXN)</th></tr>
+<tr><td>Cement</td><td>${(m.cement*sf).toFixed(0)}</td><td>${cem.toFixed(0)}</td><td>$${costCem.toLocaleString()}</td></tr>
+<tr><td>Sand</td><td>${(m.sand*sf).toFixed(0)}</td><td>${sand.toFixed(0)}</td><td>$${costSand.toLocaleString()}</td></tr>
+<tr><td>Gravel</td><td>${(m.gravel*sf).toFixed(0)}</td><td>${grav.toFixed(0)}</td><td>$${costGrav.toLocaleString()}</td></tr>
+<tr><td>Water</td><td>${(m.water*sf).toFixed(0)}</td><td>${water.toFixed(0)}</td><td>—</td></tr>
+<tr style="font-weight:700;background:#222;"><td colspan="3">TOTAL MATERIAL COST</td><td>$${total.toLocaleString()} MXN</td></tr>
+<tr><td colspan="3">Cost per m³</td><td>$${(total/vol).toLocaleString()} MXN/m³</td></tr>
+</table></div>
+<div class="card"><h3 style="font-size:.85rem;margin-bottom:8px;">Proportions (by weight)</h3>
+<div style="display:flex;height:24px;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+<div style="flex:${m.cement};background:#16a34a;" title="Cement"></div>
+<div style="flex:${m.sand};background:#eab308;" title="Sand"></div>
+<div style="flex:${m.gravel};background:#3b82f6;" title="Gravel"></div>
+<div style="flex:${m.water};background:#06b6d4;" title="Water"></div>
+</div>
+<div class="flex"><span class="tag" style="border-left:3px solid #16a34a;">Cement ${(m.cement/(m.cement+m.sand+m.gravel+m.water)*100).toFixed(0)}%</span>
+<span class="tag" style="border-left:3px solid #eab308;">Sand ${(m.sand/(m.cement+m.sand+m.gravel+m.water)*100).toFixed(0)}%</span>
+<span class="tag" style="border-left:3px solid #3b82f6;">Gravel ${(m.gravel/(m.cement+m.sand+m.gravel+m.water)*100).toFixed(0)}%</span>
+<span class="tag" style="border-left:3px solid #06b6d4;">Water ${(m.water/(m.cement+m.sand+m.gravel+m.water)*100).toFixed(0)}%</span></div>
+</div>`;
+}
+calc();
+</script></body></html>

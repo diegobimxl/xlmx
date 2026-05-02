@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Visit Notes - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:.88rem;font-weight:600;color:#16a34a;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.3rem;margin-top:.75rem}
+label:first-child{margin-top:0}
+input,select,textarea{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .75rem;border-radius:5px;font-size:.85rem;font-family:inherit}
+textarea{resize:vertical;min-height:65px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#16a34a}
+.btn{background:#16a34a;color:#fff;border:none;padding:.6rem 1.4rem;border-radius:6px;font-size:.88rem;cursor:pointer;font-family:inherit;font-weight:500;margin-top:1rem}
+.btn:hover{background:#15803d}
+.btn-copy{background:#222;border:1px solid #333;color:#aaa;padding:.5rem 1.1rem;border-radius:6px;font-size:.82rem;cursor:pointer;font-family:inherit;margin-top:1rem;margin-left:.5rem}
+.btn-copy:hover{color:#fff}
+.item-row{display:flex;gap:.5rem;margin-bottom:.5rem;align-items:flex-start}
+.item-row textarea{min-height:40px;font-size:.8rem}
+.item-row .remove-btn{background:#222;border:1px solid #2a2a2a;color:#555;border-radius:4px;padding:.3rem .6rem;cursor:pointer;font-size:.75rem;flex-shrink:0;margin-top:2px}
+.item-row .remove-btn:hover{color:#ef4444}
+.add-item-btn{background:none;border:1px dashed #333;color:#555;padding:.35rem .85rem;border-radius:5px;font-size:.78rem;cursor:pointer;font-family:inherit;width:100%}
+.add-item-btn:hover{border-color:#16a34a;color:#16a34a}
+.report-box{background:#0d0d0d;border:1px solid #333;border-radius:8px;padding:1.5rem;font-size:.85rem;line-height:1.8;color:#ddd;white-space:pre-wrap;word-break:break-word;min-height:120px;margin-top:1rem}
+.priority-high{color:#ef4444}
+.priority-med{color:#f59e0b}
+.priority-low{color:#16a34a}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Site Visit Notes</h1>
+<p class="sub">Generate structured site visit reports from field notes. Outputs a formatted report ready to email.</p>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>Visit Info</h2>
+      <label>Project Name</label>
+      <input type="text" id="projName" placeholder="e.g. Project Alpha T1, Project Beta Ph.2">
+      <label>Date</label>
+      <input type="date" id="visitDate">
+      <label>Attendees</label>
+      <input type="text" id="attendees" placeholder="e.g. Diego R., Contact A., Team Arch.">
+      <label>Weather / Conditions</label>
+      <select id="weather">
+        <option value="">— select —</option>
+        <option>Clear, sunny</option><option>Cloudy, overcast</option><option>Light rain</option>
+        <option>Hot and dry</option><option>Windy</option><option>Cold</option>
+      </select>
+      <label>Visit Purpose</label>
+      <select id="purpose">
+        <option>Progress Review</option><option>Quality Control</option><option>RFI / Issue Resolution</option>
+        <option>Client Walkthrough</option><option>Subcontractor Coordination</option>
+        <option>Pre-Construction Survey</option><option>Punch List</option>
+      </select>
+    </div>
+    <div class="card">
+      <h2>Progress Observations</h2>
+      <label>Current Phase / Activity On Site</label>
+      <input type="text" id="phase" placeholder="e.g. Structural frame Level 4, MEP rough-in L2">
+      <label>Percent Complete (estimate)</label>
+      <input type="number" id="pct" value="35" min="0" max="100">
+      <label>General Observations</label>
+      <textarea id="observations" placeholder="Overall site conditions, crew size, equipment, general quality..."></textarea>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>Issues / Action Items</h2>
+      <div id="issueList"></div>
+      <button class="add-item-btn" onclick="addIssue()">+ Add Issue</button>
+    </div>
+    <div class="card">
+      <h2>Photo Notes</h2>
+      <textarea id="photoNotes" placeholder="List photos taken, locations, reference tags... e.g. Photo 01 - Column C4 tie spacing deficiency; Photo 02 - Slab edge formwork alignment"></textarea>
+      <label>Next Visit Date</label>
+      <input type="date" id="nextVisit">
+      <label>Additional Notes</label>
+      <textarea id="addNotes" placeholder="Safety observations, schedule notes, material deliveries, etc."></textarea>
+    </div>
+  </div>
+</div>
+
+<button class="btn" onclick="generateReport()">Generate Report</button>
+<button class="btn-copy" onclick="copyReport()">Copy Report</button>
+
+<div class="report-box" id="reportBox">Report will appear here after clicking Generate...</div>
+
+<script>
+var issues = [];
+
+function addIssue(){
+  var id = Date.now();
+  issues.push({id:id,text:'',priority:'Medium',responsible:''});
+  renderIssues();
+}
+
+function removeIssue(id){
+  issues=issues.filter(function(i){return i.id!==id;});
+  renderIssues();
+}
+
+function renderIssues(){
+  var list=document.getElementById('issueList');
+  if(!issues.length){list.innerHTML='<p style="font-size:.78rem;color:#555;margin-bottom:.5rem">No issues added yet.</p>';return;}
+  list.innerHTML=issues.map(function(issue,idx){
+    return '<div class="item-row">'
+      +'<div style="flex:1">'
+      +'<select onchange="issues['+idx+'].priority=this.value" style="margin-bottom:.35rem;font-size:.72rem">'
+      +'<option'+(issue.priority==='High'?' selected':'')+'">High</option>'
+      +'<option'+(issue.priority==='Medium'?' selected':'')+'>Medium</option>'
+      +'<option'+(issue.priority==='Low'?' selected':'')+'>Low</option>'
+      +'</select>'
+      +'<textarea placeholder="Issue description, location, required action..." oninput="issues['+idx+'].text=this.value">'+issue.text+'</textarea>'
+      +'<input type="text" placeholder="Responsible party" style="margin-top:.3rem;font-size:.75rem" oninput="issues['+idx+'].responsible=this.value" value="'+issue.responsible+'">'
+      +'</div>'
+      +'<button class="remove-btn" onclick="removeIssue('+issue.id+')">x</button>'
+      +'</div>';
+  }).join('');
+}
+
+function generateReport(){
+  var proj=document.getElementById('projName').value||'[Project Name]';
+  var date=document.getElementById('visitDate').value||new Date().toISOString().split('T')[0];
+  var attendees=document.getElementById('attendees').value||'—';
+  var weather=document.getElementById('weather').value||'—';
+  var purpose=document.getElementById('purpose').value;
+  var phase=document.getElementById('phase').value||'—';
+  var pct=document.getElementById('pct').value||'—';
+  var obs=document.getElementById('observations').value||'No specific observations recorded.';
+  var photoNotes=document.getElementById('photoNotes').value;
+  var nextVisit=document.getElementById('nextVisit').value;
+  var addNotes=document.getElementById('addNotes').value;
+
+  var report = 'SITE VISIT REPORT\n';
+  report += '='.repeat(50)+'\n\n';
+  report += 'PROJECT:    '+proj+'\n';
+  report += 'DATE:       '+date+'\n';
+  report += 'PURPOSE:    '+purpose+'\n';
+  report += 'ATTENDEES:  '+attendees+'\n';
+  report += 'CONDITIONS: '+weather+'\n\n';
+  report += '--- PROGRESS SUMMARY ---\n\n';
+  report += 'Current Phase: '+phase+'\n';
+  report += 'Est. Complete: '+pct+'%\n\n';
+  report += 'Observations:\n'+obs+'\n\n';
+
+  if(issues.length){
+    report += '--- ISSUES / ACTION ITEMS ---\n\n';
+    issues.forEach(function(issue,i){
+      if(issue.text.trim()){
+        report += (i+1)+'. ['+issue.priority.toUpperCase()+'] '+issue.text.trim();
+        if(issue.responsible)report += '\n   Responsible: '+issue.responsible;
+        report += '\n\n';
+      }
+    });
+  }
+
+  if(photoNotes.trim()){
+    report += '--- PHOTO LOG ---\n\n'+photoNotes+'\n\n';
+  }
+
+  if(addNotes.trim()){
+    report += '--- ADDITIONAL NOTES ---\n\n'+addNotes+'\n\n';
+  }
+
+  report += '--- NEXT STEPS ---\n\n';
+  if(nextVisit)report += 'Next Site Visit: '+nextVisit+'\n';
+  report += 'Report prepared by: ___________________\n';
+  report += 'Date: '+date+'\n';
+
+  document.getElementById('reportBox').textContent=report;
+  window._reportText=report;
+}
+
+function copyReport(){
+  if(window._reportText)navigator.clipboard.writeText(window._reportText).catch(function(){});
+}
+
+// set default date to today
+var today=new Date().toISOString().split('T')[0];
+document.getElementById('visitDate').value=today;
+renderIssues();
+</script>
+</body>
+</html>

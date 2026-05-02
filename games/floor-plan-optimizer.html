@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floor Plan Optimizer — XLMX</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#e8e0d0; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; }
+h1 { font-size:1rem; letter-spacing:0.3em; text-transform:uppercase; color:#c8b89a; margin-bottom:3px; }
+.subtitle { font-size:0.6rem; color:#555; letter-spacing:0.2em; margin-bottom:14px; }
+.game-wrap { display:flex; gap:14px; align-items:flex-start; }
+.panel { border:1px solid #2a2a2a; background:#141414; padding:10px; }
+.panel-label { font-size:0.5rem; letter-spacing:0.25em; color:#555; text-transform:uppercase; margin-bottom:8px; }
+.left-panel { width:168px; display:flex; flex-direction:column; gap:8px; }
+.right-panel { width:168px; display:flex; flex-direction:column; gap:8px; }
+canvas { border:1px solid #2a2a2a; cursor:crosshair; display:block; background:#111; }
+.room-item { display:flex; align-items:center; gap:7px; padding:6px 8px; border:1px solid #222; cursor:pointer; transition:border-color .15s; }
+.room-item:hover { border-color:#555; }
+.room-item.active { border-color:#c8b89a; background:#1a1a1a; }
+.room-item.placed { opacity:0.5; cursor:default; }
+.room-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.room-info { font-size:0.55rem; color:#888; line-height:1.5; }
+.room-info strong { color:#c8b89a; font-size:0.6rem; display:block; }
+.room-info .adj { color:#555; font-size:0.5rem; }
+.score-row { display:flex; justify-content:space-between; font-size:0.58rem; margin-bottom:5px; }
+.score-row span { color:#c8b89a; }
+.score-bar-wrap { height:4px; background:#1a1a1a; margin-bottom:8px; }
+.score-bar { height:100%; background:#c8b89a; transition:width .3s; }
+.btn { background:none; border:1px solid #444; color:#c8b89a; font-family:'Courier New',monospace; font-size:0.58rem; letter-spacing:.12em; padding:6px 10px; cursor:pointer; text-transform:uppercase; width:100%; margin-top:4px; }
+.btn:hover { border-color:#c8b89a; }
+.btn.primary { background:#1a1a1a; }
+.level-info { font-size:0.58rem; color:#666; line-height:1.7; }
+.level-info strong { color:#c8b89a; }
+.total-score { font-size:1.6rem; color:#c8b89a; text-align:center; margin:4px 0; }
+.total-label { font-size:0.5rem; color:#555; text-align:center; text-transform:uppercase; letter-spacing:.2em; }
+#msg { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border:1px solid #555; padding:28px 36px; text-align:center; z-index:100; display:none; }
+#msg h2 { font-size:.9rem; letter-spacing:.3em; color:#c8b89a; margin-bottom:10px; }
+#msg p { font-size:.62rem; color:#666; margin-bottom:16px; line-height:1.8; }
+.rival-score { font-size:.7rem; color:#666; margin-top:6px; }
+</style>
+</head>
+<body>
+<h1>Floor Plan Optimizer</h1>
+<div class="subtitle">Pack rooms. Minimize hallways. Beat the algorithm.</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Rooms — click to place</div></div>
+    <div id="room-list"></div>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">Legend</div>
+      <div style="font-size:0.52rem;color:#555;line-height:1.8;">
+        Click room → click canvas<br>
+        Drag to reposition<br>
+        Corner handles to resize<br>
+        Dashed = adjacency link
+      </div>
+    </div>
+  </div>
+  <canvas id="canvas" width="560" height="480"></canvas>
+  <div class="right-panel">
+    <div class="panel">
+      <div class="total-label">Total Score</div>
+      <div class="total-score" id="total-score">0</div>
+      <div class="rival-score" id="rival-score"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Breakdown</div>
+      <div class="score-row">Area Fit <span id="s-area">0</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-area" style="width:0%"></div></div>
+      <div class="score-row">Coverage <span id="s-cov">0%</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-cov" style="width:0%"></div></div>
+      <div class="score-row">Circulation <span id="s-circ">—</span></div>
+      <div class="score-bar-wrap"><div class="score-bar" id="b-circ" style="width:0%"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Level</div>
+      <div class="level-info" id="level-info"></div>
+    </div>
+    <button class="btn primary" onclick="generateRival()">Generate Rival →</button>
+    <button class="btn" onclick="clearAll()">Clear Layout</button>
+    <button class="btn" id="next-btn" onclick="nextLevel()" style="display:none;">Next Level →</button>
+    <div class="panel" style="margin-top:4px;" id="rival-panel" style="display:none;">
+      <div class="panel-label">Rival Layout</div>
+      <div id="rival-info" style="font-size:0.55rem;color:#555;line-height:1.7;"></div>
+    </div>
+  </div>
+</div>
+<div id="msg">
+  <h2 id="msg-title">Level Complete</h2>
+  <p id="msg-body"></p>
+  <button class="btn" onclick="nextLevel();document.getElementById('msg').style.display='none'">Next Level →</button>
+  <button class="btn" style="margin-top:6px;" onclick="document.getElementById('msg').style.display='none'">Keep Optimizing</button>
+</div>
+<script>
+const GRID = 20;
+const CW = 560, CH = 480;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const SQFT_PER_CELL = 25;
+const LEVELS = [
+  { name: 'Simple House', threshold: 60, rooms: [
+    { id:'liv', name:'Living Room', color:'#5a7a9a', minSqft:300, maxSqft:400, adj:['din','ent'] },
+    { id:'kit', name:'Kitchen', color:'#9a7a3a', minSqft:150, maxSqft:200, adj:['din','util'] },
+    { id:'din', name:'Dining', color:'#6a9a6a', minSqft:150, maxSqft:200, adj:['liv','kit'] },
+    { id:'mbd', name:'Master Bed', color:'#8a5a7a', minSqft:200, maxSqft:280, adj:['mba'] },
+    { id:'bd2', name:'Bedroom 2', color:'#7a6a8a', minSqft:150, maxSqft:200, adj:[] },
+    { id:'mba', name:'Master Bath', color:'#4a8a8a', minSqft:80, maxSqft:120, adj:['mbd'] },
+    { id:'ent', name:'Entry/Foyer', color:'#9a9a5a', minSqft:60, maxSqft:100, adj:['liv'] },
+    { id:'utl', name:'Utility', color:'#6a6a6a', minSqft:50, maxSqft:80, adj:['kit'] },
+  ]},
+  { name: 'Office Floor', threshold: 65, rooms: [
+    { id:'opo', name:'Open Office', color:'#5a7a9a', minSqft:600, maxSqft:800, adj:['cfa','cfb','brk'] },
+    { id:'cfa', name:'Conf Room A', color:'#9a7a3a', minSqft:200, maxSqft:280, adj:['opo'] },
+    { id:'cfb', name:'Conf Room B', color:'#6a9a6a', minSqft:150, maxSqft:200, adj:['opo'] },
+    { id:'ceo', name:'CEO Office', color:'#8a5a7a', minSqft:150, maxSqft:200, adj:['ast'] },
+    { id:'ast', name:'Assistant', color:'#4a8a8a', minSqft:80, maxSqft:120, adj:['ceo'] },
+    { id:'rec', name:'Reception', color:'#9a9a5a', minSqft:100, maxSqft:150, adj:[] },
+    { id:'brk', name:'Break Room', color:'#7a6a8a', minSqft:150, maxSqft:200, adj:['opo'] },
+    { id:'srv', name:'Server Room', color:'#6a6a6a', minSqft:80, maxSqft:120, adj:[] },
+  ]},
+  { name: 'Hospital Wing', threshold: 70, rooms: [
+    { id:'icu', name:'ICU', color:'#5a7a9a', minSqft:400, maxSqft:500, adj:['nst'] },
+    { id:'pra', name:'Patient Rm A', color:'#9a7a3a', minSqft:120, maxSqft:160, adj:['nst'] },
+    { id:'prb', name:'Patient Rm B', color:'#6a9a6a', minSqft:120, maxSqft:160, adj:['nst'] },
+    { id:'prc', name:'Patient Rm C', color:'#8a5a7a', minSqft:120, maxSqft:160, adj:['nst'] },
+    { id:'nst', name:'Nurses Station', color:'#4a8a8a', minSqft:150, maxSqft:200, adj:['icu','pra','prb','prc','sup'] },
+    { id:'sup', name:'Supply Room', color:'#9a9a5a', minSqft:80, maxSqft:120, adj:['nst'] },
+    { id:'fwt', name:'Family Waiting', color:'#7a6a8a', minSqft:200, maxSqft:280, adj:[] },
+    { id:'con', name:'Consultation', color:'#6a8a6a', minSqft:100, maxSqft:150, adj:[] },
+  ]}
+];
+let currentLevel=0, placed=[], selectedRoomId=null, dragging=null, resizing=null, rivalPlaced=[], levelDone=false;
+function sqftFromPx(w,h){return((w/GRID)*(h/GRID))*SQFT_PER_CELL;}
+function clampToGrid(v){return Math.round(v/GRID)*GRID;}
+function roomById(id){return LEVELS[currentLevel].rooms.find(r=>r.id===id);}
+function placedById(id){return placed.find(r=>r.id===id);}
+function isOverlapping(a,b){if(a.id===b.id)return false;return!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y);}
+function wouldOverlap(room,nx,ny,nw,nh){const test={id:room.id,x:nx,y:ny,w:nw,h:nh};return placed.filter(p=>p.id!==room.id).some(p=>isOverlapping(test,p));}
+function initLevel(){placed=[];rivalPlaced=[];selectedRoomId=null;levelDone=false;document.getElementById('next-btn').style.display='none';document.getElementById('rival-score').textContent='';document.getElementById('rival-info').textContent='';updateRoomList();updateScore();render();}
+function updateRoomList(){const list=document.getElementById('room-list');const rooms=LEVELS[currentLevel].rooms;list.innerHTML='';rooms.forEach(r=>{const p=placedById(r.id);const el=document.createElement('div');el.className='room-item'+(p?' placed':'')+(selectedRoomId===r.id?' active':'');const adjNames=r.adj.map(a=>{const rr=roomById(a);return rr?rr.name.split(' ')[0]:a;}).join(', ');el.innerHTML=`<div class="room-swatch" style="background:${r.color}"></div><div class="room-info"><strong>${r.name}</strong>${r.minSqft}–${r.maxSqft} sqft${adjNames?`<span class="adj">near: ${adjNames}</span>`:''}${p?`<span style="color:#558b40;">✓ ${Math.round(sqftFromPx(p.w,p.h))}sqft</span>`:''}</div>`;if(!p)el.addEventListener('click',()=>{selectedRoomId=r.id;updateRoomList();});list.appendChild(el);});const lv=LEVELS[currentLevel];document.getElementById('level-info').innerHTML=`<strong>Level ${currentLevel+1}: ${lv.name}</strong><br>Place all rooms.<br>Target score: ${lv.threshold}+`;}
+function computeScore(pl){if(!pl||pl.length===0)return{total:0,area:0,cov:0,circ:0};const rooms=LEVELS[currentLevel].rooms;let areaTotal=0;pl.forEach(p=>{const r=roomById(p.id);if(!r)return;const sqft=sqftFromPx(p.w,p.h);const mid=(r.minSqft+r.maxSqft)/2;const diff=Math.abs(sqft-mid);const score=Math.max(0,1-diff/mid);areaTotal+=score;});const areaScore=Math.round((areaTotal/rooms.length)*100);let covered=0;pl.forEach(p=>covered+=p.w*p.h);const covPct=covered/(CW*CH);const covScore=Math.round(Math.min(1,covPct/0.85)*100);let totalDist=0,adjPairs=0;rooms.forEach(r=>{r.adj.forEach(adjId=>{const a=pl.find(p=>p.id===r.id);const b=pl.find(p=>p.id===adjId);if(!a||!b)return;const ax=a.x+a.w/2,ay=a.y+a.h/2;const bx=b.x+b.w/2,by=b.y+b.h/2;totalDist+=Math.sqrt((ax-bx)**2+(ay-by)**2);adjPairs++;});});const maxDist=Math.sqrt(CW**2+CH**2);const circScore=adjPairs>0?Math.round(Math.max(0,1-(totalDist/adjPairs)/maxDist)*100):50;const total=Math.round(areaScore*0.35+covScore*0.30+circScore*0.35);return{total,area:areaScore,cov:Math.round(covPct*100),circ:circScore};}
+function updateScore(){const sc=computeScore(placed);document.getElementById('total-score').textContent=sc.total;document.getElementById('s-area').textContent=sc.area;document.getElementById('s-cov').textContent=sc.cov+'%';document.getElementById('s-circ').textContent=sc.circ;document.getElementById('b-area').style.width=sc.area+'%';document.getElementById('b-cov').style.width=Math.min(100,sc.cov/0.85)+'%';document.getElementById('b-circ').style.width=sc.circ+'%';const allPlaced=placed.length===LEVELS[currentLevel].rooms.length;if(allPlaced&&sc.total>=LEVELS[currentLevel].threshold&&!levelDone){levelDone=true;if(currentLevel<LEVELS.length-1){document.getElementById('next-btn').style.display='block';document.getElementById('msg-title').textContent='Level Complete — Score: '+sc.total;document.getElementById('msg-body').textContent=`All rooms placed. Score ${sc.total} — target was ${LEVELS[currentLevel].threshold}.`;document.getElementById('msg').style.display='block';}}}
+function generateRival(){const rooms=[...LEVELS[currentLevel].rooms].sort((a,b)=>b.maxSqft-a.maxSqft);rivalPlaced=[];let shelfX=0,shelfY=0,shelfH=0;rooms.forEach(r=>{const targetSqft=(r.minSqft+r.maxSqft)/2;const cells=Math.round(targetSqft/SQFT_PER_CELL);const cols=Math.max(2,Math.round(Math.sqrt(cells*1.4)));const rows=Math.max(2,Math.round(cells/cols));let w=clampToGrid(cols*GRID);let h=clampToGrid(rows*GRID);w=Math.min(w,CW-shelfX);if(w<GRID*2){shelfX=0;shelfY+=shelfH;shelfH=0;w=clampToGrid(cols*GRID);}h=Math.min(h,CH-shelfY);if(h<GRID)return;rivalPlaced.push({...r,x:shelfX,y:shelfY,w,h});shelfH=Math.max(shelfH,h);shelfX+=w;if(shelfX>=CW){shelfX=0;shelfY+=shelfH;shelfH=0;}});const rsc=computeScore(rivalPlaced);const psc=computeScore(placed);document.getElementById('rival-score').textContent=`Rival: ${rsc.total} | You: ${psc.total}`;document.getElementById('rival-panel').style.display='block';document.getElementById('rival-info').textContent=`Area: ${rsc.area} | Coverage: ${rsc.cov}% | Circ: ${rsc.circ}`;render();}
+function render(){ctx.clearRect(0,0,CW,CH);ctx.fillStyle='#111';ctx.fillRect(0,0,CW,CH);ctx.strokeStyle='#191919';ctx.lineWidth=0.5;for(let x=0;x<=CW;x+=GRID){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CH);ctx.stroke();}for(let y=0;y<=CH;y+=GRID){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}if(rivalPlaced.length>0){rivalPlaced.forEach(r=>{ctx.globalAlpha=0.18;ctx.fillStyle=r.color;ctx.fillRect(r.x,r.y,r.w,r.h);ctx.globalAlpha=1;});}const rooms=LEVELS[currentLevel].rooms;const drawn=new Set();rooms.forEach(r=>{r.adj.forEach(adjId=>{const key=[r.id,adjId].sort().join('-');if(drawn.has(key))return;drawn.add(key);const a=placedById(r.id),b=placedById(adjId);if(!a||!b)return;const ax=a.x+a.w/2,ay=a.y+a.h/2;const bx=b.x+b.w/2,by=b.y+b.h/2;const dist=Math.sqrt((ax-bx)**2+(ay-by)**2);const maxDist=Math.sqrt(CW**2+CH**2);const t=dist/maxDist;ctx.save();ctx.strokeStyle=t<0.3?'#40a060':t<0.6?'#a09040':'#a04040';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.globalAlpha=0.5;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.setLineDash([]);ctx.restore();});});placed.forEach(p=>{ctx.fillStyle=p.color;ctx.globalAlpha=0.75;ctx.fillRect(p.x+1,p.y+1,p.w-2,p.h-2);ctx.globalAlpha=1;ctx.strokeStyle=p.id===selectedRoomId?'#c8b89a':'rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.strokeRect(p.x+1,p.y+1,p.w-2,p.h-2);ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font=`bold ${Math.min(11,p.w/7)}px Courier New`;ctx.textAlign='center';ctx.textBaseline='middle';const sqft=Math.round(sqftFromPx(p.w,p.h));const r=roomById(p.id);if(p.w>50&&p.h>24){ctx.fillText(p.name.length>10?p.name.split(' ')[0]:p.name,p.x+p.w/2,p.y+p.h/2-6);const inRange=r&&sqft>=r.minSqft&&sqft<=r.maxSqft;ctx.fillStyle=inRange?'#80cc80':'#cc8080';ctx.font=`${Math.min(9,p.w/9)}px Courier New`;ctx.fillText(sqft+' sqft',p.x+p.w/2,p.y+p.h/2+7);}ctx.textAlign='left';ctx.textBaseline='alphabetic';if(p.id===selectedRoomId||dragging?.room.id===p.id){[[p.x,p.y],[p.x+p.w,p.y],[p.x,p.y+p.h],[p.x+p.w,p.y+p.h]].forEach(([hx,hy])=>{ctx.fillStyle='#c8b89a';ctx.fillRect(hx-4,hy-4,8,8);});}});}
+function getPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function hitHandle(p,mx,my){const corners=[{c:'tl',x:p.x,y:p.y},{c:'tr',x:p.x+p.w,y:p.y},{c:'bl',x:p.x,y:p.y+p.h},{c:'br',x:p.x+p.w,y:p.y+p.h}];return corners.find(c=>Math.abs(c.x-mx)<8&&Math.abs(c.y-my)<8)||null;}
+canvas.addEventListener('mousedown',e=>{const{x,y}=getPos(e);if(selectedRoomId){const p=placedById(selectedRoomId);if(p){const h=hitHandle(p,x,y);if(h){resizing={room:p,corner:h.c,startX:x,startY:y,origX:p.x,origY:p.y,origW:p.w,origH:p.h};return;}}}for(let i=placed.length-1;i>=0;i--){const p=placed[i];if(x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h){selectedRoomId=p.id;dragging={room:p,offX:x-p.x,offY:y-p.y};updateRoomList();return;}}if(selectedRoomId){const already=placedById(selectedRoomId);if(!already){const r=roomById(selectedRoomId);const cells=Math.round(((r.minSqft+r.maxSqft)/2)/SQFT_PER_CELL);const cols=Math.max(2,Math.round(Math.sqrt(cells*1.3)));const rows=Math.max(2,Math.round(cells/cols));const w=Math.min(CW-clampToGrid(x),clampToGrid(cols*GRID));const h=Math.min(CH-clampToGrid(y),clampToGrid(rows*GRID));const nx=clampToGrid(x-(cols*GRID/2));const ny=clampToGrid(y-(rows*GRID/2));const cx=Math.max(0,Math.min(CW-w,nx));const cy=Math.max(0,Math.min(CH-h,ny));const newRoom={...r,x:cx,y:cy,w,h};if(!wouldOverlap(newRoom,cx,cy,w,h)){placed.push(newRoom);selectedRoomId=null;updateRoomList();updateScore();render();}}}});
+canvas.addEventListener('mousemove',e=>{const{x,y}=getPos(e);if(resizing){const{room:p,corner,startX,startY,origX,origY,origW,origH}=resizing;const dx=clampToGrid(x-startX),dy=clampToGrid(y-startY);let nx=p.x,ny=p.y,nw=p.w,nh=p.h;if(corner.includes('r'))nw=Math.max(GRID*2,origW+dx);if(corner.includes('l')){nx=origX+dx;nw=Math.max(GRID*2,origW-dx);}if(corner.includes('b'))nh=Math.max(GRID*2,origH+dy);if(corner.includes('t')){ny=origY+dy;nh=Math.max(GRID*2,origH-dy);}nx=Math.max(0,Math.min(CW-GRID*2,nx));ny=Math.max(0,Math.min(CH-GRID*2,ny));nw=Math.min(nw,CW-nx);nh=Math.min(nh,CH-ny);if(!wouldOverlap(p,nx,ny,nw,nh)){p.x=nx;p.y=ny;p.w=nw;p.h=nh;}updateScore();render();return;}if(dragging){const nx=clampToGrid(x-dragging.offX);const ny=clampToGrid(y-dragging.offY);const cx=Math.max(0,Math.min(CW-dragging.room.w,nx));const cy=Math.max(0,Math.min(CH-dragging.room.h,ny));if(!wouldOverlap(dragging.room,cx,cy,dragging.room.w,dragging.room.h)){dragging.room.x=cx;dragging.room.y=cy;}updateScore();render();}});
+canvas.addEventListener('mouseup',()=>{dragging=null;resizing=null;});
+canvas.addEventListener('mouseleave',()=>{dragging=null;resizing=null;});
+function clearAll(){placed=[];rivalPlaced=[];levelDone=false;selectedRoomId=null;document.getElementById('next-btn').style.display='none';document.getElementById('rival-score').textContent='';updateRoomList();updateScore();render();}
+function nextLevel(){if(currentLevel<LEVELS.length-1){currentLevel++;initLevel();}}
+initLevel();
+</script>
+</body>
+</html>

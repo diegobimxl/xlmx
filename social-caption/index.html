@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Caption Generator - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:.85rem;font-weight:600;color:#16a34a;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.3rem;margin-top:.75rem}
+label:first-child{margin-top:0}
+select,input,textarea{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .75rem;border-radius:5px;font-size:.85rem;font-family:inherit}
+textarea{resize:vertical;min-height:70px}
+select:focus,input:focus,textarea:focus{outline:none;border-color:#16a34a}
+.btn{background:#16a34a;color:#fff;border:none;padding:.6rem 1.4rem;border-radius:6px;font-size:.88rem;cursor:pointer;font-family:inherit;font-weight:500}
+.btn:hover{background:#15803d}
+.caption-box{background:#0d0d0d;border:1px solid #333;border-radius:8px;padding:1.25rem;font-size:.88rem;line-height:1.75;color:#ddd;min-height:80px;white-space:pre-wrap;word-break:break-word;margin-bottom:.75rem}
+.copy-btn{background:#222;border:1px solid #333;color:#aaa;padding:.35rem .8rem;border-radius:5px;font-size:.75rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{color:#fff}
+.platform-tabs{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.ptab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.35rem .9rem;border-radius:5px;font-size:.82rem;cursor:pointer}
+.ptab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.char-count{font-size:.72rem;color:#555;margin-bottom:.75rem}
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.results-header h2{font-size:.85rem;font-weight:600;color:#16a34a}
+.var-label{font-size:.72rem;color:#888;margin-bottom:.3rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Social Caption Generator</h1>
+<p class="sub">Generate ready-to-post captions for architecture and design project images across platforms.</p>
+<div class="platform-tabs">
+  <div class="ptab active" onclick="setPlatform('instagram',this)">Instagram</div>
+  <div class="ptab" onclick="setPlatform('linkedin',this)">LinkedIn</div>
+  <div class="ptab" onclick="setPlatform('twitter',this)">X / Twitter</div>
+  <div class="ptab" onclick="setPlatform('facebook',this)">Facebook</div>
+</div>
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>Project Info</h2>
+      <label>Project Name</label>
+      <input type="text" id="projName" placeholder="e.g. Torre Project Beta, Project Alpha Cultural Center">
+      <label>Project Type</label>
+      <select id="projType">
+        <option value="">select</option>
+        <option>Residential Development</option><option>Mixed-Use</option><option>Cultural Center</option>
+        <option>Hotel / Resort</option><option>Office Building</option><option>Retail</option>
+        <option>Urban Design</option><option>Landscape</option><option>Interior Design</option>
+        <option>BIM / Technical</option><option>Concept Design</option><option>Under Construction</option>
+      </select>
+      <label>Location / City</label>
+      <input type="text" id="location" placeholder="e.g. Monterrey, Mexico">
+      <label>Stage / Phase</label>
+      <select id="stage">
+        <option>Concept Design</option><option>Design Development</option><option>Construction Documents</option>
+        <option>Under Construction</option><option>Completed</option><option>Rendering</option>
+      </select>
+      <label>Key Highlight</label>
+      <input type="text" id="highlight" placeholder="e.g. 18-story tower, LEED Gold, parametric facade">
+    </div>
+    <div class="card">
+      <h2>Tone and Style</h2>
+      <label>Caption Tone</label>
+      <select id="tone">
+        <option value="professional">Professional / Firm</option>
+        <option value="storytelling">Storytelling / Narrative</option>
+        <option value="technical">Technical / BIM</option>
+        <option value="inspirational">Inspirational / Vision</option>
+        <option value="casual">Casual / Behind the Scenes</option>
+      </select>
+      <label>Call to Action</label>
+      <select id="cta">
+        <option value="">None</option>
+        <option value="comment">Ask a question / invite comments</option>
+        <option value="dm">DM for inquiries</option>
+        <option value="link">Link in bio</option>
+        <option value="share">Ask to share</option>
+        <option value="save">Ask to save</option>
+      </select>
+      <label>Hashtag Style</label>
+      <select id="hashStyle">
+        <option value="arch">Architecture focused</option>
+        <option value="bim">BIM / Tech focused</option>
+        <option value="re">Real Estate focused</option>
+        <option value="mx">Mexico / LatAm focused</option>
+        <option value="none">No hashtags</option>
+      </select>
+      <label>Language</label>
+      <select id="lang">
+        <option value="en">English</option>
+        <option value="es">Spanish</option>
+      </select>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>Generated Captions</h2>
+      <button class="btn" onclick="generate()">Generate</button>
+      <div id="captionResults" style="margin-top:1.25rem"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var platform = 'instagram';
+var limits = {instagram:2200,linkedin:3000,twitter:280,facebook:63206};
+
+var hashSets = {
+  arch:['#architecture','#architecturelovers','#archdesign','#architecturephotography','#design','#modernarchitecture','#archi','#archidaily','#buildingdesign','#facade'],
+  bim:['#BIM','#Revit','#VDC','#digitalconstruction','#archtech','#buildingtech','#BIMdesign','#LOD400','#parametricdesign','#constructiontech'],
+  re:['#realestate','#realestateinvesting','#realestatemexico','#development','#propertydesign','#urbandesign','#mixeduse','#constructora'],
+  mx:['#arquitectura','#arquitecturamexico','#disenoarquitectonico','#monterrey','#mexico','#arquitectosmexicanos','#diseno','#construccion'],
+  none:[]
+};
+
+var ctaTexts = {
+  comment:{en:'What do you think? Drop your thoughts below.',es:'Que opinas? Comparte tu comentario.'},
+  dm:{en:'Interested in a similar project? DM us.',es:'Interesado en un proyecto similar? Escribenos.'},
+  link:{en:'More details at the link in bio.',es:'Mas informacion en el enlace de la bio.'},
+  share:{en:'Share this with a fellow architect or developer.',es:'Comparte esto con un arquitecto o desarrollador.'},
+  save:{en:'Save this for your inspiration board.',es:'Guarda esto para tu tablero de inspiracion.'}
+};
+
+function setPlatform(p, el){
+  platform=p;
+  document.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+}
+
+function generate(){
+  var name=document.getElementById('projName').value||'our latest project';
+  var type=document.getElementById('projType').value||'architectural project';
+  var loc=document.getElementById('location').value||'';
+  var stage=document.getElementById('stage').value;
+  var hl=document.getElementById('highlight').value||'';
+  var tone=document.getElementById('tone').value;
+  var cta=document.getElementById('cta').value;
+  var hs=document.getElementById('hashStyle').value;
+  var lang=document.getElementById('lang').value;
+  var locStr=loc?(lang==='en'?' in '+loc:' en '+loc):'';
+  var hlStr=hl?(lang==='en'?'. Featuring '+hl:'. Destacando '+hl):'';
+  var stageStr=stage?'['+stage+'] ':'';
+
+  var templates = {
+    professional:{
+      en:stageStr+name+locStr+hlStr+'.\n\nDesigned with precision and purpose, this '+type.toLowerCase()+' represents our commitment to quality and innovation at every phase of development.',
+      es:stageStr+name+locStr+hlStr+'.\n\nDiseñado con precision y proposito, este proyecto representa nuestro compromiso con la calidad y la innovacion en cada etapa del desarrollo.'
+    },
+    storytelling:{
+      en:'Every great building starts with a single line on paper.\n\n'+name+(loc?' in '+loc:'')+' — a '+type.toLowerCase()+' that began as a vision'+hlStr+'. This is where that vision becomes reality.',
+      es:'Todo gran edificio comienza con una sola linea en papel.\n\n'+name+(loc?' en '+loc:'')+' — un proyecto que inicio como una vision'+hlStr+'. Aqui es donde esa vision se convierte en realidad.'
+    },
+    technical:{
+      en:stageStr+name+locStr+'.\n\nFull BIM workflow from LOD 300 to construction documents. Coordinated across disciplines using ACC as CDE'+hlStr+'. Precision-built for buildability.',
+      es:stageStr+name+locStr+'.\n\nFlujo de trabajo BIM completo desde LOD 300 hasta documentacion constructiva. Coordinado entre disciplinas'+hlStr+'.'
+    },
+    inspirational:{
+      en:'Architecture is not just about buildings — it is about shaping the way people live.\n\n'+name+(loc?' in '+loc:'')+hlStr+'. Designed to inspire, built to last.',
+      es:'La arquitectura no es solo sobre edificios — es sobre moldear la forma en que las personas viven.\n\n'+name+(loc?' en '+loc:'')+hlStr+'. Diseñado para inspirar, construido para perdurar.'
+    },
+    casual:{
+      en:'Behind the scenes at '+name+(loc?' in '+loc:'')+' — currently at '+stage.toLowerCase()+hlStr+'.\n\nLong days, great coffee, and a team that makes it all possible.',
+      es:'Detras de escena en '+name+(loc?' en '+loc:'')+' — actualmente en etapa de '+stage.toLowerCase()+hlStr+'.\n\nDias largos, buen cafe y un equipo que lo hace posible.'
+    }
+  };
+
+  var base=(templates[tone]||templates.professional)[lang];
+  var ctaText=cta&&ctaTexts[cta]?'\n\n'+ctaTexts[cta][lang]:'';
+  var tags=hs!=='none'?'\n\n'+hashSets[hs].slice(0,10).join(' '):'';
+  var caption=base+ctaText+tags;
+  var limit=limits[platform];
+  var charCount=caption.length;
+
+  var over=charCount>limit;
+  var html='<div class="var-label">Variation 1 — '+platform.charAt(0).toUpperCase()+platform.slice(1)+'</div>'
+    +'<div class="caption-box">'+escHtml(caption)+'</div>'
+    +'<div class="char-count">'+charCount+' / '+limit+' chars'+(over?' — OVER LIMIT, trim needed':'')+'</div>'
+    +'<button class="copy-btn" onclick="copyCaption()">Copy caption</button>';
+
+  document.getElementById('captionResults').innerHTML=html;
+  window._lastCaption=caption;
+}
+
+function copyCaption(){
+  navigator.clipboard.writeText(window._lastCaption||'').catch(function(){});
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+</script>
+</body>
+</html>

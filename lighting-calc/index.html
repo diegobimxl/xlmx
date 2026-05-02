@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lighting Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.kbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.68rem;margin-top:3px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}
+.bench{background:#0a0a1a;border:1px solid #3b82f633;border-radius:8px;padding:14px;font-size:.78rem}
+.bench table{width:100%;border-collapse:collapse}
+.bench th,.bench td{padding:4px 8px;text-align:left;border-bottom:1px solid #1a1a2a}
+.bench th{color:#3b82f6;font-size:.72rem}
+.pass{color:#16a34a}.fail{color:#ef4444}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:700px){.grid2,.kpi{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Lighting Level Calculator</h1>
+<p class="sub">Lumen method — required fixtures, LPD, and IES/ASHRAE 90.1 compliance</p>
+<div class="card">
+<div class="grid2">
+<div><label>Room / Space Name</label><input id="rname" placeholder="Open Office Level 2"></div>
+<div><label>Space Type</label>
+<select id="space" onchange="setDefaults()">
+<option value="300|10">Office — Open Plan (300 lux)</option>
+<option value="500|12">Design Studio (500 lux)</option>
+<option value="300|10">Conference Room (300 lux)</option>
+<option value="200|8">Lobby / Reception (200 lux)</option>
+<option value="150|6">Corridor / Circulation (150 lux)</option>
+<option value="500|12">Classroom (500 lux)</option>
+<option value="750|15">Drafting / Precision (750 lux)</option>
+<option value="300|10">Retail (300 lux)</option>
+<option value="1000|20">Surgery / Medical (1000 lux)</option>
+<option value="100|4">Storage / Utility (100 lux)</option>
+<option value="200|8">Parking Garage (200 lux)</option>
+</select></div>
+<div><label>Room Length (m)</label><input id="L" type="number" value="12" step="0.5"></div>
+<div><label>Room Width (m)</label><input id="W" type="number" value="8" step="0.5"></div>
+<div><label>Mounting Height (m)</label><input id="mh" type="number" value="2.7" step="0.1"></div>
+<div><label>Target Illuminance (lux)</label><input id="lux" type="number" value="300" step="50"></div>
+<div><label>Luminaire Lumens (lm/fixture)</label><input id="lm" type="number" value="4500" step="100" title="Total lumens output of one fixture"></div>
+<div><label>Luminaire Watts</label><input id="watt" type="number" value="45" step="5"></div>
+<div><label>Coefficient of Utilization (CU)</label><input id="cu" type="number" value="0.72" step="0.01" min="0.3" max="0.95" title="From photometric data, typically 0.6-0.8"></div>
+<div><label>Light Loss Factor (LLF)</label><input id="llf" type="number" value="0.80" step="0.01" min="0.5" max="0.95" title="Accounts for dirt, lamp depreciation — typically 0.7-0.85"></div>
+</div>
+<button onclick="calc()">Calculate</button>
+</div>
+<div id="res" style="display:none">
+<div class="kpi" id="kpi"></div>
+<div class="card" id="det"></div>
+</div>
+<div class="bench card">
+<p style="color:#3b82f6;font-weight:600;margin-bottom:8px">IES Illuminance Targets & ASHRAE 90.1 LPD Limits</p>
+<table><tr><th>Space</th><th>Target (lux)</th><th>Max LPD (W/m²)</th></tr>
+<tr><td>Office — Open</td><td>300–500</td><td>10.8</td></tr>
+<tr><td>Conference</td><td>300</td><td>13.7</td></tr>
+<tr><td>Lobby</td><td>200–300</td><td>9.7</td></tr>
+<tr><td>Corridor</td><td>100–200</td><td>5.4</td></tr>
+<tr><td>Classroom</td><td>300–500</td><td>13.0</td></tr>
+<tr><td>Retail</td><td>300–1000</td><td>16.1</td></tr>
+<tr><td>Storage</td><td>100</td><td>7.5</td></tr>
+</table>
+</div>
+<script>
+function setDefaults(){
+  const [lux,lpd]=document.getElementById('space').value.split('|');
+  document.getElementById('lux').value=lux;
+}
+function calc(){
+  const L=+document.getElementById('L').value,W=+document.getElementById('W').value;
+  const mh=+document.getElementById('mh').value,lux=+document.getElementById('lux').value;
+  const lm=+document.getElementById('lm').value,watt=+document.getElementById('watt').value;
+  const cu=+document.getElementById('cu').value,llf=+document.getElementById('llf').value;
+  const area=L*W;
+  // Room Cavity Ratio
+  const RCR=5*mh*(L+W)/(L*W);
+  // Number of fixtures (Lumen method)
+  const N=Math.ceil((lux*area)/(lm*cu*llf));
+  // LPD
+  const totalW=N*watt;const LPD=totalW/area;
+  const achievedLux=(N*lm*cu*llf)/area;
+  const ASHRAE_LPD=10.8; // office default
+  const passLPD=LPD<=ASHRAE_LPD;
+  document.getElementById('res').style.display='block';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v">${N}</div><div class="l">Fixtures Required</div></div>`+
+    `<div class="kbox"><div class="v">${achievedLux.toFixed(0)} lux</div><div class="l">Achieved Illuminance</div></div>`+
+    `<div class="kbox"><div class="v">${LPD.toFixed(1)} W/m²</div><div class="l">LPD</div></div>`+
+    `<div class="kbox"><div class="v" class="${passLPD?'pass':'fail'}">${passLPD?'PASS':'FAIL'}</div><div class="l">ASHRAE 90.1</div></div>`;
+  document.getElementById('det').innerHTML=
+    `<div class="row"><span>Floor area</span><span>${area.toFixed(1)} m²</span></div>`+
+    `<div class="row"><span>Room Cavity Ratio</span><span>${RCR.toFixed(2)}</span></div>`+
+    `<div class="row"><span>Fixtures required</span><span>${N}</span></div>`+
+    `<div class="row"><span>Achieved illuminance</span><span>${achievedLux.toFixed(0)} lux (target: ${lux} lux)</span></div>`+
+    `<div class="row"><span>Total connected load</span><span>${totalW} W</span></div>`+
+    `<div class="row"><span>LPD</span><span class="${passLPD?'pass':'fail'}">${LPD.toFixed(2)} W/m² (ASHRAE limit: 10.8 W/m²)</span></div>`+
+    `<div class="row"><span>Annual energy (2500 hr)</span><span>${(totalW*2500/1000).toFixed(0)} kWh/yr</span></div>`;
+}
+calc();
+</script></body></html>

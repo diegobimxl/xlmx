@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passive House Challenge — XLMX</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#e8e0d0; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; }
+h1 { font-size:1rem; letter-spacing:0.3em; text-transform:uppercase; color:#c8b89a; margin-bottom:3px; }
+.subtitle { font-size:0.6rem; color:#555; letter-spacing:0.2em; margin-bottom:14px; }
+.game-wrap { display:flex; gap:14px; align-items:flex-start; }
+.panel { border:1px solid #2a2a2a; background:#141414; padding:10px; }
+.panel-label { font-size:0.5rem; letter-spacing:0.25em; color:#555; text-transform:uppercase; margin-bottom:8px; }
+.left-panel { width:160px; display:flex; flex-direction:column; gap:8px; }
+.right-panel { width:160px; display:flex; flex-direction:column; gap:8px; }
+canvas { border:1px solid #2a2a2a; display:block; cursor:crosshair; }
+.tool-btn { display:flex; align-items:center; gap:7px; padding:6px 9px; border:1px solid #222; cursor:pointer; width:100%; font-family:'Courier New',monospace; font-size:0.58rem; color:#777; text-transform:uppercase; transition:all .15s; }
+.tool-btn:hover { border-color:#555; color:#c8b89a; }
+.tool-btn.active { border-color:#c8b89a; color:#c8b89a; background:#1a1a1a; }
+.tool-swatch { width:12px; height:12px; border-radius:2px; flex-shrink:0; }
+.btn { background:none; border:1px solid #444; color:#c8b89a; font-family:'Courier New',monospace; font-size:0.58rem; letter-spacing:.12em; padding:6px 10px; cursor:pointer; text-transform:uppercase; width:100%; margin-top:4px; }
+.btn:hover { border-color:#c8b89a; }
+.btn.go { border-color:#5a9a5a; color:#7aba7a; }
+.btn.go:hover { border-color:#7aba7a; }
+.stat-row { display:flex; justify-content:space-between; font-size:0.58rem; margin-bottom:5px; }
+.stat-row span { color:#c8b89a; }
+.stat-row span.danger { color:#c04040; }
+.stat-row span.safe { color:#40a060; }
+.temp-bar-wrap { height:8px; background:#1a1a1a; margin-bottom:8px; border-radius:1px; }
+.temp-bar { height:100%; transition:width .5s, background .5s; border-radius:1px; }
+.time-display { font-size:1.3rem; color:#c8b89a; text-align:center; margin:4px 0; }
+.time-label { font-size:0.5rem; color:#555; text-align:center; letter-spacing:.2em; text-transform:uppercase; }
+#msg { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border:1px solid #555; padding:28px 36px; text-align:center; z-index:100; display:none; min-width:300px; }
+#msg h2 { font-size:.9rem; letter-spacing:.3em; color:#c8b89a; margin-bottom:10px; }
+#msg p { font-size:.62rem; color:#666; margin-bottom:16px; line-height:1.9; }
+.speed-wrap { display:flex; gap:4px; margin-top:4px; }
+.speed-btn { flex:1; padding:4px; border:1px solid #2a2a2a; background:#141414; color:#555; font-family:'Courier New',monospace; font-size:0.55rem; cursor:pointer; text-align:center; }
+.speed-btn.active { border-color:#c8b89a; color:#c8b89a; }
+</style>
+</head>
+<body>
+<h1>Passive House Challenge</h1>
+<div class="subtitle">No furnace. Survive the freeze using physics.</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel"><div class="panel-label">Place Material</div></div>
+    <button class="tool-btn active" data-tool="insulation" onclick="setTool('insulation')"><div class="tool-swatch" style="background:#9a7a3a"></div>Insulation</button>
+    <button class="tool-btn" data-tool="concrete" onclick="setTool('concrete')"><div class="tool-swatch" style="background:#6a6a6a"></div>Concrete</button>
+    <button class="tool-btn" data-tool="window" onclick="setTool('window')"><div class="tool-swatch" style="background:#4a7aaa;opacity:0.8"></div>Window</button>
+    <button class="tool-btn" data-tool="erase" onclick="setTool('erase')"><div class="tool-swatch" style="background:#2a2a2a;border:1px solid #444"></div>Erase</button>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">Material Key</div>
+      <div style="font-size:0.52rem;color:#555;line-height:1.9;">
+        <span style="color:#9a7a3a">■</span> Insulation<br>
+        <span style="color:#6a6a6a">■</span> Concrete mass<br>
+        <span style="color:#4a7aaa">■</span> Window (solar S)<br>
+        <span style="color:#c04040">■</span> Danger (&lt;15°C)
+      </div>
+    </div>
+    <div class="panel" style="margin-top:4px;">
+      <div class="panel-label">Sim Speed</div>
+      <div class="speed-wrap">
+        <div class="speed-btn active" onclick="setSpeed(1)" id="sp1">1x</div>
+        <div class="speed-btn" onclick="setSpeed(4)" id="sp4">4x</div>
+        <div class="speed-btn" onclick="setSpeed(10)" id="sp10">10x</div>
+      </div>
+    </div>
+    <button class="btn" onclick="clearMaterials()">Clear</button>
+    <button class="btn" onclick="resetSim()">Reset Sim</button>
+  </div>
+  <canvas id="canvas" width="520" height="460"></canvas>
+  <div class="right-panel">
+    <div class="panel">
+      <div class="time-label">Simulation Hour</div>
+      <div class="time-display" id="time-display">00:00</div>
+      <div style="font-size:0.55rem;color:#555;text-align:center;" id="day-label">Day 1</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Interior Temp</div>
+      <div class="stat-row">Average <span id="avg-temp">20.0°C</span></div>
+      <div class="stat-row">Min <span id="min-temp">20.0°C</span></div>
+      <div class="temp-bar-wrap"><div class="temp-bar" id="temp-bar" style="width:100%;background:#5a9a5a;"></div></div>
+      <div class="panel-label" style="margin-top:6px;">Exterior Temp</div>
+      <div class="stat-row">Current <span id="ext-temp">5.0°C</span></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Level</div>
+      <div id="level-info" style="font-size:0.58rem;color:#666;line-height:1.7;"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Survival</div>
+      <div class="stat-row">Hours below 15°C <span id="fail-hours" class="safe">0</span></div>
+      <div class="stat-row">Budget spent <span id="mat-cost">$0</span></div>
+      <div style="font-size:0.52rem;color:#555;margin-top:4px;">Survive 72 hrs without dropping below 15°C interior.</div>
+    </div>
+    <button class="btn go" id="run-btn" onclick="toggleSim()">▶ Run Simulation</button>
+    <button class="btn" onclick="nextLevel()" id="next-btn" style="display:none;">Next Level →</button>
+  </div>
+</div>
+<div id="msg">
+  <h2 id="msg-title">Survived!</h2>
+  <p id="msg-body"></p>
+  <button class="btn" onclick="document.getElementById('msg').style.display='none'">Close</button>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const CW=520, CH=460, CELL=20, COLS=CW/CELL, ROWS=CH/CELL;
+const MATS = { air:{k:0.024,hc:1.0,color:null,cost:0}, wall:{k:0.7,hc:840,color:'#2a2a3a',cost:0}, insulation:{k:0.04,hc:840,color:'#9a7a3a',cost:15}, concrete:{k:1.8,hc:2000,color:'#6a6a6a',cost:20}, window:{k:1.2,hc:800,color:'#2a4a6a',cost:25}, interior:{k:0.024,hc:1.0,color:'#1a2a3a',cost:0}, exterior:{k:999,hc:999999,color:'#0a0a14',cost:0} };
+const LEVELS = [
+  { name:'Cold Night', duration:72, budget:2000, desc:'Survive 72hrs. Min ext: -5°C.', extTemp:h=>-5+8*Math.sin((h-6)*Math.PI/12), startTemp:20 },
+  { name:'Deep Freeze', duration:72, budget:3000, desc:'Min ext: -20°C. Need concrete + insulation.', extTemp:h=>-20+5*Math.sin((h-8)*Math.PI/12), startTemp:22 },
+  { name:'Arctic Storm', duration:72, budget:4000, desc:'Min ext: -35°C. Windows must face south.', extTemp:h=>-35+4*Math.sin((h-8)*Math.PI/12), startTemp:22 }
+];
+let grid=[], userGrid=[], currentTool='insulation', simRunning=false, simHour=0, simSpeed=1, failHours=0, currentLevel=0, levelPassed=false, animId=null;
+function initLevel(){simHour=0;failHours=0;simRunning=false;levelPassed=false;document.getElementById('next-btn').style.display='none';document.getElementById('run-btn').textContent='▶ Run Simulation';if(animId){cancelAnimationFrame(animId);animId=null;}const lv=LEVELS[currentLevel];grid=[];userGrid=[];for(let r=0;r<ROWS;r++){grid.push([]);userGrid.push([]);for(let c=0;c<COLS;c++){const inBuilding=r>=4&&r<=19&&c>=4&&c<=22;const isWall=inBuilding&&(r===4||r===19||c===4||c===22);const isInterior=inBuilding&&!isWall;const type=isWall?'wall':isInterior?'interior':'exterior';const extT=lv.extTemp(0);grid[r].push({type,temp:isInterior?lv.startTemp:extT});userGrid[r].push(null);}}updateLevelUI();updateStats();render();}
+function updateLevelUI(){const lv=LEVELS[currentLevel];document.getElementById('level-info').innerHTML=`<strong>Level ${currentLevel+1}: ${lv.name}</strong><br>${lv.desc}<br>Budget: $${lv.budget}`;}
+function simStep(dtHours){const lv=LEVELS[currentLevel];const extT=lv.extTemp(simHour);const newTemp=grid.map(row=>row.map(cell=>cell.temp));const dx=CELL*0.1;for(let r=0;r<ROWS;r++){for(let c=0;c<COLS;c++){const cell=grid[r][c];if(cell.type==='exterior'){newTemp[r][c]=extT;continue;}const matType=userGrid[r][c]||cell.type;const mat=MATS[matType];let dT=0;const neighbors=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]];neighbors.forEach(([nr,nc])=>{if(nr<0||nr>=ROWS||nc<0||nc>=COLS)return;const n=grid[nr][nc];const nMat=MATS[userGrid[nr][nc]||n.type];const kAvg=(mat.k+nMat.k)/2;const flux=kAvg*(n.temp-cell.temp)/(dx*dx);dT+=flux;});if((matType==='window'||(userGrid[r][c]==='window'))&&r===19){const hour=simHour%24;const solar=Math.max(0,Math.sin((hour-6)*Math.PI/12))*300;dT+=solar/(mat.hc*CELL*0.01);}const hcEff=mat.hc*CELL*0.01;newTemp[r][c]=cell.temp+(dT*dtHours*3600)/hcEff;newTemp[r][c]=Math.max(-60,Math.min(50,newTemp[r][c]));}}for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)grid[r][c].temp=newTemp[r][c];}
+function updateStats(){const lv=LEVELS[currentLevel];const interiorCells=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(grid[r][c].type==='interior')interiorCells.push(grid[r][c].temp);}const avg=interiorCells.length?interiorCells.reduce((a,b)=>a+b,0)/interiorCells.length:20;const min=interiorCells.length?Math.min(...interiorCells):20;const extT=lv.extTemp(simHour);const avgEl=document.getElementById('avg-temp');const minEl=document.getElementById('min-temp');avgEl.textContent=avg.toFixed(1)+'°C';minEl.textContent=min.toFixed(1)+'°C';avgEl.className=avg<15?'danger':'safe';minEl.className=min<15?'danger':'safe';const pct=Math.max(0,Math.min(100,((avg--10)/(35--10))*100));document.getElementById('temp-bar').style.width=pct+'%';document.getElementById('temp-bar').style.background=avg<15?'#a04040':avg<18?'#a09040':'#4a9a4a';document.getElementById('ext-temp').textContent=extT.toFixed(1)+'°C';document.getElementById('fail-hours').textContent=failHours;document.getElementById('fail-hours').className=failHours>0?'danger':'safe';let cost=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(userGrid[r][c])cost+=MATS[userGrid[r][c]].cost;}document.getElementById('mat-cost').textContent='$'+cost;const h=Math.floor(simHour)%24,day=Math.floor(simHour/24)+1;document.getElementById('time-display').textContent=String(h).padStart(2,'0')+':00';document.getElementById('day-label').textContent=`Day ${day}`;}
+function runLoop(){if(!simRunning)return;for(let s=0;s<simSpeed;s++){simStep(0.5);simHour+=0.5;const interiorTemps=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c].type==='interior')interiorTemps.push(grid[r][c].temp);const avg=interiorTemps.reduce((a,b)=>a+b,0)/interiorTemps.length;if(avg<15)failHours+=0.5;if(simHour>=LEVELS[currentLevel].duration){simRunning=false;endSim();return;}if(failHours>=6){simRunning=false;endSimFail();return;}}updateStats();render();animId=requestAnimationFrame(runLoop);}
+function endSim(){const interiorTemps=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c].type==='interior')interiorTemps.push(grid[r][c].temp);const avg=(interiorTemps.reduce((a,b)=>a+b,0)/interiorTemps.length).toFixed(1);let cost=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(userGrid[r][c])cost+=MATS[userGrid[r][c]].cost;levelPassed=true;document.getElementById('next-btn').style.display='block';document.getElementById('msg-title').textContent='Survived 72 Hours';document.getElementById('msg-body').textContent=`Final interior: ${avg}°C. Materials cost: $${cost}. Fail hours: ${failHours.toFixed(1)}.`;document.getElementById('msg').style.display='block';updateStats();render();}
+function endSimFail(){document.getElementById('msg-title').textContent='Thermal Failure';document.getElementById('msg-body').textContent='Interior dropped below 15°C for too long. Add more insulation, thermal mass, or south-facing windows.';document.getElementById('msg').style.display='block';document.querySelector('#msg .btn').textContent='Rebuild';document.querySelector('#msg .btn').onclick=()=>{document.getElementById('msg').style.display='none';initLevel();};updateStats();render();}
+function toggleSim(){simRunning=!simRunning;document.getElementById('run-btn').textContent=simRunning?'⏸ Pause':'▶ Run Simulation';document.getElementById('run-btn').className=simRunning?'btn danger':'btn go';if(simRunning){animId=requestAnimationFrame(runLoop);}}
+function resetSim(){simRunning=false;document.getElementById('run-btn').textContent='▶ Run Simulation';document.getElementById('run-btn').className='btn go';initLevel();}
+function setSpeed(s){simSpeed=s;document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));document.getElementById('sp'+s).classList.add('active');}
+function tempToColor(t,type){if(type==='exterior')return'#0a0a14';const r2=Math.max(0,Math.min(255,Math.round(t<15?20+(15-t)*8:20)));const g2=Math.max(0,Math.min(255,Math.round(t<10?20:t<20?20+(t-10)*10:120-(t-20)*4)));const b2=Math.max(0,Math.min(255,Math.round(t<5?180:t<20?180-(t-5)*10:30)));return`rgb(${r2},${g2},${b2})`;}
+function render(){ctx.clearRect(0,0,CW,CH);ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,CW,CH);const lv=LEVELS[currentLevel];const hour=simHour%24;const sunAngle=(hour-6)*Math.PI/12;if(Math.sin(sunAngle)>0){const sx=CW/2+Math.cos(sunAngle)*200;const sy=20-Math.sin(sunAngle)*60;ctx.fillStyle='rgba(255,220,80,0.4)';ctx.beginPath();ctx.arc(sx,Math.max(15,sy),14,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,220,80,0.15)';ctx.lineWidth=1;for(let c=4;c<=22;c++){ctx.beginPath();ctx.moveTo(c*CELL+CELL/2,sy+14);ctx.lineTo(c*CELL+CELL/2,19*CELL);ctx.stroke();}}for(let r=0;r<ROWS;r++){for(let c=0;c<COLS;c++){const cell=grid[r][c];const userMat=userGrid[r][c];const x=c*CELL,y=r*CELL;if(cell.type==='exterior'){ctx.fillStyle='#0a0a14';ctx.fillRect(x,y,CELL,CELL);continue;}const matType=userMat||cell.type;if(simRunning||simHour>0){ctx.fillStyle=tempToColor(cell.temp,cell.type);ctx.fillRect(x,y,CELL,CELL);}else{ctx.fillStyle=MATS[matType].color||'#1a2a3a';ctx.fillRect(x,y,CELL,CELL);}if(userMat){ctx.fillStyle=MATS[userMat].color;ctx.globalAlpha=simRunning?0.5:0.85;ctx.fillRect(x+1,y+1,CELL-2,CELL-2);ctx.globalAlpha=1;}else if(cell.type==='wall'){ctx.fillStyle=MATS.wall.color;ctx.globalAlpha=simRunning?0.4:0.8;ctx.fillRect(x,y,CELL,CELL);ctx.globalAlpha=1;}ctx.strokeStyle='#181818';ctx.lineWidth=0.3;ctx.strokeRect(x,y,CELL,CELL);}}if(simHour>0){ctx.font='8px Courier New';ctx.textAlign='center';ctx.textBaseline='middle';for(let r=5;r<19;r+=3)for(let c=5;c<22;c+=3){if(grid[r][c].type==='interior'){const t=grid[r][c].temp;ctx.fillStyle=t<15?'#ff8888':'rgba(200,200,200,0.6)';ctx.fillText(t.toFixed(0)+'°',c*CELL+CELL/2,r*CELL+CELL/2);}}ctx.textAlign='left';ctx.textBaseline='alphabetic';}ctx.strokeStyle='rgba(200,184,154,0.3)';ctx.lineWidth=1.5;ctx.strokeRect(4*CELL,4*CELL,19*CELL,16*CELL);ctx.fillStyle='#444';ctx.font='9px Courier New';ctx.textAlign='center';ctx.fillText('N',4*CELL+CELL/2,3*CELL);ctx.fillText('S',4*CELL+CELL/2,21*CELL);ctx.fillText('(solar)',4*CELL+CELL/2,21.8*CELL);ctx.textAlign='left';const extT=lv.extTemp(simHour);ctx.fillStyle='#555';ctx.font='9px Courier New';ctx.fillText('Ext: '+extT.toFixed(1)+'°C',2,14);}
+let painting=false;
+function setTool(t){currentTool=t;document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));}
+function paintAt(e){const rect=canvas.getBoundingClientRect();const c=Math.floor((e.clientX-rect.left)/CELL);const r=Math.floor((e.clientY-rect.top)/CELL);if(c<0||c>=COLS||r<0||r>=ROWS)return;const cell=grid[r][c];if(cell.type==='exterior')return;if(currentTool==='erase'){userGrid[r][c]=null;}else if(cell.type==='wall'||cell.type==='interior'){userGrid[r][c]=currentTool;}updateStats();render();}
+canvas.addEventListener('mousedown',e=>{painting=true;paintAt(e);});
+canvas.addEventListener('mousemove',e=>{if(painting)paintAt(e);});
+canvas.addEventListener('mouseup',()=>painting=false);
+canvas.addEventListener('mouseleave',()=>painting=false);
+function clearMaterials(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)userGrid[r][c]=null;updateStats();render();}
+function nextLevel(){if(currentLevel<LEVELS.length-1){currentLevel++;initLevel();}}
+initLevel();
+</script>
+</body>
+</html>

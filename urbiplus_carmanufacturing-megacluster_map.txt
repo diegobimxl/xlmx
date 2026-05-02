@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>North American Auto Manufacturing (Expanded)</name>
+    <description>Expanded georeferenced database of core OEMs and key Tier 1/2 supply chain facilities across the United States and Mexico.</description>
+    
+    <!-- Style for OEMs (Main Assemblers) -->
+    <Style id="style-oem">
+      <IconStyle>
+        <scale>1.2</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/ms/icons/yellow-dot.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0.8</scale>
+        <color>ff000000</color>
+      </LabelStyle>
+    </Style>
+
+    <!-- Style for Suppliers -->
+    <Style id="style-supplier">
+      <IconStyle>
+        <scale>1.0</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/ms/icons/blue-dot.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0.7</scale>
+      </LabelStyle>
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- FOLDER: OEMs (MAIN ASSEMBLERS)             -->
+    <!-- ========================================== -->
+    <Folder>
+      <name>Main Assemblers (OEMs)</name>
+      
+      <!-- MEXICO OEMs -->
+      <Placemark>
+        <name>GM Ramos Arizpe</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Ramos Arizpe, COA, MX<br><b>Employees:</b> 8,500<br><b>Revenue:</b> $4,500 M USD<br><b>Output:</b> 400,000 Cars (Blazer, Equinox EV)]]></description>
+        <Point><coordinates>-100.9531,25.5422,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Stellantis Saltillo Truck</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Saltillo, COA, MX<br><b>Employees:</b> 10,200<br><b>Revenue:</b> $5,100 M USD<br><b>Output:</b> 550,000 Trucks (Ram)]]></description>
+        <Point><coordinates>-101.0770,25.2974,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>GM Silao</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Silao, GTO, MX<br><b>Employees:</b> 8,000<br><b>Revenue:</b> $4,100 M USD<br><b>Output:</b> 380,000 Trucks (Silverado/Sierra)]]></description>
+        <Point><coordinates>-101.4270,20.9420,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>VW Puebla</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Puebla, PUE, MX<br><b>Employees:</b> 13,000<br><b>Revenue:</b> $6,500 M USD<br><b>Output:</b> 450,000 Cars (Jetta, Tiguan)]]></description>
+        <Point><coordinates>-98.2435,19.1170,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Audi San José Chiapa</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> San Jose Chiapa, PUE, MX<br><b>Employees:</b> 5,200<br><b>Revenue:</b> $3,200 M USD<br><b>Output:</b> 170,000 Cars (Q5)]]></description>
+        <Point><coordinates>-97.7712,19.2396,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Kia Pesquería</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Pesqueria, NL, MX<br><b>Employees:</b> 7,500<br><b>Revenue:</b> $4,800 M USD<br><b>Output:</b> 300,000 Cars (Forte, Rio)]]></description>
+        <Point><coordinates>-100.0469,25.7516,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Nissan Aguascalientes 1</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Aguascalientes, AGS, MX<br><b>Employees:</b> 6,500<br><b>Revenue:</b> $3,900 M USD<br><b>Output:</b> 350,000 Cars (Sentra, Versa)]]></description>
+        <Point><coordinates>-102.2960,21.8020,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>BMW San Luis Potosí</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> San Luis Potosi, SLP, MX<br><b>Employees:</b> 3,000<br><b>Revenue:</b> $2,500 M USD<br><b>Output:</b> 150,000 Cars (3 Series)]]></description>
+        <Point><coordinates>-100.8680,21.9865,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Honda Celaya</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Celaya, GTO, MX<br><b>Employees:</b> 4,600<br><b>Revenue:</b> $2,800 M USD<br><b>Output:</b> 200,000 Cars (HR-V)]]></description>
+        <Point><coordinates>-100.7710,20.4850,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Ford Hermosillo</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Hermosillo, SON, MX<br><b>Employees:</b> 3,500<br><b>Revenue:</b> $3,100 M USD<br><b>Output:</b> 250,000 Cars (Bronco Sport, Maverick)]]></description>
+        <Point><coordinates>-110.9320,29.0230,0</coordinates></Point>
+      </Placemark>
+
+      <!-- USA OEMs -->
+      <Placemark>
+        <name>Tesla Giga Texas</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Austin, TX, USA<br><b>Employees:</b> 12,000<br><b>Revenue:</b> $8,200 M USD<br><b>Output:</b> 500,000 Cars (Model Y, Cybertruck)]]></description>
+        <Point><coordinates>-97.6171,30.2223,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Tesla Fremont</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Fremont, CA, USA<br><b>Employees:</b> 22,000<br><b>Revenue:</b> $15,000 M USD<br><b>Output:</b> 600,000 Cars (Model S, 3, X, Y)]]></description>
+        <Point><coordinates>-121.9440,37.4930,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Ford Dearborn Truck</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Dearborn, MI, USA<br><b>Employees:</b> 7,500<br><b>Revenue:</b> $6,000 M USD<br><b>Output:</b> 450,000 Trucks (F-150)]]></description>
+        <Point><coordinates>-83.1970,42.3060,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Ford Kentucky Truck</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Louisville, KY, USA<br><b>Employees:</b> 8,500<br><b>Revenue:</b> $7,200 M USD<br><b>Output:</b> 400,000 Trucks (Super Duty)]]></description>
+        <Point><coordinates>-85.6420,38.2830,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Toyota Georgetown</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Georgetown, KY, USA<br><b>Employees:</b> 9,300<br><b>Revenue:</b> $5,500 M USD<br><b>Output:</b> 500,000 Cars (Camry, RAV4)]]></description>
+        <Point><coordinates>-84.5365,38.2560,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Toyota San Antonio</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> San Antonio, TX, USA<br><b>Employees:</b> 3,200<br><b>Revenue:</b> $2,800 M USD<br><b>Output:</b> 250,000 Trucks (Tundra, Sequoia)]]></description>
+        <Point><coordinates>-98.5440,29.2810,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>GM Arlington</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Arlington, TX, USA<br><b>Employees:</b> 5,300<br><b>Revenue:</b> $5,800 M USD<br><b>Output:</b> 300,000 SUVs (Tahoe, Escalade)]]></description>
+        <Point><coordinates>-97.0730,32.7380,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Stellantis Toledo</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Toledo, OH, USA<br><b>Employees:</b> 6,400<br><b>Revenue:</b> $4,900 M USD<br><b>Output:</b> 350,000 SUVs (Wrangler, Gladiator)]]></description>
+        <Point><coordinates>-83.5130,41.6880,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Honda Marysville</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Marysville, OH, USA<br><b>Employees:</b> 4,200<br><b>Revenue:</b> $3,800 M USD<br><b>Output:</b> 300,000 Cars (Accord, CR-V)]]></description>
+        <Point><coordinates>-83.5180,40.2760,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Nissan Smyrna</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Smyrna, TN, USA<br><b>Employees:</b> 6,700<br><b>Revenue:</b> $5,200 M USD<br><b>Output:</b> 500,000 Cars (Altima, Rogue)]]></description>
+        <Point><coordinates>-86.5360,36.0120,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>BMW Spartanburg</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Spartanburg, SC, USA<br><b>Employees:</b> 11,000<br><b>Revenue:</b> $8,000 M USD<br><b>Output:</b> 400,000 SUVs (X3, X5, X7)]]></description>
+        <Point><coordinates>-82.1790,34.8980,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Mercedes-Benz Tuscaloosa</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Tuscaloosa, AL, USA<br><b>Employees:</b> 4,500<br><b>Revenue:</b> $4,200 M USD<br><b>Output:</b> 260,000 SUVs (GLE, GLS, EQE)]]></description>
+        <Point><coordinates>-87.2450,33.1810,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Rivian Normal</name>
+        <styleUrl>#style-oem</styleUrl>
+        <description><![CDATA[<b>Category:</b> OEM<br><b>Location:</b> Normal, IL, USA<br><b>Employees:</b> 7,000<br><b>Revenue:</b> $2,100 M USD<br><b>Output:</b> 80,000 Cars (R1T, R1S, EDV)]]></description>
+        <Point><coordinates>-89.0480,40.5140,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <!-- ========================================== -->
+    <!-- FOLDER: SUPPLIERS (TIER 1 & 2)             -->
+    <!-- ========================================== -->
+    <Folder>
+      <name>Tier 1 & Tier 2 Suppliers</name>
+
+      <!-- MEXICO SUPPLIERS -->
+      <Placemark>
+        <name>Saint-Gobain Glass</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Saltillo, COA, MX<br><b>Employees:</b> 1,200<br><b>Revenue:</b> $350 M USD<br><b>Output:</b> 2.5M Glass Units]]></description>
+        <Point><coordinates>-100.9700,25.4333,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Saint-Gobain Cuautla</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Cuautla, MOR, MX<br><b>Employees:</b> 1,500<br><b>Revenue:</b> $400 M USD<br><b>Output:</b> 2.8M Glass Units]]></description>
+        <Point><coordinates>-98.9460,18.8280,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Magna Exteriors Ramos</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Ramos Arizpe, COA, MX<br><b>Employees:</b> 2,500<br><b>Revenue:</b> $800 M USD<br><b>Output:</b> 3.0M Bumpers/Fascias]]></description>
+        <Point><coordinates>-100.9400,25.5500,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Magna Formex</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Saltillo, COA, MX<br><b>Employees:</b> 1,800<br><b>Revenue:</b> $650 M USD<br><b>Output:</b> 4.0M Stamped Frames]]></description>
+        <Point><coordinates>-100.9500,25.4000,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Bosch Toluca</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Toluca, MEX, MX<br><b>Employees:</b> 3,000<br><b>Revenue:</b> $1,200 M USD<br><b>Output:</b> 5.0M Electronic Modules]]></description>
+        <Point><coordinates>-99.6557,19.2826,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Bosch Juarez</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Ciudad Juarez, CHIH, MX<br><b>Employees:</b> 4,000<br><b>Revenue:</b> $1,500 M USD<br><b>Output:</b> 6.0M ABS/Sensors]]></description>
+        <Point><coordinates>-106.4000,31.6500,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Nemak García</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Garcia, NL, MX<br><b>Employees:</b> 4,500<br><b>Revenue:</b> $1,900 M USD<br><b>Output:</b> 8.0M Aluminum Blocks/Heads]]></description>
+        <Point><coordinates>-100.5510,25.7617,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Metalsa Apodaca</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Apodaca, NL, MX<br><b>Employees:</b> 3,200<br><b>Revenue:</b> $1,100 M USD<br><b>Output:</b> 1.5M Truck Chassis]]></description>
+        <Point><coordinates>-100.1830,25.7830,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Denso Apodaca</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Apodaca, NL, MX<br><b>Employees:</b> 4,100<br><b>Revenue:</b> $1,400 M USD<br><b>Output:</b> 5.0M HVAC Units]]></description>
+        <Point><coordinates>-100.2000,25.7900,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Denso Silao</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Silao, GTO, MX<br><b>Employees:</b> 2,800<br><b>Revenue:</b> $950 M USD<br><b>Output:</b> 3.5M Alternators/Radiators]]></description>
+        <Point><coordinates>-101.4500,20.9500,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>ZF Querétaro</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Queretaro, QRO, MX<br><b>Employees:</b> 2,500<br><b>Revenue:</b> $850 M USD<br><b>Output:</b> 2.0M Transmissions/Steering]]></description>
+        <Point><coordinates>-100.4300,20.6500,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Continental Silao</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Silao, GTO, MX<br><b>Employees:</b> 2,200<br><b>Revenue:</b> $750 M USD<br><b>Output:</b> 4.0M Brake Systems]]></description>
+        <Point><coordinates>-101.4600,20.9600,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Aptiv Nuevo Laredo</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Nuevo Laredo, TAM, MX<br><b>Employees:</b> 5,000<br><b>Revenue:</b> $900 M USD<br><b>Output:</b> 10.0M Wiring Harnesses]]></description>
+        <Point><coordinates>-99.5000,27.4800,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Lear Saltillo</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Saltillo, COA, MX<br><b>Employees:</b> 3,500<br><b>Revenue:</b> $800 M USD<br><b>Output:</b> 1.5M Seat Assemblies]]></description>
+        <Point><coordinates>-100.9600,25.4500,0</coordinates></Point>
+      </Placemark>
+
+      <!-- USA SUPPLIERS -->
+      <Placemark>
+        <name>Denso Maryville</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Maryville, TN, USA<br><b>Employees:</b> 3,500<br><b>Revenue:</b> $1,500 M USD<br><b>Output:</b> 4.5M Starters/Alternators]]></description>
+        <Point><coordinates>-83.9705,35.7565,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Lear Detroit</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Detroit, MI, USA<br><b>Employees:</b> 1,500<br><b>Revenue:</b> $950 M USD<br><b>Output:</b> 1.2M Seat Sets]]></description>
+        <Point><coordinates>-83.0458,42.3314,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Lear Hammond</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Hammond, IN, USA<br><b>Employees:</b> 800<br><b>Revenue:</b> $450 M USD<br><b>Output:</b> 600K Seat Sets]]></description>
+        <Point><coordinates>-87.4800,41.5800,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>ZF Marysville</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Marysville, MI, USA<br><b>Employees:</b> 1,200<br><b>Revenue:</b> $600 M USD<br><b>Output:</b> 800K Axles/Chassis]]></description>
+        <Point><coordinates>-82.4800,42.9100,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>ZF Tuscaloosa</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Tuscaloosa, AL, USA<br><b>Employees:</b> 900<br><b>Revenue:</b> $500 M USD<br><b>Output:</b> 700K Suspension Systems]]></description>
+        <Point><coordinates>-87.5000,33.2000,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Bosch Charleston</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Charleston, SC, USA<br><b>Employees:</b> 1,600<br><b>Revenue:</b> $900 M USD<br><b>Output:</b> 3.0M Fuel Injectors/ABS]]></description>
+        <Point><coordinates>-80.0500,32.9000,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Nemak Sheboygan</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Sheboygan, WI, USA<br><b>Employees:</b> 1,100<br><b>Revenue:</b> $550 M USD<br><b>Output:</b> 2.0M Castings]]></description>
+        <Point><coordinates>-87.7300,43.7500,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Metalsa Elizabethtown</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Elizabethtown, KY, USA<br><b>Employees:</b> 1,800<br><b>Revenue:</b> $850 M USD<br><b>Output:</b> 1.2M Truck Frames (Ford)]]></description>
+        <Point><coordinates>-85.8700,37.7100,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Metalsa Roanoke</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Roanoke, VA, USA<br><b>Employees:</b> 600<br><b>Revenue:</b> $350 M USD<br><b>Output:</b> 500K Commercial Frames]]></description>
+        <Point><coordinates>-79.9400,37.2700,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Continental Seguin</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Seguin, TX, USA<br><b>Employees:</b> 1,500<br><b>Revenue:</b> $750 M USD<br><b>Output:</b> 4.0M Sensors/Radar]]></description>
+        <Point><coordinates>-97.9600,29.5700,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Aisin Seymour</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Seymour, IN, USA<br><b>Employees:</b> 2,000<br><b>Revenue:</b> $1,100 M USD<br><b>Output:</b> 1.5M Transmissions]]></description>
+        <Point><coordinates>-85.8800,38.9600,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Michelin Greenville</name>
+        <styleUrl>#style-supplier</styleUrl>
+        <description><![CDATA[<b>Category:</b> Supplier<br><b>Location:</b> Greenville, SC, USA<br><b>Employees:</b> 4,000<br><b>Revenue:</b> $1,800 M USD<br><b>Output:</b> 12.0M Tires]]></description>
+        <Point><coordinates>-82.3500,34.8000,0</coordinates></Point>
+      </Placemark>
+
+    </Folder>
+  </Document>
+</kml>

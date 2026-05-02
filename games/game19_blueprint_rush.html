@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blueprint Rush</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a1f; color:#fff; font-family:'Inter',sans-serif;
+  display:flex; flex-direction:column; align-items:center; min-height:100vh;
+  justify-content:center; overflow:hidden; }
+h1 { font-size:1.4rem; letter-spacing:3px; color:#00d4ff; margin-bottom:4px; }
+.sub { font-size:0.75rem; color:#88aacc; margin-bottom:8px; }
+#hud { display:flex; gap:24px; margin-bottom:6px; font-size:0.82rem; }
+.stat { display:flex; flex-direction:column; align-items:center; }
+.stat span { font-size:1.15rem; font-weight:700; color:#00d4ff; }
+.stat label { font-size:0.62rem; color:#556; letter-spacing:1px; }
+#target-area { background:#0d1a2a; border:1px solid #1a3a5a;
+  border-radius:8px; padding:10px 16px; margin-bottom:8px; text-align:center;
+  min-width:340px; }
+#target-label { font-size:0.65rem; color:#557; letter-spacing:2px; margin-bottom:4px; }
+#target-display { font-size:1.3rem; font-weight:700; color:#00d4ff; letter-spacing:4px; }
+#gameCanvas { border:1px solid #1a3a5a; background:#050510; cursor:pointer; }
+#deadline-bar-wrap { width:340px; height:8px; background:#1a1a3a; border-radius:4px; margin-top:6px; overflow:hidden; }
+#deadline-bar { height:100%; background:#00d4ff; transition:width 0.1s; }
+#flash { position:fixed; top:70px; left:50%; transform:translateX(-50%);
+  background:#00d4ff; color:#0f0f23; padding:7px 18px; border-radius:20px;
+  font-size:0.8rem; font-weight:700; opacity:0; transition:opacity 0.3s;
+  pointer-events:none; z-index:20; }
+#flash.show { opacity:1; }
+#overlay { position:fixed; inset:0; background:rgba(0,0,0,0.9);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+#overlay.hidden { display:none; }
+.card { background:#0d1a2a; border:1px solid #1a3a5a; border-radius:12px;
+  padding:28px 36px; max-width:360px; text-align:center; }
+.card h2 { font-size:1.5rem; color:#00d4ff; margin-bottom:8px; }
+.card p { color:#aac; font-size:0.85rem; margin-bottom:18px; line-height:1.6; }
+.big { font-size:2.8rem; font-weight:900; color:#f72585; margin:8px 0; }
+button { background:#00d4ff; color:#050510; border:none; border-radius:8px;
+  padding:11px 26px; font-size:0.9rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+button:hover { opacity:0.85; }
+.lb-row { display:flex; justify-content:space-between; font-size:0.78rem;
+  padding:3px 0; border-bottom:1px solid #1a2a3a; }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { color:#f72585; font-weight:700; }
+.lb-score { color:#00d4ff; font-weight:600; }
+</style>
+</head>
+<body>
+<h1>BLUEPRINT RUSH</h1>
+<div class="sub">Catch the right fragment. Miss the wrong ones. Beat the deadline.</div>
+<div id="hud">
+  <div class="stat"><span id="score-val">0</span><label>SCORE</label></div>
+  <div class="stat"><span id="sheet-val">1</span><label>SHEET</label></div>
+  <div class="stat"><span id="streak-val">0</span><label>STREAK</label></div>
+  <div class="stat"><span id="lives-val">3</span><label>LIVES</label></div>
+</div>
+<div id="target-area">
+  <div id="target-label">FIND FRAGMENT</div>
+  <div id="target-display">A1</div>
+</div>
+<canvas id="gameCanvas" width="340" height="340"></canvas>
+<div id="deadline-bar-wrap"><div id="deadline-bar" style="width:100%"></div></div>
+<div id="flash"></div>
+
+<div id="overlay">
+  <div class="card" id="start-card">
+    <h2>BLUEPRINT RUSH</h2>
+    <p>Drawing fragments fall from the top.<br>
+    Click the fragment that matches the TARGET above.<br>
+    Wrong catch = lose a life. Miss = lose a life.<br>
+    Streak bonuses: 3 in a row = +20pts.<br><br>
+    <strong style="color:#00d4ff">Click the correct falling fragment.</strong></p>
+    <button onclick="startGame()">OPEN DRAWING SET</button>
+  </div>
+  <div class="card" id="end-card" style="display:none; margin-top:12px;">
+    <h2>DEADLINE MISSED.</h2>
+    <p id="end-msg">The client has a new architect now.</p>
+    <div class="big" id="end-score">0</div>
+    <p style="color:#556;font-size:0.75rem;margin-bottom:14px">total score</p>
+    <button onclick="startGame()">REISSUE FOR CONSTRUCTION</button>
+  </div>
+  <div style="background:#0d1a2a;border:1px solid #1a3a5a;border-radius:8px;padding:14px 20px;margin-top:12px;min-width:280px;">
+    <div style="font-size:0.65rem;letter-spacing:2px;color:#556;margin-bottom:6px">TOP DRAFTERS</div>
+    <div id="lb-rows"><div class="lb-row"><span class="lb-rank">—</span><span>none yet</span></div></div>
+  </div>
+</div>
+</body>
+</html>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const leaderboard = [];
+let state, animId, eggBuf = '';
+
+const FRAG_LABELS = ['A1','A2','A3','B1','B2','B3','C1','C2','D1','D2',
+  'E1','E2','F1','G1','G2','S1','S2','M1','P1','P2'];
+const FRAG_ICONS = {
+  'A':'▦','B':'◈','C':'◉','D':'⬟','E':'◆','F':'⬡','G':'⬢','S':'⬛','M':'◼','P':'◻'
+};
+const COLORS = ['#00d4ff','#4fffb0','#f9c74f','#f72585','#b5179e','#4361ee','#ff6b35'];
+
+function rndFrom(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+function spawnFragment(s) {
+  const label = rndFrom(FRAG_LABELS);
+  const isTarget = Math.random() < 0.38; // 38% chance it's the target
+  const actualLabel = isTarget ? s.target : (FRAG_LABELS.filter(l=>l!==s.target)[Math.floor(Math.random()*(FRAG_LABELS.length-1))]);
+  return {
+    label: actualLabel,
+    x: 20 + Math.random() * (W - 60), y: -30,
+    vy: 1.2 + s.sheet * 0.15 + Math.random() * 0.6,
+    color: rndFrom(COLORS), r: 22, hit: false
+  };
+}
+
+function newState() {
+  const target = rndFrom(FRAG_LABELS);
+  return { fragments: [], target, score: 0, sheet: 1, streak: 0,
+    lives: 3, running: false, deadline: 100, deadlineDrain: 0.025,
+    spawnTimer: 0, spawnInterval: 55, frameCount: 0 };
+}
+
+function flash(msg) {
+  const el = document.getElementById('flash');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+function startGame() {
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('start-card').style.display='block';
+  document.getElementById('end-card').style.display='none';
+  state = newState(); state.running = true;
+  if (animId) cancelAnimationFrame(animId);
+  loop();
+}
+
+canvas.addEventListener('click', e => {
+  if (!state || !state.running) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let hit = false;
+  for (let i = state.fragments.length-1; i>=0; i--) {
+    const f = state.fragments[i];
+    if (Math.hypot(mx-f.x, my-f.y) < f.r + 6) {
+      state.fragments.splice(i,1);
+      if (f.label === state.target) {
+        state.score += 10 + state.streak * 2; state.streak++;
+        state.deadline = Math.min(100, state.deadline + 6);
+        if (state.streak % 3 === 0) { state.score += 20; flash(`STREAK x${state.streak}! +20 bonus`); }
+        if (state.streak % 10 === 0) { state.sheet++; state.spawnInterval = Math.max(25, 55 - state.sheet*3); flash(`SHEET ${state.sheet} ISSUED`); }
+        state.target = rndFrom(FRAG_LABELS);
+        document.getElementById('target-display').textContent = state.target;
+      } else {
+        state.lives--; state.streak = 0; state.deadline = Math.max(0, state.deadline - 15);
+        flash('WRONG SHEET! -1 life');
+        if (state.lives <= 0 || state.deadline <= 0) { endGame(); return; }
+      }
+      hit = true; break;
+    }
+  }
+  updateHUD();
+});
+function update() {
+  const s = state; if (!s.running) return;
+  s.frameCount++;
+  s.deadline -= s.deadlineDrain + s.sheet * 0.002;
+  s.spawnTimer++;
+  if (s.spawnTimer >= s.spawnInterval) { s.fragments.push(spawnFragment(s)); s.spawnTimer = 0; }
+  for (let i = s.fragments.length-1; i>=0; i--) {
+    const f = s.fragments[i]; f.y += f.vy;
+    if (f.y - f.r > H) {
+      if (f.label === s.target) { s.lives--; s.streak = 0; s.deadline = Math.max(0, s.deadline-10); }
+      s.fragments.splice(i,1);
+      if (s.lives <= 0 || s.deadline <= 0) { endGame(); return; }
+    }
+  }
+  document.getElementById('deadline-bar').style.width = Math.max(0,s.deadline)+'%';
+  if (s.deadline <= 0) { endGame(); return; }
+}
+
+function draw() {
+  const s = state;
+  ctx.fillStyle='#050510'; ctx.fillRect(0,0,W,H);
+  // blueprint grid
+  ctx.strokeStyle='#0a1a2a'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // fragments
+  s.fragments.forEach(f=>{
+    ctx.save();
+    const isTarget = f.label === s.target;
+    if (isTarget) {
+      ctx.shadowBlur=14; ctx.shadowColor=f.color;
+    }
+    ctx.fillStyle=f.color+'33'; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=f.color; ctx.lineWidth=isTarget?2.5:1.5;
+    ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=f.color; ctx.font=`bold ${isTarget?11:9}px Inter`; ctx.textAlign='center';
+    ctx.fillText(f.label, f.x, f.y+4);
+    ctx.shadowBlur=0; ctx.restore();
+  });
+  ctx.textAlign='left';
+}
+
+function updateHUD() {
+  document.getElementById('score-val').textContent = state.score;
+  document.getElementById('sheet-val').textContent = state.sheet;
+  document.getElementById('streak-val').textContent = state.streak;
+  document.getElementById('lives-val').textContent = state.lives;
+}
+
+function loop() {
+  update(); draw();
+  animId = requestAnimationFrame(loop);
+}
+
+function endGame() {
+  state.running = false; cancelAnimationFrame(animId);
+  leaderboard.push({ score: state.score, sheet: state.sheet });
+  leaderboard.sort((a,b)=>b.score-a.score); leaderboard.splice(5);
+  document.getElementById('end-score').textContent = state.score;
+  document.getElementById('end-msg').textContent = `Sheet ${state.sheet} | Best streak: ${state.streak}`;
+  renderLB();
+  document.getElementById('start-card').style.display='none';
+  document.getElementById('end-card').style.display='block';
+  const ov = document.getElementById('overlay');
+  ov.style.display='flex'; ov.classList.remove('hidden');
+}
+
+function renderLB() {
+  const el = document.getElementById('lb-rows');
+  if (!leaderboard.length) { el.innerHTML='<div class="lb-row"><span>—</span><span>none</span></div>'; return; }
+  el.innerHTML = leaderboard.map((e,i)=>
+    `<div class="lb-row"><span class="lb-rank">#${i+1}</span><span>S${e.sheet}</span><span class="lb-score">${e.score}pts</span></div>`).join('');
+}
+
+document.addEventListener('keydown', e=>{
+  eggBuf += e.key.toUpperCase(); if(eggBuf.length>8) eggBuf=eggBuf.slice(-8);
+  if(eggBuf.includes('ASBUILT')) {
+    eggBuf='';
+    if(state && state.running) {
+      state.deadline = Math.min(100, state.deadline + 40);
+      state.score += 30;
+      flash('AS-BUILT SUBMITTED. Deadline extended. +30pts. No questions asked.');
+      updateHUD();
+    }
+  }
+});
+
+renderLB();
+</script>

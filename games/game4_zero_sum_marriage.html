@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero-Sum Marriage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+.header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; display: flex; align-items: center; gap: 10px; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.badge { background: #e63946; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.container { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+.kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.kpi-val { font-size: 22px; font-weight: 700; }
+.kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+.bar-wrap { height: 6px; background: #e9ecef; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width .6s; }
+.main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+.card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+.energy-dots { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.dot { width: 32px; height: 32px; border-radius: 50%; background: #4361ee; border: 2px solid #3451d1; transition: all .3s; }
+.dot.used { background: #e9ecef; border-color: #dee2e6; }
+.alloc-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f3f4; }
+.alloc-row:last-child { border-bottom: none; }
+.alloc-info .name { font-size: 14px; font-weight: 500; }
+.alloc-info .desc { font-size: 11px; color: #6c757d; margin-top: 2px; }
+.alloc-ctrl { display: flex; align-items: center; gap: 8px; }
+.abtn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e9ecef; background: #f8f9fa; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; line-height: 1; }
+.abtn:hover { background: #4361ee; color: #fff; border-color: #4361ee; }
+.aval { font-size: 16px; font-weight: 700; min-width: 20px; text-align: center; }
+.btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: #e63946; color: #fff; width: 100%; margin-top: 14px; }
+.btn-primary:hover { background: #c1121f; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.alex-card { background: #fff0f3; border-radius: 10px; padding: 16px; margin-bottom: 14px; border: 1px solid #ffc8c8; }
+.alex-avatar { font-size: 36px; margin-bottom: 6px; }
+.alex-mood { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.alex-msg { font-size: 13px; color: #555; line-height: 1.5; font-style: italic; }
+.log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; }
+.log-e { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+.log-e:last-child { border-bottom: none; }
+.log-e.warn { color: #e63946; font-weight: 600; }
+.log-e.good { color: #2ecc71; font-weight: 600; }
+.event-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.event-banner h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.event-banner p { font-size: 13px; color: #555; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.overlay.hidden { display: none; }
+.modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+.modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+@media (max-width:700px) { .kpi-row { grid-template-columns: 1fr 1fr; } .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Zero-Sum Marriage</h1><span class="badge">XLMX</span>
+  <span style="font-size:12px;color:#6c757d;margin-left:4px;">10 energy units. 100 days. Don't mess this up.</span>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Day</div><div class="kpi-val" id="day-val">1</div><div class="kpi-sub">of 100</div><div class="bar-wrap"><div class="bar-fill" id="day-bar" style="width:1%;background:#4361ee"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Career</div><div class="kpi-val" id="career-val" style="color:#4361ee">0</div><div class="kpi-sub">Target: 500</div><div class="bar-wrap"><div class="bar-fill" id="career-bar" style="width:0%;background:#4361ee"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Relationship</div><div class="kpi-val" id="rel-val" style="color:#e63946">200</div><div class="kpi-sub">Don't let it die</div><div class="bar-wrap"><div class="bar-fill" id="rel-bar" style="width:50%;background:#e63946"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Health</div><div class="kpi-val" id="health-val" style="color:#2ecc71">100</div><div class="bar-wrap"><div class="bar-fill" id="health-bar" style="width:100%;background:#2ecc71"></div></div></div>
+  </div>
+  <div id="event-box"></div>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Daily Energy — 10 Units Total</h2>
+      <div class="energy-dots" id="dots"></div>
+      <div id="alloc-rows"></div>
+      <button class="btn btn-primary" id="end-btn" onclick="nextDay()">End Day →</button>
+    </div>
+    <div>
+      <div class="alex-card">
+        <div class="alex-avatar" id="alex-emoji">😊</div>
+        <div class="alex-mood" id="alex-mood">Alex is doing great</div>
+        <div class="alex-msg" id="alex-msg">"Morning! Coffee's ready. Don't forget we have plans tonight."</div>
+      </div>
+      <div class="card">
+        <h2>Life Log</h2>
+        <div class="log" id="log"><div class="log-e good">Day 1 — Your life, your choices. Good luck.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="end-overlay">
+  <div class="modal">
+    <h2 id="end-title">Game Over</h2>
+    <p id="end-desc"></p>
+    <div id="end-reveal" style="background:#fff0f3;border-radius:10px;padding:16px;margin:12px 0;font-size:13px;color:#555;line-height:1.6;"></div>
+    <button class="btn btn-primary" onclick="restart()">Try Again (you won't do better)</button>
+  </div>
+</div>
+
+<script>
+// Easter egg: type "COFFEE" anytime to get +20 health
+let konamiBuffer = '';
+document.addEventListener('keydown', e => {
+  konamiBuffer += e.key.toUpperCase();
+  konamiBuffer = konamiBuffer.slice(-6);
+  if (konamiBuffer === 'COFFEE') {
+    state.health = Math.min(100, state.health + 20);
+    updateDash();
+    addLog('☕ SECRET COFFEE BOOST! +20 health. You found the easter egg.', 'good');
+    konamiBuffer = '';
+  }
+});
+
+const CATS = [
+  { id:'career', name:'💼 Career Grind', desc:'+8 career, −3 relationship per unit' },
+  { id:'rel', name:'❤️ Alex Time', desc:'+12 relationship per unit' },
+  { id:'health', name:'🏃 Work Out', desc:'+6 health per unit' },
+  { id:'kids', name:'👧 Kids / Family', desc:'+5 relationship, −2 career per unit' },
+  { id:'growth', name:'🧠 Self-Improvement', desc:'+3 career, +3 health per unit' },
+];
+
+const MOODS = [
+  { min:160, emoji:'😍', mood:'Alex is obsessed with you', msgs:['"You\'re annoyingly perfect, you know that?"','"Our friends are jealous. I love it."','"Let\'s quit our jobs and move to Portugal."'] },
+  { min:100, emoji:'😊', mood:'Alex is happy', msgs:['"Good day. Let\'s get dinner."','"You\'re not terrible. I mean that."','"I love you. Also we\'re out of milk."'] },
+  { min:60,  emoji:'😐', mood:'Alex is suspicious', msgs:['"Are you… avoiding me?"','"I talked to your work voicemail for 20 minutes today."','"We used to do stuff. Remember stuff?"'] },
+  { min:20,  emoji:'😤', mood:'Alex is furious', msgs:['"I bought a self-help book. About you."','"The cat likes you more than I do right now."','"Couples therapy is booked for Thursday."'] },
+  { min:0,   emoji:'💔', mood:'Alex has had enough', msgs:['"I deserve a real human being."','"I Googled \'how to disappear\' and it wasn\'t for hiking."','"Lawyer. Monday. Goodbye."'] },
+];
+
+const EVENTS = {
+  10:{ h:'📈 Promotion Bait', msg:'Your boss wants 3+ career units daily for a week. If you take it: +150 career, −40 relationship. Your call, hotshot.' },
+  20:{ h:'🎂 Anniversary', msg:'Alex remembered. Did you? Allocate 4+ to Alex today for a +30 relationship bonus.' },
+  35:{ h:'🤒 Family Chaos', msg:'Someone\'s sick. Not you. −10 health from stress regardless.' },
+  50:{ h:'🎭 School Play', msg:'The kids have a big moment. Put 3+ in Family for +25 relationship. Or don\'t and become a cautionary tale.' },
+  65:{ h:'💼 Dream Client', msg:'4+ career units today = +80 career. Alex will be fine. Probably.' },
+  80:{ h:'🏖️ Surprise Trip', msg:'Alex found flights. Free +50 relationship and +20 health. Automatic. You\'re welcome.' },
+};
+
+let state;
+function init() {
+  state = { day:1, career:0, rel:200, health:100, alloc:{career:2,rel:2,health:2,kids:2,growth:2}, divorced:false, over:false };
+}
+init();
+
+function renderDots() {
+  const used = Object.values(state.alloc).reduce((a,b)=>a+b,0);
+  const d = document.getElementById('dots');
+  d.innerHTML = '';
+  for (let i=0;i<10;i++) {
+    const e = document.createElement('div');
+    e.className = 'dot' + (i >= used ? ' used' : '');
+    d.appendChild(e);
+  }
+}
+
+function renderAlloc() {
+  const c = document.getElementById('alloc-rows');
+  c.innerHTML = '';
+  CATS.forEach(cat => {
+    const row = document.createElement('div');
+    row.className = 'alloc-row';
+    row.innerHTML = `<div class="alloc-info"><div class="name">${cat.name}</div><div class="desc">${cat.desc}</div></div>
+      <div class="alloc-ctrl">
+        <div class="abtn" onclick="adj('${cat.id}',-1)">−</div>
+        <div class="aval" id="av-${cat.id}">${state.alloc[cat.id]}</div>
+        <div class="abtn" onclick="adj('${cat.id}',1)">+</div>
+      </div>`;
+    c.appendChild(row);
+  });
+  updateBtn();
+  renderDots();
+}
+
+function adj(id, delta) {
+  const total = Object.values(state.alloc).reduce((a,b)=>a+b,0);
+  const newVal = state.alloc[id] + delta;
+  if (newVal < 0 || (delta > 0 && total >= 10)) return;
+  state.alloc[id] = newVal;
+  document.getElementById('av-'+id).textContent = newVal;
+  updateBtn();
+  renderDots();
+}
+
+function updateBtn() {
+  const rem = 10 - Object.values(state.alloc).reduce((a,b)=>a+b,0);
+  const btn = document.getElementById('end-btn');
+  btn.disabled = rem !== 0;
+  btn.textContent = rem === 0 ? 'End Day →' : `Assign ${rem} more unit${rem>1?'s':''}`;
+}
+
+function nextDay() {
+  if (state.over) return;
+  const a = state.alloc;
+  state.career = Math.max(0, state.career + a.career*8 + a.growth*3 - a.kids*2);
+  state.rel = Math.min(400, Math.max(0, state.rel + a.rel*12 + a.kids*5 - a.career*3));
+  state.health = Math.min(100, Math.max(0, state.health + a.health*6 + a.growth*3 - 1));
+  if (a.rel < 2) state.rel = Math.max(0, state.rel - 8);
+
+  const ev = EVENTS[state.day];
+  if (ev) {
+    showEvent(ev);
+    if (state.day===20 && a.rel>=4) { state.rel+=30; addLog('Anniversary saved! +30 relationship.','good'); }
+    if (state.day===35) state.health = Math.max(0, state.health-10);
+    if (state.day===50 && a.kids>=3) { state.rel+=25; addLog('Showed up for the kids. +25 relationship.','good'); }
+    if (state.day===65 && a.career>=4) { state.career+=80; addLog('Landed the dream client! +80 career.','good'); }
+    if (state.day===80) { state.rel=Math.min(400,state.rel+50); state.health=Math.min(100,state.health+20); addLog('Vacation! +50 relationship, +20 health.','good'); }
+  }
+
+  updateAlex();
+  addLog(`Day ${state.day} — Career: ${Math.round(state.career)} | Rel: ${Math.round(state.rel)} | Health: ${Math.round(state.health)}`);
+
+  if (state.rel <= 0 && !state.divorced) {
+    state.divorced = true;
+    state.career = Math.floor(state.career * 0.5);
+    addLog('DIVORCE FINALIZED. Career halved. The lawyers won.','warn');
+    showEvent({ h:'💔 Divorce Papers Served', msg:`Career score cut to ${Math.round(state.career)}. Alex kept the good towels.` });
+    state.rel = 40;
+  }
+
+  state.day++;
+  updateDash();
+  if (state.day > 100) { endGame(); return; }
+  if (state.health <= 0) { endGame('health'); return; }
+}
+
+function showEvent(ev) {
+  const b = document.getElementById('event-box');
+  b.innerHTML = `<div class="event-banner"><h4>${ev.h}</h4><p>${ev.msg}</p></div>`;
+  setTimeout(() => b.innerHTML='', 6000);
+}
+
+function updateAlex() {
+  let mood = MOODS[MOODS.length-1];
+  for (const m of MOODS) { if (state.rel >= m.min) { mood = m; break; } }
+  document.getElementById('alex-emoji').textContent = mood.emoji;
+  document.getElementById('alex-mood').textContent = mood.mood;
+  document.getElementById('alex-msg').textContent = mood.msgs[Math.floor(Math.random()*mood.msgs.length)];
+}
+
+function updateDash() {
+  document.getElementById('day-val').textContent = state.day;
+  document.getElementById('day-bar').style.width = (state.day/100*100)+'%';
+  document.getElementById('career-val').textContent = Math.round(state.career);
+  document.getElementById('career-bar').style.width = Math.min(100,(state.career/500)*100)+'%';
+  document.getElementById('rel-val').textContent = Math.round(state.rel);
+  document.getElementById('rel-bar').style.width = Math.min(100,(state.rel/400)*100)+'%';
+  document.getElementById('rel-bar').style.background = state.rel > 100 ? '#e63946' : '#999';
+  document.getElementById('health-val').textContent = Math.round(state.health);
+  document.getElementById('health-bar').style.width = state.health+'%';
+  document.getElementById('health-bar').style.background = state.health > 50 ? '#2ecc71' : '#f39c12';
+}
+
+function endGame(reason) {
+  state.over = true;
+  document.getElementById('end-btn').disabled = true;
+  const win = state.career >= 500 && state.rel >= 200;
+  let title, desc, reveal;
+  if (reason==='health') {
+    title = '🏥 Your Body Quit Before You Did';
+    desc = `Day ${state.day}. You ignored your health for ${state.day} days. Career: ${Math.round(state.career)}. Relationship: ${Math.round(state.rel)}. At least the paramedics gave you 5 stars.`;
+    reveal = 'Fun fact: you consistently gave health 0 units. Your body had opinions about that.';
+  } else if (win) {
+    title = '🏆 You Actually Did It';
+    desc = `Day 100. Career: ${Math.round(state.career)} ✓ | Relationship: ${Math.round(state.rel)} ✓. ${state.divorced?'One divorce along the way. Whatever.':'Zero divorces. Suspicious.'} Alex is cautiously impressed.`;
+    reveal = state.divorced ? 'You recovered from a divorce. That\'s either inspiring or a red flag about your relationship with failure.' : 'You never let the relationship collapse. That level of optimization is either love or terrifying.';
+  } else {
+    title = '⚖️ Close But No';
+    desc = `Day 100. Career: ${Math.round(state.career)} ${state.career>=500?'✓':'✗'} | Relationship: ${Math.round(state.rel)} ${state.rel>=200?'✓':'✗'}. ${state.divorced?'The divorce didn\'t help.':''}`;
+    reveal = 'You optimized the wrong thing. We all do.';
+  }
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-desc').textContent = desc;
+  document.getElementById('end-reveal').textContent = reveal;
+  document.getElementById('end-overlay').classList.remove('hidden');
+}
+
+function addLog(msg, cls='') {
+  const l = document.getElementById('log');
+  const e = document.createElement('div');
+  e.className = 'log-e '+cls;
+  e.textContent = msg;
+  l.insertBefore(e, l.firstChild);
+}
+
+function restart() {
+  init();
+  document.getElementById('end-overlay').classList.add('hidden');
+  document.getElementById('event-box').innerHTML = '';
+  document.getElementById('log').innerHTML = '<div class="log-e good">Day 1 — Round 2. You know what you did wrong.</div>';
+  updateDash();
+  updateAlex();
+  renderAlloc();
+}
+
+updateDash(); updateAlex(); renderAlloc();
+</script>
+</body>
+</html>

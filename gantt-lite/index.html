@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gantt Chart Lite — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:900px;margin:0 auto;padding:0 32px 80px}
+.add-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.add-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:0;align-items:end}
+@media(max-width:600px){.add-grid{grid-template-columns:1fr 1fr}}
+.ag-cell{padding:10px 12px;border-right:1px solid #f0f0f0}
+.ag-cell:last-child{border:none;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px}
+.ag-cell label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.ag-cell input,.ag-cell select{width:100%;padding:7px 9px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.add-row{padding:10px 14px;border-top:1px solid #e5e5e5;display:flex;gap:10px}
+.btn{padding:8px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}
+.gantt-wrap{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.gantt-header-row{display:flex;border-bottom:1px solid #e5e5e5;background:#f5f5f5}
+.gantt-label-col{min-width:200px;flex-shrink:0;padding:8px 12px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;border-right:1px solid #e5e5e5}
+.gantt-timeline-header{flex:1;display:flex;overflow:hidden;position:relative;height:34px}
+.month-tick{position:absolute;font-size:10px;font-weight:600;color:#888;top:10px}
+.month-line{position:absolute;top:0;bottom:0;width:1px;background:#e5e5e5}
+.gantt-row{display:flex;border-bottom:1px solid #f5f5f5;min-height:36px;align-items:center}
+.gantt-row:last-child{border:none}
+.gantt-row:hover{background:#fafafa}
+.gantt-task-name{min-width:200px;flex-shrink:0;padding:6px 12px;font-size:12px;font-weight:500;border-right:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between}
+.gantt-task-name .rm{background:none;border:none;color:#ccc;cursor:pointer;font-size:15px}
+.gantt-task-name .rm:hover{color:#c62828}
+.gantt-bar-area{flex:1;position:relative;height:36px}
+.gantt-bar{position:absolute;height:20px;top:8px;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;cursor:default}
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:#c62828;z-index:10}
+.status-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;margin-left:6px;flex-shrink:0}
+.sb-todo{background:#f0f0f0;color:#888}
+.sb-progress{background:#e3f2fd;color:#1565c0}
+.sb-done{background:#e8f5e9;color:#2e7d32}
+.sb-late{background:#ffebee;color:#c62828}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero">
+<h1>Gantt Chart Lite</h1>
+<p>Add tasks with start and end dates, assign a status, and get an auto-rendered visual timeline. No app, no login, no export friction.</p>
+<div class="badge">FREE TOOL</div>
+</div>
+<div class="app">
+<div class="add-panel">
+<div class="panel-header">Add Task</div>
+<div class="add-grid">
+<div class="ag-cell"><label>Task name</label><input type="text" id="tName" placeholder="e.g. BIM Modeling — SD Phase"></div>
+<div class="ag-cell"><label>Start date</label><input type="date" id="tStart"></div>
+<div class="ag-cell"><label>End date</label><input type="date" id="tEnd"></div>
+<div class="ag-cell"><label>Status</label>
+<select id="tStatus"><option value="todo">To Do</option><option value="progress">In Progress</option><option value="done">Done</option><option value="late">Late</option></select></div>
+<div class="ag-cell"><button class="btn btn-primary" onclick="addTask()" style="padding:8px 12px;margin-top:16px">+</button></div>
+</div>
+<div class="add-row">
+<button class="btn btn-secondary" onclick="loadSample()">Load sample project</button>
+</div>
+</div>
+<div class="gantt-wrap" id="ganttWrap">
+<div style="padding:40px;text-align:center;color:#888;font-size:13px">Add tasks above or load a sample to see the Gantt chart.</div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let tasks=[];let tid=0;
+const COLORS={todo:'#bbb',progress:'#1565c0',done:'#2e7d32',late:'#c62828'};
+const STATUS_LABELS={todo:'TO DO',progress:'IN PROGRESS',done:'DONE',late:'LATE'};
+const STATUS_CLS={todo:'sb-todo',progress:'sb-progress',done:'sb-done',late:'sb-late'};
+function addTask(name,start,end,status){
+  const n=name||document.getElementById('tName').value.trim();
+  const s=start||document.getElementById('tStart').value;
+  const e=end||document.getElementById('tEnd').value;
+  const st=status||document.getElementById('tStatus').value;
+  if(!n||!s||!e){alert('Name, start, and end date required.');return;}
+  if(new Date(e)<new Date(s)){alert('End date must be after start date.');return;}
+  tasks.push({id:tid++,name:n,start:s,end:e,status:st});
+  if(!name){document.getElementById('tName').value='';}
+  renderGantt();
+}
+function removeTask(id){tasks=tasks.filter(t=>t.id!==id);renderGantt();}
+function renderGantt(){
+  if(!tasks.length){document.getElementById('ganttWrap').innerHTML='<div style="padding:40px;text-align:center;color:#888;font-size:13px">Add tasks above to see the Gantt chart.</div>';return;}
+  const allDates=tasks.flatMap(t=>[new Date(t.start),new Date(t.end)]);
+  let minDate=new Date(Math.min(...allDates));
+  let maxDate=new Date(Math.max(...allDates));
+  minDate.setDate(1);
+  maxDate.setMonth(maxDate.getMonth()+1);maxDate.setDate(0);
+  const totalDays=(maxDate-minDate)/(1000*60*60*24);
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayPct=Math.max(0,Math.min(100,((today-minDate)/(1000*60*60*24))/totalDays*100));
+  const months=[];let d=new Date(minDate);
+  while(d<=maxDate){months.push(new Date(d));d.setMonth(d.getMonth()+1);}
+  const monthTicks=months.map(m=>{
+    const pct=((m-minDate)/(1000*60*60*24))/totalDays*100;
+    return `<div class="month-tick" style="left:${pct}%">${m.toLocaleDateString('en-US',{month:'short',year:'2-digit'})}</div>
+            <div class="month-line" style="left:${pct}%"></div>`;
+  }).join('');
+  const rows=tasks.map(t=>{
+    const startPct=((new Date(t.start)-minDate)/(1000*60*60*24))/totalDays*100;
+    const endPct=((new Date(t.end)-minDate)/(1000*60*60*24))/totalDays*100;
+    const width=Math.max(0.5,endPct-startPct);
+    const days=Math.round((new Date(t.end)-new Date(t.start))/(1000*60*60*24))+1;
+    return `<div class="gantt-row">
+      <div class="gantt-task-name">${t.name}<span class="status-badge ${STATUS_CLS[t.status]}">${STATUS_LABELS[t.status]}</span><button class="rm" onclick="removeTask(${t.id})">×</button></div>
+      <div class="gantt-bar-area">
+        <div class="today-line" style="left:${todayPct}%" title="Today"></div>
+        <div class="gantt-bar" style="left:${startPct}%;width:${width}%;background:${COLORS[t.status]}" title="${t.start} → ${t.end}">${days}d</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('ganttWrap').innerHTML=`
+    <div class="gantt-header-row">
+      <div class="gantt-label-col">Task</div>
+      <div class="gantt-timeline-header">${monthTicks}</div>
+    </div>
+    ${rows}`;
+}
+function loadSample(){
+  tasks=[];tid=0;
+  const d=(n)=>{const x=new Date();x.setDate(x.getDate()+n);return x.toISOString().split('T')[0];};
+  [['Project Kickoff',d(-10),d(-7),'done'],['BIM Setup & Standards',d(-7),d(0),'done'],['Schematic Design — Revit',d(-3),d(14),'progress'],['MEP Coordination',d(7),d(28),'todo'],['LOD 300 Documentation',d(14),d(35),'todo'],['Clash Detection Round 1',d(28),d(35),'todo'],['Design Development',d(21),d(56),'todo'],['Client Review',d(56),d(63),'todo'],['LOD 400 Production',d(49),d(84),'todo'],['Final Deliverable',d(84),d(91),'todo']].forEach(r=>addTask(...r));
+}
+const today=new Date();
+const start=new Date();start.setDate(start.getDate()+7);
+document.getElementById('tStart').value=today.toISOString().split('T')[0];
+document.getElementById('tEnd').value=start.toISOString().split('T')[0];
+</script>
+</body></html>

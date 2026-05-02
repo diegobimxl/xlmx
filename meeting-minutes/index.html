@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meeting Minutes Generator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111;color:#fff;min-height:100vh;padding:24px}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.sub{font-size:12px;color:#888;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.field{margin-bottom:14px}
+label{font-size:11px;color:#888;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+input,select,textarea{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:9px 12px;border-radius:6px;font-size:13px;font-family:inherit}
+input[type=date]{color-scheme:dark}
+textarea{resize:vertical;min-height:80px}
+.btn{background:#16a34a;color:#fff;border:none;padding:9px 18px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600}
+.btn-sec{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:9px 18px;border-radius:6px;font-size:13px;cursor:pointer}
+.btn-sec:hover{border-color:#16a34a;color:#fff}
+.btn-sm{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer}
+.btn-sm:hover{border-color:#16a34a;color:#fff}
+.card{background:#1a1a1a;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:12px;color:#ccc;text-transform:uppercase;letter-spacing:0.5px}
+.attendee-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.attendee-row input{flex:1}
+.del{background:none;border:none;color:#666;cursor:pointer;font-size:18px;padding:0 4px}
+.del:hover{color:#f87171}
+.item-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+.item-row textarea{flex:1;min-height:48px}
+.item-label{font-size:10px;color:#555;width:60px;flex-shrink:0;padding-top:10px;text-align:right;padding-right:8px}
+.output-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:20px;font-family:'Courier New',monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;color:#ccc;max-height:600px;overflow-y:auto;margin-top:20px}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{padding:8px 16px;background:#1a1a1a;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:12px;color:#888}
+.tab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.panel{display:none}.panel.active{display:block}
+</style>
+</head>
+<body>
+<h1>Meeting Minutes Generator</h1>
+<div class="sub">Structured minutes ready to send — fill in, generate, copy.</div>
+
+<div class="tabs">
+<div class="tab active" onclick="switchTab('form')">Form</div>
+<div class="tab" onclick="switchTab('output')">Output</div>
+</div>
+
+<div class="panel active" id="panel-form">
+<div class="card">
+<div class="card-title">Meeting Info</div>
+<div class="grid2">
+<div class="field"><label>Project Name</label><input type="text" id="project" placeholder="Project Beta Tower — SD Phase"></div>
+<div class="field"><label>Meeting Type</label>
+<select id="mtype">
+<option>Design Coordination</option>
+<option>BIM Coordination</option>
+<option>Owner/Architect Review</option>
+<option>Construction Progress</option>
+<option>Kickoff</option>
+<option>Pre-Construction</option>
+<option>MEP Coordination</option>
+<option>Value Engineering</option>
+<option>Closeout</option>
+<option>Other</option>
+</select></div>
+<div class="field"><label>Date</label><input type="date" id="mdate"></div>
+<div class="field"><label>Time</label><input type="text" id="mtime" placeholder="10:00 AM — 11:30 AM"></div>
+<div class="field"><label>Location / Platform</label><input type="text" id="mloc" placeholder="Zoom / Office / Site"></div>
+<div class="field"><label>Prepared By</label><input type="text" id="prepby" placeholder="Your name"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">Attendees <button class="btn-sm" onclick="addAttendee()">+ Add</button></div>
+<div id="attendees-list"></div>
+</div>
+
+<div class="card">
+<div class="card-title">Agenda Items</div>
+<div id="agenda-list"></div>
+<button class="btn-sm" onclick="addAgenda()">+ Add Topic</button>
+</div>
+
+<div class="card">
+<div class="card-title">Decisions Made</div>
+<div id="decisions-list"></div>
+<button class="btn-sm" onclick="addDecision()">+ Add Decision</button>
+</div>
+
+<div class="card">
+<div class="card-title">Action Items <span style="font-size:10px;color:#555">(who / what / when)</span></div>
+<div id="actions-list"></div>
+<button class="btn-sm" onclick="addAction()">+ Add Action</button>
+</div>
+
+<div class="card">
+<div class="card-title">Next Meeting</div>
+<div class="grid2">
+<div class="field"><label>Date & Time</label><input type="text" id="next-date" placeholder="May 15 / TBD"></div>
+<div class="field"><label>Notes</label><input type="text" id="next-notes" placeholder="Bring updated drawings"></div>
+</div>
+</div>
+
+<div style="display:flex;gap:8px;margin-top:8px">
+<button class="btn" onclick="generate()">Generate Minutes</button>
+<button class="btn-sec" onclick="clearForm()">Clear</button>
+</div>
+</div>
+
+<div class="panel" id="panel-output">
+<div class="toolbar">
+<button class="btn" onclick="copyOutput()">Copy to Clipboard</button>
+<button class="btn-sec" onclick="switchTab('form')">Back to Form</button>
+</div>
+<div class="output-box" id="output"></div>
+</div>
+
+<script>
+var today = new Date().toISOString().slice(0,10);
+document.getElementById('mdate').value = today;
+
+function addAttendee(name,role,org){
+  var div=document.createElement('div'); div.className='attendee-row';
+  div.innerHTML='<input type="text" placeholder="Name" value="'+(name||'')+'" style="flex:2">'
+    +'<input type="text" placeholder="Role" value="'+(role||'')+'" style="flex:2">'
+    +'<input type="text" placeholder="Company" value="'+(org||'')+'" style="flex:2">'
+    +'<button class="del" onclick="this.parentNode.remove()">×</button>';
+  document.getElementById('attendees-list').appendChild(div);
+}
+
+function addAgenda(text){
+  var div=document.createElement('div'); div.className='item-row';
+  div.innerHTML='<textarea placeholder="Agenda topic and discussion points...">'+(text||'')+'</textarea>'
+    +'<button class="del" onclick="this.parentNode.remove()" style="margin-top:4px">×</button>';
+  document.getElementById('agenda-list').appendChild(div);
+}
+
+function addDecision(text){
+  var div=document.createElement('div'); div.className='item-row';
+  div.innerHTML='<textarea placeholder="Decision made...">'+(text||'')+'</textarea>'
+    +'<button class="del" onclick="this.parentNode.remove()" style="margin-top:4px">×</button>';
+  document.getElementById('decisions-list').appendChild(div);
+}
+
+function addAction(){
+  var div=document.createElement('div'); div.className='item-row';
+  div.innerHTML='<input type="text" placeholder="Responsible" style="flex:1.5">'
+    +'<textarea placeholder="Action / task..." style="flex:3;min-height:40px"></textarea>'
+    +'<input type="text" placeholder="Due date" style="flex:1.2">'
+    +'<button class="del" onclick="this.parentNode.remove()" style="margin-top:4px">×</button>';
+  document.getElementById('actions-list').appendChild(div);
+}
+
+function val(id){ return document.getElementById(id).value.trim(); }
+
+function generate(){
+  var project=val('project')||'[Project]';
+  var mtype=val('mtype');
+  var mdate=val('mdate');
+  var mtime=val('mtime')||'—';
+  var mloc=val('mloc')||'—';
+  var prepby=val('prepby')||'—';
+
+  var attendees=[];
+  document.querySelectorAll('#attendees-list .attendee-row').forEach(function(r){
+    var ins=r.querySelectorAll('input');
+    if(ins[0].value.trim()) attendees.push(ins[0].value.trim()+' ('+ins[1].value.trim()+(ins[2].value.trim()?', '+ins[2].value.trim():'')+')');
+  });
+
+  var agendas=[];
+  document.querySelectorAll('#agenda-list .item-row textarea').forEach(function(t){if(t.value.trim())agendas.push(t.value.trim());});
+
+  var decisions=[];
+  document.querySelectorAll('#decisions-list .item-row textarea').forEach(function(t){if(t.value.trim())decisions.push(t.value.trim());});
+
+  var actions=[];
+  document.querySelectorAll('#actions-list .item-row').forEach(function(r){
+    var ins=r.querySelectorAll('input');
+    var tas=r.querySelectorAll('textarea');
+    if(tas.length && tas[0].value.trim()){
+      actions.push({who:ins[0]?ins[0].value.trim():'—', what:tas[0].value.trim(), when:ins[1]?ins[1].value.trim():'TBD'});
+    }
+  });
+
+  var sep='—'.repeat(60);
+  var out='';
+  out+='MEETING MINUTES\n';
+  out+=sep+'\n';
+  out+='Project:   '+project+'\n';
+  out+='Type:      '+mtype+'\n';
+  out+='Date:      '+mdate+'\n';
+  out+='Time:      '+mtime+'\n';
+  out+='Location:  '+mloc+'\n';
+  out+='Prepared:  '+prepby+'\n';
+  out+=sep+'\n\n';
+
+  if(attendees.length){
+    out+='ATTENDEES\n';
+    attendees.forEach(function(a,i){out+=(i+1)+'. '+a+'\n';});
+    out+='\n';
+  }
+
+  if(agendas.length){
+    out+='AGENDA & DISCUSSION\n';
+    agendas.forEach(function(a,i){out+=(i+1)+'. '+a+'\n';});
+    out+='\n';
+  }
+
+  if(decisions.length){
+    out+='DECISIONS\n';
+    decisions.forEach(function(d,i){out+=(i+1)+'. '+d+'\n';});
+    out+='\n';
+  }
+
+  if(actions.length){
+    out+='ACTION ITEMS\n';
+    var w1=Math.max.apply(null,actions.map(function(a){return a.who.length;}))+2;
+    var w2=Math.max.apply(null,actions.map(function(a){return a.when.length;}))+2;
+    actions.forEach(function(a,i){
+      out+=(i+1)+'. ['+a.who+'] '+a.what+' — Due: '+a.when+'\n';
+    });
+    out+='\n';
+  }
+
+  var ndate=val('next-date');
+  var nnotes=val('next-notes');
+  if(ndate||nnotes){
+    out+='NEXT MEETING\n';
+    if(ndate)out+='Date: '+ndate+'\n';
+    if(nnotes)out+='Notes: '+nnotes+'\n';
+    out+='\n';
+  }
+
+  out+=sep+'\n';
+  out+='End of Minutes — '+project+'\n';
+  out+='Generated by XLMX Meeting Minutes Generator\n';
+
+  document.getElementById('output').textContent=out;
+  switchTab('output');
+}
+
+function copyOutput(){
+  navigator.clipboard.writeText(document.getElementById('output').textContent)
+    .then(function(){alert('Copied!');});
+}
+
+function clearForm(){
+  if(!confirm('Clear all fields?'))return;
+  ['project','mtime','mloc','prepby','next-date','next-notes'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('mdate').value=today;
+  ['attendees-list','agenda-list','decisions-list','actions-list'].forEach(function(id){document.getElementById(id).innerHTML='';});
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(el){el.classList.remove('active');});
+  if(t==='form'){document.querySelectorAll('.tab')[0].classList.add('active');document.getElementById('panel-form').classList.add('active');}
+  else{document.querySelectorAll('.tab')[1].classList.add('active');document.getElementById('panel-output').classList.add('active');}
+}
+
+// defaults
+addAttendee('Diego Rodriguez','Principal','BIMXL');
+addAttendee('','Architect','');
+addAgenda('Project status update and schedule review');
+addAgenda('');
+addDecision('');
+addAction();
+</script>
+</body>
+</html>

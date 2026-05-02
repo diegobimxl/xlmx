@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Surgeon</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #e63946; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 5px; background: #e9ecef; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .system-label { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .component-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; border: 2px solid #e9ecef; background: #fff; transition: all 0.2s; }
+  .component-row.active { border-color: #2ecc71; background: #f0fff4; }
+  .component-row.cheap { border-color: #f39c12; background: #fffbf0; }
+  .comp-name { font-size: 13px; font-weight: 500; }
+  .comp-quality { display: flex; gap: 6px; align-items: center; }
+  .quality-opt { padding: 3px 10px; border-radius: 6px; border: 1px solid #e9ecef; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .quality-opt:hover { border-color: #4361ee; }
+  .quality-opt.selected-cheap { background: #f39c12; color: #fff; border-color: #f39c12; }
+  .quality-opt.selected-standard { background: #4361ee; color: #fff; border-color: #4361ee; }
+  .quality-opt.selected-premium { background: #2ecc71; color: #fff; border-color: #2ecc71; }
+  .comp-risk { font-size: 11px; font-weight: 600; }
+  .risk-low { color: #2ecc71; }
+  .risk-med { color: #f39c12; }
+  .risk-high { color: #e74c3c; }
+  .failure-event { background: #ffeaea; border: 1px solid #e74c3c; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .failure-event h4 { font-size: 14px; font-weight: 700; color: #e74c3c; margin-bottom: 4px; }
+  .failure-event p { font-size: 13px; color: #555; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #e63946; color: #fff; width: 100%; margin-top: 14px; }
+  .btn-primary:hover { background: #c1121f; }
+  .btn-secondary { background: #f1f3f4; color: #1a1a2e; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; }
+  .log-entry { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+  .log-entry.fail { color: #e74c3c; font-weight: 600; }
+  .log-entry.good { color: #2ecc71; font-weight: 600; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .hidden { display: none; }
+  .month-badge { display: inline-flex; background: #ffeaea; color: #e63946; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  @media (max-width: 700px) { .kpi-row { grid-template-columns: 1fr 1fr; } .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>Budget Surgeon</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">Build a clinic that never fails. Spoiler: it will.</div>
+</div>
+<div class="container">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Budget Used</div><div class="kpi-val" id="budget-val">$0</div><div class="kpi-sub">of $500,000</div><div class="bar-wrap"><div class="bar-fill" id="budget-bar" style="width:0%;background:#4361ee;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">System Risk</div><div class="kpi-val" id="risk-val" style="color:#2ecc71;">0.0%</div><div class="kpi-sub">Failure probability / month</div><div class="bar-wrap"><div class="bar-fill" id="risk-bar" style="width:0%;background:#2ecc71;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Patients Served</div><div class="kpi-val" id="patients-val" style="color:#2ecc71;">0</div><div class="kpi-sub">Target: 500</div></div>
+    <div class="kpi"><div class="kpi-label">Failures</div><div class="kpi-val" id="failures-val" style="color:#e74c3c;">0</div><div class="kpi-sub">System breakdowns</div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <span class="month-badge">Month <span id="month-display">1</span> of 24</span>
+    <button class="btn btn-secondary" onclick="runMonth()" id="run-btn" style="margin-left:auto;">Run Month →</button>
+  </div>
+  <div id="failure-container"></div>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Clinic System Design</h2>
+      <div id="systems-container"></div>
+      <div style="margin-top:12px;font-size:13px;color:#6c757d;">Total cost: <strong id="total-cost-display">$0</strong> / $500,000 budget</div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h2>Risk Calculator</h2>
+        <div id="risk-breakdown" style="font-size:13px;color:#555;line-height:2;">Select components above to see risk profile.</div>
+      </div>
+      <div class="card">
+        <h2>Clinic Log</h2>
+        <div class="log" id="game-log"><div class="log-entry good">Month 1 — Clinic designed. Build it to survive 24 months.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Clinic Closed</h2>
+    <p id="end-desc"></p>
+    <div style="background:#ffeaea;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:6px;">BIAS REVEALED: Zero-Risk Bias</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You obsessed over eliminating every fraction of a percent of risk. Humans systematically prefer 0% risk over a rational reduction from 5% to 1% — even when the cost is prohibitive. A 0.01% monthly failure rate across 24 months still gives a 97% chance of something going wrong. The only 0% failure system is the one that never operates.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Rebuild the Clinic</button>
+  </div>
+</div>
+<script>
+const SYSTEMS=[{id:'power',label:'⚡ Power System',components:[{id:'power_basic',name:'Basic Grid Only',cost:10000,riskPer:3.5,quality:'cheap'},{id:'power_backup',name:'Grid + Backup Generator',cost:45000,riskPer:0.8,quality:'standard'},{id:'power_redundant',name:'Triple Redundant Power',cost:120000,riskPer:0.05,quality:'premium'}]},{id:'sterile',label:'🧹 Sterile Systems',components:[{id:'sterile_basic',name:'Standard HVAC Filters',cost:8000,riskPer:2.1,quality:'cheap'},{id:'sterile_hepa',name:'HEPA + UV Sterilization',cost:35000,riskPer:0.4,quality:'standard'},{id:'sterile_iso',name:'ISO Class 5 Cleanroom',cost:95000,riskPer:0.02,quality:'premium'}]},{id:'monitoring',label:'🖥️ Patient Monitoring',components:[{id:'monitor_basic',name:'Basic Vital Monitors',cost:15000,riskPer:1.8,quality:'cheap'},{id:'monitor_smart',name:'Smart Monitoring Array',cost:55000,riskPer:0.3,quality:'standard'},{id:'monitor_ai',name:'AI Predictive Monitoring',cost:130000,riskPer:0.03,quality:'premium'}]},{id:'staff',label:'👨‍⚕️ Staffing Model',components:[{id:'staff_minimal',name:'Minimum Required Staff',cost:20000,riskPer:2.8,quality:'cheap'},{id:'staff_adequate',name:'Fully Staffed Shifts',cost:75000,riskPer:0.5,quality:'standard'},{id:'staff_elite',name:'Specialist Coverage 24/7',cost:160000,riskPer:0.04,quality:'premium'}]}];
+let state={month:1,patients:0,failures:0,budgetUsed:0,gameOver:false,selections:{power:null,sterile:null,monitoring:null,staff:null}};
+function computeRisk(){let r=0;Object.values(state.selections).forEach(sel=>{r+=sel?sel.riskPer:5;});return r;}
+function computeBudget(){return Object.values(state.selections).reduce((s,sel)=>s+(sel?sel.cost:0),0);}
+function renderSystems(){const c=document.getElementById('systems-container');c.innerHTML='';SYSTEMS.forEach(sys=>{const sec=document.createElement('div');sec.style.marginBottom='16px';sec.innerHTML=`<div class="system-label">${sys.label}</div>`;sys.components.forEach(comp=>{const sel=state.selections[sys.id];const isSel=sel&&sel.id===comp.id;const row=document.createElement('div');row.className='component-row'+(isSel?(comp.quality==='cheap'?' cheap':' active'):'');row.innerHTML=`<div><div class="comp-name">${comp.name}</div><div style="font-size:11px;color:#aaa;">$${comp.cost.toLocaleString()}</div></div><div class="comp-quality"><span class="comp-risk ${comp.riskPer>2?'risk-high':comp.riskPer>0.5?'risk-med':'risk-low'}">${comp.riskPer}%/mo</span><div class="quality-opt ${isSel?'selected-'+comp.quality:''}" onclick="selectComponent('${sys.id}','${comp.id}')">${isSel?'✓ Active':'Select'}</div></div>`;sec.appendChild(row);});c.appendChild(sec);});updateRisk();updateBudgetDisplay();}
+function selectComponent(sysId,compId){const sys=SYSTEMS.find(s=>s.id===sysId);state.selections[sysId]=sys.components.find(c=>c.id===compId);renderSystems();}
+function updateRisk(){const risk=computeRisk();let html='';SYSTEMS.forEach(sys=>{const sel=state.selections[sys.id];html+=sel?`${sys.label}: <strong class="${sel.riskPer>2?'risk-high':sel.riskPer>0.5?'risk-med':'risk-low'}">${sel.riskPer}% / mo</strong><br>`:`${sys.label}: <strong class="risk-high">5.0% / mo (unbuilt)</strong><br>`;});html+=`<br><strong>Total: ${risk.toFixed(2)}% per month</strong><br>24-month survival: <strong>${Math.max(0,Math.pow(1-risk/100,24)*100).toFixed(1)}%</strong>`;document.getElementById('risk-breakdown').innerHTML=html;document.getElementById('risk-val').textContent=risk.toFixed(2)+'%';document.getElementById('risk-bar').style.width=Math.min(100,risk*5)+'%';document.getElementById('risk-bar').style.background=risk>5?'#e74c3c':risk>1?'#f39c12':'#2ecc71';document.getElementById('risk-val').style.color=risk>5?'#e74c3c':risk>1?'#f39c12':'#2ecc71';}
+function updateBudgetDisplay(){const budget=computeBudget();document.getElementById('budget-val').textContent='$'+budget.toLocaleString();document.getElementById('budget-bar').style.width=(budget/500000*100)+'%';document.getElementById('total-cost-display').textContent='$'+budget.toLocaleString();}
+function runMonth(){if(state.gameOver)return;const risk=computeRisk();const roll=Math.random()*100;const pts=Math.floor(20+Math.random()*15);if(roll<risk){state.failures++;const failSys=SYSTEMS[Math.floor(Math.random()*SYSTEMS.length)];const msgs=[`${failSys.label} failure during peak hours. 3 patients rerouted.`,`${failSys.label} breakdown. Clinic shut for 18 hours.`,`Critical ${failSys.label} malfunction. Near-miss incident.`];const msg=msgs[Math.floor(Math.random()*msgs.length)];document.getElementById('failure-container').innerHTML=`<div class="failure-event"><h4>⚠️ System Failure — Month ${state.month}</h4><p>${msg}</p></div>`;setTimeout(()=>document.getElementById('failure-container').innerHTML='',5000);addLog(`Month ${state.month}: FAILURE — ${msg}`,'fail');document.getElementById('failures-val').textContent=state.failures;if(state.failures>=3){endGame('failures');return;}}else{state.patients+=pts;addLog(`Month ${state.month}: ${pts} patients served. Risk: ${risk.toFixed(2)}%`,'good');}state.month++;document.getElementById('month-display').textContent=state.month;document.getElementById('patients-val').textContent=state.patients;if(state.month>24){endGame('complete');return;}}
+function endGame(type){state.gameOver=true;document.getElementById('run-btn').disabled=true;const risk=computeRisk();const budget=computeBudget();let title,desc;if(type==='complete'){title=state.failures===0?'🏆 Zero-Defect Clinic':'📋 24 Months Complete';desc=`${state.patients} patients served. ${state.failures} failures. Budget: $${budget.toLocaleString()}. Risk: ${risk.toFixed(2)}%/month.`;}else{title='🚨 Clinic Shut Down';desc=`3 system failures triggered regulatory shutdown. ${state.patients} patients served before closure. Your ${risk.toFixed(2)}% monthly risk caught up after ${state.month-1} months.`;}document.getElementById('end-title').textContent=title;document.getElementById('end-desc').textContent=desc;document.getElementById('end-modal').classList.remove('hidden');}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const e=document.createElement('div');e.className='log-entry '+cls;e.textContent=msg;log.insertBefore(e,log.firstChild);}
+function restartGame(){state={month:1,patients:0,failures:0,budgetUsed:0,gameOver:false,selections:{power:null,sterile:null,monitoring:null,staff:null}};document.getElementById('end-modal').classList.add('hidden');document.getElementById('run-btn').disabled=false;document.getElementById('month-display').textContent=1;document.getElementById('patients-val').textContent=0;document.getElementById('failures-val').textContent=0;document.getElementById('game-log').innerHTML='<div class="log-entry good">Month 1 — Clinic designed. Build it to survive 24 months.</div>';document.getElementById('failure-container').innerHTML='';renderSystems();}
+renderSystems();
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Cost Converter - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:.88rem;font-weight:600;color:#16a34a;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.3rem;margin-top:.75rem}
+label:first-child{margin-top:0}
+input[type=number],select{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .75rem;border-radius:5px;font-size:.9rem;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:#16a34a}
+.btn{background:#16a34a;color:#fff;border:none;padding:.6rem 1.4rem;border-radius:6px;font-size:.88rem;cursor:pointer;font-family:inherit;font-weight:500;margin-top:1rem}
+.btn:hover{background:#15803d}
+.rate-note{font-size:.72rem;color:#555;margin-top:.3rem}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem}
+.res-card{background:#111;border:1px solid #333;border-radius:6px;padding:.85rem;text-align:center}
+.res-val{font-size:1.3rem;font-weight:600;color:#16a34a}
+.res-label{font-size:.7rem;color:#888;margin-top:.2rem}
+.rate-table{width:100%;border-collapse:collapse;margin-top:.5rem}
+.rate-table th{font-size:.7rem;color:#888;padding:.35rem .5rem;border-bottom:1px solid #222;text-align:left;font-weight:500}
+.rate-table td{font-size:.78rem;padding:.35rem .5rem;border-bottom:1px solid #1a1a1a}
+.rate-table tr:last-child td{border-bottom:none}
+.rate-table tr:hover td{background:#1f1f1f}
+.flag{font-size:.88rem;margin-right:.3rem}
+.disclaimer{font-size:.72rem;color:#555;margin-top:1rem;line-height:1.5}
+.rate-update{font-size:.7rem;color:#16a34a;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Construction Cost Converter</h1>
+<p class="sub">Convert project costs between USD, MXN, EUR, CAD, and GBP. Includes cost-per-m2 benchmarks for AEC projects.</p>
+<p class="rate-update">Indicative rates — update manually for current market rates. Last updated May 2025.</p>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>Currency Converter</h2>
+      <label>Amount</label>
+      <input type="number" id="amount" value="1000000" step="1000">
+      <label>From Currency</label>
+      <select id="fromCurr">
+        <option value="USD">USD — US Dollar</option>
+        <option value="MXN">MXN — Mexican Peso</option>
+        <option value="EUR">EUR — Euro</option>
+        <option value="CAD">CAD — Canadian Dollar</option>
+        <option value="GBP">GBP — British Pound</option>
+      </select>
+      <button class="btn" onclick="convert()">Convert</button>
+      <div class="result-grid" id="results"></div>
+    </div>
+    <div class="card">
+      <h2>Cost Per m2 Calculator</h2>
+      <label>Total Project Cost</label>
+      <input type="number" id="costTotal" value="5000000" step="10000">
+      <label>Currency</label>
+      <select id="costCurr">
+        <option value="USD">USD</option><option value="MXN">MXN</option><option value="EUR">EUR</option>
+      </select>
+      <label>Gross Floor Area (m2)</label>
+      <input type="number" id="gfa" value="2500" step="50">
+      <button class="btn" onclick="calcCostPerM2()">Calculate</button>
+      <div id="costResult" style="margin-top:1rem"></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>Exchange Rates (Manual)</h2>
+      <p style="font-size:.75rem;color:#888;margin-bottom:.75rem">Update rates to current market values:</p>
+      <label>1 USD = MXN</label>
+      <input type="number" id="rUSDMXN" value="17.20" step="0.01">
+      <label>1 USD = EUR</label>
+      <input type="number" id="rUSDEUR" value="0.924" step="0.001">
+      <label>1 USD = CAD</label>
+      <input type="number" id="rUSDCAD" value="1.36" step="0.01">
+      <label>1 USD = GBP</label>
+      <input type="number" id="rUSDGBP" value="0.788" step="0.001">
+    </div>
+    <div class="card">
+      <h2>Construction Cost Benchmarks</h2>
+      <table class="rate-table">
+        <thead><tr><th>Project Type</th><th>USD/m2</th><th>MXN/m2</th></tr></thead>
+        <tbody id="benchTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var benchmarks = [
+  {type:'Residential Basic',usd:400,note:'MX mid-tier'},
+  {type:'Residential Premium',usd:800,note:'MX high-end'},
+  {type:'Office Type A',usd:1200,note:'US Class A'},
+  {type:'Office Type B',usd:900,note:'MX corporate'},
+  {type:'Hotel 4-star',usd:1500,note:'Full-service'},
+  {type:'Hotel 5-star',usd:3000,note:'Luxury'},
+  {type:'Retail / Commercial',usd:700,note:'Shell'},
+  {type:'Industrial / Warehouse',usd:350,note:'Basic shell'},
+  {type:'Cultural / Museum',usd:2500,note:'High finish'},
+  {type:'Mixed-Use',usd:1100,note:'Average blended'},
+];
+
+function getRates(){
+  return {
+    USD:1,
+    MXN:parseFloat(document.getElementById('rUSDMXN').value)||17.2,
+    EUR:parseFloat(document.getElementById('rUSDEUR').value)||0.924,
+    CAD:parseFloat(document.getElementById('rUSDCAD').value)||1.36,
+    GBP:parseFloat(document.getElementById('rUSDGBP').value)||0.788
+  };
+}
+
+var symbols = {USD:'$',MXN:'MX$',EUR:'EUR',CAD:'CA$',GBP:'GBP'};
+var flags = {USD:'🇺🇸',MXN:'🇲🇽',EUR:'🇪🇺',CAD:'🇨🇦',GBP:'🇬🇧'};
+
+function fmtNum(n,curr){
+  var sym=symbols[curr]||'';
+  if(n>=1000000)return sym+(n/1000000).toFixed(2)+'M';
+  if(n>=1000)return sym+(n/1000).toFixed(1)+'K';
+  return sym+n.toFixed(2);
+}
+
+function convert(){
+  var amt=parseFloat(document.getElementById('amount').value)||0;
+  var from=document.getElementById('fromCurr').value;
+  var rates=getRates();
+  var inUSD=amt/rates[from];
+  var currencies=['USD','MXN','EUR','CAD','GBP'].filter(function(c){return c!==from;});
+  var html=currencies.map(function(c){
+    var val=inUSD*rates[c];
+    return '<div class="res-card"><div class="res-val">'+fmtNum(val,c)+'</div><div class="res-label"><span class="flag">'+flags[c]+'</span>'+c+'</div></div>';
+  }).join('');
+  document.getElementById('results').innerHTML=html;
+}
+
+function calcCostPerM2(){
+  var total=parseFloat(document.getElementById('costTotal').value)||0;
+  var curr=document.getElementById('costCurr').value;
+  var gfa=parseFloat(document.getElementById('gfa').value)||1;
+  var rates=getRates();
+  var inUSD=total/rates[curr];
+  var perM2USD=inUSD/gfa;
+  var perM2MXN=perM2USD*rates.MXN;
+  var perM2EUR=perM2USD*rates.EUR;
+  document.getElementById('costResult').innerHTML=
+    '<div class="result-grid">'
+    +'<div class="res-card"><div class="res-val">$'+perM2USD.toFixed(0)+'</div><div class="res-label">USD / m2</div></div>'
+    +'<div class="res-card"><div class="res-val">MX$'+perM2MXN.toFixed(0)+'</div><div class="res-label">MXN / m2</div></div>'
+    +'<div class="res-card"><div class="res-val">EUR '+perM2EUR.toFixed(0)+'</div><div class="res-label">EUR / m2</div></div>'
+    +'<div class="res-card"><div class="res-val">'+gfa.toLocaleString()+' m2</div><div class="res-label">GFA</div></div>'
+    +'</div>';
+}
+
+function buildBenchmarks(){
+  var rates=getRates();
+  document.getElementById('benchTable').innerHTML=benchmarks.map(function(b){
+    return '<tr><td>'+b.type+'</td><td>$'+b.usd+'</td><td>MX$'+(b.usd*rates.MXN).toFixed(0)+'</td></tr>';
+  }).join('');
+}
+
+// init
+buildBenchmarks();
+convert();
+document.querySelectorAll('#rUSDMXN,#rUSDEUR,#rUSDCAD,#rUSDGBP').forEach(function(el){el.addEventListener('input',function(){buildBenchmarks();convert();});});
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Schedule of Values — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:8px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase;white-space:nowrap}
+td{padding:7px 6px;border-bottom:1px solid #1e1e1e}
+input.inline{padding:5px;font-size:.8rem;margin:0}
+.bar-wrap{background:#222;border-radius:3px;height:6px;margin-top:3px}
+.bar-fill{background:#16a34a;border-radius:3px;height:6px;transition:width .3s}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.kbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.7rem;margin-top:3px}
+.del{color:#ef4444;cursor:pointer;font-size:.9rem}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:700px){.kpi{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Schedule of Values</h1>
+<p class="sub">Payment application SOV — track contracted value, billed, retainage, and balance to finish</p>
+<div class="kpi">
+<div class="kbox"><div class="v" id="kContract">$0</div><div class="l">Contract Value</div></div>
+<div class="kbox"><div class="v" id="kBilled">$0</div><div class="l">Total Billed</div></div>
+<div class="kbox"><div class="v" id="kRetain">$0</div><div class="l">Retainage Held</div></div>
+<div class="kbox"><div class="v" id="kBalance">$0</div><div class="l">Balance to Finish</div></div>
+</div>
+<div class="card">
+<div class="grid2">
+<div><label>Project</label><input id="proj" placeholder="Tower A"></div>
+<div><label>Pay App #</label><input id="appNum" type="number" value="1"></div>
+<div><label>Retainage %</label><input id="retPct" type="number" value="10" step="1" oninput="render()"></div>
+<div><label>Period Ending</label><input id="period" type="date"></div>
+</div>
+</div>
+<div class="card">
+<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+<button onclick="addLine()">+ Add Line Item</button>
+<button class="sec" onclick="addPreset()">Load CSI Preset</button>
+<button class="sec" onclick="expCSV()">Export CSV</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>#</th><th style="min-width:180px">Description</th><th>Scheduled Value</th><th>Prev Billed</th><th>This Period</th><th>% Complete</th><th>Retainage</th><th>Balance</th><th></th></tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+</div>
+<script>
+let lines=[];let nid=1;
+document.getElementById('period').value=new Date().toISOString().slice(0,10);
+function fmt(n){return'$'+Math.round(n).toLocaleString()}
+function addLine(desc='',sv=0,prev=0,cur=0){
+  lines.push({id:nid++,desc,sv,prev,cur});render();
+}
+function addPreset(){
+  const preset=[['01 — General Conditions',15000],['03 — Concrete',80000],['04 — Masonry',20000],
+    ['05 — Structural Steel',120000],['06 — Rough Carpentry',18000],['07 — Waterproofing',22000],
+    ['08 — Doors & Windows',45000],['09 — Finishes',60000],['22 — Plumbing',35000],
+    ['23 — HVAC',55000],['26 — Electrical',70000],['32 — Site Work',25000]];
+  preset.forEach(([d,v])=>lines.push({id:nid++,desc:d,sv:v,prev:0,cur:0}));render();
+}
+function delLine(id){lines=lines.filter(x=>x.id!==id);render()}
+function updateField(id,field,val){const l=lines.find(x=>x.id===id);if(l){l[field]=isNaN(+val)?val:+val;render()}}
+function render(){
+  const ret=+document.getElementById('retPct').value/100;
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  let tSV=0,tPrev=0,tCur=0,tRet=0,tBal=0;
+  lines.forEach((r,i)=>{
+    const tot=r.prev+r.cur;const pct=r.sv?Math.min(100,tot/r.sv*100):0;
+    const retAmt=tot*ret;const bal=r.sv-tot;
+    tSV+=r.sv;tPrev+=r.prev;tCur+=r.cur;tRet+=retAmt;tBal+=bal;
+    tb.innerHTML+=`<tr>
+      <td>${i+1}</td>
+      <td><input class="inline" style="width:170px;background:#222;border:1px solid #333;border-radius:4px;color:#fff" value="${r.desc}" onchange="updateField(${r.id},'desc',this.value)"></td>
+      <td><input class="inline" style="width:90px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;text-align:right" type="number" value="${r.sv}" onchange="updateField(${r.id},'sv',this.value)"></td>
+      <td><input class="inline" style="width:80px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;text-align:right" type="number" value="${r.prev}" onchange="updateField(${r.id},'prev',this.value)"></td>
+      <td><input class="inline" style="width:80px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;text-align:right" type="number" value="${r.cur}" onchange="updateField(${r.id},'cur',this.value)"></td>
+      <td><div style="font-size:.8rem">${pct.toFixed(1)}%</div><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div></td>
+      <td style="color:#f59e0b">${fmt(retAmt)}</td>
+      <td>${fmt(bal)}</td>
+      <td class="del" onclick="delLine(${r.id})">×</td></tr>`;
+  });
+  document.getElementById('kContract').textContent=fmt(tSV);
+  document.getElementById('kBilled').textContent=fmt(tPrev+tCur);
+  document.getElementById('kRetain').textContent=fmt(tRet);
+  document.getElementById('kBalance').textContent=fmt(tBal);
+}
+function expCSV(){
+  const ret=+document.getElementById('retPct').value/100;
+  let c=`Schedule of Values — ${document.getElementById('proj').value} — Pay App #${document.getElementById('appNum').value}\n`;
+  c+=`Period: ${document.getElementById('period').value} | Retainage: ${document.getElementById('retPct').value}%\n\n`;
+  c+=`#,Description,Scheduled Value,Prev Billed,This Period,Total Billed,% Complete,Retainage,Balance\n`;
+  lines.forEach((r,i)=>{const tot=r.prev+r.cur;const pct=r.sv?Math.min(100,tot/r.sv*100):0;c+=`${i+1},"${r.desc}",${r.sv},${r.prev},${r.cur},${tot},${pct.toFixed(1)}%,${Math.round(tot*ret)},${Math.round(r.sv-tot)}\n`});
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(c);a.download='schedule_of_values.csv';a.click();
+}
+addPreset();
+</script></body></html>

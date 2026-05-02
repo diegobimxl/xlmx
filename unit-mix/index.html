@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit Mix Optimizer — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:800px;margin:0 auto;padding:0 32px 80px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid #e5e5e5;border-radius:6px;padding:14px;text-align:center}
+.kpi-val{font-size:24px;font-weight:800;line-height:1}
+.kpi-val.green{color:#2e7d32}
+.kpi-label{font-size:11px;color:#888;margin-top:4px}
+.table-wrap{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.table-header{background:#f5f5f5;display:grid;grid-template-columns:1fr 80px 90px 90px 90px 90px 36px;gap:0;padding:0}
+.th{padding:10px 12px;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;border-right:1px solid #e5e5e5}
+.th:last-child{border:none}
+.unit-row{display:grid;grid-template-columns:1fr 80px 90px 90px 90px 90px 36px;border-top:1px solid #f0f0f0;align-items:center}
+.unit-row:hover{background:#fafafa}
+.tc{padding:8px 12px;border-right:1px solid #f5f5f5}
+.tc:last-child{border:none}
+.tc input{width:100%;padding:5px 8px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.tc input[type=number]{text-align:right}
+.tc-name input{text-align:left}
+.tc-calc{font-size:13px;font-weight:600;color:#555}
+.remove-btn{background:none;border:none;font-size:18px;color:#ccc;cursor:pointer;text-align:center}
+.remove-btn:hover{color:#c62828}
+.add-row{padding:10px 16px;border-top:1px solid #e5e5e5;display:flex;gap:10px}
+.btn{padding:8px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}
+.insight-box{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;padding:16px 20px;font-size:13px;line-height:1.7;margin-bottom:20px;color:#333}
+.insight-box strong{color:#111;font-weight:700}
+.chart-wrap{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.chart-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.chart-body{padding:16px;display:flex;flex-direction:column;gap:10px}
+.chart-row{display:flex;align-items:center;gap:12px;font-size:12px}
+.chart-label{min-width:120px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart-bar-track{flex:1;height:20px;background:#f0f0f0;border-radius:4px;overflow:hidden}
+.chart-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.chart-val{min-width:80px;text-align:right;font-weight:600}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Unit Mix Optimizer</h1>
+<p>Enter your unit types, sizes, and monthly rents. Instantly see total revenue, revenue per sqft, top-performing unit type, and where your mix is leaving money on the table.</p>
+<div class="badge">FREE TOOL — REAL ESTATE</div>
+</div>
+<div class="app">
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-val green" id="kpiRevenue">$0</div><div class="kpi-label">Monthly revenue</div></div>
+<div class="kpi"><div class="kpi-val" id="kpiAnnual">$0</div><div class="kpi-label">Annual revenue</div></div>
+<div class="kpi"><div class="kpi-val" id="kpiRentPSF">$0.00</div><div class="kpi-label">Avg rent / sqft</div></div>
+<div class="kpi"><div class="kpi-val" id="kpiUnits">0</div><div class="kpi-label">Total units</div></div>
+</div>
+<div class="table-wrap">
+<div class="table-header">
+<div class="th">Unit type</div>
+<div class="th">Units</div>
+<div class="th">Size (sqft)</div>
+<div class="th">Rent/mo ($)</div>
+<div class="th">Rent/sqft</div>
+<div class="th">Type revenue</div>
+<div class="th"></div>
+</div>
+<div id="unitRows"></div>
+<div class="add-row">
+<button class="btn btn-primary" onclick="addUnit()">+ Add unit type</button>
+<button class="btn btn-secondary" onclick="loadSample()">Load example</button>
+</div>
+</div>
+<div class="insight-box" id="insightBox">Add unit types above to see revenue analysis and mix optimization suggestions.</div>
+<div class="chart-wrap">
+<div class="chart-header">Revenue by unit type</div>
+<div class="chart-body" id="chartBody"></div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let units=[];let uid=0;
+const COLORS=['#1565c0','#2e7d32','#e65100','#6a1b9a','#00838f','#c62828','#558b2f','#1565c0'];
+function addUnit(name,count,size,rent){
+  units.push({id:uid++,name:name||'Studio',count:count||10,size:size||500,rent:rent||1200});
+  renderUnits();
+}
+function removeUnit(id){units=units.filter(u=>u.id!==id);renderUnits();}
+function updateUnit(id,key,val){const u=units.find(x=>x.id===id);if(u){u[key]=val;renderUnits();}}
+function loadSample(){
+  units=[];uid=0;
+  [['Studio',12,450,1100],['1 Bed / 1 Bath',24,720,1550],['2 Bed / 1 Bath',18,980,1950],['2 Bed / 2 Bath',16,1100,2200],['3 Bed / 2 Bath',8,1400,2800],['Penthouse',2,2200,5500]].forEach(r=>addUnit(...r));
+}
+function renderUnits(){
+  const el=document.getElementById('unitRows');
+  el.innerHTML='';
+  units.forEach((u,i)=>{
+    const psf=u.size>0?(u.rent/u.size).toFixed(2):0;
+    const rev=(u.count*u.rent).toLocaleString();
+    const div=document.createElement('div');div.className='unit-row';
+    div.innerHTML=`<div class="tc tc-name"><input value="${u.name}" onchange="updateUnit(${u.id},'name',this.value)"></div>
+      <div class="tc"><input type="number" value="${u.count}" min="1" onchange="updateUnit(${u.id},'count',parseInt(this.value)||1)"></div>
+      <div class="tc"><input type="number" value="${u.size}" min="1" onchange="updateUnit(${u.id},'size',parseFloat(this.value)||1)"></div>
+      <div class="tc"><input type="number" value="${u.rent}" min="0" onchange="updateUnit(${u.id},'rent',parseFloat(this.value)||0)"></div>
+      <div class="tc"><span class="tc-calc">$${psf}</span></div>
+      <div class="tc"><span class="tc-calc">$${rev}</span></div>
+      <div class="tc"><button class="remove-btn" onclick="removeUnit(${u.id})">×</button></div>`;
+    el.appendChild(div);
+  });
+  calcKPIs();
+}
+function calcKPIs(){
+  if(!units.length){
+    ['kpiRevenue','kpiAnnual','kpiRentPSF','kpiUnits'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('insightBox').textContent='Add unit types above.';
+    document.getElementById('chartBody').innerHTML='';
+    return;
+  }
+  const totalRevenue=units.reduce((a,u)=>a+u.count*u.rent,0);
+  const totalUnits=units.reduce((a,u)=>a+u.count,0);
+  const totalSF=units.reduce((a,u)=>a+u.count*u.size,0);
+  const avgPSF=totalSF>0?totalRevenue/totalSF:0;
+  document.getElementById('kpiRevenue').textContent='$'+totalRevenue.toLocaleString();
+  document.getElementById('kpiAnnual').textContent='$'+(totalRevenue*12).toLocaleString();
+  document.getElementById('kpiRentPSF').textContent='$'+avgPSF.toFixed(2);
+  document.getElementById('kpiUnits').textContent=totalUnits;
+  const sorted=[...units].sort((a,b)=>(b.rent/b.size)-(a.rent/a.size));
+  const best=sorted[0];const worst=sorted[sorted.length-1];
+  const insightEl=document.getElementById('insightBox');
+  insightEl.innerHTML=`Best performing unit by rent/sqft: <strong>${best.name}</strong> at <strong>$${(best.rent/best.size).toFixed(2)}/sqft</strong>. `+
+    (sorted.length>1?`Lowest performer: <strong>${worst.name}</strong> at <strong>$${(worst.rent/worst.size).toFixed(2)}/sqft</strong>. `:'') +
+    `Total portfolio: <strong>${totalUnits} units</strong> across <strong>${totalSF.toLocaleString()} sqft</strong> generating <strong>$${totalRevenue.toLocaleString()}/month</strong>. `+
+    `Average rent per sqft: <strong>$${avgPSF.toFixed(2)}</strong>.`;
+  const chart=document.getElementById('chartBody');
+  chart.innerHTML='';
+  const maxRev=Math.max(...units.map(u=>u.count*u.rent));
+  units.forEach((u,i)=>{
+    const rev=u.count*u.rent;
+    const pct=maxRev>0?Math.round((rev/maxRev)*100):0;
+    const div=document.createElement('div');div.className='chart-row';
+    div.innerHTML=`<span class="chart-label">${u.name}</span>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;background:${COLORS[i%COLORS.length]}"></div></div>
+      <span class="chart-val">$${rev.toLocaleString()}</span>`;
+    chart.appendChild(div);
+  });
+}
+loadSample();
+</script>
+</body>
+</html>

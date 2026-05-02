@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Door Hanger — Deep Work — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6;transition:filter .4s}
+body.focus-mode{filter:grayscale(0.5)}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:640px;margin:0 auto;padding:0 32px 80px}
+.timer-card{border:1px solid #e5e5e5;border-radius:8px;padding:32px;text-align:center;margin-bottom:20px;transition:border-color .3s,background .3s}
+.timer-card.active{border-color:#111;background:#f9f9f9}
+.timer-display{font-size:64px;font-weight:800;letter-spacing:4px;font-variant-numeric:tabular-nums;margin-bottom:8px;line-height:1}
+.timer-label{font-size:13px;color:#888;margin-bottom:24px}
+.timer-label.live{color:#2e7d32;font-weight:600}
+.duration-row{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.dur-btn{padding:7px 16px;border:1px solid #e5e5e5;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;transition:all .15s}
+.dur-btn:hover{border-color:#bbb}
+.dur-btn.active{background:#111;color:#fff;border-color:#111}
+.timer-controls{display:flex;gap:10px;justify-content:center}
+.btn{padding:10px 24px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}.btn-secondary:hover{background:#e8e8e8}
+.btn-stop{background:#c62828;color:#fff}.btn-stop:hover{background:#b71c1c}
+.rules-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.rules-header{background:#f5f5f5;padding:12px 20px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center}
+.rules-header span{font-size:11px;color:#888;font-weight:400}
+.rule-item{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #f0f0f0}
+.rule-item:last-child{border:none}
+.rule-info{display:flex;align-items:center;gap:10px}
+.rule-site{font-size:13px;font-weight:500}
+.rule-effect{font-size:11px;color:#888}
+.rule-toggle{position:relative;display:inline-block;width:40px;height:22px}
+.rule-toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#e5e5e5;border-radius:22px;cursor:pointer;transition:background .2s}
+.slider::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;left:3px;top:3px;transition:left .2s}
+input:checked+.slider{background:#111}
+input:checked+.slider::after{left:21px}
+.add-rule{display:flex;gap:10px;padding:12px 20px;background:#fafafa;border-top:1px solid #e5e5e5}
+.add-rule input{flex:1;padding:7px 12px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;outline:none;font-family:inherit}
+.add-rule input:focus{border-color:#111}
+.add-rule select{padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:12px;font-family:inherit;outline:none}
+.add-rule .btn-sm{padding:7px 14px;font-size:12px}
+.focus-bar{display:none;background:#111;color:#fff;padding:10px 20px;border-radius:8px;margin-bottom:20px;text-align:center;font-size:13px;font-weight:600}
+.focus-bar.visible{display:block}
+.session-log{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.log-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.log-item{display:flex;justify-content:space-between;padding:10px 16px;font-size:13px;border-bottom:1px solid #f0f0f0;color:#555}
+.log-item:last-child{border:none}
+.log-dur{font-weight:600;color:#111}
+.info-strip{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 18px;font-size:12px;color:#555;line-height:1.7;margin-bottom:20px}
+.info-strip strong{color:#111;font-weight:600}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;background:#f0f0f0;color:#555;padding:3px 8px;border-radius:3px}
+.note{font-size:11px;color:#999;text-align:center;margin-top:8px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body id="bodyEl">
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero"><h1>Door Hanger</h1><p>Browser-level deep work mode. Sets a timer and applies grayscale to distracting sites — not blocked, just drained of the dopamine. You can still use them, they just stop being fun.</p><div class="sub">Browser Extension Demo</div><div class="badge">BROWSER EXTENSION PROTOTYPE</div></div>
+<div class="app">
+<div class="focus-bar" id="focusBar">Door Hanger is ON — Distracting sites are muted</div>
+<div class="timer-card" id="timerCard">
+<div class="timer-display" id="timerDisplay">25:00</div>
+<div class="timer-label" id="timerLabel">Select duration and start your session</div>
+<div class="duration-row">
+<button class="dur-btn active" onclick="setDuration(25,this)">25 min</button>
+<button class="dur-btn" onclick="setDuration(45,this)">45 min</button>
+<button class="dur-btn" onclick="setDuration(60,this)">60 min</button>
+<button class="dur-btn" onclick="setDuration(90,this)">90 min</button>
+<button class="dur-btn" onclick="setDuration(120,this)">2 hrs</button>
+</div>
+<div class="timer-controls" id="timerControls"><button class="btn btn-primary" onclick="startTimer()">Start Session</button></div>
+</div>
+<div class="rules-panel">
+<div class="rules-header">Distraction Rules <span>Applied during active session</span></div>
+<div class="rule-item"><div class="rule-info"><div><div class="rule-site">twitter.com / x.com</div><div class="rule-effect">Grayscale + blur notifications</div></div></div><label class="rule-toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+<div class="rule-item"><div class="rule-info"><div><div class="rule-site">youtube.com</div><div class="rule-effect">Grayscale + hide homepage feed</div></div></div><label class="rule-toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+<div class="rule-item"><div class="rule-info"><div><div class="rule-site">reddit.com</div><div class="rule-effect">Grayscale + collapse threads</div></div></div><label class="rule-toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+<div class="rule-item"><div class="rule-info"><div><div class="rule-site">instagram.com</div><div class="rule-effect">Grayscale</div></div></div><label class="rule-toggle"><input type="checkbox" /><span class="slider"></span></label></div>
+<div class="add-rule">
+<input type="text" id="newSite" placeholder="Add site (e.g. tiktok.com)" />
+<select id="newEffect"><option>Grayscale</option><option>Grayscale + blur</option><option>Hide feed</option></select>
+<button class="btn btn-primary btn-sm" onclick="addRule()">Add</button>
+</div>
+</div>
+<div class="session-log">
+<div class="log-header">Today's Sessions</div>
+<div class="log-item"><span>Morning block</span><span class="log-dur">90 min</span></div>
+<div class="log-item"><span>Pre-lunch focus</span><span class="log-dur">45 min</span></div>
+<div style="padding:10px 16px;font-size:12px;color:#888">Total today: 2h 15min · Goal: 4h</div>
+</div>
+<div class="info-strip"><strong>How it works:</strong> The extension injects CSS into distracting sites when your session is active. It doesn't block — it mutes. The sites still work, they just stop being visually rewarding. Your timer lives in the extension popup, not a tab you'll close by accident.<div class="tag-row"><span class="tag">CSS injection — not blocking</span><span class="tag">Grayscale + blur per site</span><span class="tag">Pomodoro compatible</span><span class="tag">Session log</span><span class="tag">Custom site rules</span></div></div>
+<div class="note">Demo prototype — extension installs not yet active. Contact us to request early access.</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let duration=25*60,remaining=25*60,interval=null,running=false;
+function setDuration(min,btn){if(running)return;duration=remaining=min*60;document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateDisplay();}
+function updateDisplay(){const m=Math.floor(remaining/60),s=remaining%60;document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function startTimer(){if(running)return;running=true;document.getElementById('timerCard').classList.add('active');document.getElementById('timerLabel').textContent='Session active — stay focused';document.getElementById('timerLabel').className='timer-label live';document.getElementById('timerControls').innerHTML='<button class="btn btn-stop" onclick="stopTimer()">End Session</button>';document.getElementById('focusBar').classList.add('visible');document.getElementById('bodyEl').classList.add('focus-mode');interval=setInterval(()=>{remaining--;updateDisplay();if(remaining<=0){stopTimer(true);}},1000);}
+function stopTimer(finished){clearInterval(interval);running=false;document.getElementById('timerCard').classList.remove('active');document.getElementById('timerLabel').textContent=finished?'Session complete! Well done.':'Session ended early.';document.getElementById('timerLabel').className='timer-label';document.getElementById('timerControls').innerHTML='<button class="btn btn-primary" onclick="resetTimer()">New Session</button>';document.getElementById('focusBar').classList.remove('visible');document.getElementById('bodyEl').classList.remove('focus-mode');}
+function resetTimer(){remaining=duration;document.getElementById('timerLabel').textContent='Select duration and start your session';document.getElementById('timerControls').innerHTML='<button class="btn btn-primary" onclick="startTimer()">Start Session</button>';updateDisplay();}
+function addRule(){const site=document.getElementById('newSite').value.trim();const effect=document.getElementById('newEffect').value;if(!site)return;const panel=document.querySelector('.rules-panel');const addDiv=panel.querySelector('.add-rule');const div=document.createElement('div');div.className='rule-item';div.innerHTML=`<div class="rule-info"><div><div class="rule-site">${site}</div><div class="rule-effect">${effect}</div></div></div><label class="rule-toggle"><input type="checkbox" checked /><span class="slider"></span></label>`;panel.insertBefore(div,addDiv);document.getElementById('newSite').value='';}
+</script>
+</body>
+</html>

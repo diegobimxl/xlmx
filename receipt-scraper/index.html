@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Receipt Scraper — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.drop-zone{border:2px dashed #e5e5e5;border-radius:8px;padding:48px 24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:20px}
+.drop-zone:hover,.drop-zone.dragging{border-color:#111;background:#fafafa}
+.drop-zone.success{border-color:#2e7d32;border-style:solid;background:#f1f8e9}
+.drop-icon{font-size:40px;margin-bottom:12px}
+.drop-zone h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.drop-zone p{font-size:13px;color:#666}
+.drop-zone .formats{font-size:11px;color:#999;margin-top:8px}
+.or-divider{text-align:center;font-size:12px;color:#999;margin:4px 0 12px}
+.file-btn{display:inline-block;padding:8px 20px;background:#f5f5f5;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
+.file-btn:hover{background:#e8e8e8}
+.processing{display:none;text-align:center;padding:20px;border:1px solid #e5e5e5;border-radius:8px;margin-bottom:20px}
+.processing.visible{display:block}
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid #e5e5e5;border-top-color:#111;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-panel{display:none;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.result-panel.visible{display:block}
+.result-header{background:#f5f5f5;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e5e5}
+.result-header h3{font-size:14px;font-weight:600}
+.result-actions{display:flex;gap:8px}
+.btn{padding:6px 14px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111}.btn-secondary:hover{background:#e8e8e8}
+.btn-notion{background:#000;color:#fff;font-size:11px}.btn-notion:hover{background:#222}
+.result-body{padding:20px}
+.field-row{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.field-row:last-child{border-bottom:none}
+.field-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+.field-value input{width:100%;border:1px solid transparent;border-radius:4px;padding:4px 8px;font-size:14px;color:#111;background:transparent;font-family:inherit}
+.field-value input:focus{border-color:#e5e5e5;outline:none;background:#fafafa}
+.field-conf{font-size:10px;color:#888;white-space:nowrap}
+.conf-high{color:#2e7d32}.conf-med{color:#e65100}
+.history{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.history-header{background:#f5f5f5;padding:12px 20px;border-bottom:1px solid #e5e5e5;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.history-item{display:grid;grid-template-columns:1fr 80px 80px 60px;gap:10px;padding:12px 20px;border-bottom:1px solid #f0f0f0;font-size:13px;align-items:center}
+.history-item:last-child{border-bottom:none}
+.history-item:hover{background:#fafafa}
+.hist-merchant{font-weight:500}.hist-date,.hist-total{color:#666}
+.hist-export{font-size:11px;color:#888;text-align:right;cursor:pointer}.hist-export:hover{color:#111}
+.info-strip{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 18px;font-size:12px;color:#555;line-height:1.7;margin-bottom:20px}
+.info-strip strong{color:#111;font-weight:600}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;background:#f0f0f0;color:#555;padding:3px 8px;border-radius:3px}
+.note{font-size:11px;color:#999;text-align:center;margin-top:16px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero"><h1>Receipt Scraper</h1><p>Drag a PDF or image of any invoice. Get Merchant, Date, Total, and Tax extracted in one second and pushed to CSV or Notion.</p><div class="sub">Browser Sidebar Extension Demo</div><div class="badge">BROWSER EXTENSION PROTOTYPE</div></div>
+<div class="app">
+<div class="drop-zone" id="dropZone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+<div class="drop-icon">🧾</div><h3>Drop your invoice here</h3><p>PDF, JPG, PNG — any receipt or invoice</p>
+<div class="formats">Supports: PDF · JPG · PNG · HEIC · WebP</div>
+<div class="or-divider">— or —</div>
+<div class="file-btn" onclick="simulateScan()">Choose File</div>
+</div>
+<div class="processing" id="processing"><div class="spinner"></div><p style="font-size:13px;color:#666">Scanning receipt... extracting fields...</p></div>
+<div class="result-panel" id="resultPanel">
+<div class="result-header"><h3>Extracted Data</h3><div class="result-actions"><button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button><button class="btn btn-notion" onclick="pushNotion()">→ Notion</button><button class="btn btn-primary" onclick="saveReceipt()">Save</button></div></div>
+<div class="result-body">
+<div class="field-row"><div class="field-label">Merchant</div><div class="field-value"><input id="fMerchant" value="Amazon.com" /></div><div class="field-conf conf-high">98% conf.</div></div>
+<div class="field-row"><div class="field-label">Date</div><div class="field-value"><input id="fDate" value="2026-03-24" /></div><div class="field-conf conf-high">97% conf.</div></div>
+<div class="field-row"><div class="field-label">Subtotal</div><div class="field-value"><input id="fSub" value="$84.99" /></div><div class="field-conf conf-high">99% conf.</div></div>
+<div class="field-row"><div class="field-label">Tax</div><div class="field-value"><input id="fTax" value="$7.23" /></div><div class="field-conf conf-med">82% conf.</div></div>
+<div class="field-row"><div class="field-label">Total</div><div class="field-value"><input id="fTotal" value="$92.22" /></div><div class="field-conf conf-high">99% conf.</div></div>
+<div class="field-row"><div class="field-label">Category</div><div class="field-value"><select style="border:1px solid #e5e5e5;border-radius:4px;padding:4px 8px;font-size:14px;font-family:inherit"><option>Office Supplies</option><option>Travel</option><option>Meals</option><option>Software</option><option>Other</option></select></div><div class="field-conf">Manual</div></div>
+</div></div>
+<div class="info-strip"><strong>How it works:</strong> Drop any invoice image or PDF. OCR runs locally in the extension, extracts structured fields, and lets you push to CSV or a connected Notion database in one click. No cloud upload. No subscription for basic use.<div class="tag-row"><span class="tag">Local OCR</span><span class="tag">Editable fields</span><span class="tag">CSV export</span><span class="tag">Notion push</span><span class="tag">Tax season ready</span></div></div>
+<div class="history">
+<div class="history-header"><span>Saved Receipts (3)</span><button class="btn btn-secondary" onclick="exportAll()">Export All CSV</button></div>
+<div class="history-item"><div class="hist-merchant">Oxxo Gas — Saltillo</div><div class="hist-date">Mar 22</div><div class="hist-total">$1,240 MXN</div><div class="hist-export" onclick="alert('Exported!')">CSV ↓</div></div>
+<div class="history-item"><div class="hist-merchant">Home Depot</div><div class="hist-date">Mar 18</div><div class="hist-total">$67.50</div><div class="hist-export" onclick="alert('Exported!')">CSV ↓</div></div>
+<div class="history-item"><div class="hist-merchant">Starbucks</div><div class="hist-date">Mar 15</div><div class="hist-total">$12.40</div><div class="hist-export" onclick="alert('Exported!')">CSV ↓</div></div>
+</div>
+<div class="note">Demo prototype — extension installs not yet active. Contact us to request early access.</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+function handleDragOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('dragging')}
+function handleDragLeave(e){document.getElementById('dropZone').classList.remove('dragging')}
+function handleDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('dragging');simulateScan()}
+function simulateScan(){document.getElementById('dropZone').classList.add('success');document.getElementById('dropZone').querySelector('h3').textContent='Receipt received!';document.getElementById('processing').classList.add('visible');setTimeout(()=>{document.getElementById('processing').classList.remove('visible');document.getElementById('resultPanel').classList.add('visible');},1800);}
+function exportCSV(){const m=document.getElementById('fMerchant').value,d=document.getElementById('fDate').value,t=document.getElementById('fTotal').value,tx=document.getElementById('fTax').value,csv=`Merchant,Date,Total,Tax\n"${m}","${d}","${t}","${tx}"`;const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='receipt.csv';a.click();}
+function pushNotion(){alert('Connected to Notion! Row added to "Expenses" database.')}
+function saveReceipt(){alert('Receipt saved to history.')}
+function exportAll(){alert('All receipts exported to receipts_2026.csv')}
+</script>
+</body>
+</html>

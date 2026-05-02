@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Screenshot Redactor — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.tool-btn{padding:7px 14px;border:1px solid #e5e5e5;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;transition:all .15s}
+.tool-btn:hover{background:#f5f5f5}
+.tool-btn.active{background:#111;color:#fff;border-color:#111}
+.tool-label{font-size:11px;color:#888;margin-left:auto}
+.canvas-wrap{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.bottom-bar{display:flex;gap:10px;justify-content:flex-end;padding:10px 16px;background:#f9f9f9;border-top:1px solid #e5e5e5}
+.btn{padding:8px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}.btn-secondary:hover{background:#e8e8e8}
+.detections{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.det-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between}
+.det-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #f5f5f5;font-size:13px}
+.det-item:last-child{border:none}
+.det-type{display:flex;align-items:center;gap:8px}
+.det-icon{width:8px;height:8px;border-radius:50%;background:#c62828;flex-shrink:0}
+.det-icon.email{background:#1565c0}.det-icon.face{background:#4a148c}.det-icon.card{background:#c62828}
+.det-toggle{width:36px;height:20px;background:#111;border-radius:10px;position:relative;cursor:pointer;flex-shrink:0;border:none}
+.det-toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;right:3px;top:3px;transition:right .15s}
+.det-toggle.off{background:#e5e5e5}.det-toggle.off::after{right:19px}
+.info-strip{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 18px;font-size:12px;color:#555;line-height:1.7;margin-bottom:20px}
+.info-strip strong{color:#111;font-weight:600}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;background:#f0f0f0;color:#555;padding:3px 8px;border-radius:3px}
+.note{font-size:11px;color:#999;text-align:center;margin-top:8px}
+.mock-screenshot{width:100%;background:#f8f8f8;padding:20px;font-size:12px;font-family:monospace;min-height:200px}
+.blur-block{display:inline-block;background:#333;color:transparent;user-select:none;border-radius:2px;filter:blur(4px);margin:0 2px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero"><h1>Screenshot Redactor</h1><p>Snap a screenshot and auto-blur emails, credit card numbers, and balances before sharing. One click to clipboard. 100% local.</p><div class="sub">Browser Extension Demo</div><div class="badge">BROWSER EXTENSION PROTOTYPE</div></div>
+<div class="app">
+<div class="toolbar">
+<button class="tool-btn active" id="btnAuto" onclick="setMode('auto')">Auto-Detect</button>
+<button class="tool-btn" id="btnManual" onclick="setMode('manual')">Manual Blur</button>
+<button class="tool-btn" id="btnBox" onclick="setMode('box')">Draw Box</button>
+<span class="tool-label">Mode: <span id="modeLabel">Auto-Detect</span></span>
+</div>
+<div class="canvas-wrap">
+<div class="mock-screenshot" id="screenshotPreview">
+<div style="margin-bottom:10px;color:#888">— Simulated browser screenshot —</div>
+<div style="margin-bottom:6px">From: <span id="emailSpan" class="blur-block" style="padding:0 6px">&nbsp;diego@bimxl.com&nbsp;</span></div>
+<div style="margin-bottom:6px">Card ending: <span id="cardSpan" class="blur-block" style="padding:0 6px">&nbsp;•••• •••• •••• 4821&nbsp;</span></div>
+<div style="margin-bottom:6px">Balance: <span id="balSpan" class="blur-block" style="padding:0 6px">&nbsp;$12,450.00&nbsp;</span></div>
+<div style="margin-bottom:6px">Account: <span id="acctSpan" class="blur-block" style="padding:0 6px">&nbsp;Checking ••• 3311&nbsp;</span></div>
+<div style="margin-top:16px;color:#666">Subject: Project invoice Q1 2026</div>
+</div>
+<div class="bottom-bar">
+<button class="btn btn-secondary" onclick="toggleAll()">Toggle All</button>
+<button class="btn btn-secondary" onclick="resetAll()">Reset</button>
+<button class="btn btn-primary" onclick="copyClip()">Copy to Clipboard</button>
+</div>
+</div>
+<div class="detections">
+<div class="det-header"><span>Auto-Detected Sensitive Fields (4)</span><span style="font-size:11px;color:#888;font-weight:400">Toggle to include/exclude</span></div>
+<div class="det-item"><div class="det-type"><div class="det-icon email"></div>Email address — diego@bimxl.com</div><button class="det-toggle" id="tog0" onclick="toggleField(0)"></button></div>
+<div class="det-item"><div class="det-type"><div class="det-icon card"></div>Credit card number — •••• 4821</div><button class="det-toggle" id="tog1" onclick="toggleField(1)"></button></div>
+<div class="det-item"><div class="det-type"><div class="det-icon card"></div>Account balance — $12,450.00</div><button class="det-toggle" id="tog2" onclick="toggleField(2)"></button></div>
+<div class="det-item"><div class="det-type"><div class="det-icon card"></div>Account number — ••• 3311</div><button class="det-toggle" id="tog3" onclick="toggleField(3)"></button></div>
+</div>
+<div class="info-strip"><strong>How it works:</strong> The extension runs a local pattern-matching model on your screenshot before it ever leaves your browser. Emails, card patterns, phone numbers, and faces are detected and blurred. You control which fields to redact before copying.<div class="tag-row"><span class="tag">100% local</span><span class="tag">Pattern matching</span><span class="tag">Face detection</span><span class="tag">One-click clipboard</span></div></div>
+<div class="note">Demo prototype — extension installs not yet active. Contact us to request early access.</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+const fields=[document.getElementById('emailSpan'),document.getElementById('cardSpan'),document.getElementById('balSpan'),document.getElementById('acctSpan')];
+const toggles=[0,1,2,3].map(i=>document.getElementById('tog'+i));
+let states=[true,true,true,true];
+function setMode(m){['auto','manual','box'].forEach(id=>{document.getElementById('btn'+id.charAt(0).toUpperCase()+id.slice(1)).classList.toggle('active',id===m);});document.getElementById('modeLabel').textContent=m==='auto'?'Auto-Detect':m==='manual'?'Manual Blur':'Draw Box';}
+function toggleField(i){states[i]=!states[i];fields[i].style.filter=states[i]?'blur(4px)':'none';fields[i].style.background=states[i]?'#333':'#ffe0b2';toggles[i].classList.toggle('off',!states[i]);}
+function toggleAll(){const anyOn=states.some(s=>s);states=states.map(()=>!anyOn);fields.forEach((f,i)=>{f.style.filter=states[i]?'blur(4px)':'none';f.style.background=states[i]?'#333':'#ffe0b2';});toggles.forEach((t,i)=>t.classList.toggle('off',!states[i]));}
+function resetAll(){states=[true,true,true,true];fields.forEach(f=>{f.style.filter='blur(4px)';f.style.background='#333';});toggles.forEach(t=>t.classList.remove('off'));}
+function copyClip(){navigator.clipboard.writeText('[Redacted screenshot copied to clipboard]').catch(()=>{});const btn=event.target;btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy to Clipboard',1500);}
+</script>
+</body>
+</html>

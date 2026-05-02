@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grasshopper Reference — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+input{width:100%;padding:12px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:16px}
+input::placeholder{color:#666}
+.cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.cat{padding:7px 14px;background:#222;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:.78rem}
+.cat:hover,.cat.active{border-color:#16a34a;color:#16a34a;background:#0a1a0a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.comp{background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:14px;transition:border-color .15s}
+.comp:hover{border-color:#16a34a}
+.comp-name{font-weight:700;font-size:.9rem;margin-bottom:4px;color:#fff}
+.comp-cat{font-size:.7rem;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:8px;font-weight:600}
+.Params{background:#0a1a0a;color:#16a34a}.Maths{background:#0a0a2a;color:#3b82f6}
+.Sets{background:#1a0a1a;color:#c084fc}.Vectors{background:#1a1a00;color:#f59e0b}
+.Curve{background:#1a0a00;color:#f97316}.Surface{background:#2a0a0a;color:#ef4444}
+.Mesh{background:#0a1a1a;color:#06b6d4}.Intersect{background:#1a1a2a;color:#8b5cf6}
+.Transform{background:#1a0a0a;color:#f43f5e}.Display{background:#0a0a1a;color:#60a5fa}
+.Kangaroo{background:#1a0a1a;color:#e879f9}.Pufferfish{background:#0a1a0a;color:#34d399}
+.comp-desc{font-size:.8rem;color:#aaa;line-height:1.5;margin-bottom:8px}
+.comp-inputs,.comp-outputs{font-size:.75rem;margin-top:6px}
+.io-label{color:#555;margin-right:4px}
+.io-val{color:#888}
+.shortcut{background:#222;padding:2px 6px;border-radius:3px;font-family:monospace;font-size:.7rem;color:#ccc}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Grasshopper Component Reference</h1>
+<p class="sub">Quick-search 80+ essential Grasshopper components — inputs, outputs, and use cases</p>
+<input id="search" placeholder="Search components: 'loft', 'divide', 'surface'..." oninput="filter()">
+<div class="cats" id="cats"></div>
+<div class="grid" id="grid"></div>
+<script>
+const COMPS=[
+  {name:'Number Slider',cat:'Params',desc:'Creates a numeric value with min/max range. The most-used input in any definition.',inputs:'None',outputs:'N (Number)'},
+  {name:'Panel',cat:'Params',desc:'Displays text/data output. Double-click to enter text. Use for notes and labels.',inputs:'Input (any)',outputs:'Displays value'},
+  {name:'Point',cat:'Params',desc:'Creates or references a point in 3D space.',inputs:'Coordinate',outputs:'Pt (Point)'},
+  {name:'Curve',cat:'Params',desc:'References or bakes a curve from Rhino.',inputs:'Rhino reference',outputs:'C (Curve)'},
+  {name:'Surface',cat:'Params',desc:'References a NURBS surface from Rhino.',inputs:'Rhino reference',outputs:'S (Surface)'},
+  {name:'Construct Point',cat:'Params',desc:'Builds a point from X, Y, Z coordinates.',inputs:'X, Y, Z (Number)',outputs:'Pt (Point)'},
+  {name:'Deconstruct Point',cat:'Params',desc:'Extracts X, Y, Z components from a point.',inputs:'Pt (Point)',outputs:'X, Y, Z'},
+  {name:'Series',cat:'Sets',desc:'Generates a sequence: start + (step × count). Essential for grids and arrays.',inputs:'S (start), N (step), C (count)',outputs:'S (list of numbers)'},
+  {name:'Range',cat:'Sets',desc:'Divides a domain into equal steps.',inputs:'D (domain), N (count)',outputs:'R (list)'},
+  {name:'List Item',cat:'Sets',desc:'Retrieves item at index from a list.',inputs:'L (list), i (index)',outputs:'Item'},
+  {name:'Flatten',cat:'Sets',desc:'Collapses nested data tree into a single list. Fix mismatched data structure issues.',inputs:'Tree',outputs:'Flat list'},
+  {name:'Graft',cat:'Sets',desc:'Wraps each item in its own branch. Useful for one-to-one operations.',inputs:'List',outputs:'Tree'},
+  {name:'Cull Pattern',cat:'Sets',desc:'Removes items from a list using a boolean pattern.',inputs:'L (list), P (pattern)',outputs:'L (culled)'},
+  {name:'Dispatch',cat:'Sets',desc:'Splits a list into two by boolean pattern.',inputs:'L (list), P (pattern)',outputs:'A (true), B (false)'},
+  {name:'Mass Addition',cat:'Maths',desc:'Sums all values in a list.',inputs:'I (list of numbers)',outputs:'R (sum)'},
+  {name:'Evaluate',cat:'Maths',desc:'Evaluates a mathematical expression with variables.',inputs:'F (formula), x,y,z',outputs:'R (result)'},
+  {name:'Remap Numbers',cat:'Maths',desc:'Maps values from source domain to target domain.',inputs:'V (value), S (source), T (target)',outputs:'R (remapped)'},
+  {name:'Average',cat:'Maths',desc:'Computes average of a list.',inputs:'I (list)',outputs:'A (average)'},
+  {name:'Bounds',cat:'Maths',desc:'Returns the numeric domain (min to max) of a list.',inputs:'N (list)',outputs:'D (domain)'},
+  {name:'Unit X/Y/Z',cat:'Vectors',desc:'Creates a unit vector along the specified axis. Multiply by factor for custom length.',inputs:'Factor (optional)',outputs:'V (vector)'},
+  {name:'Amplitude',cat:'Vectors',desc:'Sets the length of a vector.',inputs:'V (vector), A (amplitude)',outputs:'V (scaled)'},
+  {name:'Move',cat:'Transform',desc:'Translates geometry by a vector.',inputs:'G (geometry), T (translation vector)',outputs:'G (moved), X (transform)'},
+  {name:'Rotate',cat:'Transform',desc:'Rotates geometry around an axis.',inputs:'G, A (angle rad), P (plane)',outputs:'G (rotated)'},
+  {name:'Scale',cat:'Transform',desc:'Scales geometry uniformly or non-uniformly.',inputs:'G, F (factor), C (center)',outputs:'G (scaled)'},
+  {name:'Mirror',cat:'Transform',desc:'Mirrors geometry across a plane.',inputs:'G, P (plane)',outputs:'G (mirrored)'},
+  {name:'Orient',cat:'Transform',desc:'Orients geometry from reference plane to target plane.',inputs:'G, A (source plane), B (target plane)',outputs:'G (oriented)'},
+  {name:'Divide Curve',cat:'Curve',desc:'Divides a curve by count or distance. Returns points, tangents, and parameters.',inputs:'C (curve), N (count)',outputs:'P (points), T (tangents), t (params)'},
+  {name:'Evaluate Curve',cat:'Curve',desc:'Evaluates a point on a curve at parameter t.',inputs:'C, t (0–1)',outputs:'P (point), T (tangent)'},
+  {name:'Offset Curve',cat:'Curve',desc:'Offsets a curve by distance on a plane.',inputs:'C, D (distance), P (plane)',outputs:'C (offset)'},
+  {name:'Loft',cat:'Surface',desc:'Creates a surface through a series of section curves. The workhorse of parametric form.',inputs:'C (curves), O (options)',outputs:'L (surface/brep)'},
+  {name:'Extrude',cat:'Surface',desc:'Extrudes a curve along a vector.',inputs:'B (base curve), D (direction)',outputs:'S (brep)'},
+  {name:'Divide Surface',cat:'Surface',desc:'Divides a surface into U×V grid of points.',inputs:'S, U count, V count',outputs:'P (points), N (normals), UV params'},
+  {name:'Isotrim',cat:'Surface',desc:'Extracts a sub-surface by UV domain.',inputs:'S (surface), D (domain)',outputs:'S (trimmed)'},
+  {name:'Surface Closest Point',cat:'Surface',desc:'Finds closest point on surface to input point.',inputs:'P (point), S (surface)',outputs:'UV params, dist, closest pt'},
+  {name:'Evaluate Surface',cat:'Surface',desc:'Evaluates position, normal, and frame at UV parameter.',inputs:'S, UV',outputs:'P, N (normal), F (frame)'},
+  {name:'Mesh Brep',cat:'Mesh',desc:'Converts a brep/surface to a mesh with settings.',inputs:'B (brep), S (mesh settings)',outputs:'M (mesh)'},
+  {name:'Mesh Vertices',cat:'Mesh',desc:'Extracts vertex points from a mesh.',inputs:'M (mesh)',outputs:'V (vertices)'},
+  {name:'Mesh Faces',cat:'Mesh',desc:'Extracts face indices from a mesh.',inputs:'M',outputs:'Faces (index lists)'},
+  {name:'Weld Mesh',cat:'Mesh',desc:'Welds mesh vertices within an angle threshold.',inputs:'M, A (angle)',outputs:'M (welded)'},
+  {name:'Brep|Plane Intersection',cat:'Intersect',desc:'Intersects a brep with a plane — returns curves. Use for floor plate extraction.',inputs:'B (brep), P (plane)',outputs:'C (curves)'},
+  {name:'Curve|Curve Intersection',cat:'Intersect',desc:'Finds intersection points of two curves.',inputs:'A, B (curves)',outputs:'P (points), t params'},
+  {name:'Multiple Curves',cat:'Intersect',desc:'Finds all intersections in a list of curves.',inputs:'C (curves), P (plane optional)',outputs:'P (points)'},
+  {name:'Bake',cat:'Display',desc:'Right-click any component output → Bake to push geometry to Rhino.',inputs:'Any geometry',outputs:'Rhino object'},
+  {name:'Preview',cat:'Display',desc:'Toggle the eye icon to hide/show component output in viewport.',inputs:'Any geometry',outputs:'Visual'},
+  {name:'Custom Preview',cat:'Display',desc:'Assigns a custom material/color to geometry preview.',inputs:'G, M (material)',outputs:'Colored preview'},
+  {name:'Gradient',cat:'Display',desc:'Maps numeric values to a color gradient.',inputs:'L (value 0–1), L0/L1 (colors)',outputs:'C (color)'},
+  {name:'Cull Duplicates',cat:'Sets',desc:'Removes duplicate points within tolerance.',inputs:'P (points), T (tolerance)',outputs:'P (unique), I (indices)'},
+  {name:'Sort List',cat:'Sets',desc:'Sorts a list by numeric keys.',inputs:'K (keys), A (list)',outputs:'A (sorted), I (indices)'},
+  {name:'Merge',cat:'Sets',desc:'Merges multiple inputs into one list.',inputs:'D0, D1... (any)',outputs:'R (merged list)'},
+  {name:'Entwine',cat:'Sets',desc:'Combines data into a nested tree preserving branch structure.',inputs:'D0, D1...',outputs:'R (tree)'},
+  {name:'Integer',cat:'Params',desc:'Rounds or creates an integer value.',inputs:'N (number)',outputs:'I (integer)'},
+  {name:'Boolean Toggle',cat:'Params',desc:'True/False switch. Double-click to toggle.',inputs:'None',outputs:'B (boolean)'},
+  {name:'Colour Swatch',cat:'Params',desc:'Lets you pick a color — use with Custom Preview.',inputs:'None',outputs:'C (colour)'},
+  {name:'Karamba3D — Line to Beam',cat:'Kangaroo',desc:'Converts a line into a structural beam element for FEM analysis.',inputs:'L (line), CS (cross section)',outputs:'E (element)'},
+  {name:'Pufferfish — Tween Curve',cat:'Pufferfish',desc:'Interpolates between two curves with N tweens.',inputs:'C0, C1, N (count), F (factor)',outputs:'T (tween curves)'},
+  {name:'Divide Domain²',cat:'Maths',desc:'Divides a 2D domain into U×V subdivisions.',inputs:'D (2D domain), U, V',outputs:'S (2D domain list)'},
+];
+let activeCat='All';
+const cats=['All',...new Set(COMPS.map(c=>c.cat))];
+function renderCats(){
+  const el=document.getElementById('cats');el.innerHTML='';
+  cats.forEach(c=>{
+    const d=document.createElement('div');d.className='cat'+(c===activeCat?' active':'');d.textContent=c;
+    d.onclick=()=>{activeCat=c;document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));d.classList.add('active');filter()};
+    el.appendChild(d);
+  });
+}
+function filter(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const el=document.getElementById('grid');el.innerHTML='';
+  COMPS.filter(c=>(activeCat==='All'||c.cat===activeCat)&&(!q||c.name.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q)||c.cat.toLowerCase().includes(q))).forEach(c=>{
+    el.innerHTML+=`<div class="comp"><div class="comp-name">${c.name}</div><span class="comp-cat ${c.cat}">${c.cat}</span>
+    <div class="comp-desc">${c.desc}</div>
+    <div class="comp-inputs"><span class="io-label">In:</span><span class="io-val">${c.inputs}</span></div>
+    <div class="comp-outputs"><span class="io-label">Out:</span><span class="io-val">${c.outputs}</span></div></div>`;
+  });
+}
+renderCats();filter();
+</script></body></html>

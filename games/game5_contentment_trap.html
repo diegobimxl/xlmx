@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Contentment Trap</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+.header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; display: flex; align-items: center; gap: 10px; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.badge { background: #f77f00; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+.life-bar { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.bar-wrap { height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; transition: width .3s; }
+.main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+.proj-item { border: 2px solid #e9ecef; border-radius: 10px; padding: 12px; cursor: pointer; transition: all .15s; margin-bottom: 8px; }
+.proj-item:hover { border-color: #f77f00; background: #fff8f0; }
+.proj-item.instant { border-left: 4px solid #f77f00; }
+.proj-item.legacy { border-left: 4px solid #4361ee; }
+.proj-header { display: flex; align-items: center; justify-content: space-between; }
+.proj-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.pts-tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.pts-instant { background: #fff3cd; color: #856404; }
+.pts-legacy { background: #e8f4f8; color: #0c5460; }
+.queue-slot { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.q-bar { height: 6px; background: #e9ecef; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.q-fill { height: 100%; border-radius: 3px; transition: width .5s; }
+.score-big { font-size: 40px; font-weight: 700; color: #f77f00; text-align: center; }
+.lb-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f1f3f4; }
+.btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: #f77f00; color: #fff; }
+.btn-primary:hover { background: #d66a00; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.turn-badge { display: inline-flex; background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.overlay.hidden { display: none; }
+.modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 500px; width: 100%; }
+.modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+@media (max-width:640px) { .main-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>The Contentment Trap</h1><span class="badge">XLMX</span>
+  <span style="font-size:12px;color:#6c757d;margin-left:4px;">Build fast or build forever. The timer doesn't care about your feelings.</span>
+</div>
+<div class="container">
+  <div class="life-bar">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:13px;font-weight:600;">⏳ Lifespan Remaining — <span id="life-pct">100%</span></span>
+      <span style="font-size:12px;color:#f77f00;font-weight:600;" id="anxiety-label"></span>
+    </div>
+    <div class="bar-wrap"><div class="bar-fill" id="life-bar" style="width:100%;background:#f77f00"></div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+    <span class="turn-badge">Turn <span id="turn-num">1</span></span>
+    <button class="btn btn-primary" id="turn-btn" onclick="advance()" style="padding:8px 20px;">Next Turn →</button>
+    <span style="font-size:13px;color:#6c757d;margin-left:auto;">Queue: <strong><span id="q-count">0</span>/3</strong></span>
+  </div>
+  <div class="main-grid">
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <h2>Choose a Project</h2>
+        <div id="project-list"></div>
+      </div>
+      <div class="card">
+        <div class="score-big" id="score-val">0</div>
+        <div style="text-align:center;font-size:12px;color:#6c757d;margin:4px 0 16px;">Total Score</div>
+        <div style="display:flex;justify-content:space-around;">
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:700;" id="comp-val">0</div><div style="font-size:11px;color:#6c757d;">Completed</div></div>
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:700;" id="lost-val">0</div><div style="font-size:11px;color:#6c757d;">Lost at death</div></div>
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:700;" id="run-val">1</div><div style="font-size:11px;color:#6c757d;">Run #</div></div>
+        </div>
+        <div id="lb" style="margin-top:14px;"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Build Queue</h2>
+      <div id="queue"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="end-overlay">
+  <div class="modal">
+    <h2 id="end-title">Time's Up</h2>
+    <p id="end-desc"></p>
+    <div style="background:#fff8f0;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#f77f00;margin-bottom:6px;">⚠️ THE CLOCK WAS RIGGED</div>
+      <p id="rigged-msg" style="font-size:13px;color:#555;line-height:1.6;"></p>
+    </div>
+    <div style="background:#f8f9fa;border-radius:10px;padding:16px;margin:12px 0;font-size:13px;color:#555;line-height:1.6;">
+      Every time you queued a legacy project, an invisible anxiety tax drained your lifespan 20% faster. You felt it — that slight urgency, the second-guessing. That wasn't the game being hard. That was you, working against yourself.
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="restart()">Build Again (different choices this time, probably not)</button>
+  </div>
+</div>
+
+<script>
+// Easter egg: click the score 5 times fast for a time bonus
+let scoreClicks = 0, scoreTimer;
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('score-val').addEventListener('click', () => {
+    scoreClicks++;
+    clearTimeout(scoreTimer);
+    scoreTimer = setTimeout(() => scoreClicks = 0, 1000);
+    if (scoreClicks >= 5) {
+      state.lifespan = Math.min(100, state.lifespan + 15);
+      updateLife();
+      addLog('🎉 SECRET: You clicked the score 5 times. +15% lifespan. You absolute maniac.');
+      scoreClicks = 0;
+    }
+  });
+});
+
+function addLog(msg) {
+  // log to console as easter egg messages
+  console.log('[XLMX EASTER EGG]', msg);
+  // Also flash the anxiety label
+  const lbl = document.getElementById('anxiety-label');
+  lbl.textContent = msg;
+  setTimeout(() => lbl.textContent = '', 4000);
+}
+
+const PROJS = [
+  { id:'cottage', name:'Cottage', icon:'🏠', type:'instant', turns:2, pts:15, difficulty:1 },
+  { id:'shop', name:'Corner Shop', icon:'🏪', type:'instant', turns:3, pts:30, difficulty:1 },
+  { id:'cafe', name:'Café', icon:'☕', type:'instant', turns:4, pts:50, difficulty:2 },
+  { id:'gym', name:'Gym', icon:'🏋️', type:'instant', turns:5, pts:70, difficulty:2 },
+  { id:'library', name:'Library', icon:'📚', type:'legacy', turns:18, pts:280, difficulty:3 },
+  { id:'cathedral', name:'Cathedral', icon:'⛪', type:'legacy', turns:28, pts:750, difficulty:4 },
+  { id:'stadium', name:'Stadium', icon:'🏟️', type:'legacy', turns:38, pts:1800, difficulty:5 },
+];
+
+let sessionBest = [], runCount = 0;
+let state;
+
+function init() {
+  state = { turn:1, lifespan:100, score:0, completed:0, lost:0, queue:[], over:false };
+}
+init();
+
+function drain() {
+  const hasLegacy = state.queue.some(q => q.proj.type === 'legacy');
+  return hasLegacy ? 2.4 : 2.0; // hidden anxiety tax
+}
+
+function renderProjs() {
+  const c = document.getElementById('project-list');
+  c.innerHTML = '';
+  PROJS.forEach(p => {
+    if (state.queue.some(q => q.proj.id === p.id)) return;
+    const div = document.createElement('div');
+    div.className = 'proj-item ' + p.type;
+    const stars = '⭐'.repeat(p.difficulty);
+    div.innerHTML = `<div class="proj-header">
+      <div class="proj-name">${p.icon} ${p.name} <span class="pts-tag ${p.type==='instant'?'pts-instant':'pts-legacy'}">${p.pts}pts</span></div>
+      <span style="font-size:11px;color:#aaa;">${p.turns} turns ${stars}</span>
+    </div>`;
+    div.onclick = () => addToQueue(p);
+    c.appendChild(div);
+  });
+}
+
+function addToQueue(p) {
+  if (state.queue.length >= 3) return;
+  state.queue.push({ proj:p, left:p.turns, total:p.turns });
+  document.getElementById('q-count').textContent = state.queue.length;
+  renderProjs();
+  renderQueue();
+}
+
+function renderQueue() {
+  const c = document.getElementById('queue');
+  if (!state.queue.length) { c.innerHTML = '<div style="font-size:13px;color:#aaa;text-align:center;padding:20px;">No projects queued. Pick something.</div>'; return; }
+  c.innerHTML = '';
+  state.queue.forEach(q => {
+    const pct = ((q.total-q.left)/q.total)*100;
+    const slot = document.createElement('div');
+    slot.className = 'queue-slot';
+    slot.innerHTML = `<div style="font-size:13px;font-weight:600;">${q.proj.icon} ${q.proj.name} <span style="font-size:11px;color:#aaa;">${q.left} turns left</span></div>
+      <div style="font-size:12px;color:#aaa;margin-top:2px;">+${q.proj.pts} pts on finish</div>
+      <div class="q-bar"><div class="q-fill" style="width:${pct}%;background:${q.proj.type==='instant'?'#f77f00':'#4361ee'}"></div></div>`;
+    c.appendChild(slot);
+  });
+}
+
+function updateLife() {
+  const lp = Math.max(0, state.lifespan);
+  document.getElementById('life-bar').style.width = lp+'%';
+  document.getElementById('life-pct').textContent = Math.round(lp)+'%';
+  document.getElementById('life-bar').style.background = lp > 50 ? '#f77f00' : lp > 20 ? '#e74c3c' : '#8b0000';
+}
+
+function advance() {
+  if (state.over) return;
+  state.turn++;
+  state.lifespan = Math.max(0, state.lifespan - drain());
+  const still = [];
+  state.queue.forEach(q => {
+    q.left--;
+    if (q.left <= 0) { state.score += q.proj.pts; state.completed++; }
+    else still.push(q);
+  });
+  state.queue = still;
+  document.getElementById('turn-num').textContent = state.turn;
+  document.getElementById('score-val').textContent = state.score;
+  document.getElementById('comp-val').textContent = state.completed;
+  document.getElementById('q-count').textContent = state.queue.length;
+  updateLife();
+  renderProjs();
+  renderQueue();
+  if (state.lifespan <= 0) endGame();
+}
+
+function endGame() {
+  state.over = true;
+  document.getElementById('turn-btn').disabled = true;
+  state.queue.forEach(() => state.lost++);
+  document.getElementById('lost-val').textContent = state.lost;
+  runCount++;
+  sessionBest.push({ run:runCount, score:state.score, turns:state.turn-1 });
+  sessionBest.sort((a,b) => b.score-a.score);
+  renderLB();
+  document.getElementById('end-title').textContent = state.score >= 750 ? '🏛️ Legacy Achieved' : '⏳ Ran Out of Time';
+  document.getElementById('end-desc').textContent = `Run ${runCount} — Score: ${state.score} pts | Completed: ${state.completed} | Lost mid-build: ${state.lost} | Survived ${state.turn-1} turns.`;
+  document.getElementById('rigged-msg').textContent = `Base drain: 2% per turn. But you had ${state.lost + state.completed > 0 ? 'legacy' : 'no'} projects queued, which triggered the hidden 0.4% anxiety tax per turn. Over ${state.turn-1} turns, that compounded. The game never mentioned it.`;
+  document.getElementById('end-overlay').classList.remove('hidden');
+}
+
+function renderLB() {
+  const lb = document.getElementById('lb');
+  if (!sessionBest.length) { lb.innerHTML=''; return; }
+  lb.innerHTML = '<div style="font-size:12px;font-weight:600;color:#6c757d;margin-bottom:6px;">SESSION LEADERBOARD</div>';
+  sessionBest.slice(0,5).forEach((r,i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    row.innerHTML = `<span>#${i+1} Run ${r.run}</span><span>${r.score}pts / ${r.turns} turns</span>`;
+    lb.appendChild(row);
+  });
+}
+
+function restart() {
+  init();
+  document.getElementById('end-overlay').classList.add('hidden');
+  document.getElementById('turn-btn').disabled = false;
+  document.getElementById('turn-num').textContent = 1;
+  document.getElementById('score-val').textContent = 0;
+  document.getElementById('comp-val').textContent = 0;
+  document.getElementById('run-val').textContent = runCount+1;
+  document.getElementById('q-count').textContent = 0;
+  updateLife();
+  renderProjs();
+  renderQueue();
+  renderLB();
+}
+
+renderProjs();
+renderQueue();
+updateLife();
+</script>
+</body>
+</html>

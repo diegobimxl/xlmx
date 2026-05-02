@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tab Janitor — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:500px){.stats-row{grid-template-columns:1fr 1fr}}
+.stat-card{border:1px solid #e5e5e5;border-radius:6px;padding:16px;text-align:center}
+.stat-num{font-size:28px;font-weight:800;line-height:1}
+.stat-num.red{color:#c62828}
+.stat-num.green{color:#2e7d32}
+.stat-label{font-size:11px;color:#888;margin-top:4px}
+.action-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.btn{padding:9px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}.btn-secondary:hover{background:#e8e8e8}
+.btn-warn{background:#ffebee;color:#c62828;border:1px solid #ffcdd2}.btn-warn:hover{background:#ffcdd2}
+.section-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.section-label .count{font-weight:400;color:#bbb;letter-spacing:0}
+.tab-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.tab-item{border:1px solid #e5e5e5;border-radius:6px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:background .15s}
+.tab-item:hover{background:#fafafa}
+.tab-item.suggested{border-color:#ffcdd2;background:#fff8f8}
+.tab-favicon{width:16px;height:16px;border-radius:3px;background:#e5e5e5;flex-shrink:0;font-size:11px;display:flex;align-items:center;justify-content:center}
+.tab-info{flex:1;overflow:hidden}
+.tab-title{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab-url{font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.tab-meta{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.tab-age{font-size:11px;color:#aaa;white-space:nowrap}
+.tab-type{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px}
+.type-utility{background:#e3f2fd;color:#0d47a1}
+.type-stale{background:#ffebee;color:#c62828}
+.type-active{background:#e8f5e9;color:#1b5e20}
+.type-idle{background:#f3e5f5;color:#4a148c}
+.tab-actions{display:flex;gap:6px;flex-shrink:0}
+.tab-save{font-size:11px;background:none;border:1px solid #e5e5e5;border-radius:3px;padding:3px 8px;cursor:pointer;color:#555}
+.tab-save:hover{background:#f5f5f5}
+.tab-close{font-size:14px;color:#ccc;background:none;border:none;cursor:pointer;padding:0 4px}
+.tab-close:hover{color:#c62828}
+.suggest-banner{background:#fff3e0;border:1px solid #ffe0b2;border-radius:6px;padding:12px 16px;font-size:13px;color:#e65100;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.suggest-banner strong{color:#bf360c}
+.settings-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.settings-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.setting-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f0f0f0}
+.setting-item:last-child{border:none}
+.setting-info .label{font-size:13px;font-weight:500}
+.setting-info .desc{font-size:11px;color:#888}
+.toggle{position:relative;display:inline-block;width:40px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.tslider{position:absolute;inset:0;background:#e5e5e5;border-radius:22px;cursor:pointer;transition:background .2s}
+.tslider::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;left:3px;top:3px;transition:left .2s}
+input:checked+.tslider{background:#111}
+input:checked+.tslider::after{left:21px}
+.info-strip{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 18px;font-size:12px;color:#555;line-height:1.7;margin-bottom:20px}
+.info-strip strong{color:#111;font-weight:600}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;background:#f0f0f0;color:#555;padding:3px 8px;border-radius:3px}
+.note{font-size:11px;color:#999;text-align:center;margin-top:8px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Tab Janitor</h1>
+<p>Not tab grouping. An automated "are you still using this?" nudge. Local AI scans your tabs, identifies what's stale and what's utility, and suggests exactly which ones to close.</p>
+<div class="sub">Browser Extension Demo</div>
+<div class="badge">BROWSER EXTENSION PROTOTYPE</div>
+</div>
+<div class="app">
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num red" id="totalTabs">47</div><div class="stat-label">Open tabs</div></div>
+<div class="stat-card"><div class="stat-num red" id="staleTabs">23</div><div class="stat-label">Stale (4h+ idle)</div></div>
+<div class="stat-card"><div class="stat-num green" id="savedMB">~340</div><div class="stat-label">MB recoverable</div></div>
+</div>
+<div class="suggest-banner" id="suggestBanner">
+<div><strong>Janitor recommends closing 23 tabs.</strong> Estimated RAM freed: ~340 MB. Utility tabs (Gmail, Calendar, Slack) are excluded.</div>
+<button class="btn btn-warn" onclick="closeAll()">Close All Suggested</button>
+</div>
+<div class="action-bar">
+<button class="btn btn-secondary" onclick="scan()">Re-scan Tabs</button>
+<button class="btn btn-secondary" onclick="saveAll()">Save All to Reading List</button>
+</div>
+<div class="section-label">Suggested to Close <span class="count" id="staleCount">(23)</span></div>
+<div class="tab-list" id="staleList"></div>
+<div class="section-label">Utility Tabs — Kept <span class="count">(6)</span></div>
+<div class="tab-list" id="utilityList"></div>
+<div class="settings-panel">
+<div class="settings-header">Janitor Settings</div>
+<div class="setting-item">
+<div class="setting-info"><div class="label">Stale threshold</div><div class="desc">Tabs idle longer than this are flagged</div></div>
+<select style="border:1px solid #e5e5e5;border-radius:4px;padding:5px 8px;font-size:12px">
+<option>4 hours</option><option>2 hours</option><option>8 hours</option><option>1 day</option>
+</select>
+</div>
+<div class="setting-item">
+<div class="setting-info"><div class="label">Auto-suggest on startup</div><div class="desc">Show suggestions when you open the browser</div></div>
+<label class="toggle"><input type="checkbox" checked /><span class="tslider"></span></label>
+</div>
+<div class="setting-item">
+<div class="setting-info"><div class="label">Protect pinned tabs</div><div class="desc">Never suggest closing pinned tabs</div></div>
+<label class="toggle"><input type="checkbox" checked /><span class="tslider"></span></label>
+</div>
+<div class="setting-item">
+<div class="setting-info"><div class="label">Auto-save before closing</div><div class="desc">Save URL to reading list before removal</div></div>
+<label class="toggle"><input type="checkbox" /><span class="tslider"></span></label>
+</div>
+</div>
+<div class="info-strip">
+<strong>How it works:</strong> A local model classifies tabs by type (utility, research, shopping, etc.) and tracks last-interaction time. Utility tabs — email, calendar, messaging — are always preserved. Everything else idle for 4+ hours gets flagged with an explanation of why.
+<div class="tag-row">
+<span class="tag">Local AI classification</span>
+<span class="tag">Utility tab protection</span>
+<span class="tag">RAM reclaim estimate</span>
+<span class="tag">Save before close</span>
+<span class="tag">Configurable threshold</span>
+</div>
+</div>
+<div class="note">Demo prototype — extension installs not yet active. Contact us to request early access.</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+const staleTabs=[
+  {title:'How to connect Revit to Airtable — Stack Overflow',url:'stackoverflow.com/questions/12345',age:'7h ago',type:'idle',reason:'Research tab, no interaction in 7 hours'},
+  {title:'Amazon.com: Bose QuietComfort 45',url:'amazon.com/dp/B098FKXT8L',age:'5h ago',type:'stale',reason:'Shopping tab, cart empty'},
+  {title:'YouTube — BIM Coordination Webinar 2026',url:'youtube.com/watch?v=...',age:'4h ago',type:'stale',reason:'Video paused, idle 4+ hours'},
+  {title:'Notion — Draft: XLMX App Ideas',url:'notion.so/xlmx/draft-app-ideas',age:'6h ago',type:'idle',reason:'Document open, no edits in 6 hours'},
+  {title:'Twitter/X — Trending in Architecture',url:'x.com/home',age:'4.5h ago',type:'stale',reason:'Social feed, no interaction'},
+  {title:'Reddit — r/Revit',url:'reddit.com/r/revit',age:'5h ago',type:'stale',reason:'Forum tab, no scroll in 5 hours'},
+  {title:'Google Maps — Eagle Pass to Saltillo',url:'maps.google.com/...',age:'8h ago',type:'idle',reason:'Navigation completed'},
+];
+const utilityTabs=[
+  {title:'Gmail — diego@bimxl.com',url:'mail.google.com',age:'Active',type:'utility'},
+  {title:'Google Calendar',url:'calendar.google.com',age:'Active',type:'utility'},
+  {title:'Slack — BIMXL workspace',url:'app.slack.com',age:'5 min ago',type:'utility'},
+  {title:'Airtable — Project Dashboard',url:'airtable.com/...',age:'12 min ago',type:'utility'},
+  {title:'Autodesk Construction Cloud',url:'acc.autodesk.com',age:'1h ago',type:'utility'},
+  {title:'Notion — Home',url:'notion.so',age:'30 min ago',type:'utility'},
+];
+function renderList(tabs,listId,closeable){
+  const el=document.getElementById(listId);
+  el.innerHTML='';
+  tabs.forEach((t,i)=>{
+    const div=document.createElement('div');
+    div.className='tab-item'+(closeable?' suggested':'');
+    div.id='tab-'+listId+'-'+i;
+    const typeClass=t.type==='utility'?'type-utility':t.type==='stale'?'type-stale':t.type==='active'?'type-active':'type-idle';
+    div.innerHTML=`<div class="tab-favicon">${t.url[0].toUpperCase()}</div>
+      <div class="tab-info">
+        <div class="tab-title">${t.title}</div>
+        <div class="tab-url">${t.url}${t.reason?' · '+t.reason:''}</div>
+      </div>
+      <div class="tab-meta">
+        <span class="tab-age">${t.age}</span>
+        <span class="tab-type ${typeClass}">${t.type.toUpperCase()}</span>
+      </div>
+      ${closeable?`<div class="tab-actions">
+        <button class="tab-save" onclick="saveTab(${i})">Save</button>
+        <button class="tab-close" onclick="closeTab('${listId}',${i})">×</button>
+      </div>`:''}`;
+    el.appendChild(div);
+  });
+}
+function scan(){renderList(staleTabs,'staleList',true);renderList(utilityTabs,'utilityList',false);}
+function closeTab(listId,i){
+  const el=document.getElementById('tab-'+listId+'-'+i);
+  if(el)el.remove();
+  const remaining=document.querySelectorAll('#'+listId+' .tab-item').length;
+  document.getElementById('staleCount').textContent='('+remaining+')';
+  document.getElementById('staleTabs').textContent=remaining;
+  document.getElementById('totalTabs').textContent=47-staleTabs.length+remaining;
+  document.getElementById('savedMB').textContent='~'+Math.round(remaining*14.8);
+}
+function closeAll(){
+  document.getElementById('staleList').innerHTML='<div style="padding:16px;text-align:center;font-size:13px;color:#888">All suggested tabs closed. 340 MB freed.</div>';
+  document.getElementById('staleTabs').textContent=0;
+  document.getElementById('totalTabs').textContent=24;
+  document.getElementById('savedMB').textContent=0;
+  document.getElementById('staleCount').textContent='(0)';
+  document.getElementById('suggestBanner').style.display='none';
+}
+function saveTab(i){alert('Tab saved to reading list.');}
+function saveAll(){alert('All '+staleTabs.length+' tabs saved to reading list.');}
+scan();
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brutalist Tetris — XLMX</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0e0e; color: #e8e0d0;
+    font-family: 'Courier New', monospace;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; padding: 20px;
+  }
+  h1 { font-size: 1.1rem; letter-spacing: 0.3em; text-transform: uppercase; color: #c8b89a; margin-bottom: 4px; }
+  .subtitle { font-size: 0.65rem; color: #666; letter-spacing: 0.2em; margin-bottom: 20px; }
+  .game-area { display: flex; gap: 24px; align-items: flex-start; }
+  canvas { border: 1px solid #333; background: #111; display: block; }
+  .sidebar { width: 160px; display: flex; flex-direction: column; gap: 16px; }
+  .panel { border: 1px solid #2a2a2a; padding: 12px; background: #141414; }
+  .panel-label { font-size: 0.55rem; letter-spacing: 0.25em; color: #555; text-transform: uppercase; margin-bottom: 8px; }
+  .panel-value { font-size: 1.4rem; color: #c8b89a; }
+  .panel-value.danger { color: #c04040; }
+  .panel-value.warning { color: #c09040; }
+  .panel-value.safe { color: #40a060; }
+  .stability-bar-wrap { height: 8px; background: #222; margin-top: 6px; }
+  .stability-bar { height: 100%; transition: width 0.3s, background 0.3s; }
+  .next-preview { height: 80px; background: #0e0e0e; display: flex; align-items: center; justify-content: center; }
+  .controls { font-size: 0.6rem; color: #444; line-height: 2; letter-spacing: 0.05em; }
+  .controls span { color: #888; }
+  #message {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #0e0e0e; border: 1px solid #555; padding: 30px 40px;
+    text-align: center; display: none; z-index: 100;
+  }
+  #message h2 { font-size: 1rem; letter-spacing: 0.3em; margin-bottom: 12px; color: #c8b89a; }
+  #message p { font-size: 0.7rem; color: #666; margin-bottom: 20px; }
+  #message button {
+    background: none; border: 1px solid #555; color: #c8b89a;
+    font-family: 'Courier New', monospace; font-size: 0.7rem;
+    letter-spacing: 0.2em; padding: 8px 20px; cursor: pointer; text-transform: uppercase;
+  }
+  #message button:hover { border-color: #c8b89a; }
+</style>
+</head>
+<body>
+<h1>Brutalist Tetris</h1>
+<div class="subtitle">Center of mass determines survival</div>
+<div class="game-area">
+  <canvas id="gameCanvas" width="300" height="560"></canvas>
+  <div class="sidebar">
+    <div class="panel"><div class="panel-label">Score</div><div class="panel-value" id="score">0</div></div>
+    <div class="panel"><div class="panel-label">Level</div><div class="panel-value" id="level">1</div></div>
+    <div class="panel">
+      <div class="panel-label">Stability</div>
+      <div class="panel-value" id="stability-val">100%</div>
+      <div class="stability-bar-wrap"><div class="stability-bar" id="stability-bar" style="width:100%;background:#40a060;"></div></div>
+    </div>
+    <div class="panel"><div class="panel-label">Next Block</div><div class="next-preview"><canvas id="nextCanvas" width="100" height="70"></canvas></div></div>
+    <div class="panel"><div class="panel-label">COM Offset</div><div class="panel-value" id="com-offset">0.0</div></div>
+    <div class="panel controls">
+      <div class="panel-label">Controls</div>
+      <span>← →</span> Move<br><span>↑</span> Rotate<br><span>↓</span> Soft drop<br><span>Space</span> Hard drop<br><span>P</span> Pause
+    </div>
+  </div>
+</div>
+<div id="message">
+  <h2 id="msg-title">Structure Collapsed</h2>
+  <p id="msg-body">The tower became top-heavy and tipped.</p>
+  <p style="font-size:0.8rem;color:#c8b89a;margin-bottom:20px;" id="msg-score"></p>
+  <button onclick="startGame()">Rebuild</button>
+</div>
+<script>
+const BLOCK_TYPES = [
+  { name:'Column', color:'#8899aa', shapes:[[[0,0],[0,1],[0,2],[0,3]],[[0,0],[1,0],[2,0],[3,0]]], mass:4 },
+  { name:'L-Bracket', color:'#a07050', shapes:[[[0,0],[0,1],[0,2],[1,2]],[[0,0],[1,0],[2,0],[0,1]],[[0,0],[1,0],[1,1],[1,2]],[[2,0],[0,1],[1,1],[2,1]]], mass:4 },
+  { name:'Cantilever', color:'#7090a0', shapes:[[[0,0],[1,0],[2,0],[3,0],[1,1]],[[0,0],[0,1],[0,2],[0,3],[1,1]]], mass:5 },
+  { name:'Arch', color:'#9a8060', shapes:[[[0,0],[2,0],[0,1],[1,1],[2,1]],[[0,0],[1,0],[0,1],[0,2],[1,2]]], mass:5 },
+  { name:'Slab', color:'#606060', shapes:[[[0,0],[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1]]], mass:8 },
+  { name:'Square', color:'#7a8a6a', shapes:[[[0,0],[1,0],[0,1],[1,1]]], mass:4 },
+  { name:'S-Beam', color:'#9a7060', shapes:[[[1,0],[2,0],[0,1],[1,1]],[[0,0],[0,1],[1,1],[1,2]]], mass:4 },
+  { name:'Z-Beam', color:'#607090', shapes:[[[0,0],[1,0],[1,1],[2,1]],[[1,0],[0,1],[1,1],[0,2]]], mass:4 }
+];
+const COLS=10,ROWS=20,CELL=30;
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+const nextCanvas=document.getElementById('nextCanvas'),nextCtx=nextCanvas.getContext('2d');
+let board,current,next,score,level,lines,paused,gameOver,dropInterval,dropAccum,lastTime,stabilityWarning;
+function emptyBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(null));}
+function randomBlock(){const t=BLOCK_TYPES[Math.floor(Math.random()*BLOCK_TYPES.length)];return{type:t,rotIndex:0,col:Math.floor(COLS/2)-2,row:0,color:t.color};}
+function getCells(p,col,row,ri){return p.type.shapes[ri%p.type.shapes.length].map(([dc,dr])=>[col+dc,row+dr]);}
+function isValid(p,col,row,ri){return getCells(p,col,row,ri).every(([c,r])=>c>=0&&c<COLS&&r<ROWS&&(r<0||!board[r][c]));}
+function placePiece(){getCells(current,current.col,current.row,current.rotIndex).forEach(([c,r])=>{if(r>=0&&r<ROWS)board[r][c]=current.color;});clearLines();checkStability();current=next;next=randomBlock();if(!isValid(current,current.col,current.row,current.rotIndex))endGame();}
+function clearLines(){let cl=0;for(let r=ROWS-1;r>=0;r--){if(board[r].every(c=>c!==null)){board.splice(r,1);board.unshift(Array(COLS).fill(null));cl++;r++;}}if(cl>0){score+=[0,100,300,500,800][cl]*level;lines+=cl;level=Math.floor(lines/10)+1;dropInterval=Math.max(100,800-(level-1)*70);updateUI();}}
+function calcCOM(){let m=0,wc=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c]){m++;wc+=c;}if(!m)return{offset:0,com:COLS/2};const com=wc/m;return{offset:Math.abs(com-COLS/2),com};}
+function checkStability(){const{offset,com}=calcCOM();const stab=Math.max(0,100-(offset/(COLS/2))*100);
+const bar=document.getElementById('stability-bar'),val=document.getElementById('stability-val'),co=document.getElementById('com-offset');
+val.textContent=Math.round(stab)+'%';co.textContent=offset.toFixed(1);bar.style.width=stab+'%';
+if(stab>60){bar.style.background='#40a060';val.className='panel-value safe';co.className='panel-value safe';}
+else if(stab>30){bar.style.background='#c09040';val.className='panel-value warning';co.className='panel-value warning';}
+else{bar.style.background='#c04040';val.className='panel-value danger';co.className='panel-value danger';stabilityWarning=true;}
+if(stab<10&&getStackHeight()>5)setTimeout(()=>endGame('collapse'),300);}
+function getStackHeight(){for(let r=0;r<ROWS;r++)if(board[r].some(c=>c!==null))return ROWS-r;return 0;}
+function endGame(r){gameOver=true;document.getElementById('msg-title').textContent=r==='collapse'?'Structure Collapsed':'Ceiling Reached';document.getElementById('msg-body').textContent=r==='collapse'?'Center of mass exceeded structural limits.':'The building envelope is full.';document.getElementById('msg-score').textContent='Score: '+score.toLocaleString()+' | Level: '+level;document.getElementById('message').style.display='block';}
+function drawCell(cx,c,r,color){const x=c*CELL,y=r*CELL;cx.fillStyle=color;cx.fillRect(x+1,y+1,CELL-2,CELL-2);cx.fillStyle='rgba(255,255,255,0.12)';cx.fillRect(x+1,y+1,CELL-2,2);cx.fillRect(x+1,y+1,2,CELL-2);cx.fillStyle='rgba(0,0,0,0.3)';cx.fillRect(x+1,y+CELL-3,CELL-2,2);}
+function ghostRow(){let row=current.row;while(isValid(current,current.col,row+1,current.rotIndex))row++;return row;}
+function render(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#111';ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.strokeStyle='#1a1a1a';ctx.lineWidth=0.5;
+for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*CELL,0);ctx.lineTo(c*CELL,ROWS*CELL);ctx.stroke();}
+for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*CELL);ctx.lineTo(COLS*CELL,r*CELL);ctx.stroke();}
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c])drawCell(ctx,c,r,board[r][c]);
+if(!gameOver){const gr=ghostRow();getCells(current,current.col,gr,current.rotIndex).forEach(([c,r])=>{if(r>=0){ctx.globalAlpha=0.18;ctx.fillStyle=current.color;ctx.fillRect(c*CELL+1,r*CELL+1,CELL-2,CELL-2);ctx.globalAlpha=1;}});
+getCells(current,current.col,current.row,current.rotIndex).forEach(([c,r])=>{if(r>=0)drawCell(ctx,c,r,current.color);});}
+const{com}=calcCOM();ctx.save();ctx.strokeStyle='rgba(200,100,100,0.4)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(com*CELL,0);ctx.lineTo(com*CELL,ROWS*CELL);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+if(paused){ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#c8b89a';ctx.font='0.8rem Courier New';ctx.textAlign='center';ctx.fillText('PAUSED',canvas.width/2,canvas.height/2);ctx.textAlign='left';}
+nextCtx.clearRect(0,0,nextCanvas.width,nextCanvas.height);nextCtx.fillStyle='#0e0e0e';nextCtx.fillRect(0,0,nextCanvas.width,nextCanvas.height);
+if(next){const sh=next.type.shapes[0];const sc=16;const ox=(nextCanvas.width-sh.reduce((m,s)=>Math.max(m,s[0]),0)*sc)/2-sc/2;const oy=(nextCanvas.height-sh.reduce((m,s)=>Math.max(m,s[1]),0)*sc)/2-sc/2;sh.forEach(([dc,dr])=>{nextCtx.fillStyle=next.color;nextCtx.fillRect(ox+dc*sc+1,oy+dr*sc+1,sc-2,sc-2);});}}
+function updateUI(){document.getElementById('score').textContent=score.toLocaleString();document.getElementById('level').textContent=level;}
+function loop(ts){if(!gameOver){const dt=ts-lastTime;lastTime=ts;if(!paused){dropAccum+=dt;if(dropAccum>=dropInterval){dropAccum=0;if(isValid(current,current.col,current.row+1,current.rotIndex))current.row++;else placePiece();}}render();requestAnimationFrame(loop);}else render();}
+function startGame(){board=emptyBoard();score=0;level=1;lines=0;paused=false;gameOver=false;dropInterval=800;dropAccum=0;stabilityWarning=false;current=randomBlock();next=randomBlock();updateUI();checkStability();document.getElementById('message').style.display='none';lastTime=performance.now();requestAnimationFrame(loop);}
+document.addEventListener('keydown',e=>{if(gameOver)return;switch(e.key){case'ArrowLeft':e.preventDefault();if(isValid(current,current.col-1,current.row,current.rotIndex))current.col--;break;case'ArrowRight':e.preventDefault();if(isValid(current,current.col+1,current.row,current.rotIndex))current.col++;break;case'ArrowUp':e.preventDefault();const ni=(current.rotIndex+1)%current.type.shapes.length;if(isValid(current,current.col,current.row,ni))current.rotIndex=ni;break;case'ArrowDown':e.preventDefault();if(isValid(current,current.col,current.row+1,current.rotIndex)){current.row++;score+=1;updateUI();}break;case' ':e.preventDefault();while(isValid(current,current.col,current.row+1,current.rotIndex)){current.row++;score+=2;}placePiece();updateUI();break;case'p':case'P':paused=!paused;break;}});
+startGame();
+</script>
+</body>
+</html>

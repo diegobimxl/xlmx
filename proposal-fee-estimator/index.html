@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proposal Fee Estimator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:800px;margin:0 auto;padding:0 32px 80px}
+.top-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:550px){.top-row{grid-template-columns:1fr 1fr}}
+.top-field{border:1px solid #e5e5e5;border-radius:6px;padding:12px 14px}
+.top-field label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.top-field input,.top-field select{width:100%;padding:6px 9px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.phases-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center}
+.add-link{font-size:12px;color:#1565c0;cursor:pointer;font-weight:600}
+.phase-table{width:100%;border-collapse:collapse}
+.phase-table th{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;padding:8px 12px;border-bottom:1px solid #e5e5e5;text-align:left}
+.phase-table th.right,.phase-table td.right{text-align:right}
+.phase-table td{padding:6px 10px;border-bottom:1px solid #f5f5f5}
+.phase-table tr:last-child td{border:none}
+.phase-table input{width:100%;border:1px solid #e5e5e5;border-radius:3px;padding:5px 7px;font-size:12px;font-family:inherit}
+.phase-table input[type=number]{text-align:right}
+.rm-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:16px}
+.rm-btn:hover{color:#c62828}
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:550px){.summary-row{grid-template-columns:1fr 1fr}}
+.sum-card{border:1px solid #e5e5e5;border-radius:6px;padding:14px;text-align:center}
+.sum-val{font-size:22px;font-weight:800;line-height:1}
+.sum-val.green{color:#2e7d32}
+.sum-label{font-size:11px;color:#888;margin-top:4px}
+.chart-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.chart-body{padding:16px;display:flex;flex-direction:column;gap:8px}
+.chart-row{display:flex;align-items:center;gap:12px;font-size:12px}
+.chart-label{min-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.chart-track{flex:1;height:22px;background:#f0f0f0;border-radius:4px;overflow:hidden}
+.chart-fill{height:100%;background:#1565c0;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff}
+.chart-val{min-width:80px;text-align:right;font-weight:600}
+.btn-row{display:flex;gap:10px;margin-bottom:20px}
+.btn{padding:9px 20px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero">
+<h1>Proposal Fee Estimator</h1>
+<p>Scope your project by phase, assign hours and rates, and auto-calculate a fee proposal with phase breakdown chart.</p>
+<div class="badge">FREE TOOL — AEC / CONSULTING</div>
+</div>
+<div class="app">
+<div class="top-row">
+<div class="top-field"><label>Project name</label><input id="projName" value="Project Delta — BIM Production"></div>
+<div class="top-field"><label>Client</label><input id="projClient" value="Client Group"></div>
+<div class="top-field"><label>Contingency (%)</label><input type="number" id="contingency" value="10" min="0" oninput="recalc()"></div>
+</div>
+<div class="btn-row">
+<button class="btn btn-secondary" onclick="loadAEC()">Load AEC template</button>
+<button class="btn btn-secondary" onclick="loadConsulting()">Load consulting template</button>
+</div>
+<div class="phases-panel">
+<div class="panel-header">Phases <span class="add-link" onclick="addPhase()">+ Add phase</span></div>
+<table class="phase-table">
+<thead><tr><th>Phase</th><th>Role / Resource</th><th style="text-align:right">Hours</th><th style="text-align:right">Rate ($/hr)</th><th style="text-align:right">Phase fee</th><th></th></tr></thead>
+<tbody id="phaseBody"></tbody>
+</table>
+</div>
+<div class="summary-row">
+<div class="sum-card"><div class="sum-val green" id="sTotalFee">$0</div><div class="sum-label">Total fee</div></div>
+<div class="sum-card"><div class="sum-val" id="sTotalHours">0</div><div class="sum-label">Total hours</div></div>
+<div class="sum-card"><div class="sum-val" id="sAvgRate">$0</div><div class="sum-label">Blended rate</div></div>
+<div class="sum-card"><div class="sum-val" id="sContingency">$0</div><div class="sum-label">Contingency</div></div>
+</div>
+<div class="chart-panel">
+<div class="panel-header">Fee by phase</div>
+<div class="chart-body" id="chartBody"></div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let phases=[];let pid=0;
+function addPhase(phase,role,hours,rate){
+  phases.push({id:pid++,phase:phase||'New Phase',role:role||'BIM Specialist',hours:hours||40,rate:rate||85});
+  renderPhases();
+}
+function removePhase(id){phases=phases.filter(p=>p.id!==id);renderPhases();}
+function updatePhase(id,key,val){const p=phases.find(x=>x.id===id);if(p){p[key]=val;renderPhases();}}
+function renderPhases(){
+  const tb=document.getElementById('phaseBody');tb.innerHTML='';
+  phases.forEach(p=>{
+    const fee=p.hours*p.rate;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input value="${p.phase}" onchange="updatePhase(${p.id},'phase',this.value)"></td>
+      <td><input value="${p.role}" onchange="updatePhase(${p.id},'role',this.value)"></td>
+      <td><input type="number" value="${p.hours}" min="0" onchange="updatePhase(${p.id},'hours',parseFloat(this.value)||0)" style="text-align:right"></td>
+      <td><input type="number" value="${p.rate}" min="0" onchange="updatePhase(${p.id},'rate',parseFloat(this.value)||0)" style="text-align:right"></td>
+      <td class="right" style="font-weight:700;font-size:13px">$${fee.toLocaleString()}</td>
+      <td><button class="rm-btn" onclick="removePhase(${p.id})">×</button></td>`;
+    tb.appendChild(tr);
+  });
+  recalc();
+}
+function recalc(){
+  const contingencyPct=(parseFloat(document.getElementById('contingency').value)||0)/100;
+  const totalFee=phases.reduce((a,p)=>a+p.hours*p.rate,0);
+  const totalHours=phases.reduce((a,p)=>a+p.hours,0);
+  const blendedRate=totalHours>0?totalFee/totalHours:0;
+  const contingencyAmt=totalFee*contingencyPct;
+  const grandTotal=totalFee+contingencyAmt;
+  document.getElementById('sTotalFee').textContent='$'+Math.round(grandTotal).toLocaleString();
+  document.getElementById('sTotalHours').textContent=Math.round(totalHours).toLocaleString();
+  document.getElementById('sAvgRate').textContent='$'+Math.round(blendedRate);
+  document.getElementById('sContingency').textContent='$'+Math.round(contingencyAmt).toLocaleString();
+  const chart=document.getElementById('chartBody');chart.innerHTML='';
+  const maxFee=Math.max(...phases.map(p=>p.hours*p.rate),1);
+  phases.forEach(p=>{
+    const fee=p.hours*p.rate;
+    const pct=Math.round((fee/maxFee)*100);
+    const div=document.createElement('div');div.className='chart-row';
+    div.innerHTML=`<span class="chart-label">${p.phase}</span>
+      <div class="chart-track"><div class="chart-fill" style="width:${pct}%">${p.hours}h</div></div>
+      <span class="chart-val">$${fee.toLocaleString()}</span>`;
+    chart.appendChild(div);
+  });
+}
+function loadAEC(){
+  phases=[];pid=0;
+  [['Schematic Design','Senior Architect',60,120],['Design Development','Project Architect',80,95],['BIM Modeling LOD 300','BIM Specialist',120,75],['BIM Modeling LOD 400','BIM Specialist',180,75],['Coordination / RFI Support','VDC Coordinator',60,85],['Construction Admin','Senior Architect',40,120]].forEach(r=>addPhase(...r));
+}
+function loadConsulting(){
+  phases=[];pid=0;
+  [['Discovery & Assessment','Senior Consultant',20,150],['Strategy & Roadmap','Senior Consultant',30,150],['Implementation','Project Manager',60,100],['Training & Handoff','Trainer',16,90],['Post-Launch Support','Consultant',10,120]].forEach(r=>addPhase(...r));
+}
+loadAEC();
+</script>
+</body></html>

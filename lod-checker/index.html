@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LOD Checker — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:1.5rem;margin-bottom:4px}
+.sub{font-size:.75rem;color:#888;margin-bottom:20px}
+label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+select{appearance:auto}
+button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}
+button:hover{background:#15803d}
+button.sec{background:#333}
+button.sec:hover{background:#444}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}
+td{padding:6px 8px;border-bottom:1px solid #222}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}
+.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.bo{background:#f9731622;color:#f97316}.bb{background:#3b82f622;color:#3b82f6}
+.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}
+.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head><body>
+<div class="container">
+<h1>LOD Checker</h1>
+<p class="sub">Validate BIM element Level of Development against ISO 19650 and BIMForum standards.</p>
+<div class="card grid2">
+<div><label>Element Category</label>
+<select id="cat" onchange="check()"><option value="">Select...</option>
+<option>Walls</option><option>Doors</option><option>Windows</option><option>Columns</option><option>Floors/Slabs</option><option>Roofs</option><option>Stairs</option><option>MEP Ducts</option><option>MEP Pipes</option><option>Electrical</option><option>Furniture</option><option>Curtain Walls</option></select></div>
+<div><label>Target LOD</label>
+<select id="lod" onchange="check()"><option value="">Select...</option>
+<option>100</option><option>200</option><option>300</option><option>350</option><option>400</option><option>500</option></select></div>
+</div>
+<div id="results"></div>
+</div>
+<script>
+const DB={
+Walls:{100:['Massing/conceptual representation','Approximate location'],200:['Generic wall type indicated','Approximate geometry','Orientation shown'],300:['Specific wall assembly','Accurate dimensions','Material layers defined','Opening locations'],350:['Connection details','Fire rating specified','Acoustic rating','Structural attachments'],400:['Fabrication-ready geometry','Shop drawing level detail','Embed locations','Exact material specs'],500:['As-built verification','Field-verified dimensions','Maintenance data attached']},
+Doors:{100:['Symbol or placeholder only'],200:['Generic door type','Approximate size','Swing direction'],300:['Specific manufacturer/model','Exact dimensions','Frame type specified','Hardware group assigned'],350:['Threshold details','Weather stripping','Fire rating label','Glazing specs if applicable'],400:['Shop drawing geometry','Hardware schedule complete','Installation clearances','Finish specifications'],500:['As-built verification','Warranty data','Maintenance schedule']},
+Windows:{100:['Placeholder opening'],200:['Generic window type','Approximate size','Rough opening'],300:['Specific type and manufacturer','Mullion layout','Glass type specified','U-value defined'],350:['Sill and head details','Flashing requirements','Structural support connections'],400:['Fabrication geometry','Shop drawings complete','Hardware specified','Finish and color codes'],500:['As-built verification','Performance test data','Warranty info']},
+Columns:{100:['Approximate location and height'],200:['Generic shape (round/square)','Approximate dimensions'],300:['Specific size and material','Connection type indicated','Reinforcement schedule (concrete)','Steel section specified'],350:['Base plate details','Splice locations','Fireproofing requirements'],400:['Fabrication-ready with connections','Embed plates','Camber specifications','Erection marks'],500:['As-built location verified','Load test results','Maintenance coating data']},
+'Floors/Slabs':{100:['Horizontal plane at level'],200:['Generic slab thickness','Floor-to-floor height'],300:['Slab type and thickness','Reinforcement layout','Topping if applicable','Edge conditions'],350:['Pour sequence','Construction joints','Embed locations','MEP penetrations coordinated'],400:['Formwork design','Rebar detailing complete','Post-tension layout if applicable'],500:['As-built elevations','Core test results','Flatness measurements']},
+Roofs:{100:['Conceptual roof plane'],200:['Generic roof type and slope'],300:['Roofing assembly layers','Drainage pattern','Penetration locations'],350:['Flashing details','Expansion joints','Equipment support coordination'],400:['Shop drawing details','Membrane seam layout','Attachment pattern'],500:['As-built conditions','Warranty documentation']},
+Stairs:{100:['Placeholder vertical circulation'],200:['Generic stair configuration','Approximate dimensions'],300:['Riser/tread dimensions to code','Railing type','Material specified','Landing dimensions'],350:['Connection to structure','Guard details','Nosing profile','Non-slip specification'],400:['Fabrication geometry','Steel stringer details','Embed locations'],500:['As-built verification','Code compliance documentation']},
+'MEP Ducts':{100:['Schematic routing zones'],200:['Approximate routing paths','Major equipment locations'],300:['Duct sizes specified','Fittings modeled','Insulation indicated','Diffuser locations'],350:['Hangers and supports','Access doors','Fire damper locations','Coordination clearances verified'],400:['Fabrication spool drawings','Seam and joint details','TAB-ready'],500:['As-built routing verified','Balancing report data']},
+'MEP Pipes':{100:['Schematic routing zones'],200:['Approximate pipe routing','Main equipment'],300:['Pipe sizes and material','Fittings modeled','Valve locations','Insulation type'],350:['Supports and hangers','Sleeve locations','Coordination clearances','Pressure ratings'],400:['Fabrication spool drawings','Weld locations','Isometric details'],500:['As-built verified','Pressure test documentation']},
+Electrical:{100:['Zone allocation for panels'],200:['Panel locations','Major conduit routes'],300:['Circuit assignments','Conduit sizes','Device locations','Load calculations'],350:['Box fill calculations','Grounding details','Coordination with structure'],400:['Fabrication-ready panel schedules','Conduit bend details','Pull box locations'],500:['As-built verified','Metering data','Test results']},
+Furniture:{100:['Space allocation blocks'],200:['Generic furniture type and size'],300:['Specific manufacturer and model','Accurate dimensions','Finish specified'],350:['Power/data connection requirements','Mounting details','Accessibility clearances verified'],400:['Installation drawings','Anchorage details if required'],500:['As-installed photos','Warranty data','Maintenance schedule']},
+'Curtain Walls':{100:['Conceptual facade plane'],200:['Generic system type','Module grid approximate'],300:['Mullion profiles specified','Panel types defined','Structural attachment type','Thermal performance values'],350:['Anchor and bracket details','Movement joint locations','Drainage paths','Sealant joints'],400:['Shop drawing details','Glass make-up','Extrusion profiles','Hardware'],500:['As-built verification','Water test results','Performance certificates']},
+};
+function check(){
+const cat=document.getElementById('cat').value;
+const lod=document.getElementById('lod').value;
+if(!cat||!lod)return;
+const data=DB[cat];
+if(!data){document.getElementById('results').innerHTML='<div class="card">Category not found.</div>';return;}
+const levels=['100','200','300','350','400','500'];
+const target=parseInt(lod);
+let h='<div class="card"><h3 style="margin-bottom:10px;font-size:.9rem;">'+cat+' — LOD '+lod+' Requirements</h3>';
+const reqs=data[lod]||[];
+reqs.forEach(r=>{h+=`<div style="margin:4px 0;padding:6px 10px;background:#16a34a15;border-left:3px solid #16a34a;border-radius:2px;font-size:.8rem;">✓ ${r}</div>`;});
+h+='</div>';
+h+=`<div class="card"><h3 style="margin-bottom:10px;font-size:.9rem;">Full LOD Comparison — ${cat}</h3><table><tr><th>LOD</th><th>Requirements</th><th>Status</th></tr>`;
+levels.forEach(l=>{
+const items=data[l]||[];
+const active=parseInt(l)<=target;
+h+=`<tr style="opacity:${active?1:.4}"><td><span class="badge ${active?'bg':''}">${l}</span></td><td style="font-size:.75rem;">${items.join('; ')}</td><td>${active?'<span class="badge bg">INCLUDED</span>':'<span class="tag">Above target</span>'}</td></tr>`;
+});
+h+=`</table></div>`;
+document.getElementById('results').innerHTML=h;
+}
+</script></body></html>

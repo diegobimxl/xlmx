@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Site Grading — Cut & Fill — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.kbox .v{font-size:1.1rem;font-weight:700}.kbox .l{color:#aaa;font-size:.68rem;margin-top:3px}
+.cut{color:#ef4444}.fill{color:#3b82f6}.bal{color:#16a34a}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase}
+td{padding:6px;border-bottom:1px solid #1e1e1e}
+.del{color:#ef4444;cursor:pointer}
+.bar-wrap{height:10px;background:#222;border-radius:5px;overflow:hidden;margin:3px 0}
+.bar-cut{height:100%;background:#ef4444;border-radius:5px}
+.bar-fill-c{height:100%;background:#3b82f6;border-radius:5px}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:700px){.grid2,.kpi{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Site Grading — Cut & Fill</h1>
+<p class="sub">Estimate earthwork volumes by grid section — average end-area or prismatoid method</p>
+<div class="card">
+<div class="grid2">
+<div><label>Proposed Finish Grade (m)</label><input id="fg" type="number" value="100.00" step="0.01"></div>
+<div><label>Soil Swell Factor (%)</label><input id="swell" type="number" value="25" step="1" title="Bank to loose — typical 25% for soil, 50% for rock"></div>
+<div><label>Soil Shrink Factor (%)</label><input id="shrink" type="number" value="10" step="1" title="Bank to compacted — typical 10% for soil"></div>
+<div><label>Haul cost ($/m³)</label><input id="haul" type="number" value="8" step="1"></div>
+</div>
+</div>
+<div class="card">
+<p style="color:#16a34a;font-size:.85rem;font-weight:600;margin-bottom:10px">Grid Sections</p>
+<div class="grid2" style="margin-bottom:12px">
+<div><label>Existing Elevation (m)</label><input id="gExist" type="number" value="100.50" step="0.01"></div>
+<div><label>Grid Area (m²)</label><input id="gArea" type="number" value="100" step="10"></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:14px">
+<button onclick="addGrid()">+ Add Section</button>
+<button class="sec" onclick="addPreset()">Load 5×5 Grid Preset</button>
+</div>
+<div style="overflow-x:auto">
+<table><thead><tr><th>#</th><th>Exist. Elev.</th><th>Area m²</th><th>Δ (m)</th><th>Cut/Fill</th><th>Bank m³</th><th></th></tr></thead>
+<tbody id="tb"></tbody></table>
+</div>
+</div>
+<div class="kpi" id="kpi">
+<div class="kbox"><div class="v cut">0 m³</div><div class="l">Total Cut</div></div>
+<div class="kbox"><div class="v fill">0 m³</div><div class="l">Total Fill</div></div>
+<div class="kbox"><div class="v bal">0 m³</div><div class="l">Net Balance</div></div>
+<div class="kbox"><div class="v">$0</div><div class="l">Haul Cost</div></div>
+</div>
+<script>
+let sections=[];let nid=1;const fg=()=>+document.getElementById('fg').value;
+function addGrid(){
+  const exist=+document.getElementById('gExist').value,area=+document.getElementById('gArea').value;
+  sections.push({id:nid++,exist,area});render();
+}
+function addPreset(){
+  const elevs=[100.8,100.6,100.4,100.2,100.0,100.5,100.3,100.1,99.9,99.7,100.2,100.0,99.8,99.6,99.4,99.9,99.7,99.5,99.3,99.1,99.6,99.4,99.2,99.0,98.8];
+  elevs.forEach(e=>sections.push({id:nid++,exist:e,area:100}));render();
+}
+function del(id){sections=sections.filter(x=>x.id!==id);render()}
+function render(){
+  const FG=fg(),sw=1+document.getElementById('swell').value/100,sh=1-document.getElementById('shrink').value/100;
+  const haul=+document.getElementById('haul').value;
+  let tCut=0,tFill=0;
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  sections.forEach((s,i)=>{
+    const delta=FG-s.exist;const vol=Math.abs(delta)*s.area;
+    const isCut=delta<0;if(isCut)tCut+=vol;else tFill+=vol;
+    tb.innerHTML+=`<tr><td>${i+1}</td><td>${s.exist.toFixed(2)}</td><td>${s.area}</td>
+    <td class="${isCut?'cut':'fill'}">${delta>=0?'+':''}${delta.toFixed(2)}</td>
+    <td class="${isCut?'cut':'fill'}">${isCut?'CUT':'FILL'}</td><td>${vol.toFixed(1)}</td>
+    <td class="del" onclick="del(${s.id})">×</td></tr>`;
+  });
+  const net=tFill-tCut;const haulVol=Math.max(tCut,tFill);const haulCost=Math.round(haulVol*haul);
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v cut">${tCut.toFixed(0)} m³</div><div class="l">Total Cut (bank)</div></div>`+
+    `<div class="kbox"><div class="v fill">${tFill.toFixed(0)} m³</div><div class="l">Total Fill (bank)</div></div>`+
+    `<div class="kbox"><div class="v ${Math.abs(net)<1?'bal':net>0?'fill':'cut'}">${net>=0?'+':''}${net.toFixed(0)} m³<br><small style="font-size:.65rem;color:#aaa">${net>5?'Import fill':net<-5?'Export cut':'Balanced'}</small></div><div class="l">Net Balance</div></div>`+
+    `<div class="kbox"><div class="v">$${haulCost.toLocaleString()}</div><div class="l">Est. Haul Cost</div></div>`;
+}
+render();
+</script></body></html>

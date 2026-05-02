@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xlmx</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;color:#222;font-family:'Courier New',Courier,monospace;font-size:14px;line-height:1.8;padding:40px 20px;max-width:640px;margin:0 auto}
+a{color:#222}
+h1{font-size:14px;font-weight:normal;margin-bottom:20px;letter-spacing:1px}
+.sep{border:none;border-top:1px solid #ddd;margin:30px 0}
+p{margin-bottom:14px}
+.blink{animation:blink 1.2s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+label{display:block;margin-bottom:6px;font-size:12px}
+input,textarea,select{font-family:'Courier New',Courier,monospace;font-size:13px;border:1px solid #ccc;padding:8px;width:100%;margin-bottom:12px;background:#fafafa;color:#222}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#888}
+textarea{height:100px;resize:vertical}
+button{font-family:'Courier New',Courier,monospace;font-size:13px;border:1px solid #222;background:#222;color:#fff;padding:10px 24px;cursor:pointer;letter-spacing:1px}
+button:hover{background:#444}
+.status{margin-top:12px;font-size:12px;color:#666;display:none}
+.footer{margin-top:60px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:20px}
+.tag{font-size:10px;color:#999;letter-spacing:2px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<p class="tag">xlmx — calle del gordo, mexico</p>
+
+<hr class="sep">
+
+<p>Habia una vez un gordo en Mexico que se la pasaba en su garage programando cosas que nadie le pedia.</p>
+
+<p>Un dia alguien le dijo: "oye gordo, me puedes hacer una pagina web?" y el gordo dijo "si, pero no quiero junta. Mandame un correo con lo que necesitas y en 24 horas te lo mando."</p>
+
+<p>La persona se quedo confundida. "Pero no quieres saber el branding, los colores, la vision de mi empresa, mi target audience, mi..."</p>
+
+<p>"No," dijo el gordo. "Mandame lo que necesitas. Si es claro, en 24 horas lo tienes. Si no es claro, te mando preguntas por correo. Sin juntas. Sin calls. Sin zoom. Sin cafe. Sin small talk. Solo codigo."</p>
+
+<p>Y asi nacio xlmx. Un gordo en su garage que programa lo que sea que necesites. Websites, apps, dashboards, bases de datos, automatizaciones, scrapers, APIs, calculadoras, sistemas de pedidos, analytics, lo que se te ocurra.</p>
+
+<p>El gordo programa en Python, HTML/CSS/JS, maneja Airtable como si fuera Excel con esteroides, y le gusta que las cosas funcionen rapido y sin drama.</p>
+
+<p>No hay oficina. No hay equipo de ventas. No hay reuniones de discovery. No hay propuesta de 47 paginas en PDF. Solo un correo, un precio, y un entregable en 24 horas.</p>
+
+<p>Pagos por transferencia BBVA o deposito en OXXO. Asi de simple.</p>
+
+<p>Si necesitas algo, manda tu request abajo. El gordo lo lee, te cotiza por correo, y se pone a chambear.<span class="blink">_</span></p>
+
+<hr class="sep">
+
+<p class="tag">// solicitud de proyecto</p>
+
+<form id="requestForm">
+  <label>tu nombre</label>
+  <input type="text" id="fname" required placeholder="como te llamas">
+  
+  <label>tu correo</label>
+  <input type="email" id="femail" required placeholder="para contestarte">  
+  <label>que tipo de proyecto</label>
+  <select id="ftype">
+    <option value="">-- selecciona --</option>
+    <option value="Website">Website / Pagina web</option>
+    <option value="App">App / Herramienta web</option>
+    <option value="Data/Analytics">Data / Analytics / Dashboard</option>
+    <option value="Automation">Automatizacion</option>
+    <option value="API/Integration">API / Integracion</option>
+    <option value="Database">Base de datos / Airtable</option>
+    <option value="Other">Otro (explicame abajo)</option>
+  </select>
+  
+  <label>describe lo que necesitas (entre mas claro, mas rapido)</label>
+  <textarea id="fdesc" required placeholder="quiero una pagina que haga X, necesito un sistema que calcule Y, etc..."></textarea>
+  
+  <label>presupuesto aproximado</label>
+  <select id="fbudget">
+    <option value="">-- selecciona --</option>
+    <option value="< $1,000 MXN">menos de $1,000 MXN</option>
+    <option value="$1,000 - $5,000 MXN">$1,000 - $5,000 MXN</option>
+    <option value="$5,000 - $15,000 MXN">$5,000 - $15,000 MXN</option>
+    <option value="> $15,000 MXN">mas de $15,000 MXN</option>
+    <option value="No se">no se / cotizame</option>
+  </select>
+  
+  <button type="submit">enviar request &gt;</button>
+  <div class="status" id="formStatus"></div>
+</form>
+
+<hr class="sep">
+<p class="tag">// portfolio (cosas que ha hecho el gordo)</p>
+<p>- calculadora solar MX y US<br>
+- sistema de pedidos por WhatsApp<br>
+- auditor de XMLs del SAT<br>
+- calculadora de ingenieria de menu para restaurantes<br>
+- analytics de maquinas vending<br>
+- gestor de reglamentos de construccion<br>
+- traductor de estandares BIM<br>
+- dashboards de inteligencia inmobiliaria<br>
+- scraper de propiedades<br>
+- grader de familias de Revit<br>
+- y mas...</p>
+
+<hr class="sep">
+
+<div class="footer">
+<p>xlmx — un gordo programando en su garage desde mexico</p>
+<p>sin oficina. sin juntas. sin drama. solo codigo.</p>
+<p>contacto directo: correo a traves del formulario</p>
+<p>pagos: BBVA transferencia / OXXO deposito</p>
+<p>entrega tipica: 24 horas desde primer contacto</p>
+<p style="margin-top:12px;font-size:10px;color:#bbb">v1.0 — hecho con courier new y ganas</p>
+</div>
+
+<script>
+const AT_TOKEN='pat09ixpHMeMur3Ng.c9a5151b103f814c6d8f066098de1637c0a15a938a809a432add1856366a02a0';
+const AT_BASE='appvh3o5xm1BZZ9k6';
+const AT_TABLE='tblt4OBSxf3GGWtdy';
+
+document.getElementById('requestForm').addEventListener('submit',async function(e){
+  e.preventDefault();  const btn=this.querySelector('button');
+  const status=document.getElementById('formStatus');
+  btn.disabled=true;btn.textContent='enviando...';
+  status.style.display='block';status.textContent='conectando con el garage...';
+  
+  const name=document.getElementById('fname').value.trim();
+  const email=document.getElementById('femail').value.trim();
+  const type=document.getElementById('ftype').value;
+  const desc=document.getElementById('fdesc').value.trim();
+  const budget=document.getElementById('fbudget').value;
+  
+  try{
+    const res=await fetch('https://api.airtable.com/v0/'+AT_BASE+'/'+AT_TABLE,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+AT_TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({records:[{fields:{
+        Name:name,
+        Email:email,
+        ProjectType:type||undefined,
+        Description:desc,
+        Budget:budget||undefined,
+        RequestDate:new Date().toISOString()
+      }}]})
+    });
+    if(res.ok){
+      status.textContent='// request recibido. el gordo te contesta por correo en menos de 24h.';
+      this.reset();
+    }else{
+      status.textContent='// error. manda correo directo a xlmx@proton.me';
+    }
+  }catch(err){
+    status.textContent='// error de red. intenta de nuevo o manda correo a xlmx@proton.me';
+  }
+  btn.disabled=false;btn.textContent='enviar request >';
+});
+</script>
+</body>
+</html>

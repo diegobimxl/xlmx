@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zoning Wars</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #0f0f23; color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+.header { background: #1a1a3e; border-bottom: 2px solid #4361ee; padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+.badge { background: #4361ee; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.hud { display: flex; gap: 16px; margin-left: auto; align-items: center; }
+.hud-item { text-align: center; }
+.hud-val { font-size: 20px; font-weight: 700; color: #4fffb0; }
+.hud-lbl { font-size: 10px; color: #aaa; text-transform: uppercase; }
+.game-wrap { display: flex; gap: 16px; padding: 16px; flex: 1; }
+.board-area { display: flex; flex-direction: column; align-items: center; }
+canvas { border: 2px solid #4361ee; border-radius: 4px; background: #111; cursor: crosshair; }
+.sidebar { width: 220px; display: flex; flex-direction: column; gap: 12px; }
+.panel { background: #1a1a3e; border-radius: 10px; padding: 14px; border: 1px solid #2a2a5e; }
+.panel h3 { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.zone-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; cursor: pointer; margin-bottom: 6px; border: 2px solid transparent; transition: all .15s; font-size: 13px; font-weight: 500; }
+.zone-btn:hover { border-color: #fff; }
+.zone-btn.active { border-color: #4fffb0; }
+.zone-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.lb-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #2a2a5e; color: #ccc; }
+.lb-row:last-child { border-bottom: none; }
+.lb-row.you { color: #4fffb0; font-weight: 700; }
+.btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: #4361ee; color: #fff; width: 100%; }
+.btn-primary:hover { background: #3451d1; }
+.violation-flash { font-size: 12px; color: #ff4d4d; min-height: 18px; font-weight: 600; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.overlay.hidden { display: none; }
+.modal { background: #1a1a3e; border: 2px solid #4361ee; border-radius: 16px; padding: 32px; max-width: 440px; width: 90%; text-align: center; }
+.modal h2 { font-size: 28px; font-weight: 900; margin-bottom: 12px; color: #4fffb0; }
+.modal p { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>ZONING WARS</h1><span class="badge">XLMX ARCADE</span>
+  <div class="hud">
+    <div class="hud-item"><div class="hud-val" id="score">0</div><div class="hud-lbl">Score</div></div>
+    <div class="hud-item"><div class="hud-val" id="timer" style="color:#ff4d4d;">60</div><div class="hud-lbl">Seconds</div></div>
+    <div class="hud-item"><div class="hud-val" id="level">1</div><div class="hud-lbl">Level</div></div>
+    <div class="hud-item"><div class="hud-val" id="violations" style="color:#ff4d4d;">0</div><div class="hud-lbl">Violations</div></div>
+  </div>
+</div>
+<div class="game-wrap">
+  <div class="board-area">
+    <canvas id="canvas" width="360" height="420"></canvas>
+    <div class="violation-flash" id="vflash" style="margin-top:8px;min-height:18px;"></div>
+  </div>
+  <div class="sidebar">
+    <div class="panel">
+      <h3>Active Zone</h3>
+      <div id="zone-btns"></div>
+    </div>
+    <div class="panel">
+      <h3>Zoning Rules</h3>
+      <div style="font-size:11px;color:#aaa;line-height:1.8;">
+        🟩 R1 next to R2 = OK<br>
+        🟨 C1 next to R = −10pts<br>
+        🟥 Industrial next to R = −25pts<br>
+        🟦 Park next to anything = +5pts bonus<br>
+        ⬛ Mixing 3+ zones = COMBO!
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Leaderboard</h3>
+      <div id="lb"></div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">New Game ▶</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="end-overlay">
+  <div class="modal">
+    <div id="end-emoji" style="font-size:48px;margin-bottom:8px;">🏙️</div>
+    <h2 id="end-title">GAME OVER</h2>
+    <p id="end-desc"></p>
+    <div id="end-lb" style="text-align:left;margin:16px 0;"></div>
+    <button class="btn btn-primary" onclick="startGame()">Play Again</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const COLS = 12, ROWS = 14;
+const CW = canvas.width / COLS, CH = canvas.height / ROWS;
+
+const ZONES = [
+  { id:'R1', name:'Residential Low', color:'#4ade80', short:'R1' },
+  { id:'R2', name:'Residential High', color:'#22c55e', short:'R2' },
+  { id:'C1', name:'Commercial', color:'#fbbf24', short:'C1' },
+  { id:'C2', name:'Mixed-Use', color:'#f97316', short:'C2' },
+  { id:'I', name:'Industrial', color:'#94a3b8', short:'I' },
+  { id:'P', name:'Park / Open', color:'#86efac', short:'P' },
+];
+
+let grid, selectedZone, score, violations, timeLeft, timerId, running, gameCount=0;
+let leaderboard = [];
+
+// Easter egg: type "ZONING" to clear all violations
+let eggBuf = '';
+document.addEventListener('keydown', e => {
+  eggBuf += e.key.toUpperCase();
+  eggBuf = eggBuf.slice(-6);
+  if (eggBuf === 'ZONING') { violations = 0; document.getElementById('violations').textContent=0; flash('🔮 CHEAT CODE: All violations cleared!'); eggBuf=''; }
+});
+
+function initGrid() {
+  grid = [];
+  for (let r=0; r<ROWS; r++) { grid.push([]); for (let c=0; c<COLS; c++) grid[r].push(null); }
+}
+
+function drawGrid() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for (let r=0; r<ROWS; r++) {
+    for (let c=0; c<COLS; c++) {
+      const z = grid[r][c];
+      ctx.fillStyle = z ? z.color+'33' : '#1a1a2e';
+      ctx.fillRect(c*CW, r*CH, CW, CH);
+      ctx.strokeStyle = '#2a2a5e';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(c*CW, r*CH, CW, CH);
+      if (z) {
+        ctx.fillStyle = z.color;
+        ctx.font = `bold ${Math.floor(CW*0.45)}px Inter`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(z.short, c*CW+CW/2, r*CH+CH/2);
+      }
+    }
+  }
+}
+
+function calcScore(r, c, zone) {
+  let pts = 10;
+  const neighbors = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+  let violation = false;
+  let parkBonus = false;
+  let types = new Set([zone.id]);
+  neighbors.forEach(([nr,nc]) => {
+    if (nr<0||nr>=ROWS||nc<0||nc>=COLS) return;
+    const n = grid[nr][nc];
+    if (!n) return;
+    types.add(n.id);
+    if (n.id === 'P') parkBonus = true;
+    if ((zone.id.startsWith('R') && n.id==='C1')) { pts -= 10; violation=true; }
+    if ((zone.id.startsWith('R') && n.id==='I') || (n.id.startsWith('R') && zone.id==='I')) { pts -= 25; violation=true; }
+    if (zone.id===n.id) pts += 5;
+  });
+  if (parkBonus) pts += 5;
+  if (types.size >= 3) pts += 20; // combo
+  if (violation) violations++;
+  return { pts, violation };
+}
+
+canvas.addEventListener('click', e => {
+  if (!running) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const c = Math.floor(mx / CW), r = Math.floor(my / CH);
+  if (r<0||r>=ROWS||c<0||c>=COLS) return;
+  if (grid[r][c]) return; // already placed
+  grid[r][c] = selectedZone;
+  const { pts, violation } = calcScore(r, c, selectedZone);
+  score = Math.max(0, score + pts);
+  if (violation) { flash(`⚠️ ZONING VIOLATION! ${pts < 0 ? pts : ''} pts`); violations++; document.getElementById('violations').textContent = violations; }
+  else if (pts > 25) flash(`🔥 COMBO! +${pts} pts`);
+  document.getElementById('score').textContent = score;
+  drawGrid();
+});
+
+function flash(msg) {
+  const el = document.getElementById('vflash');
+  el.textContent = msg;
+  setTimeout(() => el.textContent = '', 2500);
+}
+
+function renderZoneBtns() {
+  const c = document.getElementById('zone-btns');
+  c.innerHTML = '';
+  ZONES.forEach(z => {
+    const div = document.createElement('div');
+    div.className = 'zone-btn' + (z.id===selectedZone?.id?' active':'');
+    div.innerHTML = `<div class="zone-dot" style="background:${z.color}"></div><span>${z.name}</span>`;
+    div.onclick = () => { selectedZone = z; renderZoneBtns(); };
+    c.appendChild(div);
+  });
+}
+
+function renderLB(container='lb') {
+  const el = document.getElementById(container);
+  if (!leaderboard.length) { el.innerHTML='<div style="font-size:12px;color:#555;">No scores yet.</div>'; return; }
+  el.innerHTML = '';
+  leaderboard.slice(0,5).forEach((e,i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (i===0&&container==='end-lb'?' you':'');
+    row.innerHTML = `<span>#${i+1} Run ${e.run}</span><span>${e.score} pts</span>`;
+    el.appendChild(row);
+  });
+}
+
+function tick() {
+  timeLeft--;
+  document.getElementById('timer').textContent = timeLeft;
+  document.getElementById('level').textContent = Math.floor((60-timeLeft)/15)+1;
+  if (timeLeft <= 0) endGame();
+}
+
+function startGame() {
+  clearInterval(timerId);
+  score=0; violations=0; timeLeft=60; running=true;
+  selectedZone = ZONES[0];
+  document.getElementById('score').textContent=0;
+  document.getElementById('violations').textContent=0;
+  document.getElementById('timer').textContent=60;
+  document.getElementById('level').textContent=1;
+  document.getElementById('end-overlay').classList.add('hidden');
+  initGrid(); drawGrid(); renderZoneBtns(); renderLB();
+  timerId = setInterval(tick, 1000);
+}
+
+function endGame() {
+  clearInterval(timerId); running=false;
+  gameCount++;
+  leaderboard.push({ run:gameCount, score });
+  leaderboard.sort((a,b)=>b.score-a.score);
+  const emoji = score>400?'🏆':score>200?'🏙️':'🚧';
+  document.getElementById('end-emoji').textContent = emoji;
+  document.getElementById('end-title').textContent = score>400?'MASTER PLANNER':score>200?'CITY BUILDER':'BACK TO SCHOOL';
+  document.getElementById('end-desc').textContent = `Score: ${score} pts | Violations: ${violations} | Run #${gameCount}. ${violations>5?'The neighbors filed a class action lawsuit.':violations===0?'Zero violations. Suspicious.':'A few violations. Happens.'}`;
+  renderLB('end-lb');
+  document.getElementById('end-overlay').classList.remove('hidden');
+}
+
+startGame();
+</script>
+</body>
+</html>

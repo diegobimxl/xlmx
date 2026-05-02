@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MEP Load Calculator — XLMX</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}.container{max-width:900px;margin:0 auto;padding:20px}h1{font-size:1.5rem;margin-bottom:4px}.sub{font-size:.75rem;color:#888;margin-bottom:20px}label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}textarea{min-height:80px;resize:vertical}button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}button.del{background:#dc2626;padding:4px 8px;font-size:.7rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}table{width:100%;border-collapse:collapse;font-size:.78rem}th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}td{padding:6px 8px;border-bottom:1px solid #222}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></head><body>
+<div class="container">
+<h1>MEP Load Calculator</h1>
+<p class="sub">Estimate electrical, HVAC, and plumbing loads by space type and area.</p>
+<div class="card">
+<div class="grid3">
+<div><label>Space Type</label><select id="stype" onchange="calc()">
+<option>Office</option><option>Retail</option><option>Restaurant</option><option>Hotel Room</option><option>Hospital</option><option>Data Center</option><option>Warehouse</option><option>Residential</option><option>School</option><option>Gym/Sports</option></select></div>
+<div><label>Area</label><input id="area" type="number" value="500" oninput="calc()"></div>
+<div><label>Unit</label><select id="unit" onchange="calc()"><option value="m2">m²</option><option value="ft2">ft²</option></select></div>
+</div>
+</div>
+<div id="result"></div>
+<div id="ref"></div>
+</div>
+<script>
+const DB={
+Office:{elec:25,hvac:120,btu_m2:430,cfm_m2:5.4,fu:0.05,desc:'Standard office with workstations, lighting, HVAC'},
+Retail:{elec:20,hvac:130,btu_m2:470,cfm_m2:5.4,fu:0.03,desc:'Retail with display lighting and point-of-sale'},
+Restaurant:{elec:40,hvac:200,btu_m2:720,cfm_m2:10.8,fu:0.25,desc:'Restaurant with kitchen equipment and high ventilation'},
+'Hotel Room':{elec:15,hvac:100,btu_m2:360,cfm_m2:3.2,fu:0.15,desc:'Standard hotel room with PTAC/FCU'},
+Hospital:{elec:50,hvac:180,btu_m2:650,cfm_m2:8.6,fu:0.20,desc:'Hospital with medical equipment and clean air requirements'},
+'Data Center':{elec:500,hvac:800,btu_m2:2880,cfm_m2:32.3,fu:0.01,desc:'High-density server environment'},
+Warehouse:{elec:8,hvac:40,btu_m2:144,cfm_m2:1.1,fu:0.02,desc:'Warehouse with basic lighting and ventilation'},
+Residential:{elec:18,hvac:90,btu_m2:324,cfm_m2:4.3,fu:0.12,desc:'Residential unit with standard appliances'},
+School:{elec:22,hvac:110,btu_m2:396,cfm_m2:6.5,fu:0.06,desc:'Classroom with lighting and AV equipment'},
+'Gym/Sports':{elec:15,hvac:150,btu_m2:540,cfm_m2:8.6,fu:0.08,desc:'Athletic facility with high ventilation needs'},
+};
+function calc(){
+const t=document.getElementById('stype').value;
+const rawArea=parseFloat(document.getElementById('area').value)||0;
+const unit=document.getElementById('unit').value;
+const area=unit==='ft2'?rawArea*0.0929:rawArea;
+const d=DB[t];
+if(!d||!area)return;
+const watts=d.elec*area;
+const va=watts*1.1;
+const amps20=Math.ceil(va/120/20);
+const btu=d.btu_m2*area;
+const tons=(btu/12000).toFixed(1);
+const cfm=d.cfm_m2*area;
+const fu=Math.ceil(d.fu*area);
+const ul=unit==='m2'?'m²':'ft²';
+document.getElementById('result').innerHTML=`
+<div class="card" style="border-color:#3b82f6;"><h3 style="font-size:.85rem;margin-bottom:8px;color:#3b82f6;">⚡ Electrical</h3>
+<div class="grid3">
+<div class="stat"><div class="n">${(watts/1000).toFixed(1)}</div><div class="l">kW Total</div></div>
+<div class="stat"><div class="n">${(va/1000).toFixed(1)}</div><div class="l">kVA</div></div>
+<div class="stat"><div class="n">${amps20}</div><div class="l">20A Circuits</div></div>
+</div>
+<div style="font-size:.7rem;color:#888;">Load density: ${d.elec} W/${ul==='ft²'?'ft²':('m²')}</div>
+</div>
+<div class="card" style="border-color:#06b6d4;"><h3 style="font-size:.85rem;margin-bottom:8px;color:#06b6d4;">❄ HVAC</h3>
+<div class="grid3">
+<div class="stat"><div class="n">${(btu/1000).toFixed(0)}K</div><div class="l">BTU/hr</div></div>
+<div class="stat"><div class="n">${tons}</div><div class="l">Tons Cooling</div></div>
+<div class="stat"><div class="n">${cfm.toFixed(0)}</div><div class="l">CFM Airflow</div></div>
+</div></div>
+<div class="card" style="border-color:#16a34a;"><h3 style="font-size:.85rem;margin-bottom:8px;color:#16a34a;">🔧 Plumbing</h3>
+<div class="grid2">
+<div class="stat"><div class="n">${fu}</div><div class="l">Fixture Units (est.)</div></div>
+<div class="stat"><div class="n">${fu<=30?'¾"':fu<=100?'1"':fu<=200?'1¼"':'1½"'}</div><div class="l">Min. Supply Pipe</div></div>
+</div></div>`;
+let ref='<div class="card"><h3 style="font-size:.85rem;margin-bottom:8px;">Reference — Load Factors by Space Type</h3><table><tr><th>Type</th><th>W/m²</th><th>BTU/m²</th><th>CFM/m²</th></tr>';
+Object.entries(DB).forEach(([k,v])=>{
+const active=k===t?'style="background:#16a34a15;"':'';
+ref+=`<tr ${active}><td>${k}</td><td>${v.elec}</td><td>${v.btu_m2}</td><td>${v.cfm_m2}</td></tr>`;
+});
+ref+='</table></div>';
+document.getElementById('ref').innerHTML=ref;
+}
+calc();
+</script></body></html>

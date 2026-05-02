@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood Board - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:1.5rem;font-size:.95rem}
+.toolbar{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.btn{background:#16a34a;color:#fff;border:none;padding:.5rem 1.1rem;border-radius:6px;font-size:.82rem;cursor:pointer;font-family:inherit;font-weight:500}
+.btn:hover{background:#15803d}
+.btn-sec{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:.5rem 1.1rem;border-radius:6px;font-size:.82rem;cursor:pointer;font-family:inherit}
+.btn-sec:hover{color:#fff}
+input[type=color]{background:none;border:1px solid #333;border-radius:4px;width:36px;height:32px;cursor:pointer;padding:2px}
+label.clabel{font-size:.78rem;color:#888;margin-right:.3rem}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:600px){.board{grid-template-columns:repeat(2,1fr)}}
+.slot{background:#1a1a1a;border:2px dashed #333;border-radius:8px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s}
+.slot:hover{border-color:#555}
+.slot.filled{border-style:solid;border-color:#333}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot .plus{font-size:1.5rem;color:#444}
+.slot .remove{position:absolute;top:4px;right:4px;background:#111a;color:#fff;border:none;border-radius:3px;padding:2px 6px;font-size:.7rem;cursor:pointer;display:none}
+.slot:hover .remove{display:block}
+.slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.palette-row{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.swatch{width:48px;height:48px;border-radius:6px;cursor:pointer;border:2px solid #222;position:relative;flex-shrink:0}
+.swatch:hover{border-color:#555}
+.swatch .hex{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:.6rem;color:#888;white-space:nowrap}
+.notes{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:.75rem;border-radius:6px;font-size:.82rem;font-family:inherit;resize:vertical;min-height:80px}
+.notes:focus{outline:none;border-color:#16a34a}
+.section-title{font-size:.82rem;font-weight:600;color:#16a34a;margin-bottom:.5rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Mood Board</h1>
+<p class="sub">Digital mood board with image slots and color palette. Drag in images or click to browse.</p>
+<div class="toolbar">
+  <button class="btn" onclick="addSwatch()">+ Color</button>
+  <label class="clabel">Pick color:</label>
+  <input type="color" id="swatchPicker" value="#16a34a">
+  <button class="btn-sec" onclick="clearBoard()">Clear Board</button>
+  <button class="btn-sec" onclick="exportPalette()">Export Palette</button>
+</div>
+<p class="section-title">Images (click to add, drag to reorder concept)</p>
+<div class="board" id="board"></div>
+<p class="section-title">Color Palette</p>
+<div class="palette-row" id="palette"></div>
+<p style="font-size:.75rem;color:#555;margin-bottom:1rem">Click a swatch to copy HEX. Right-click to remove.</p>
+<p class="section-title">Notes</p>
+<textarea class="notes" id="notes" placeholder="Project name, mood keywords, references, client direction..."></textarea>
+
+<script>
+var slots = 8;
+var colors = ['#1a1a1a','#333333','#16a34a','#f5f0e8','#8b7355','#2d4a3e','#c9b08a','#4a90d9'];
+
+function buildBoard(){
+  var b=document.getElementById('board');
+  b.innerHTML='';
+  for(var i=0;i<slots;i++){
+    var s=document.createElement('div');
+    s.className='slot';
+    s.innerHTML='<span class="plus">+</span><input type="file" accept="image/*" onchange="loadImg(this,'+('"')+i+('"')+')">';
+    b.appendChild(s);
+  }
+}
+
+function loadImg(input,idx){
+  var file=input.files[0];
+  if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var slots=document.querySelectorAll('.slot');
+    var s=slots[parseInt(idx)];
+    s.classList.add('filled');
+    s.innerHTML='<img src="'+e.target.result+'"><button class="remove" onclick="clearSlot('+idx+')">x</button><input type="file" accept="image/*" onchange="loadImg(this,'+idx+')">';
+  };
+  r.readAsDataURL(file);
+}
+
+function clearSlot(idx){
+  var s=document.querySelectorAll('.slot')[parseInt(idx)];
+  s.classList.remove('filled');
+  s.innerHTML='<span class="plus">+</span><input type="file" accept="image/*" onchange="loadImg(this,'+idx+')">';
+}
+
+function buildPalette(){
+  var p=document.getElementById('palette');
+  p.innerHTML=colors.map(function(c,i){
+    return '<div class="swatch" style="background:'+c+'" onclick="copyHex(\''+c+'\')" oncontextmenu="removeSwatch('+i+',event)" title="Click to copy"><span class="hex">'+c+'</span></div>';
+  }).join('');
+}
+
+function addSwatch(){
+  var c=document.getElementById('swatchPicker').value;
+  if(!colors.includes(c)){colors.push(c);buildPalette();}
+}
+
+function removeSwatch(i,e){e.preventDefault();colors.splice(i,1);buildPalette();}
+
+function copyHex(c){
+  navigator.clipboard.writeText(c).catch(function(){});
+  var tmp=document.createElement('div');
+  tmp.style.cssText='position:fixed;top:1rem;right:1rem;background:#16a34a;color:#fff;padding:.5rem 1rem;border-radius:6px;font-size:.82rem;z-index:999';
+  tmp.textContent='Copied '+c;
+  document.body.appendChild(tmp);
+  setTimeout(function(){tmp.remove();},1500);
+}
+
+function exportPalette(){
+  var text=colors.join('\n');
+  navigator.clipboard.writeText(text).catch(function(){});
+  alert('Palette copied to clipboard:\n'+text);
+}
+
+function clearBoard(){if(confirm('Clear all images?')){buildBoard();}}
+
+buildBoard(); buildPalette();
+</script>
+</body>
+</html>

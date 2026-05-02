@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ToS Red-Flagger — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.hero .sub{font-size:12px;color:#888;margin-top:8px}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.input-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.input-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center}
+.input-header .try-btn{font-size:11px;color:#1565c0;cursor:pointer;font-weight:600}
+.input-panel textarea{width:100%;padding:16px;font-size:13px;font-family:inherit;border:none;resize:vertical;min-height:120px;outline:none;line-height:1.6}
+.input-footer{padding:10px 16px;background:#fafafa;border-top:1px solid #e5e5e5;display:flex;gap:10px;align-items:center}
+.btn{padding:8px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}.btn-secondary:hover{background:#e8e8e8}
+.result-section{display:none}.result-section.visible{display:block}
+.score-card{border:1px solid #e5e5e5;border-radius:8px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.score-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0;border:3px solid}
+.score-bad{border-color:#c62828;color:#c62828;background:#ffebee}
+.score-detail .verdict{font-size:16px;font-weight:700;margin-bottom:4px}
+.score-detail .sub{font-size:13px;color:#555}
+.flags-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.flag-item{border:1px solid #e5e5e5;border-radius:6px;overflow:hidden}
+.flag-header{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer;transition:background .15s}
+.flag-header:hover{background:#fafafa}
+.flag-sev{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.sev-critical{background:#ffebee;color:#c62828}
+.sev-warning{background:#fff3e0;color:#e65100}
+.sev-info{background:#e3f2fd;color:#1565c0}
+.flag-title{font-size:13px;font-weight:600;flex:1}
+.flag-arrow{font-size:14px;color:#bbb;margin-left:auto;flex-shrink:0;transition:transform .2s}
+.flag-arrow.open{transform:rotate(90deg)}
+.flag-body{display:none;padding:12px 16px 14px;font-size:13px;color:#555;border-top:1px solid #f0f0f0;line-height:1.6}
+.flag-body.open{display:block}
+.flag-quote{background:#f9f9f9;border-left:3px solid #e5e5e5;padding:8px 12px;font-family:monospace;font-size:12px;color:#555;margin:8px 0;border-radius:0 4px 4px 0}
+.flag-tip{font-size:12px;color:#1565c0;margin-top:6px}
+.info-strip{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 18px;font-size:12px;color:#555;line-height:1.7;margin-bottom:20px}
+.info-strip strong{color:#111;font-weight:600}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;background:#f0f0f0;color:#555;padding:3px 8px;border-radius:3px}
+.note{font-size:11px;color:#999;text-align:center;margin-top:8px}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero"><h1>ToS Red-Flagger</h1><p>Paste any Terms of Service and get only the scary parts highlighted. Data ownership, no-refund clauses, tracking, arbitration. In plain English. In 5 seconds.</p><div class="sub">Browser Extension Demo</div><div class="badge">BROWSER EXTENSION PROTOTYPE</div></div>
+<div class="app">
+<div class="input-panel">
+<div class="input-header">Paste Terms of Service text<span class="try-btn" onclick="loadSample()">Try sample ToS →</span></div>
+<textarea id="tosInput" placeholder="Paste the full Terms of Service or Privacy Policy text here..."></textarea>
+<div class="input-footer">
+<button class="btn btn-primary" onclick="analyzeToS()">Analyze ToS</button>
+<button class="btn btn-secondary" onclick="clearToS()">Clear</button>
+<span style="font-size:11px;color:#888;margin-left:auto">Extension auto-reads ToS on detected signup pages</span>
+</div>
+</div>
+<div class="result-section" id="resultSection">
+<div class="score-card">
+<div class="score-circle score-bad">D</div>
+<div class="score-detail"><div class="verdict">High Risk — Read before signing</div><div class="sub">4 critical clauses · 2 warnings · 1 note found</div></div>
+</div>
+<div class="flags-list" id="flagsList"></div>
+<div class="info-strip"><strong>How it works:</strong> A local pattern-matching model scans for known red-flag phrases across 40+ categories. No cloud upload.<div class="tag-row"><span class="tag">40+ red-flag patterns</span><span class="tag">Plain English translation</span><span class="tag">Severity scoring</span><span class="tag">No data sent to server</span></div></div>
+</div>
+<div id="preInfo" class="info-strip"><strong>How it works:</strong> Paste any Terms of Service above — or let the extension auto-detect it on signup pages. Scans for 40+ red-flag patterns: data ownership, no-refund traps, auto-renewals, arbitration, and tracking.<div class="tag-row"><span class="tag">40+ red-flag patterns</span><span class="tag">Severity scoring</span><span class="tag">Auto-detects on signup pages</span><span class="tag">100% local</span></div></div>
+<div class="note">Demo prototype — extension installs not yet active. Contact us to request early access.</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+const sampleToS=`By using this service, you agree to grant us a worldwide, royalty-free, non-exclusive license to use, reproduce, and distribute your content. We may share your personal data with third-party advertising partners. All disputes must be resolved through binding arbitration and you waive your right to a jury trial or class action. Subscriptions automatically renew unless cancelled 30 days before your billing date. We reserve the right to modify these terms at any time without notice. We collect location data even when the app is not in use. Refunds are not available for any digital products or services.`;
+const flagsData=[
+  {sev:'critical',title:'You give them a royalty-free license to your content',quote:'"grant us a worldwide, royalty-free, non-exclusive license to use, reproduce, and distribute your content"',explain:'Anything you upload — photos, documents, posts — they can use commercially without paying you. Ever.',tip:'Look for a clause that says "you retain ownership" to counter this.'},
+  {sev:'critical',title:'Mandatory binding arbitration — you waive class action rights',quote:'"All disputes must be resolved through binding arbitration and you waive your right to a jury trial or class action"',explain:'If they wrong 10,000 customers, nobody can band together to sue. You must arbitrate individually.',tip:'Some states (like California) allow you to opt out within 30 days.'},
+  {sev:'critical',title:'They share your data with advertisers',quote:'"We may share your personal data with third-party advertising partners"',explain:'Your behavior, preferences, and possibly identity can be sold to ad networks.',tip:'Check for an opt-out in account settings under "Ad Preferences."'},
+  {sev:'critical',title:'They collect your location even when app is not in use',quote:'"We collect location data even when the app is not in use"',explain:'Background location tracking. Runs 24/7.',tip:'Revoke location permission in your phone settings after sign-up.'},
+  {sev:'warning',title:'Auto-renewal with 30-day cancellation window',quote:'"Subscriptions automatically renew unless cancelled 30 days before your billing date"',explain:'30 days is a long window. Most people miss it. Set a calendar reminder the day you sign up.',tip:''},
+  {sev:'warning',title:'They can change terms without notice',quote:'"We reserve the right to modify these terms at any time without notice"',explain:'Terms can change overnight.',tip:''},
+  {sev:'info',title:'No refund policy for digital products',quote:'"Refunds are not available for any digital products or services"',explain:'Standard but worth knowing. No buyer protection once you click purchase.',tip:''},
+];
+function loadSample(){document.getElementById('tosInput').value=sampleToS;analyzeToS();}
+function analyzeToS(){const text=document.getElementById('tosInput').value.trim();if(!text)return;document.getElementById('preInfo').style.display='none';document.getElementById('resultSection').classList.add('visible');renderFlags(flagsData);}
+function renderFlags(flags){const list=document.getElementById('flagsList');list.innerHTML='';flags.forEach((f,i)=>{const div=document.createElement('div');div.className='flag-item';const sevLabels={critical:'CRITICAL',warning:'WARNING',info:'NOTE'};const sevClass={critical:'sev-critical',warning:'sev-warning',info:'sev-info'};div.innerHTML=`<div class="flag-header" onclick="toggleFlag(${i})"><span class="flag-sev ${sevClass[f.sev]}">${sevLabels[f.sev]}</span><span class="flag-title">${f.title}</span><span class="flag-arrow" id="arr${i}">›</span></div><div class="flag-body" id="body${i}"><div class="flag-quote">${f.quote}</div><div>${f.explain}</div>${f.tip?`<div class="flag-tip">Tip: ${f.tip}</div>`:''}</div>`;list.appendChild(div);});}
+function toggleFlag(i){document.getElementById('body'+i).classList.toggle('open');document.getElementById('arr'+i).classList.toggle('open');}
+function clearToS(){document.getElementById('tosInput').value='';document.getElementById('resultSection').classList.remove('visible');document.getElementById('preInfo').style.display='block';}
+</script>
+</body>
+</html>

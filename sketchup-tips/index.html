@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SketchUp Tips — XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:1.5rem;font-size:.95rem}
+.tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.4rem 1rem;border-radius:6px;font-size:.85rem;cursor:pointer}
+.tab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+input[type=text]{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:.55rem .9rem;border-radius:6px;font-size:.9rem;font-family:inherit;margin-bottom:1.5rem}
+input[type=text]:focus{outline:none;border-color:#16a34a}
+.tip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.tip{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.25rem}
+.tip:hover{border-color:#444}
+.tip-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem}
+.tip-title{font-size:.9rem;font-weight:600}
+.tip-cat{background:#16a34a22;color:#16a34a;padding:.1rem .4rem;border-radius:3px;font-size:.7rem}
+.tip-body{font-size:.82rem;color:#bbb;line-height:1.5}
+.tip-shortcut{margin-top:.5rem;font-size:.78rem}
+.key{display:inline-block;background:#222;border:1px solid #555;border-radius:3px;padding:.1rem .4rem;font-size:.72rem;color:#ddd;margin-right:.2rem}
+.shortcut-section{margin-top:1.5rem}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem}
+.sc-item{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:.75rem;display:flex;gap:.75rem;align-items:center}
+.sc-keys{min-width:70px}
+.sc-name{font-size:.82rem}
+.sc-note{font-size:.75rem;color:#888}
+</style>
+</head>
+<body>
+<a class="back" href="/">← XLMX</a>
+<h1>SketchUp Tips</h1>
+<p class="sub">Workflow tips, modeling techniques, and keyboard shortcuts for SketchUp Pro.</p>
+
+<input type="text" id="search" placeholder="Search tips..." oninput="render()">
+
+<div class="tabs" id="tabs"></div>
+<div class="tip-grid" id="grid"></div>
+
+<script>
+const tips = [
+  {cat:'Modeling',title:'Push/Pull Locked to Axis',body:'Hold Shift while using Push/Pull to lock extrusion to a specific axis direction. Critical for off-axis geometry.',shortcut:'P (Push/Pull tool)'},
+  {cat:'Modeling',title:'Inference Locking',body:'Tap and hold an arrow key while drawing to lock the inference direction: Right=Red, Left=Green, Up/Down=Blue.',shortcut:'Arrow keys'},
+  {cat:'Modeling',title:'Move + Copy Array',body:'After Move+Copy, type 3x to make 3 total copies (including original), or /3 to divide the distance into 3 equal intervals.',shortcut:'M then Ctrl+drag'},
+  {cat:'Modeling',title:'Scale from Center',body:'Hold Ctrl while scaling to scale from the center of the selection rather than from the opposite corner.',shortcut:'S then Ctrl'},
+  {cat:'Modeling',title:'Heal Face After Delete',body:'If deleting an edge leaves an open face, redraw any single edge of that face and SketchUp will auto-heal the face.',shortcut:'—'},
+  {cat:'Modeling',title:'Follow Me with pre-select',body:'Select the path faces first, then activate Follow Me and click the profile. Pre-selecting avoids manual path picking.',shortcut:'—'},
+  {cat:'Modeling',title:'Stick to Surface',body:'Enable "Glue to" behavior on components so they automatically orient and snap to faces when placed.',shortcut:'—'},
+  {cat:'Components',title:'Replace All Instances',body:'Right-click any component instance → "Reload" to swap all instances of that component with an updated external file.',shortcut:'—'},
+  {cat:'Components',title:'Make Unique',body:'Right-click → Make Unique to break a component instance into its own independent definition without affecting others.',shortcut:'—'},
+  {cat:'Components',title:'Explode Nested Groups',body:'Use Edit → Paste in Place after copying geometry from inside a group to maintain world position when pasting outside.',shortcut:'Ctrl+Shift+V'},
+  {cat:'Components',title:'Dynamic Components',body:'Use Window → Component Options to control Dynamic Component parameters like width, height, and material without entering edit mode.',shortcut:'—'},
+  {cat:'Layers',title:'Layer Visibility Toggle',body:'Click the eye icon in the Layers panel to toggle visibility. Use tags/layers strategically — never draw on non-default layers.',shortcut:'—'},
+  {cat:'Layers',title:'Entity Info Layer',body:'Use Entity Info (Window → Entity Info) to reassign selected geometry to a different layer in bulk.',shortcut:'—'},
+  {cat:'Styles',title:'Consistent Edge Rendering',body:'Set edge color to "By Material" in Styles for more realistic renders while keeping SketchUp style for presentations.',shortcut:'—'},
+  {cat:'Styles',title:'X-Ray Mode',body:'Toggle X-Ray mode to see through faces while modeling interior spaces. Combine with hidden line style for clarity.',shortcut:'Alt+X'},
+  {cat:'Rendering',title:'Shadow Sun Studies',body:'Use Window → Shadows, set geographic location, and scrub through time/date for solar analysis before committing to design.',shortcut:'—'},
+  {cat:'Rendering',title:'Section Cuts for Plans',body:'Place a Section Plane, activate it, then export 2D → DXF for accurate floor plans. Lock cut plane to axis for precision.',shortcut:'—'},
+  {cat:'Extensions',title:'Cleanup³',body:'Run Cleanup³ (TT Lib extension) regularly to remove duplicate faces, coplanar edges, and internal geometry — essential before export.',shortcut:'—'},
+  {cat:'Extensions',title:'Joint Push Pull',body:'Use Joint Push Pull for curved or multi-face extrusions. Works on non-planar face selections where standard Push/Pull fails.',shortcut:'—'},
+  {cat:'Extensions',title:'Curic Mirror',body:'Curic Mirror extension mirrors geometry while keeping it live — edits to the original reflect automatically. Great for symmetric facades.',shortcut:'—'},
+  {cat:'Extensions',title:'SUbD',body:'Artisan or SUbD extensions for subdivision modeling — essential for organic furniture, landscape features, and parametric surfaces.',shortcut:'—'},
+  {cat:'Performance',title:'Purge Unused',body:'Window → Model Info → Statistics → Purge Unused regularly. Removes unused components, materials, layers — dramatically reduces file size.',shortcut:'—'},
+  {cat:'Performance',title:'Use 2D Components for Entourage',body:'Import people, trees, and cars as 2D face-me components (not 3D models). Keeps polygon count manageable for large scenes.',shortcut:'—'},
+  {cat:'Performance',title:'Profile Edges Off',body:'In Styles, disable Profile Edges when modeling. Turn on only for presentations/exports. Profiles kill viewport performance.',shortcut:'—'},
+  {cat:'Export',title:'Export 2D DXF/DWG',body:'File → Export → 2D Graphic, choose DXF/DWG. Set scale in the Options dialog. Use Camera → Parallel Projection first for plan accuracy.',shortcut:'—'},
+  {cat:'Export',title:'3DS/OBJ for Rendering',body:'Export → 3D Model → OBJ or 3DS for V-Ray/Lumion import. Check "Export Texture Maps" and consolidate materials beforehand.',shortcut:'—'},
+];
+
+const cats = ['All', ...new Set(tips.map(t=>t.cat))];
+let active = 'All';
+
+function buildTabs(){
+  document.getElementById('tabs').innerHTML = cats.map(c=>`<div class="tab${c===active?' active':''}" onclick="setC('${c}')">${c}</div>`).join('');
+}
+
+function setC(c){ active=c; buildTabs(); render(); }
+
+function render(){
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = tips.filter(t=>{
+    const inCat = active==='All'||t.cat===active;
+    const inQ = !q||t.title.toLowerCase().includes(q)||t.body.toLowerCase().includes(q)||t.cat.toLowerCase().includes(q);
+    return inCat&&inQ;
+  });
+  document.getElementById('grid').innerHTML = filtered.map(t=>`
+    <div class="tip">
+      <div class="tip-head"><span class="tip-title">${t.title}</span><span class="tip-cat">${t.cat}</span></div>
+      <div class="tip-body">${t.body}</div>
+      ${t.shortcut&&t.shortcut!=='—'?`<div class="tip-shortcut"><span class="key">${t.shortcut}</span></div>`:''}
+    </div>`).join('');
+}
+
+buildTabs(); render();
+</script>
+</body>
+</html>

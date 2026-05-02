@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Sizing — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;text-align:center}
+.kbox .v{font-size:1.3rem;font-weight:700;color:#16a34a}.kbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}
+.load-bar{height:20px;background:#222;border-radius:4px;overflow:hidden;margin:6px 0}
+.load-fill{height:100%;border-radius:4px}
+.section-title{color:#16a34a;font-size:.82rem;font-weight:600;margin:12px 0 8px}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.kpi{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>HVAC Quick Sizing</h1>
+<p class="sub">Cooling and heating load estimate by room — Manual J simplified method</p>
+<div class="card">
+<div class="grid2">
+<div><label>Room / Zone Name</label><input id="name" placeholder="Office Level 3"></div>
+<div><label>Conditioned Area (m²)</label><input id="area" type="number" value="200" step="5"></div>
+<div><label>Ceiling Height (m)</label><input id="ht" type="number" value="3.0" step="0.1"></div>
+<div><label>Climate Zone</label>
+<select id="cz"><option value="hot">Hot (>35°C summer — Monterrey, Phoenix)</option><option value="mixed" selected>Mixed (25–35°C — Dallas, CDMX)</option><option value="cool">Cool (<25°C — Denver, Chicago)</option><option value="cold">Cold (<10°C winter dominant)</option></select></div>
+<div><label>Occupancy Type</label>
+<select id="occ"><option value="office">Office (5 people/100m²)</option><option value="retail">Retail (8/100m²)</option><option value="classroom">Classroom (25/100m²)</option><option value="residential">Residential (2/100m²)</option><option value="restaurant">Restaurant (15/100m²)</option><option value="gym">Gym (10/100m²)</option></select></div>
+<div><label>Glazing %</label><input id="glaz" type="number" value="30" step="5" title="% of wall area that is glass"></div>
+<div><label>Orientation</label>
+<select id="orient"><option>N/S facing (low solar)</option><option selected>E/W facing (moderate)</option><option>All glass curtain wall</option></select></div>
+<div><label>Insulation Level</label>
+<select id="ins"><option value="poor">Poor (old construction)</option><option value="standard" selected>Standard (code min)</option><option value="good">Good (enhanced)</option><option value="passive">Passive House level</option></select></div>
+</div>
+<button onclick="calc()">Calculate HVAC Load</button>
+</div>
+<div id="res" style="display:none">
+<div class="kpi" id="kpi"></div>
+<div class="card" id="breakdown"></div>
+<div class="card" id="equipment"></div>
+</div>
+<script>
+function calc(){
+  const area=+document.getElementById('area').value;
+  const ht=+document.getElementById('ht').value;
+  const cz=document.getElementById('cz').value;
+  const occ=document.getElementById('occ').value;
+  const glaz=+document.getElementById('glaz').value/100;
+  const ins=document.getElementById('ins').value;
+  const vol=area*ht;
+  // Occupancy density (people/m²)
+  const occD={'office':0.05,'retail':0.08,'classroom':0.25,'residential':0.02,'restaurant':0.15,'gym':0.10}[occ];
+  const people=Math.ceil(area*occD);
+  // Base cooling load W/m² by climate
+  const baseW={'hot':150,'mixed':110,'cool':80,'cold':60}[cz];
+  // Insulation factor
+  const insFact={'poor':1.4,'standard':1.0,'good':0.75,'passive':0.45}[ins];
+  // Glazing factor
+  const glazFact=1+(glaz-0.2)*1.5;
+  // Component loads (W)
+  const envelope=area*baseW*insFact*glazFact*0.4;
+  const solar=area*glaz*300*({'hot':1.2,'mixed':1.0,'cool':0.8,'cold':0.6}[cz]);
+  const occupants=people*100; // 100W sensible/person
+  const lighting=area*12; // 12 W/m²
+  const equipment=area*15; // 15 W/m²
+  const ventilation=people*30*1.2; // 30 L/s/person, 1.2 W/L
+  const totalCool=envelope+solar+occupants+lighting+equipment+ventilation;
+  const totalCoolKW=totalCool/1000;
+  const tons=totalCoolKW/3.517;
+  // Heating load (simplified)
+  const heatFact={'hot':0.3,'mixed':0.6,'cool':1.0,'cold':1.4}[cz];
+  const totalHeat=area*50*insFact*heatFact*1000; // W
+  const totalHeatKW=totalHeat/1000;
+  document.getElementById('res').style.display='block';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v">${totalCoolKW.toFixed(1)} kW</div><div class="l">Cooling Load</div></div>`+
+    `<div class="kbox"><div class="v">${tons.toFixed(1)} TR</div><div class="l">Cooling Tons</div></div>`+
+    `<div class="kbox"><div class="v">${totalHeatKW.toFixed(1)} kW</div><div class="l">Heating Load</div></div>`;
+  const loads=[['Envelope & Infiltration',envelope],['Solar Gains',solar],['Occupants',occupants],['Lighting',lighting],['Equipment',equipment],['Ventilation',ventilation]];
+  const bk=document.getElementById('breakdown');
+  bk.innerHTML=`<p class="section-title">Cooling Load Breakdown</p>`;
+  loads.forEach(([n,w])=>{
+    const pct=(w/totalCool*100).toFixed(0);
+    bk.innerHTML+=`<div class="row"><span>${n}</span><span>${(w/1000).toFixed(1)} kW (${pct}%)</span></div>`;
+  });
+  bk.innerHTML+=`<div class="row" style="border-top:1px solid #16a34a;margin-top:6px"><span>Total cooling</span><span style="color:#16a34a;font-weight:700">${totalCoolKW.toFixed(1)} kW / ${tons.toFixed(1)} TR</span></div>`;
+  bk.innerHTML+=`<div class="row"><span>Cooling intensity</span><span>${(totalCoolKW/area*1000).toFixed(0)} W/m²</span></div>`;
+  bk.innerHTML+=`<div class="row"><span>Occupants</span><span>${people} persons</span></div>`;
+  const eq=document.getElementById('equipment');
+  eq.innerHTML=`<p class="section-title">Equipment Recommendations</p>`;
+  const types=tons<=5?'Split System or VRF':tons<=20?'Packaged DX or VRF Multi-Zone':tons<=100?'Chilled Water AHU + Chiller':'Central Plant — Chiller + Cooling Tower';
+  eq.innerHTML+=`<div class="row"><span>System type</span><span>${types}</span></div>`;
+  eq.innerHTML+=`<div class="row"><span>Estimated COP target</span><span>${cz==='hot'?'≥3.5':'≥4.0'} (${cz==='hot'?'EER 12':'EER 14'})</span></div>`;
+  eq.innerHTML+=`<div class="row"><span>Min. fresh air</span><span>${(people*30/1000).toFixed(1)} m³/s (${people*30} L/s)</span></div>`;
+}
+calc();
+</script></body></html>

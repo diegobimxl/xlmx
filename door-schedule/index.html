@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Door Schedule — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:8px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase;white-space:nowrap}
+td{padding:7px 6px;border-bottom:1px solid #1e1e1e;white-space:nowrap}
+.del{color:#ef4444;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.sbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.sbox .v{font-size:1.1rem;font-weight:700;color:#16a34a}.sbox .l{color:#aaa;font-size:.7rem;margin-top:3px}
+.hw-badge{background:#0a1a3a;color:#3b82f6;padding:2px 7px;border-radius:4px;font-size:.7rem}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+#form{display:none}
+@media(max-width:700px){.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Door Schedule</h1>
+<p class="sub">Generate a complete door schedule with hardware sets, fire ratings, and frame types</p>
+<div class="stats">
+<div class="sbox"><div class="v" id="sTotal">0</div><div class="l">Total Doors</div></div>
+<div class="sbox"><div class="v" id="sHW">0</div><div class="l">Hardware Sets</div></div>
+<div class="sbox"><div class="v" id="sFire">0</div><div class="l">Rated Doors</div></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px">
+<button onclick="document.getElementById('form').style.display='block'">+ Add Door</button>
+<button class="sec" onclick="expCSV()">Export CSV</button>
+</div>
+<div class="card" id="form">
+<div class="grid3">
+<div><label>Door Mark</label><input id="fMk" placeholder="D-101"></div>
+<div><label>Width (in)</label><input id="fW" type="number" value="36"></div>
+<div><label>Height (in)</label><input id="fH" type="number" value="84"></div>
+<div><label>Thickness (in)</label><select id="fT"><option>1-3/4</option><option>1-3/8</option><option>2-1/4</option></select></div>
+<div><label>Door Material</label>
+<select id="fMat"><option>Hollow Metal</option><option>Solid Wood</option><option>Solid Core Wood</option><option>Aluminum Storefront</option><option>Glass / Full Lite</option><option>Fiberglass</option></select></div>
+<div><label>Frame Type</label>
+<select id="fFrm"><option>Hollow Metal</option><option>Wood</option><option>Aluminum</option><option>Knock-Down</option></select></div>
+<div><label>Operation</label>
+<select id="fOp"><option>Single Swing</option><option>Double Swing</option><option>Sliding</option><option>Bifold</option><option>Pocket</option><option>Overhead</option></select></div>
+<div><label>Fire Rating</label>
+<select id="fFire"><option>None</option><option>20-min</option><option>45-min</option><option>60-min</option><option>90-min</option><option>3-hr</option></select></div>
+<div><label>Hardware Set</label>
+<select id="fHW"><option>HW-1 (Office — Passage)</option><option>HW-2 (Office — Privacy)</option><option>HW-3 (Exterior — Keyed)</option><option>HW-4 (Exit — Panic)</option><option>HW-5 (Rated — Closer)</option><option>HW-6 (Stair — Keyed)</option></select></div>
+<div><label>Location / Room</label><input id="fLoc" placeholder="Room 101"></div>
+<div><label>Remarks</label><input id="fRem" placeholder="Accessible, vision panel"></div>
+</div>
+<button onclick="addDoor()">Save</button><button class="sec" onclick="document.getElementById('form').style.display='none'">Cancel</button>
+</div>
+<div class="card" style="overflow-x:auto">
+<table><thead><tr><th>Mark</th><th>Size</th><th>Material</th><th>Frame</th><th>Operation</th><th>Rating</th><th>Hardware Set</th><th>Location</th><th>Remarks</th><th></th></tr></thead>
+<tbody id="tb"></tbody></table>
+</div>
+<script>
+let items=[];let nid=1;
+function addDoor(){
+  items.push({id:nid++,mk:document.getElementById('fMk').value||`D-${String(nid).padStart(3,'0')}`,
+    w:document.getElementById('fW').value,h:document.getElementById('fH').value,t:document.getElementById('fT').value,
+    mat:document.getElementById('fMat').value,frm:document.getElementById('fFrm').value,
+    op:document.getElementById('fOp').value,fire:document.getElementById('fFire').value,
+    hw:document.getElementById('fHW').value,loc:document.getElementById('fLoc').value||'—',
+    rem:document.getElementById('fRem').value||'—'});
+  render();document.getElementById('form').style.display='none';
+  ['fMk','fLoc','fRem'].forEach(i=>document.getElementById(i).value='');
+}
+function del(id){items=items.filter(x=>x.id!==id);render()}
+function render(){
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  const hwSets=new Set();let fireCt=0;
+  items.forEach(r=>{
+    hwSets.add(r.hw.split(' ')[0]);if(r.fire!=='None')fireCt++;
+    tb.innerHTML+=`<tr><td>${r.mk}</td><td>${r.w}×${r.h}×${r.t}"</td><td>${r.mat}</td><td>${r.frm}</td>
+    <td>${r.op}</td><td>${r.fire==='None'?'—':r.fire}</td>
+    <td><span class="hw-badge">${r.hw.split(' ')[0]}</span></td>
+    <td>${r.loc}</td><td style="color:#aaa;font-size:.78rem">${r.rem}</td>
+    <td class="del" onclick="del(${r.id})">×</td></tr>`;
+  });
+  document.getElementById('sTotal').textContent=items.length;
+  document.getElementById('sHW').textContent=hwSets.size;
+  document.getElementById('sFire').textContent=fireCt;
+}
+function expCSV(){
+  let c='Mark,Width,Height,Thickness,Material,Frame,Operation,Fire Rating,Hardware Set,Location,Remarks\n';
+  items.forEach(r=>c+=`${r.mk},${r.w},${r.h},${r.t},"${r.mat}",${r.frm},"${r.op}",${r.fire},"${r.hw}","${r.loc}","${r.rem}"\n`);
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(c);a.download='door_schedule.csv';a.click();
+}
+render();
+</script></body></html>

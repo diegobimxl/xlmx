@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Metadata Reader — XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.drop-zone{border:2px dashed #333;border-radius:8px;padding:3rem;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:1.5rem}
+.drop-zone:hover,.drop-zone.drag{border-color:#16a34a}
+.drop-zone p{color:#888;margin-top:.5rem;font-size:.9rem}
+.drop-icon{font-size:2.5rem;margin-bottom:.5rem}
+input[type=file]{display:none}
+.btn{background:#16a34a;color:#fff;border:none;padding:.65rem 1.5rem;border-radius:6px;font-size:.9rem;cursor:pointer;font-family:inherit;font-weight:500}
+.btn:hover{background:#15803d}
+.btn-sm{background:#222;border:1px solid #333;color:#aaa;padding:.35rem .8rem;border-radius:5px;font-size:.75rem;cursor:pointer;font-family:inherit}
+.btn-sm:hover{background:#2a2a2a;color:#fff}
+#results{display:none}
+.preview-wrap{display:flex;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+#previewImg{max-width:280px;max-height:200px;border-radius:8px;border:1px solid #333;object-fit:contain;background:#0a0a0a}
+.quick-stats{flex:1;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.25rem;min-width:200px}
+.quick-stats h3{font-size:.9rem;color:#16a34a;margin-bottom:.75rem}
+.stat{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid #222;font-size:.82rem}
+.stat:last-child{border-bottom:none}
+.stat-val{color:#16a34a}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1rem}
+.card h2{font-size:.95rem;font-weight:600;margin-bottom:1rem;color:#16a34a;display:flex;justify-content:space-between;align-items:center}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+@media(max-width:500px){.meta-grid{grid-template-columns:1fr}}
+.meta-row{display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid #1f1f1f;font-size:.82rem}
+.meta-row:last-child{border-bottom:none}
+.meta-key{color:#888;margin-right:.5rem}
+.meta-val{color:#ddd;text-align:right;word-break:break-all}
+.map-link{display:inline-block;background:#16a34a22;color:#16a34a;padding:.3rem .7rem;border-radius:5px;text-decoration:none;font-size:.8rem;margin-top:.5rem}
+.map-link:hover{background:#16a34a44}
+.no-exif{color:#888;font-size:.85rem;text-align:center;padding:1rem}
+.tag{display:inline-block;background:#16a34a22;color:#16a34a;padding:.1rem .45rem;border-radius:4px;font-size:.72rem;margin-right:.3rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">← XLMX</a>
+<h1>Photo Metadata Reader</h1>
+<p class="sub">Extract EXIF data, camera settings, and GPS coordinates from any image file.</p>
+
+<div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+  <div class="drop-icon">📷</div>
+  <strong>Drop an image here or click to browse</strong>
+  <p>Supports JPEG, TIFF, HEIC — EXIF data read locally, nothing uploaded</p>
+</div>
+<input type="file" id="fileInput" accept="image/*">
+
+<div id="results">
+  <div class="preview-wrap">
+    <img id="previewImg" src="" alt="Preview">
+    <div class="quick-stats">
+      <h3>Quick Summary</h3>
+      <div id="quickStats"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Camera & Capture <button class="btn-sm" onclick="copySection('camera')">Copy</button></h2>
+    <div id="cameraData"></div>
+  </div>
+  <div class="card">
+    <h2>Image Properties <button class="btn-sm" onclick="copySection('image')">Copy</button></h2>
+    <div id="imageData"></div>
+  </div>
+  <div class="card">
+    <h2>GPS Location <button class="btn-sm" onclick="copySection('gps')">Copy</button></h2>
+    <div id="gpsData"></div>
+  </div>
+  <div class="card">
+    <h2>All EXIF Tags <button class="btn-sm" onclick="copySection('all')">Copy</button></h2>
+    <div id="allData"></div>
+  </div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e=>{ e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', ()=>dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e=>{ e.preventDefault(); dropZone.classList.remove('drag'); if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e=>{ if(e.target.files[0]) readFile(e.target.files[0]); });
+
+const sections = {};
+
+function rows(data){ return Object.entries(data).map(([k,v])=>`<div class="meta-row"><span class="meta-key">${k}</span><span class="meta-val">${v}</span></div>`).join(''); }
+
+function readFile(file){
+  const url = URL.createObjectURL(file);
+  document.getElementById('previewImg').src = url;
+
+  const img = new Image();
+  img.onload = function(){
+    const naturalW = this.naturalWidth, naturalH = this.naturalHeight;
+
+    EXIF.getData(img, function(){
+      const all = EXIF.getAllTags(this);
+
+      // camera
+      const make = EXIF.getTag(this,'Make')||'—';
+      const model = EXIF.getTag(this,'Model')||'—';
+      const lens = EXIF.getTag(this,'LensModel')||EXIF.getTag(this,'Lens')||'—';
+      const focalLen = EXIF.getTag(this,'FocalLength')||'—';
+      const aperture = EXIF.getTag(this,'FNumber')||'—';
+      const shutter = EXIF.getTag(this,'ExposureTime');
+      const iso = EXIF.getTag(this,'ISOSpeedRatings')||'—';
+      const flash = EXIF.getTag(this,'Flash');
+      const wb = EXIF.getTag(this,'WhiteBalance');
+      const metering = EXIF.getTag(this,'MeteringMode');
+      const expProg = EXIF.getTag(this,'ExposureProgram');
+      const expBias = EXIF.getTag(this,'ExposureBiasValue');
+
+      const shutterStr = shutter ? (shutter < 1 ? `1/${Math.round(1/shutter)}s` : `${shutter}s`) : '—';
+      const apertureStr = aperture !== '—' ? `f/${aperture}` : '—';
+      const focalStr = focalLen !== '—' ? `${typeof focalLen==='object'?focalLen.numerator/focalLen.denominator:focalLen}mm` : '—';
+
+      const meteringMap = {0:'Unknown',1:'Average',2:'Center-weighted',3:'Spot',4:'Multi-spot',5:'Multi-segment',6:'Partial'};
+      const expProgMap = {0:'Not defined',1:'Manual',2:'Program',3:'Aperture priority',4:'Shutter priority',5:'Creative',6:'Action',7:'Portrait',8:'Landscape'};
+      const wbMap = {0:'Auto',1:'Manual'};
+
+      const camData = {'Make':make,'Model':model,'Lens':lens,'Focal Length':focalStr,'Aperture':apertureStr,'Shutter Speed':shutterStr,'ISO':iso,'Flash':flash!==undefined?flash:'—','White Balance':wbMap[wb]||wb||'—','Metering Mode':meteringMap[metering]||metering||'—','Exposure Program':expProgMap[expProg]||expProg||'—','Exposure Bias':expBias!==undefined?`${expBias} EV`:'—'};
+      sections.camera = camData;
+      document.getElementById('cameraData').innerHTML = rows(camData);
+
+      // image
+      const dt = EXIF.getTag(this,'DateTime')||EXIF.getTag(this,'DateTimeOriginal')||'—';
+      const sw = EXIF.getTag(this,'Software')||'—';
+      const orientation = EXIF.getTag(this,'Orientation')||'—';
+      const colorSpace = EXIF.getTag(this,'ColorSpace');
+      const xRes = EXIF.getTag(this,'XResolution');
+      const yRes = EXIF.getTag(this,'YResolution');
+      const resUnit = EXIF.getTag(this,'ResolutionUnit');
+      const resUnitStr = resUnit===2?'dpi':resUnit===3?'dpcm':'—';
+      const xResVal = xRes ? (typeof xRes==='object'?xRes.numerator/xRes.denominator:xRes) : '—';
+      const colorMap = {1:'sRGB',65535:'Uncalibrated'};
+      const sizeMB = (file.size/1048576).toFixed(2);
+
+      const imgData = {'Filename':file.name,'File Size':`${sizeMB} MB`,'Dimensions':`${naturalW} × ${naturalH} px`,'Megapixels':`${(naturalW*naturalH/1000000).toFixed(1)} MP`,'Aspect Ratio':gcd(naturalW,naturalH,true),'Resolution':`${xResVal} ${resUnitStr}`,'Color Space':colorMap[colorSpace]||colorSpace||'—','Orientation':orientation,'Date Taken':dt,'Software':sw};
+      sections.image = imgData;
+      document.getElementById('imageData').innerHTML = rows(imgData);
+
+      // GPS
+      const lat = EXIF.getTag(this,'GPSLatitude');
+      const latRef = EXIF.getTag(this,'GPSLatitudeRef');
+      const lon = EXIF.getTag(this,'GPSLongitude');
+      const lonRef = EXIF.getTag(this,'GPSLongitudeRef');
+      const alt = EXIF.getTag(this,'GPSAltitude');
+
+      let gpsHtml = '';
+      if(lat && lon){
+        const latDD = dmsToDD(lat, latRef);
+        const lonDD = dmsToDD(lon, lonRef);
+        const altVal = alt ? (typeof alt==='object'?alt.numerator/alt.denominator:alt).toFixed(1) : null;
+        const gpsData = {'Latitude (DMS)':formatDMS(lat,latRef),'Longitude (DMS)':formatDMS(lon,lonRef),'Latitude (DD)':latDD.toFixed(6),'Longitude (DD)':lonDD.toFixed(6)};
+        if(altVal) gpsData['Altitude'] = `${altVal} m`;
+        sections.gps = gpsData;
+        gpsHtml = rows(gpsData);
+        gpsHtml += `<a class="map-link" href="https://maps.google.com/?q=${latDD},${lonDD}" target="_blank">Open in Google Maps →</a>`;
+        gpsHtml += `&nbsp;<a class="map-link" href="https://www.openstreetmap.org/?mlat=${latDD}&mlon=${lonDD}&zoom=15" target="_blank">OpenStreetMap →</a>`;
+      } else {
+        gpsHtml = '<p class="no-exif">No GPS data found in this image.</p>';
+        sections.gps = {};
+      }
+      document.getElementById('gpsData').innerHTML = gpsHtml;
+
+      // quick stats
+      document.getElementById('quickStats').innerHTML = [
+        ['Camera', `${make} ${model}`.trim()||'—'],
+        ['Shot', `${focalStr} · ${apertureStr} · ${shutterStr} · ISO ${iso}`],
+        ['Size', `${naturalW}×${naturalH} · ${sizeMB}MB`],
+        ['GPS', lat?'Yes ✓':'No'],
+        ['Date', dt.split(' ')[0]||'—'],
+      ].map(([k,v])=>`<div class="stat"><span>${k}</span><span class="stat-val">${v}</span></div>`).join('');
+
+      // all
+      const allFiltered = {};
+      Object.entries(all).forEach(([k,v])=>{ if(typeof v!=='undefined' && typeof v!=='function') allFiltered[k]=JSON.stringify(v); });
+      sections.all = allFiltered;
+      document.getElementById('allData').innerHTML = rows(allFiltered);
+
+      document.getElementById('results').style.display='block';
+    });
+  };
+  img.src = url;
+}
+
+function dmsToDD(dms, ref){
+  const d = typeof dms[0]==='object'?dms[0].numerator/dms[0].denominator:dms[0];
+  const m = typeof dms[1]==='object'?dms[1].numerator/dms[1].denominator:dms[1];
+  const s = typeof dms[2]==='object'?dms[2].numerator/dms[2].denominator:dms[2];
+  let dd = d + m/60 + s/3600;
+  if(ref==='S'||ref==='W') dd = -dd;
+  return dd;
+}
+
+function formatDMS(dms, ref){
+  const d = typeof dms[0]==='object'?dms[0].numerator/dms[0].denominator:dms[0];
+  const m = typeof dms[1]==='object'?dms[1].numerator/dms[1].denominator:dms[1];
+  const s = typeof dms[2]==='object'?(dms[2].numerator/dms[2].denominator).toFixed(2):dms[2];
+  return `${Math.round(d)}° ${Math.round(m)}' ${s}" ${ref}`;
+}
+
+function gcd(a, b, asStr){
+  const g = (x,y)=>y===0?x:g(y,x%y);
+  const d = g(a,b);
+  return asStr ? `${a/d}:${b/d}` : d;
+}
+
+function copySection(key){
+  const data = sections[key];
+  if(!data) return;
+  const text = Object.entries(data).map(([k,v])=>`${k}: ${v}`).join('\n');
+  navigator.clipboard.writeText(text).catch(()=>{});
+}
+</script>
+</body>
+</html>

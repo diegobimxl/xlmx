@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Resizer — XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem;color:#16a34a}
+label{display:block;font-size:.8rem;color:#888;margin-bottom:.3rem;margin-top:.8rem}
+label:first-child{margin-top:0}
+input,select{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .75rem;border-radius:6px;font-size:.9rem;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:#16a34a}
+.btn{background:#16a34a;color:#fff;border:none;padding:.65rem 1.5rem;border-radius:6px;font-size:.9rem;cursor:pointer;margin-top:1rem;font-family:inherit;font-weight:500}
+.btn:hover{background:#15803d}
+.btn-sec{background:#222;border:1px solid #333;color:#fff;padding:.65rem 1.5rem;border-radius:6px;font-size:.9rem;cursor:pointer;margin-top:1rem;font-family:inherit;margin-left:.5rem}
+.btn-sec:hover{background:#2a2a2a}
+#results{display:none}
+.result-card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1rem}
+.result-card h3{font-size:.95rem;font-weight:600;margin-bottom:1rem;color:#16a34a}
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;margin-top:.5rem}
+.preset-item{background:#111;border:1px solid #333;border-radius:6px;padding:.75rem;font-size:.8rem}
+.preset-item .name{font-weight:600;margin-bottom:.3rem}
+.preset-item .dims{color:#16a34a;font-size:.85rem}
+.preset-item .info{color:#888;margin-top:.2rem}
+.summary-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #222;font-size:.85rem}
+.summary-row:last-child{border-bottom:none}
+.summary-row span:last-child{color:#16a34a}
+.tag{display:inline-block;background:#16a34a22;color:#16a34a;padding:.15rem .5rem;border-radius:4px;font-size:.75rem;margin-right:.3rem}
+canvas{display:block;margin:1rem auto;border:1px solid #333;border-radius:6px;max-width:100%}
+</style>
+</head>
+<body>
+<a class="back" href="/">← XLMX</a>
+<h1>Image Resizer</h1>
+<p class="sub">Resize calculator for renders, portfolio exports, social media, and print.</p>
+
+<div class="grid">
+  <div class="card">
+    <h2>Source Image</h2>
+    <label>Width (px)</label>
+    <input type="number" id="srcW" value="3840" min="1">
+    <label>Height (px)</label>
+    <input type="number" id="srcH" value="2160" min="1">
+    <label>DPI / PPI</label>
+    <input type="number" id="srcDpi" value="72" min="1">
+    <label>File Size (MB, approx)</label>
+    <input type="number" id="srcSize" value="15" step="0.1">
+  </div>
+  <div class="card">
+    <h2>Export Settings</h2>
+    <label>Target Use</label>
+    <select id="targetUse">
+      <option value="web">Web / Portfolio</option>
+      <option value="instagram">Instagram Post</option>
+      <option value="instagram_story">Instagram Story</option>
+      <option value="linkedin">LinkedIn</option>
+      <option value="print_a4">Print — A4</option>
+      <option value="print_a3">Print — A3</option>
+      <option value="print_a2">Print — A2</option>
+      <option value="presentation">Presentation (16:9)</option>
+      <option value="thumbnail">Thumbnail</option>
+      <option value="custom">Custom</option>
+    </select>
+    <label>Custom Width (px) — for Custom mode</label>
+    <input type="number" id="customW" value="1920" min="1">
+    <label>Custom Height (px) — for Custom mode</label>
+    <input type="number" id="customH" value="1080" min="1">
+    <label>Output Format</label>
+    <select id="fmt">
+      <option value="jpg">JPEG</option>
+      <option value="png">PNG</option>
+      <option value="webp">WebP</option>
+      <option value="tiff">TIFF</option>
+    </select>
+    <label>Quality (%)</label>
+    <input type="number" id="quality" value="90" min="1" max="100">
+  </div>
+</div>
+
+<button class="btn" onclick="calculate()">Calculate</button>
+
+<div id="results">
+  <div class="result-card" id="mainResult">
+    <h3>Export Specs</h3>
+    <div id="mainRows"></div>
+  </div>
+  <div class="result-card">
+    <h3>All Platform Presets</h3>
+    <div class="preset-grid" id="presetGrid"></div>
+  </div>
+  <div class="result-card">
+    <h3>Scale Preview</h3>
+    <canvas id="scaleCanvas" width="500" height="200"></canvas>
+  </div>
+</div>
+
+<script>
+const presets = {
+  web:             {name:'Web / Portfolio', w:1920, h:1080, dpi:72,  note:'Standard web display'},
+  instagram:       {name:'Instagram Post',  w:1080, h:1080, dpi:72,  note:'Square, 1:1'},
+  instagram_story: {name:'Instagram Story', w:1080, h:1920, dpi:72,  note:'Vertical 9:16'},
+  linkedin:        {name:'LinkedIn',        w:1200, h:627,  dpi:72,  note:'Header / post'},
+  print_a4:        {name:'Print A4',        w:2480, h:3508, dpi:300, note:'210×297mm @300dpi'},
+  print_a3:        {name:'Print A3',        w:3508, h:4961, dpi:300, note:'297×420mm @300dpi'},
+  print_a2:        {name:'Print A2',        w:4961, h:7016, dpi:300, note:'420×594mm @300dpi'},
+  presentation:    {name:'Presentation',    w:1920, h:1080, dpi:96,  note:'16:9 slides'},
+  thumbnail:       {name:'Thumbnail',       w:400,  h:300,  dpi:72,  note:'Preview / card'},
+  custom:          {name:'Custom',          w:null, h:null, dpi:72,  note:'User defined'}
+};
+
+function estimateSize(w, h, fmt, quality){
+  const pixels = w * h;
+  let bytesPerPixel;
+  if(fmt==='png') bytesPerPixel = 3;
+  else if(fmt==='tiff') bytesPerPixel = 6;
+  else if(fmt==='webp') bytesPerPixel = 0.25 * (quality/100) + 0.05;
+  else bytesPerPixel = 0.5 * (quality/100) + 0.05; // jpg
+  const bytes = pixels * (fmt==='png'||fmt==='tiff' ? bytesPerPixel : bytesPerPixel);
+  return (bytes / 1048576).toFixed(1);
+}
+
+function calculate(){
+  const srcW = parseInt(document.getElementById('srcW').value)||3840;
+  const srcH = parseInt(document.getElementById('srcH').value)||2160;
+  const srcDpi = parseInt(document.getElementById('srcDpi').value)||72;
+  const srcSize = parseFloat(document.getElementById('srcSize').value)||15;
+  const targetUse = document.getElementById('targetUse').value;
+  const fmt = document.getElementById('fmt').value;
+  const quality = parseInt(document.getElementById('quality').value)||90;
+
+  let preset = presets[targetUse];
+  let tW, tH;
+
+  if(targetUse === 'custom'){
+    tW = parseInt(document.getElementById('customW').value)||1920;
+    tH = parseInt(document.getElementById('customH').value)||1080;
+  } else {
+    tW = preset.w; tH = preset.h;
+  }
+
+  // maintain aspect ratio from source
+  const srcAR = srcW / srcH;
+  const tAR = tW / tH;
+  let fitW, fitH;
+  if(srcAR >= tAR){ fitW = tW; fitH = Math.round(tW / srcAR); }
+  else { fitH = tH; fitW = Math.round(tH * srcAR); }
+
+  const scaleX = (fitW/srcW*100).toFixed(1);
+  const scaleY = (fitH/srcH*100).toFixed(1);
+  const estSize = estimateSize(fitW, fitH, fmt, quality);
+  const compression = (estSize / srcSize * 100).toFixed(0);
+  const dpiOut = (targetUse.startsWith('print')) ? 300 : 72;
+
+  const rows = [
+    ['Source Dimensions', `${srcW} × ${srcH} px`],
+    ['Output Dimensions', `${fitW} × ${fitH} px`],
+    ['Scale Factor', `${scaleX}% × ${scaleY}%`],
+    ['Output DPI', `${dpiOut} dpi`],
+    ['Format', fmt.toUpperCase()],
+    ['Quality', `${quality}%`],
+    ['Estimated Output Size', `~${estSize} MB`],
+    ['Size vs Source', `${compression}% of original`],
+    ['Megapixels Output', `${(fitW*fitH/1000000).toFixed(1)} MP`],
+    ['Print Size @300dpi', `${(fitW/300*25.4).toFixed(0)} × ${(fitH/300*25.4).toFixed(0)} mm`],
+  ];
+
+  document.getElementById('mainRows').innerHTML = rows.map(([k,v])=>`<div class="summary-row"><span>${k}</span><span>${v}</span></div>`).join('');
+
+  // preset grid
+  const grid = document.getElementById('presetGrid');
+  grid.innerHTML = Object.entries(presets).filter(([k])=>k!=='custom').map(([k,p])=>{
+    let pw = p.w, ph = p.h;
+    let pFitW, pFitH;
+    if(srcAR >= pw/ph){ pFitW=pw; pFitH=Math.round(pw/srcAR); }
+    else { pFitH=ph; pFitW=Math.round(ph*srcAR); }
+    return `<div class="preset-item"><div class="name">${p.name}</div><div class="dims">${pFitW} × ${pFitH} px</div><div class="info">${p.note}</div></div>`;
+  }).join('');
+
+  // canvas preview
+  const canvas = document.getElementById('scaleCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,500,200);
+  ctx.fillStyle='#1a1a1a';
+  ctx.fillRect(0,0,500,200);
+
+  const maxDim = Math.max(srcW, srcH, fitW, fitH);
+  const scale = 160 / maxDim;
+  const sW = srcW*scale, sH = srcH*scale;
+  const tWs = fitW*scale, tHs = fitH*scale;
+
+  ctx.fillStyle='#333';
+  ctx.fillRect(30, 100-sH/2, sW, sH);
+  ctx.fillStyle='#16a34a';
+  ctx.fillRect(220, 100-tHs/2, tWs, tHs);
+
+  ctx.fillStyle='#888';
+  ctx.font='11px Inter,sans-serif';
+  ctx.fillText(`Source: ${srcW}×${srcH}`, 30, 185);
+  ctx.fillText(`Output: ${fitW}×${fitH}`, 220, 185);
+
+  document.getElementById('results').style.display='block';
+}
+</script>
+</body>
+</html>

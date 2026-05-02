@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Steel Beam Selector — XLMX</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}.container{max-width:900px;margin:0 auto;padding:20px}h1{font-size:1.5rem;margin-bottom:4px}.sub{font-size:.75rem;color:#888;margin-bottom:20px}label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}textarea{min-height:80px;resize:vertical}button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}button.del{background:#dc2626;padding:4px 8px;font-size:.7rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}table{width:100%;border-collapse:collapse;font-size:.78rem}th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}td{padding:6px 8px;border-bottom:1px solid #222}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></head><body>
+<div class="container">
+<h1>Steel Beam Selector</h1>
+<p class="sub">Select optimal steel profile by span, load, and support condition — IPR/W shapes.</p>
+<div class="card">
+<div class="grid2">
+<div><label>Span (m)</label><input id="span" type="number" value="6" step="0.5" oninput="calc()"></div>
+<div><label>Distributed Load (kg/m)</label><input id="wload" type="number" value="1500" oninput="calc()"></div>
+<div><label>Point Load at Center (kg)</label><input id="pload" type="number" value="0" oninput="calc()"></div>
+<div><label>Support</label><select id="support" onchange="calc()">
+<option value="simple">Simply Supported</option><option value="cantilever">Cantilever</option><option value="fixed">Fixed Both Ends</option></select></div>
+<div><label>Deflection Limit</label><select id="deflim" onchange="calc()">
+<option value="360">L/360 (Live Load)</option><option value="240">L/240 (Total Load)</option><option value="180">L/180 (Roof)</option></select></div>
+<div><label>Steel Grade</label><select id="grade">
+<option value="2530">A36 / Fy=2530 kg/cm²</option><option value="3515">A572-50 / Fy=3515 kg/cm²</option></select></div>
+</div>
+</div>
+<div id="result"></div>
+</div>
+<script>
+const PROFILES=[
+{name:'IPR 8x4 (W200x15)',d:203,bf:102,Ix:1870,Sx:184,w:14.9},
+{name:'IPR 10x5.75 (W250x25)',d:254,bf:146,Ix:5440,Sx:429,w:25.3},
+{name:'IPR 12x5 (W310x21)',d:303,bf:127,Ix:6850,Sx:452,w:21.0},
+{name:'IPR 12x6.5 (W310x33)',d:313,bf:165,Ix:11700,Sx:748,w:32.7},
+{name:'IPR 14x6 (W360x33)',d:349,bf:171,Ix:15400,Sx:883,w:32.7},
+{name:'IPR 14x8 (W360x45)',d:352,bf:204,Ix:21300,Sx:1210,w:44.6},
+{name:'IPR 16x7 (W410x39)',d:399,bf:178,Ix:24500,Sx:1228,w:38.7},
+{name:'IPR 16x8.5 (W410x54)',d:410,bf:216,Ix:35400,Sx:1727,w:54.0},
+{name:'IPR 18x7.5 (W460x52)',d:450,bf:190,Ix:42300,Sx:1880,w:51.5},
+{name:'IPR 18x8.5 (W460x68)',d:459,bf:216,Ix:56400,Sx:2458,w:67.6},
+{name:'IPR 21x8.25 (W530x66)',d:525,bf:210,Ix:69600,Sx:2652,w:65.5},
+{name:'IPR 21x9 (W530x82)',d:528,bf:229,Ix:89600,Sx:3393,w:81.9},
+{name:'IPR 24x9 (W610x82)',d:599,bf:228,Ix:112000,Sx:3740,w:81.9},
+{name:'IPR 24x10 (W610x101)',d:603,bf:254,Ix:140000,Sx:4643,w:101},
+{name:'IPR 27x10 (W690x125)',d:678,bf:253,Ix:202000,Sx:5960,w:125},
+{name:'IPR 30x10.5 (W760x134)',d:750,bf:264,Ix:260000,Sx:6930,w:134},
+];
+function calc(){
+const L=parseFloat(document.getElementById('span').value)||1;
+const w=parseFloat(document.getElementById('wload').value)||0;
+const P=parseFloat(document.getElementById('pload').value)||0;
+const sup=document.getElementById('support').value;
+const dlim=parseInt(document.getElementById('deflim').value);
+const Lcm=L*100;
+let Mmax,dCoeff;
+if(sup==='simple'){Mmax=w*L*L/8+P*L/4;dCoeff=5/384;}
+else if(sup==='cantilever'){Mmax=w*L*L/2+P*L;dCoeff=1/8;}
+else{Mmax=w*L*L/12+P*L/8;dCoeff=1/384;}
+const MmaxKgCm=Mmax*100;
+const Fy=parseInt(document.getElementById('grade').value);
+const Fb=Fy*0.6;
+const SxReq=MmaxKgCm/Fb;
+const E=2040000;
+const wKgCm=w/100;
+const dAllow=Lcm/dlim;
+const IxReq=(dCoeff*wKgCm*Math.pow(Lcm,4))/E/dAllow;
+if(!SxReq)return;
+let h=`<div class="card"><div class="grid3">
+<div class="stat"><div class="n" style="color:#eab308;">${(Mmax/1000).toFixed(1)}</div><div class="l">Moment (ton·m)</div></div>
+<div class="stat"><div class="n">${SxReq.toFixed(0)}</div><div class="l">Sx Required (cm³)</div></div>
+<div class="stat"><div class="n">${(IxReq).toFixed(0)}</div><div class="l">Ix Required (cm⁴)</div></div>
+</div></div>`;
+h+=`<div class="card"><h3 style="font-size:.85rem;margin-bottom:8px;">Recommended Profiles</h3><table>
+<tr><th>Profile</th><th>Sx (cm³)</th><th>Ix (cm⁴)</th><th>Weight (kg/m)</th><th>Strength</th><th>Deflection</th></tr>`;
+let found=0;
+PROFILES.forEach(p=>{
+const passS=p.Sx>=SxReq;
+const passD=p.Ix>=IxReq;
+if(!passS&&!passD)return;
+found++;
+if(found>6)return;
+const util=(SxReq/p.Sx*100).toFixed(0);
+const deflActual=Lcm/(dCoeff*wKgCm*Math.pow(Lcm,4)/E/p.Ix);
+h+=`<tr><td style="font-weight:600;">${p.name}</td><td>${p.Sx}</td><td>${p.Ix.toLocaleString()}</td><td>${p.w}</td>
+<td><span class="badge ${passS?'bg':'br'}">${passS?'OK '+util+'%':'FAIL'}</span></td>
+<td><span class="badge ${passD?'bg':'br'}">${passD?'L/'+Math.round(deflActual):'FAIL'}</span></td></tr>`;
+});
+if(!found)h+=`<tr><td colspan="6" style="text-align:center;color:#dc2626;">No profile in database meets requirements. Consider built-up sections or larger profiles.</td></tr>`;
+h+=`</table></div>`;
+document.getElementById('result').innerHTML=h;
+}
+calc();
+</script></body></html>

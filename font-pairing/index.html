@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Pairing - XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:2rem;font-size:.95rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:.85rem;font-weight:600;color:#16a34a;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#888;margin-bottom:.3rem;margin-top:.75rem}
+label:first-child{margin-top:0}
+select{width:100%;background:#111;border:1px solid #333;color:#fff;padding:.5rem .7rem;border-radius:5px;font-size:.85rem;font-family:inherit}
+.btn{background:#16a34a;color:#fff;border:none;padding:.6rem 1.4rem;border-radius:6px;font-size:.88rem;cursor:pointer;font-family:inherit;font-weight:500;margin-top:1rem}
+.btn:hover{background:#15803d}
+.preview-wrap{background:#f8f6f1;border-radius:8px;padding:2rem;margin-top:1.5rem;color:#1a1a1a}
+.preview-heading{margin-bottom:.75rem;line-height:1.2}
+.preview-body{line-height:1.65;font-size:1rem}
+.preview-caption{font-size:.8rem;color:#666;margin-top.5rem}
+.pair-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1.5rem}
+.pair-card{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1.25rem;cursor:pointer}
+.pair-card:hover{border-color:#16a34a}
+.pair-card.active{border-color:#16a34a;background:#16a34a11}
+.pair-title{font-size:.78rem;font-weight:600;color:#16a34a;margin-bottom:.5rem}
+.pair-sample-head{font-size:1.3rem;margin-bottom:.25rem;line-height:1.2}
+.pair-sample-body{font-size:.8rem;color:#aaa;line-height:1.5}
+.pair-tags{margin-top:.5rem;display:flex;gap:.3rem;flex-wrap:wrap}
+.tag{background:#16a34a22;color:#16a34a;padding:.1rem .4rem;border-radius:3px;font-size:.68rem}
+.font-info{font-size:.72rem;color:#555;margin-top:.3rem}
+.size-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.75rem}
+.size-item{background:#111;border:1px solid #222;border-radius:5px;padding:.5rem .9rem;font-size:.78rem;text-align:center;flex:1;min-width:80px}
+.size-label{color:#888;margin-bottom:.2rem}
+.size-val{color:#16a34a;font-weight:600}
+</style>
+</head>
+<body>
+<a class="back" href="/">back XLMX</a>
+<h1>Font Pairing</h1>
+<p class="sub">Architecture and design font pairing tool. Curated pairings for presentations, branding, and publications.</p>
+
+<p style="font-size:.82rem;color:#16a34a;margin-bottom:1rem">Select a curated pairing below, or build your own combination.</p>
+
+<div class="pair-grid" id="pairGrid"></div>
+
+<div class="card" style="margin-top:1.5rem">
+  <h2>Custom Combination</h2>
+  <div class="grid2">
+    <div>
+      <label>Heading Font</label>
+      <select id="headFont"></select>
+      <label>Heading Weight</label>
+      <select id="headWeight"><option value="300">Light 300</option><option value="400">Regular 400</option><option value="500">Medium 500</option><option value="600" selected>SemiBold 600</option><option value="700">Bold 700</option><option value="800">ExtraBold 800</option></select>
+    </div>
+    <div>
+      <label>Body Font</label>
+      <select id="bodyFont"></select>
+      <label>Body Size (rem)</label>
+      <select id="bodySize"><option value=".85">0.85</option><option value=".9">0.9</option><option value="1" selected>1.0</option><option value="1.1">1.1</option><option value="1.2">1.2</option></select>
+    </div>
+  </div>
+  <button class="btn" onclick="previewCustom()">Preview</button>
+</div>
+
+<div class="card">
+  <h2>Live Preview</h2>
+  <div class="preview-wrap" id="preview">
+    <div class="preview-heading" id="prevHead" style="font-size:2.2rem;font-weight:600">Architecture Builds the World</div>
+    <div class="preview-body" id="prevBody">Good design is not just about aesthetics — it is the intersection of structural integrity, human experience, and environmental responsibility. Every line drawn defines a space where life unfolds.</div>
+    <div class="preview-caption" id="prevCap" style="margin-top:.75rem">Project brief — Your Firm Mixed-Use Development, 2025</div>
+  </div>
+  <div class="size-row" id="sizeRow"></div>
+</div>
+
+<script>
+var fonts = [
+  'Inter','Playfair Display','Cormorant Garamond','DM Sans','Space Grotesk','Libre Baskerville',
+  'Raleway','Josefin Sans','Lato','Merriweather','Source Serif 4','Montserrat',
+  'EB Garamond','Work Sans','Nunito Sans','Crimson Text','IBM Plex Sans','IBM Plex Serif'
+];
+
+var pairs = [
+  {name:'Editorial Classic',head:'Playfair Display',hW:'600',body:'Inter',tag:['Luxury','Editorial','Magazine'],use:'High-end project publications'},
+  {name:'Modern Minimal',head:'Space Grotesk',hW:'600',body:'DM Sans',tag:['Minimal','Tech','Clean'],use:'Tech firms, startup pitch decks'},
+  {name:'Studio Elegant',head:'Cormorant Garamond',hW:'500',body:'Raleway',tag:['Elegant','Studio','Refined'],use:'Architecture studio branding'},
+  {name:'Brutalist Sans',head:'Josefin Sans',hW:'700',body:'Work Sans',tag:['Bold','Industrial','Brutalist'],use:'Competitions, concept presentations'},
+  {name:'Academic Serif',head:'EB Garamond',hW:'600',body:'Source Serif 4',tag:['Academic','Traditional','Refined'],use:'Urban studies, academic papers'},
+  {name:'Humanist Clean',head:'Nunito Sans',hW:'600',body:'Lato',tag:['Friendly','Clean','Versatile'],use:'Client presentations, proposals'},
+  {name:'Tech Corporate',head:'IBM Plex Sans',hW:'600',body:'IBM Plex Serif',tag:['Corporate','Tech','Systematic'],use:'BIM/tech documentation'},
+  {name:'Timeless Serif',head:'Libre Baskerville',hW:'700',body:'Merriweather',tag:['Classic','Timeless','Print'],use:'Print portfolios, books'},
+];
+
+var loaded = {};
+
+function loadFont(name){
+  if(loaded[name])return;
+  loaded[name]=true;
+  var l=document.createElement('link');
+  l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(name)+':wght@300;400;500;600;700;800&display=swap';
+  document.head.appendChild(l);
+}
+
+function buildFontSelects(){
+  fonts.forEach(function(f){loadFont(f);});
+  var opts=fonts.map(function(f){return '<option value="'+f+'">'+f+'</option>';}).join('');
+  document.getElementById('headFont').innerHTML=opts;
+  document.getElementById('bodyFont').innerHTML=opts;
+  document.getElementById('bodyFont').value='Inter';
+}
+
+function buildPairs(){
+  document.getElementById('pairGrid').innerHTML=pairs.map(function(p,i){
+    loadFont(p.head); loadFont(p.body);
+    return '<div class="pair-card" id="pc'+i+'" onclick="applyPair('+i+')">'
+      +'<div class="pair-title">'+p.name+'</div>'
+      +'<div class="pair-sample-head" style="font-family:\''+p.head+'\',serif;font-weight:'+p.hW+'">Architectural Space</div>'
+      +'<div class="pair-sample-body" style="font-family:\''+p.body+'\',sans-serif">Design that transcends function and creates meaning.</div>'
+      +'<div class="pair-tags">'+p.tag.map(function(t){return '<span class="tag">'+t+'</span>';}).join('')+'</div>'
+      +'<div class="font-info">'+p.head+' + '+p.body+' &mdash; '+p.use+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function applyPair(i){
+  var p=pairs[i];
+  document.querySelectorAll('.pair-card').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('pc'+i).classList.add('active');
+  var hEl=document.getElementById('prevHead');
+  var bEl=document.getElementById('prevBody');
+  var cEl=document.getElementById('prevCap');
+  hEl.style.fontFamily="'"+p.head+"',serif";
+  hEl.style.fontWeight=p.hW;
+  bEl.style.fontFamily="'"+p.body+"',sans-serif";
+  cEl.style.fontFamily="'"+p.body+"',sans-serif";
+  updateSizeRow(p.head,p.hW,p.body);
+}
+
+function previewCustom(){
+  var hF=document.getElementById('headFont').value;
+  var hW=document.getElementById('headWeight').value;
+  var bF=document.getElementById('bodyFont').value;
+  var bS=document.getElementById('bodySize').value;
+  loadFont(hF); loadFont(bF);
+  document.getElementById('prevHead').style.fontFamily="'"+hF+"',serif";
+  document.getElementById('prevHead').style.fontWeight=hW;
+  document.getElementById('prevBody').style.fontFamily="'"+bF+"',sans-serif";
+  document.getElementById('prevBody').style.fontSize=bS+'rem';
+  document.getElementById('prevCap').style.fontFamily="'"+bF+"',sans-serif";
+  updateSizeRow(hF,hW,bF);
+}
+
+function updateSizeRow(hF,hW,bF){
+  var sizes=[{label:'Display',size:'3rem'},{label:'H1',size:'2.2rem'},{label:'H2',size:'1.5rem'},{label:'Body',size:'1rem'},{label:'Caption',size:'.8rem'}];
+  document.getElementById('sizeRow').innerHTML=sizes.map(function(s){
+    var isH=s.label!=='Body'&&s.label!=='Caption';
+    return '<div class="size-item"><div class="size-label">'+s.label+'</div>'
+      +'<div style="font-family:\''+(isH?hF:bF)+'\',serif;font-size:'+s.size+';font-weight:'+(isH?hW:'400')+';margin:.3rem 0;color:#fff">Aa</div>'
+      +'<div class="size-val">'+s.size+'</div></div>';
+  }).join('');
+}
+
+buildFontSelects(); buildPairs(); applyPair(0);
+</script>
+</body>
+</html>

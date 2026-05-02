@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seismic Panic</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0f0f23; color:#fff; font-family:'Inter',sans-serif;
+  display:flex; flex-direction:column; align-items:center; min-height:100vh;
+  justify-content:center; overflow:hidden; }
+h1 { font-size:1.4rem; letter-spacing:3px; color:#ff6b35; margin-bottom:4px; }
+.sub { font-size:0.75rem; color:#888; margin-bottom:8px; }
+#hud { display:flex; gap:24px; margin-bottom:6px; font-size:0.82rem; }
+.stat { display:flex; flex-direction:column; align-items:center; }
+.stat span { font-size:1.15rem; font-weight:700; color:#ff6b35; }
+.stat label { font-size:0.62rem; color:#666; letter-spacing:1px; }
+#integrity-bar-wrap { width:340px; height:12px; background:#1a1a3a;
+  border-radius:6px; margin-bottom:6px; overflow:hidden; }
+#integrity-bar { height:100%; background:linear-gradient(90deg,#f72585,#ff6b35,#f9c74f);
+  transition:width 0.2s; }
+#quake-label { font-size:0.68rem; color:#666; margin-bottom:6px; }
+#game-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  max-width:360px; width:100%; padding:0 8px; }
+.cell { aspect-ratio:1; border-radius:10px; cursor:pointer; position:relative;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:#12122a; border:1px solid #2a2a5a;
+  transition:transform 0.1s; user-select:none; font-size:0.72rem; text-align:center; }
+.cell:hover { transform:scale(1.03); }
+.cell.failure { background:#2a0a0a; border:2px solid #f72585; animation:pulse 0.5s infinite alternate; cursor:pointer; }
+.cell.fixed { background:#0a2a0a; border:2px solid #4fffb0; animation:none; cursor:default; }
+.cell.ok { background:#12122a; border:1px solid #2a2a5a; }
+@keyframes pulse { from{box-shadow:0 0 6px #f72585;} to{box-shadow:0 0 18px #f72585,0 0 6px #f72585;} }
+.cell-icon { font-size:1.6rem; }
+.cell-label { font-size:0.6rem; color:#888; margin-top:2px; line-height:1.2; }
+.cell.failure .cell-label { color:#f72585; }
+.cell.fixed .cell-label { color:#4fffb0; }
+#shake { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
+#shake.shaking { animation:quake 0.4s; }
+@keyframes quake {
+  0%{transform:translate(0)} 20%{transform:translate(-4px,3px)} 40%{transform:translate(4px,-3px)}
+  60%{transform:translate(-3px,2px)} 80%{transform:translate(3px,-2px)} 100%{transform:translate(0)}
+}
+#flash { position:fixed; top:70px; left:50%; transform:translateX(-50%);
+  background:#ff6b35; color:#fff; padding:7px 18px; border-radius:20px;
+  font-size:0.8rem; font-weight:700; opacity:0; transition:opacity 0.3s;
+  pointer-events:none; z-index:20; }
+#flash.show { opacity:1; }
+#overlay { position:fixed; inset:0; background:rgba(0,0,0,0.9);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+#overlay.hidden { display:none; }
+.card { background:#12122a; border:1px solid #2a2a5a; border-radius:12px;
+  padding:28px 36px; max-width:360px; text-align:center; }
+.card h2 { font-size:1.5rem; color:#ff6b35; margin-bottom:8px; }
+.card p { color:#aaa; font-size:0.85rem; margin-bottom:18px; line-height:1.6; }
+.big { font-size:2.8rem; font-weight:900; color:#f72585; margin:8px 0; }
+button { background:#ff6b35; color:#fff; border:none; border-radius:8px;
+  padding:11px 26px; font-size:0.9rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+button:hover { opacity:0.85; }
+.lb-row { display:flex; justify-content:space-between; font-size:0.78rem;
+  padding:3px 0; border-bottom:1px solid #1a1a3a; }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { color:#f72585; font-weight:700; }
+.lb-score { color:#ff6b35; font-weight:600; }
+</style>
+</head>
+<body>
+<h1>SEISMIC PANIC</h1>
+<div class="sub">The big one hit. Fix failures before the building collapses.</div>
+<div id="hud">
+  <div class="stat"><span id="score-val">0</span><label>FIXED</label></div>
+  <div class="stat"><span id="mag-val">4.5</span><label>MAGNITUDE</label></div>
+  <div class="stat"><span id="missed-val">0</span><label>MISSED</label></div>
+</div>
+<div id="quake-label">STRUCTURAL INTEGRITY</div>
+<div id="integrity-bar-wrap"><div id="integrity-bar" style="width:100%"></div></div>
+<div id="game-grid"></div>
+<div id="shake"></div>
+<div id="flash"></div>
+
+<div id="overlay">
+  <div class="card" id="start-card">
+    <h2>SEISMIC PANIC</h2>
+    <p>Structural failures flash across the building.<br>
+    Click them fast to apply emergency fixes.<br>
+    Miss too many and the building loses integrity.<br>
+    Each wave is a bigger quake. How long can it stand?<br><br>
+    <strong style="color:#ff6b35">Click failures before they propagate.</strong></p>
+    <button onclick="startGame()">ENTER EMERGENCY MODE</button>
+  </div>
+  <div class="card" id="end-card" style="display:none; margin-top:12px;">
+    <h2 id="end-title">COLLAPSED.</h2>
+    <p id="end-msg">Structural failure cascade. Total loss.</p>
+    <div class="big" id="end-score">0</div>
+    <p style="color:#666;font-size:0.75rem;margin-bottom:14px">failures fixed</p>
+    <button onclick="startGame()">REBUILD</button>
+  </div>
+  <div style="background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:14px 20px;margin-top:12px;min-width:280px;">
+    <div style="font-size:0.65rem;letter-spacing:2px;color:#666;margin-bottom:6px">TOP ENGINEERS</div>
+    <div id="lb-rows"><div class="lb-row"><span class="lb-rank">—</span><span>none yet</span></div></div>
+  </div>
+</div>
+</body>
+</html>
+<script>
+const FAILURE_TYPES = [
+  { icon:'🏗️', label:'Column\nBuckling', fix:'Moment\nFrame' },
+  { icon:'⚡', label:'Soft Story\nFailure', fix:'Shear\nWall' },
+  { icon:'💥', label:'Beam-Col\nJoint', fix:'Reinforce\nConnection' },
+  { icon:'🌊', label:'Liquef-\naction', fix:'Deep\nFoundation' },
+  { icon:'🔩', label:'Bolt\nShear', fix:'Replace\nFasteners' },
+  { icon:'📐', label:'Out-of-\nPlane', fix:'Lateral\nBrace' },
+  { icon:'🧱', label:'Masonry\nCrack', fix:'Grout &\nRebar' },
+  { icon:'🔥', label:'Damper\nFailed', fix:'Replace\nDamper' },
+  { icon:'⚙️', label:'Drift\nExceeded', fix:'Stiffen\nFrame' },
+  { icon:'🪝', label:'Anchor\nPullout', fix:'Epoxy\nAnchor' },
+  { icon:'📊', label:'Torsion\nMode', fix:'Symmetric\nLayout' },
+  { icon:'💧', label:'Waterproof\nBreach', fix:'Seal &\nDrain' },
+];
+
+const leaderboard = [];
+let state, mainTimer, eggBuf = '';
+const CELLS = 12;
+
+function newState() {
+  const cells = FAILURE_TYPES.map((f,i)=>({
+    id:i, type:f, state:'ok', timer:null, timeLeft:0
+  }));
+  return { cells, score:0, missed:0, integrity:100, running:false,
+    magnitude:4.5, wave:1, frameCount:0, spawnInterval:2200 };
+}
+
+function flash(msg) {
+  const el = document.getElementById('flash');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+function shake() {
+  const el = document.getElementById('shake');
+  el.classList.remove('shaking');
+  void el.offsetWidth; el.classList.add('shaking');
+  setTimeout(()=>el.classList.remove('shaking'), 450);
+}
+
+function startGame() {
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('start-card').style.display='block';
+  document.getElementById('end-card').style.display='none';
+  if (mainTimer) clearInterval(mainTimer);
+  state = newState(); state.running=true;
+  renderGrid(); updateHUD();
+  scheduleFailures();
+  shake();
+}
+
+function scheduleFailures() {
+  if (mainTimer) clearInterval(mainTimer);
+  mainTimer = setInterval(()=>{
+    if (!state.running) { clearInterval(mainTimer); return; }
+    triggerFailure();
+    state.spawnInterval = Math.max(700, 2200 - state.wave*120);
+    clearInterval(mainTimer); scheduleFailures();
+  }, state.spawnInterval);
+}
+
+function triggerFailure() {
+  const okCells = state.cells.filter(c=>c.state==='ok');
+  if (okCells.length === 0) return;
+  const cell = okCells[Math.floor(Math.random()*okCells.length)];
+  const ttl = Math.max(1800, 4500 - state.wave * 180);
+  cell.state = 'failure'; cell.timeLeft = ttl;
+  cell.timer = setTimeout(()=>{
+    if (!state.running) return;
+    if (cell.state === 'failure') {
+      cell.state='ok'; state.missed++;
+      state.integrity = Math.max(0, state.integrity - 8 - state.wave);
+      shake();
+      if (state.integrity <= 0) { endGame(); return; }
+    }
+    renderGrid(); updateHUD();
+  }, ttl);
+  renderGrid();
+}
+
+function fixCell(id) {
+  if (!state.running) return;
+  const cell = state.cells.find(c=>c.id===id);
+  if (!cell || cell.state !== 'failure') return;
+  clearTimeout(cell.timer); cell.state='fixed';
+  state.score++;
+  state.integrity = Math.min(100, state.integrity + 3);
+  if (state.score % 10 === 0) {
+    state.wave++; state.magnitude = parseFloat((4.5 + state.wave*0.3).toFixed(1));
+    shake(); flash(`WAVE ${state.wave} — M${state.magnitude} AFTERSHOCK!`);
+  }
+  renderGrid(); updateHUD();
+  setTimeout(()=>{ if(cell.state==='fixed') cell.state='ok'; renderGrid(); }, 600);
+}
+function renderGrid() {
+  const grid = document.getElementById('game-grid'); grid.innerHTML='';
+  state.cells.forEach(cell=>{
+    const el = document.createElement('div');
+    el.className = `cell ${cell.state}`;
+    if (cell.state==='failure') {
+      el.innerHTML=`<div class="cell-icon">${cell.type.icon}</div><div class="cell-label">${cell.type.label}</div>`;
+      el.addEventListener('click',()=>fixCell(cell.id));
+    } else if (cell.state==='fixed') {
+      el.innerHTML=`<div class="cell-icon">✅</div><div class="cell-label">${cell.type.fix}</div>`;
+    } else {
+      el.innerHTML=`<div class="cell-icon" style="opacity:0.2">🏛️</div><div class="cell-label" style="opacity:0.2">OK</div>`;
+    }
+    grid.appendChild(el);
+  });
+}
+
+function updateHUD() {
+  document.getElementById('score-val').textContent=state.score;
+  document.getElementById('mag-val').textContent='M'+state.magnitude;
+  document.getElementById('missed-val').textContent=state.missed;
+  document.getElementById('integrity-bar').style.width=Math.max(0,state.integrity)+'%';
+}
+
+function endGame() {
+  state.running=false; clearInterval(mainTimer);
+  state.cells.forEach(c=>{ if(c.timer) clearTimeout(c.timer); });
+  leaderboard.push({score:state.score, wave:state.wave});
+  leaderboard.sort((a,b)=>b.score-a.score); leaderboard.splice(5);
+  document.getElementById('end-score').textContent=state.score;
+  document.getElementById('end-title').textContent=state.missed>20?'TOTAL COLLAPSE.':'MAJOR DAMAGE.';
+  document.getElementById('end-msg').textContent=`Wave ${state.wave} | ${state.missed} failures missed | M${state.magnitude}`;
+  renderLB();
+  document.getElementById('start-card').style.display='none';
+  document.getElementById('end-card').style.display='block';
+  const ov=document.getElementById('overlay');
+  ov.style.display='flex'; ov.classList.remove('hidden');
+}
+
+function renderLB() {
+  const el=document.getElementById('lb-rows');
+  if(!leaderboard.length){el.innerHTML='<div class="lb-row"><span>—</span><span>none</span></div>';return;}
+  el.innerHTML=leaderboard.map((e,i)=>
+    `<div class="lb-row"><span class="lb-rank">#${i+1}</span><span>W${e.wave}</span><span class="lb-score">${e.score}pts</span></div>`).join('');
+}
+
+// easter egg: type RICHTER
+document.addEventListener('keydown',e=>{
+  eggBuf+=e.key.toUpperCase(); if(eggBuf.length>8) eggBuf=eggBuf.slice(-8);
+  if(eggBuf.includes('RICHTER')){
+    eggBuf='';
+    if(state&&state.running){
+      state.integrity=Math.min(100,state.integrity+40);
+      state.cells.forEach(c=>{ if(c.state==='failure'){ clearTimeout(c.timer); c.state='ok'; }});
+      renderGrid(); updateHUD();
+      flash('BASE ISOLATION ENGAGED. All failures cleared. Integrity +40. You legend.');
+    }
+  }
+});
+
+renderLB();
+</script>

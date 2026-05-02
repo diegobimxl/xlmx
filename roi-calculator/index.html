@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ROI Calculator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:800px;margin:0 auto;padding:0 32px 80px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr 1fr}}
+.kpi{border:1px solid #e5e5e5;border-radius:6px;padding:16px;text-align:center}
+.kpi-val{font-size:28px;font-weight:800;line-height:1}
+.kpi-val.green{color:#2e7d32}.kpi-val.red{color:#c62828}.kpi-val.blue{color:#1565c0}
+.kpi-label{font-size:11px;color:#888;margin-top:4px}
+.inputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:550px){.inputs-grid{grid-template-columns:1fr}}
+.panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden}
+.panel-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.field{padding:10px 16px;border-bottom:1px solid #f0f0f0}
+.field:last-child{border:none}
+.field label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.field input{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;font-family:inherit}
+.timeline-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.timeline-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.timeline-body{padding:16px;display:flex;flex-direction:column;gap:8px}
+.tl-row{display:flex;align-items:center;gap:12px;font-size:12px}
+.tl-label{min-width:60px;font-weight:600;color:#555}
+.tl-track{flex:1;height:22px;background:#f0f0f0;border-radius:4px;overflow:hidden;position:relative}
+.tl-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;transition:width .4s}
+.tl-val{min-width:90px;text-align:right;font-weight:600}
+.insight{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 18px;font-size:13px;color:#333;line-height:1.7;margin-bottom:20px}
+.insight strong{color:#111;font-weight:700}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header><div class="logo">XLMX<span>Data Systems</span></div><a href="../" class="back">← All Tools</a></header>
+<div class="hero">
+<h1>ROI Calculator</h1>
+<p>Input your investment, expected returns, and timeline. Get ROI%, annualized return, payback period, and a year-by-year cash flow chart.</p>
+<div class="badge">FREE TOOL</div>
+</div>
+<div class="app">
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-val green" id="kROI">--</div><div class="kpi-label">Total ROI</div></div>
+<div class="kpi"><div class="kpi-val blue" id="kAnnual">--</div><div class="kpi-label">Annualized return</div></div>
+<div class="kpi"><div class="kpi-val" id="kPayback">--</div><div class="kpi-label">Payback period</div></div>
+<div class="kpi"><div class="kpi-val" id="kNetReturn">--</div><div class="kpi-label">Net return</div></div>
+</div>
+<div class="inputs-grid">
+<div class="panel">
+<div class="panel-header">Investment</div>
+<div class="field"><label>Initial investment ($)</label><input type="number" id="invest" value="50000" oninput="calc()"></div>
+<div class="field"><label>Ongoing annual costs ($)</label><input type="number" id="ongoing" value="5000" oninput="calc()"></div>
+<div class="field"><label>Investment horizon (years)</label><input type="number" id="years" value="3" min="1" max="30" oninput="calc()"></div>
+</div>
+<div class="panel">
+<div class="panel-header">Returns</div>
+<div class="field"><label>Annual revenue / benefit ($)</label><input type="number" id="revenue" value="35000" oninput="calc()"></div>
+<div class="field"><label>Revenue growth rate (%/yr)</label><input type="number" id="growth" value="10" oninput="calc()"></div>
+<div class="field"><label>Residual / salvage value ($)</label><input type="number" id="salvage" value="0" oninput="calc()"></div>
+</div>
+</div>
+<div class="insight" id="insightBox"></div>
+<div class="timeline-panel">
+<div class="timeline-header">Year-by-year cash flow</div>
+<div class="timeline-body" id="timelineBody"></div>
+</div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+function fmt(n){return n>=0?'$'+Math.round(Math.abs(n)).toLocaleString():'-$'+Math.round(Math.abs(n)).toLocaleString();}
+function calc(){
+  const invest=parseFloat(document.getElementById('invest').value)||0;
+  const ongoing=parseFloat(document.getElementById('ongoing').value)||0;
+  const years=Math.max(1,parseInt(document.getElementById('years').value)||3);
+  const revenue=parseFloat(document.getElementById('revenue').value)||0;
+  const growth=(parseFloat(document.getElementById('growth').value)||0)/100;
+  const salvage=parseFloat(document.getElementById('salvage').value)||0;
+  let cumulative=-invest;let payback=null;
+  const rows=[];
+  for(let y=1;y<=years;y++){
+    const rev=revenue*Math.pow(1+growth,y-1);
+    const cf=rev-ongoing;
+    cumulative+=cf;
+    if(payback===null&&cumulative>=0)payback=y;
+    rows.push({year:y,rev,cf,cumulative});
+  }
+  cumulative+=salvage;
+  const totalCosts=invest+ongoing*years;
+  const totalReturns=rows.reduce((a,r)=>a+r.rev,0)+salvage;
+  const netReturn=totalReturns-totalCosts;
+  const roi=(netReturn/invest)*100;
+  const annualized=(Math.pow(1+roi/100,1/years)-1)*100;
+  document.getElementById('kROI').textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
+  document.getElementById('kROI').className='kpi-val '+(roi>=0?'green':'red');
+  document.getElementById('kAnnual').textContent=(annualized>=0?'+':'')+annualized.toFixed(1)+'%';
+  document.getElementById('kPayback').textContent=payback?payback+' yr'+(payback===1?'':'s'):'> '+years+' yrs';
+  document.getElementById('kNetReturn').textContent=fmt(netReturn);
+  document.getElementById('kNetReturn').className='kpi-val '+(netReturn>=0?'green':'red');
+  const insight=document.getElementById('insightBox');
+  insight.innerHTML=`A <strong>${fmt(invest)}</strong> investment generating <strong>${fmt(revenue)}/yr</strong> with <strong>${(growth*100).toFixed(0)}% annual growth</strong> over <strong>${years} years</strong> returns a total of <strong>${fmt(totalReturns)}</strong> against <strong>${fmt(totalCosts)}</strong> in costs. Net return: <strong>${fmt(netReturn)}</strong>. ${payback?'Payback in year '+payback+'.':'Investment does not pay back within the horizon.'} Annualized return: <strong>${annualized.toFixed(1)}%</strong>.`;
+  const tb=document.getElementById('timelineBody');tb.innerHTML='';
+  const maxAbs=Math.max(...rows.map(r=>Math.abs(r.cumulative)),invest);
+  rows.forEach(r=>{
+    const pct=Math.min(100,Math.abs(r.cumulative)/maxAbs*100);
+    const color=r.cumulative>=0?'#2e7d32':'#c62828';
+    const div=document.createElement('div');div.className='tl-row';
+    div.innerHTML=`<span class="tl-label">Year ${r.year}</span>
+      <div class="tl-track"><div class="tl-fill" style="width:${pct}%;background:${color}">CF: ${fmt(r.cf)}</div></div>
+      <span class="tl-val" style="color:${r.cumulative>=0?'#2e7d32':'#c62828'}">${fmt(r.cumulative)}</span>`;
+    tb.appendChild(div);
+  });
+}
+calc();
+</script>
+</body></html>

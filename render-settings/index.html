@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Render Settings Advisor — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+select,input{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.setting-block{background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:14px;margin-bottom:10px}
+.setting-block h3{color:#16a34a;font-size:.85rem;font-weight:600;margin-bottom:10px}
+.setting-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:.83rem}
+.setting-row span:first-child{color:#aaa}.setting-row span:last-child{color:#fff;font-weight:600}
+.tip{background:#0a1a0a;border-left:3px solid #16a34a;padding:10px 12px;font-size:.8rem;color:#86efac;margin-top:8px;border-radius:0 6px 6px 0}
+.warn{background:#1a0a00;border-left:3px solid #f59e0b;padding:10px 12px;font-size:.8rem;color:#fcd34d;margin-top:8px;border-radius:0 6px 6px 0}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Render Settings Advisor</h1>
+<p class="sub">Optimal rendering settings by software, scene type, and output goal — stop guessing, start rendering</p>
+<div class="card">
+<div class="grid2">
+<div><label>Render Engine</label>
+<select id="eng"><option>V-Ray (3ds Max / Revit)</option><option>Enscape</option><option>Lumion</option><option>Corona</option><option>Twinmotion</option><option>Rhino / Cycles</option><option>Blender Cycles</option><option>KeyShot</option></select></div>
+<div><label>Scene Type</label>
+<select id="scene"><option>Exterior — Daylight</option><option>Exterior — Night</option><option>Interior — Daylight</option><option>Interior — Artificial Light</option><option>Aerial / Drone View</option><option>Close-up / Detail</option><option>Animation Frame</option></select></div>
+<div><label>Output Resolution</label>
+<select id="res"><option>1920×1080 (Full HD — web/presentation)</option><option>2560×1440 (2K — print A3)</option><option>3840×2160 (4K — large format)</option><option>7680×4320 (8K — billboard/exhibition)</option><option>Square 2048×2048 (Instagram/portfolio)</option></select></div>
+<div><label>Time Budget</label>
+<select id="time"><option>Fast — under 5 min/frame</option><option>Standard — 15–30 min/frame</option><option>High Quality — 1–2 hr/frame</option><option>Production — overnight</option></select></div>
+<div><label>Hardware</label>
+<select id="hw"><option>GPU (NVIDIA RTX)</option><option>CPU (Intel/AMD)</option><option>GPU + CPU hybrid</option><option>Cloud render</option></select></div>
+<div><label>Purpose</label>
+<select id="purpose"><option>Client presentation</option><option>Competition board</option><option>Social media post</option><option>Print publication</option><option>Animation / video</option><option>VR / immersive</option></select></div>
+</div>
+<button onclick="recommend()">Get Render Settings</button>
+</div>
+<div id="res-panel" style="display:none"></div>
+<script>
+const PRESETS={
+  'V-Ray (3ds Max / Revit)':{
+    'Exterior — Daylight':{gi:'Brute Force + Light Cache',samples:'1200–2000',bounces:'3 diffuse, 2 spec',denoiser:'V-Ray Denoiser (OIDN)',exposure:'Physical Camera: f/8, ISO 200, 1/125s',sky:'V-RaySun + HDRI dome',postpro:'Color Mapping: Reinhard 0.8, gamma 2.2'},
+    'Interior — Daylight':{gi:'Brute Force + Light Cache',samples:'2000–4000',bounces:'5 diffuse, 3 spec',denoiser:'V-Ray Denoiser — high strength',exposure:'f/5.6, ISO 800, 1/60s',sky:'V-RaySun through windows + portal lights',postpro:'Exposure: +0.5 EV, subtle vignette'},
+    'Interior — Artificial Light':{gi:'Brute Force + Light Cache',samples:'3000–6000',bounces:'6 diffuse',denoiser:'OIDN — max',exposure:'f/4, ISO 1600, 1/30s',sky:'Disable sun — emissive materials only',postpro:'Bloom/glare on light sources'},
+  },
+  'Enscape':{
+    'Exterior — Daylight':{gi:'Auto (built-in path tracer)',samples:'High preset',bounces:'Auto',denoiser:'Built-in AI',exposure:'Auto exposure ON, white balance: daylight',sky:'Sun position: match project lat/lon',postpro:'Outline: off, DoF: subtle background'},
+    'Interior — Daylight':{gi:'Auto',samples:'Ultra preset',bounces:'Auto',denoiser:'AI denoiser',exposure:'Manual: EV -1 to +1 depending on glazing',sky:'Interior mode: ON',postpro:'Lens flare: subtle, vignette: 0.2'},
+  },
+  'Lumion':{
+    'Exterior — Daylight':{gi:'Lumion 12+ path tracer',samples:'Ultra',bounces:'6',denoiser:'Built-in',exposure:'Real Skies library — match climate',sky:'Real Skies + sun position',postpro:'Color correction, sketch effect OFF for realism'},
+    'Interior — Artificial Light':{gi:'Path tracer',samples:'Ultra',bounces:'8',denoiser:'AI denoiser',exposure:'EV: -1, white balance: 4000K',sky:'Disable natural light',postpro:'Bloom: 0.3, vignette, film grain: 0.1'},
+  },
+  'Blender Cycles':{
+    'Exterior — Daylight':{gi:'Path tracing',samples:'512–1024 (GPU) / 256 CPU',bounces:'Max 12, diffuse 4, glossy 4',denoiser:'Intel Open Image Denoise (OIDN)',exposure:'Exposure 1.0, gamma 1.0 in compositing',sky:'Nishita sky model: sun elevation + dust',postpro:'Filmic tone mapping, compositing: glare node'},
+    'Interior — Daylight':{gi:'Path tracing',samples:'1024–2048',bounces:'Max 16, diffuse 8',denoiser:'OIDN — render passes',exposure:'Exposure: 0.5, sky portal: light object over windows',sky:'Nishita + portal mesh',postpro:'Glare + bloom in compositing'},
+  }
+};
+const RESMAP={'1920×1080 (Full HD — web/presentation)':{w:1920,h:1080},'2560×1440 (2K — print A3)':{w:2560,h:1440},'3840×2160 (4K — large format)':{w:3840,h:2160},'7680×4320 (8K — billboard/exhibition)':{w:7680,h:4320},'Square 2048×2048 (Instagram/portfolio)':{w:2048,h:2048}};
+const TIPS={
+  'Client presentation':'Add people and vegetation at 50% opacity for scale without distraction. Always include at least one warm artificial light source.',
+  'Social media post':'Crop to 4:5 (1080×1350) for max Instagram feed size. First 2 seconds decide if someone stops scrolling — lead with the hero element.',
+  'Print publication':'Minimum 150 DPI at print size. For A2 print: render at minimum 4961×7016px. Embed color profile: ISO Coated v2.',
+  'Animation / video':'Match FPS to deliverable (24fps=cinema, 30fps=web, 60fps=smooth). Motion blur: shutter 180°. Always denoise per-frame not per-sequence.',
+  'Competition board':'Render with generous white space margins. Avoid heavy post-processing — boards are judged at 5 sec glance distance.'
+};
+function recommend(){
+  const eng=document.getElementById('eng').value;const scene=document.getElementById('scene').value;
+  const res=document.getElementById('res').value;const time=document.getElementById('time').value;
+  const hw=document.getElementById('hw').value;const purpose=document.getElementById('purpose').value;
+  const {w,h}=RESMAP[res]||{w:1920,h:1080};
+  const presets=(PRESETS[eng]||{})[scene]||{gi:'Path tracing',samples:'1024',bounces:'6',denoiser:'AI Denoiser',exposure:'Auto',sky:'HDRI Dome',postpro:'Color grade in post'};
+  const tip=TIPS[purpose]||'';
+  const timeWarn=time==='Fast — under 5 min/frame'?'⚠ Fast mode: reduce samples by 50%, enable aggressive denoising, use proxies for heavy geometry.':'';
+  const hwNote=hw==='CPU (Intel/AMD)'?'CPU rendering: expect 3–5× longer render times vs GPU. Use tiling: 64×64px optimal.':hw==='GPU (NVIDIA RTX)'?'GPU: enable CUDA/OptiX. RTX cards: enable hardware ray tracing for 2–4× speedup.':'';
+  const panel=document.getElementById('res-panel');panel.style.display='block';
+  panel.innerHTML=`
+  <div class="setting-block"><h3>Resolution & Output</h3>
+  <div class="setting-row"><span>Resolution</span><span>${w} × ${h} px</span></div>
+  <div class="setting-row"><span>Aspect ratio</span><span>${(w/h).toFixed(2)}:1</span></div>
+  <div class="setting-row"><span>File format</span><span>EXR (32-bit) for post / JPG 95% for delivery</span></div>
+  <div class="setting-row"><span>Color space</span><span>Linear → sRGB for screen, AdobeRGB for print</span></div>
+  </div>
+  <div class="setting-block"><h3>GI & Sampling</h3>
+  <div class="setting-row"><span>Global Illumination</span><span>${presets.gi}</span></div>
+  <div class="setting-row"><span>Samples</span><span>${presets.samples}</span></div>
+  <div class="setting-row"><span>Bounces</span><span>${presets.bounces}</span></div>
+  <div class="setting-row"><span>Denoiser</span><span>${presets.denoiser}</span></div>
+  </div>
+  <div class="setting-block"><h3>Camera & Lighting</h3>
+  <div class="setting-row"><span>Exposure</span><span>${presets.exposure}</span></div>
+  <div class="setting-row"><span>Sky / Environment</span><span>${presets.sky}</span></div>
+  <div class="setting-row"><span>Post-processing</span><span>${presets.postpro}</span></div>
+  </div>
+  ${timeWarn?`<div class="warn">${timeWarn}</div>`:''}
+  ${hwNote?`<div class="tip">${hwNote}</div>`:''}
+  ${tip?`<div class="tip">Delivery tip: ${tip}</div>`:''}`;
+}
+</script></body></html>

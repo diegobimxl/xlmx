@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Change Order Tracker — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+textarea{resize:vertical;min-height:50px}
+button{padding:12px 20px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.95rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}
+.toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stat{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.stat .n{font-size:1.3rem;font-weight:700}.stat .l{color:#aaa;font-size:.7rem}
+.green{color:#16a34a}.red{color:#ef4444}.yellow{color:#f59e0b}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:8px;border-bottom:1px solid #444;color:#aaa;font-size:.75rem;text-transform:uppercase}
+td{padding:8px;border-bottom:1px solid #222}
+.badge{padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600}
+.badge.pending{background:#332b00;color:#f59e0b}.badge.approved{background:#0a2a0a;color:#16a34a}.badge.rejected{background:#2a0a0a;color:#ef4444}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+#form{display:none}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Change Order Tracker</h1>
+<p class="sub">Log scope changes, track cost impact & approval status</p>
+<div class="stats">
+<div class="stat"><div class="n" id="sTotal">0</div><div class="l">Total COs</div></div>
+<div class="stat"><div class="n green" id="sApp">$0</div><div class="l">Approved Cost</div></div>
+<div class="stat"><div class="n yellow" id="sPen">$0</div><div class="l">Pending Cost</div></div>
+</div>
+<div class="toolbar"><button onclick="showF()">+ New CO</button><button class="sec" onclick="exp()">Export CSV</button></div>
+<div class="card" id="form">
+<label>Description</label><input id="fDesc" placeholder="Added structural bracing at grid C">
+<label>Initiated By</label>
+<select id="fBy"><option>Owner</option><option>Architect</option><option>Contractor</option><option>Engineer</option><option>Consultant</option></select>
+<label>Cost Impact (USD)</label><input id="fCost" type="number" value="0" step="100">
+<label>Schedule Impact (days)</label><input id="fDays" type="number" value="0">
+<label>Reason</label>
+<select id="fReason"><option>Design Change</option><option>Field Condition</option><option>Owner Request</option><option>Code Requirement</option><option>Value Engineering</option><option>Coordination Issue</option></select>
+<label>Notes</label><textarea id="fNotes"></textarea>
+<button onclick="add()">Save</button><button class="sec" onclick="document.getElementById('form').style.display='none'">Cancel</button>
+</div>
+<div class="card" style="overflow-x:auto">
+<table><thead><tr><th>CO#</th><th>Description</th><th>By</th><th>Cost</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+<tbody id="tb"></tbody></table>
+</div>
+<script>
+let items=[];let nid=1;
+function showF(){document.getElementById('form').style.display='block'}
+function add(){
+  items.push({id:nid++,desc:document.getElementById('fDesc').value||'Untitled',by:document.getElementById('fBy').value,
+    cost:+document.getElementById('fCost').value,days:+document.getElementById('fDays').value,
+    reason:document.getElementById('fReason').value,notes:document.getElementById('fNotes').value,status:'pending',date:new Date().toISOString().slice(0,10)});
+  render();document.getElementById('form').style.display='none';
+  ['fDesc','fNotes'].forEach(i=>document.getElementById(i).value='');document.getElementById('fCost').value='0';document.getElementById('fDays').value='0';
+}
+function setS(id,s){const it=items.find(x=>x.id===id);if(it){it.status=s;render()}}
+function fmt(n){return n>=0?'$'+n.toLocaleString():'-$'+Math.abs(n).toLocaleString()}
+function render(){
+  document.getElementById('sTotal').textContent=items.length;
+  document.getElementById('sApp').textContent=fmt(items.filter(x=>x.status==='approved').reduce((a,b)=>a+b.cost,0));
+  document.getElementById('sPen').textContent=fmt(items.filter(x=>x.status==='pending').reduce((a,b)=>a+b.cost,0));
+  const tb=document.getElementById('tb');tb.innerHTML='';
+  items.slice().reverse().forEach(r=>{
+    const acts=r.status==='pending'?
+      `<button style="padding:2px 6px;font-size:.7rem;background:#16a34a;color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px" onclick="setS(${r.id},'approved')">Approve</button>`+
+      `<button style="padding:2px 6px;font-size:.7rem;background:#ef4444;color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px" onclick="setS(${r.id},'rejected')">Reject</button>`:'—';
+    tb.innerHTML+=`<tr><td>CO-${String(r.id).padStart(3,'0')}</td><td>${r.desc}</td><td>${r.by}</td>
+    <td>${fmt(r.cost)}</td><td>${r.days>0?'+':r.days<0?'':''} ${r.days}d</td><td>${r.reason}</td>
+    <td><span class="badge ${r.status}">${r.status.toUpperCase()}</span></td><td>${acts}</td></tr>`;
+  });
+}
+function exp(){
+  let c='CO#,Description,By,Cost,Days,Reason,Status,Date\n';
+  items.forEach(r=>c+=`CO-${String(r.id).padStart(3,'0')},"${r.desc}",${r.by},${r.cost},${r.days},${r.reason},${r.status},${r.date}\n`);
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(c);a.download='change_orders.csv';a.click();
+}
+render();
+</script></body></html>

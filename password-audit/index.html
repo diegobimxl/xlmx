@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Password Policy Audit — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;line-height:1.6}
+a{color:#111;text-decoration:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px}
+.logo span{font-weight:300;font-size:14px;margin-left:8px;color:#666}
+.back{font-size:13px;color:#666}.back:hover{color:#111}
+.hero{max-width:720px;margin:60px auto 40px;padding:0 32px;text-align:center}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;color:#444;max-width:560px;margin:0 auto}
+.badge{display:inline-block;font-size:10px;font-weight:600;background:#f5f5f5;color:#555;padding:3px 10px;border-radius:3px;margin-top:12px;letter-spacing:0.5px}
+.app{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.privacy-notice{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:12px 16px;font-size:12px;color:#1b5e20;margin-bottom:20px}
+.input-area{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.input-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center}
+.try-link{font-size:12px;color:#1565c0;cursor:pointer;font-weight:600}
+.input-grid{display:grid;grid-template-columns:1fr 1fr;padding:16px;gap:12px}
+@media(max-width:500px){.input-grid{grid-template-columns:1fr}}
+.entry-card{border:1px solid #e5e5e5;border-radius:6px;padding:12px;position:relative}
+.entry-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.entry-name{font-size:13px;padding:6px 10px;border:1px solid #e5e5e5;border-radius:4px;width:100%;font-family:inherit;margin-bottom:6px}
+.checkboxes{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.cb-row{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}
+.length-row{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px}
+.length-row input{width:60px;padding:4px 8px;border:1px solid #e5e5e5;border-radius:4px;font-size:12px}
+.age-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.age-row input{width:60px;padding:4px 8px;border:1px solid #e5e5e5;border-radius:4px;font-size:12px}
+.remove-entry{position:absolute;top:8px;right:8px;background:none;border:none;font-size:16px;color:#ccc;cursor:pointer}
+.remove-entry:hover{color:#c62828}
+.add-footer{padding:10px 16px;border-top:1px solid #e5e5e5;display:flex;gap:10px}
+.btn{padding:8px 18px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#111;color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5}
+.policy-selector{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.policy-header{background:#f5f5f5;padding:10px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e5e5}
+.policy-grid{display:grid;grid-template-columns:1fr 1fr 1fr;padding:12px 16px;gap:8px}
+.policy-btn{padding:8px 12px;border:1px solid #e5e5e5;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;transition:all .15s}
+.policy-btn.active{background:#111;color:#fff;border-color:#111}
+.results-panel{border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.result-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f0f0f0;gap:10px}
+.result-row:last-child{border:none}
+.result-row.pass{border-left:3px solid #2e7d32}
+.result-row.fail{border-left:3px solid #c62828}
+.result-row.warn{border-left:3px solid #e65100}
+.result-name{font-size:13px;font-weight:600}
+.result-details{font-size:11px;color:#888;margin-top:2px}
+.result-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;flex-shrink:0}
+.rb-pass{background:#e8f5e9;color:#2e7d32}
+.rb-fail{background:#ffebee;color:#c62828}
+.rb-warn{background:#fff3e0;color:#e65100}
+.score-summary{background:#f5f5f5;border-radius:8px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.score-big{font-size:48px;font-weight:800;line-height:1}
+.score-big.ok{color:#2e7d32}.score-big.warn{color:#e65100}.score-big.bad{color:#c62828}
+.score-text{font-size:13px;color:#555;flex:1}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 32px;font-size:13px}
+.footer-bar a{color:#111;background:#fff;padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">XLMX<span>Data Systems</span></div>
+<a href="../" class="back">← All Tools</a>
+</header>
+<div class="hero">
+<h1>Password Policy Audit</h1>
+<p>Describe your team's password practices — no actual passwords. The auditor checks them against NIST, SOC2, and ISO 27001 requirements and flags gaps with remediation steps.</p>
+<div class="badge">FREE TOOL — NO PASSWORDS STORED</div>
+</div>
+<div class="app">
+<div class="privacy-notice">Zero actual passwords are entered or stored. You describe your policy rules (minimum length, complexity, rotation) and the tool audits those rules against compliance standards.</div>
+<div class="policy-selector">
+<div class="policy-header">Compliance target</div>
+<div class="policy-grid" id="policyBtns">
+<button class="policy-btn active" onclick="setPolicy('nist',this)">NIST 800-63B</button>
+<button class="policy-btn" onclick="setPolicy('soc2',this)">SOC 2 Type II</button>
+<button class="policy-btn" onclick="setPolicy('iso27001',this)">ISO 27001</button>
+</div>
+</div>
+<div class="input-area">
+<div class="input-header">Your Password Policy
+<span class="try-link" onclick="loadSample()">Load example policy</span>
+</div>
+<div style="padding:16px;display:flex;flex-direction:column;gap:12px" id="policyForm">
+<div>
+<div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:8px">Complexity requirements</div>
+<div style="display:flex;flex-direction:column;gap:6px" id="cbGroup">
+<label class="cb-row"><input type="checkbox" id="cbUpper" onchange="runAudit()"> Requires uppercase letters</label>
+<label class="cb-row"><input type="checkbox" id="cbLower" checked onchange="runAudit()"> Requires lowercase letters</label>
+<label class="cb-row"><input type="checkbox" id="cbNumber" onchange="runAudit()"> Requires numbers</label>
+<label class="cb-row"><input type="checkbox" id="cbSymbol" onchange="runAudit()"> Requires special characters</label>
+<label class="cb-row"><input type="checkbox" id="cbMFA" onchange="runAudit()"> MFA required for all accounts</label>
+<label class="cb-row"><input type="checkbox" id="cbBreached" onchange="runAudit()"> Checks against breached password lists</label>
+<label class="cb-row"><input type="checkbox" id="cbReuseBlock" onchange="runAudit()"> Blocks password reuse (last N passwords)</label>
+<label class="cb-row"><input type="checkbox" id="cbManager" onchange="runAudit()"> Password manager encouraged/required</label>
+</div>
+</div>
+<div style="display:flex;gap:20px;flex-wrap:wrap">
+<div class="length-row"><span>Minimum password length:</span><input type="number" id="minLen" value="8" min="1" oninput="runAudit()"> characters</div>
+<div class="age-row"><span>Max password age:</span><input type="number" id="maxAge" value="90" min="0" oninput="runAudit()"> days (0 = no rotation)</div>
+</div>
+</div>
+</div>
+<div id="auditResults"></div>
+</div>
+<div class="footer-bar"><span>XLMX — Data Systems</span><a href="mailto:info@bimxl.com">Contact</a></div>
+<script>
+let currentPolicy='nist';
+const policies={
+  nist:{name:'NIST 800-63B',minLen:8,noMandatoryComplexity:true,noRotation:true,mfaRequired:false,breachCheck:true,noReuseBlock:false},
+  soc2:{name:'SOC 2 Type II',minLen:8,noMandatoryComplexity:false,noRotation:false,mfaRequired:true,breachCheck:false,noReuseBlock:true},
+  iso27001:{name:'ISO 27001',minLen:10,noMandatoryComplexity:false,noRotation:false,mfaRequired:false,breachCheck:false,noReuseBlock:false},
+};
+function setPolicy(p,btn){
+  currentPolicy=p;
+  document.querySelectorAll('.policy-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  runAudit();
+}
+function loadSample(){
+  document.getElementById('cbUpper').checked=true;
+  document.getElementById('cbLower').checked=true;
+  document.getElementById('cbNumber').checked=true;
+  document.getElementById('cbSymbol').checked=false;
+  document.getElementById('cbMFA').checked=false;
+  document.getElementById('cbBreached').checked=false;
+  document.getElementById('cbReuseBlock').checked=true;
+  document.getElementById('cbManager').checked=false;
+  document.getElementById('minLen').value=8;
+  document.getElementById('maxAge').value=90;
+  runAudit();
+}
+function runAudit(){
+  const p=policies[currentPolicy];
+  const minLen=parseInt(document.getElementById('minLen').value)||0;
+  const maxAge=parseInt(document.getElementById('maxAge').value)||0;
+  const hasMFA=document.getElementById('cbMFA').checked;
+  const hasBreachCheck=document.getElementById('cbBreached').checked;
+  const hasReuseBlock=document.getElementById('cbReuseBlock').checked;
+  const hasManager=document.getElementById('cbManager').checked;
+  const hasUpper=document.getElementById('cbUpper').checked;
+  const hasSymbol=document.getElementById('cbSymbol').checked;
+  const checks=[];
+  checks.push({name:'Minimum password length',pass:minLen>=p.minLen,warn:minLen>=p.minLen-2&&minLen<p.minLen,detail:minLen>=p.minLen?`${minLen} chars meets the ${p.minLen}-char minimum`:`${minLen} chars is below the ${p.minLen}-char minimum. Increase to ${p.minLen}+.`});
+  if(currentPolicy==='nist'){
+    checks.push({name:'No mandatory complexity rules (NIST prefers length)',pass:!hasUpper&&!hasSymbol,warn:hasUpper||hasSymbol,detail:(!hasUpper&&!hasSymbol)?'Complexity rules absent — NIST recommends length over complexity':'NIST 800-63B discourages forced complexity rules. They create weak substitution patterns (P@ssw0rd).'}  );
+    checks.push({name:'No mandatory rotation (NIST anti-pattern)',pass:maxAge===0||maxAge>=365,warn:maxAge>0&&maxAge<365,detail:maxAge===0||maxAge>=365?'No forced rotation — correct per NIST':'NIST 800-63B says forced rotation encourages weak passwords. Remove rotation or set 365+ days.'});
+    checks.push({name:'Breached password screening',pass:hasBreachCheck,warn:!hasBreachCheck,detail:hasBreachCheck?'Breached password list check enabled — NIST strongly recommends this':'Enable screening against HaveIBeenPwned or similar. Core NIST requirement.'});
+  } else if(currentPolicy==='soc2'){
+    checks.push({name:'MFA required (SOC 2)',pass:hasMFA,warn:!hasMFA,detail:hasMFA?'MFA enforced — meets SOC 2 CC6.1':'SOC 2 Type II requires MFA for all privileged access. Implement immediately.'});
+    checks.push({name:'Password reuse prevention',pass:hasReuseBlock,warn:!hasReuseBlock,detail:hasReuseBlock?'Reuse blocking enabled':'SOC 2 requires blocking reuse of last 12+ passwords.'});
+    checks.push({name:'Rotation policy',pass:maxAge>0&&maxAge<=180,warn:maxAge===0||maxAge>180,detail:(maxAge>0&&maxAge<=180)?`${maxAge}-day rotation meets SOC 2 expectations`:'SOC 2 expects rotation every 90-180 days for privileged accounts.'});
+  } else {
+    checks.push({name:'Minimum length (ISO 27001 A.9.4)',pass:minLen>=10,warn:minLen>=8&&minLen<10,detail:minLen>=10?'Meets ISO minimum':'ISO 27001 recommends 10+ character minimum.'});
+    checks.push({name:'Complexity policy',pass:hasUpper&&hasSymbol,warn:!hasUpper||!hasSymbol,detail:(hasUpper&&hasSymbol)?'Complexity requirements adequate':'ISO 27001 expects uppercase and special character requirements.'});
+    checks.push({name:'Access review / rotation',pass:maxAge>0&&maxAge<=90,warn:maxAge===0||maxAge>90,detail:(maxAge>0&&maxAge<=90)?`${maxAge}-day rotation aligns with ISO A.9.4.3`:'ISO 27001 A.9.4.3 requires defined password management including rotation.'});
+  }
+  checks.push({name:'Password manager adoption',pass:hasManager,warn:!hasManager,detail:hasManager?'Password manager encouraged — reduces weak/reused passwords':'Encourage password manager use across team. Reduces 90%+ of reuse attacks.'});
+  const passed=checks.filter(c=>c.pass).length;
+  const total=checks.length;
+  const score=Math.round((passed/total)*100);
+  const scoreClass=score>=80?'ok':score>=60?'warn':'bad';
+  const scoreMsg=score>=80?'Policy is solid. Address any warnings before next audit.':score>=60?'Several gaps identified. Address failed checks before any compliance review.':'Significant policy gaps. Do not submit to compliance review without remediation.';
+  let html=`<div class="score-summary">
+    <div class="score-big ${scoreClass}">${score}</div>
+    <div class="score-text"><strong>${passed} of ${total} checks passed</strong> against ${policies[currentPolicy].name}.<br>${scoreMsg}</div>
+  </div>
+  <div class="results-panel">`;
+  checks.forEach(c=>{
+    const cls=c.pass?'pass':c.warn?'warn':'fail';
+    const badge=c.pass?'PASS':c.warn?'WARNING':'FAIL';
+    const rbCls=c.pass?'rb-pass':c.warn?'rb-warn':'rb-fail';
+    html+=`<div class="result-row ${cls}">
+      <div><div class="result-name">${c.name}</div><div class="result-details">${c.detail}</div></div>
+      <span class="result-badge ${rbCls}">${badge}</span>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('auditResults').innerHTML=html;
+}
+runAudit();
+</script>
+</body>
+</html>

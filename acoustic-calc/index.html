@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Acoustic Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.sbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;text-align:center}
+.sbox .v{font-size:1.3rem;font-weight:700}.sbox .l{color:#aaa;font-size:.7rem;margin-top:3px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}
+.surface{display:flex;gap:8px;align-items:center;padding:8px;background:#222;border-radius:6px;margin-bottom:6px;font-size:.85rem}
+.surface .del{color:#ef4444;cursor:pointer;margin-left:auto}
+.bench{background:#0a0a2a;border:1px solid #3b82f633;border-radius:8px;padding:14px;font-size:.8rem}
+.bench table{width:100%;border-collapse:collapse}
+.bench th,.bench td{padding:5px 8px;text-align:left;border-bottom:1px solid #1a1a3a}
+.bench th{color:#3b82f6;font-size:.72rem}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Room Acoustics Calculator</h1>
+<p class="sub">Sabine RT60 reverberation time by surface area and absorption coefficients</p>
+
+<div class="card">
+<div class="grid2">
+<div><label>Room Length (m)</label><input id="L" type="number" value="12" step="0.5"></div>
+<div><label>Room Width (m)</label><input id="W" type="number" value="8" step="0.5"></div>
+<div><label>Room Height (m)</label><input id="H" type="number" value="3.5" step="0.1"></div>
+<div><label>Room Use</label>
+<select id="use">
+<option>Conference Room</option><option>Open Office</option><option>Classroom</option>
+<option>Auditorium</option><option>Recording Studio</option><option>Restaurant</option>
+<option>Lobby / Atrium</option><option>Gymnasium</option>
+</select></div>
+</div>
+</div>
+
+<div class="card">
+<p style="color:#16a34a;font-size:.85rem;font-weight:600;margin-bottom:12px">Surfaces & Absorption</p>
+<div id="surfaces"></div>
+<button onclick="addSurface()">+ Add Surface</button>
+</div>
+
+<div class="grid3" id="results" style="display:none"></div>
+<div class="card" id="recCard" style="display:none">
+<p style="color:#16a34a;font-size:.85rem;font-weight:600;margin-bottom:10px">Recommendations</p>
+<div id="recs"></div>
+</div>
+<div class="bench card">
+<p style="color:#3b82f6;font-weight:600;margin-bottom:8px">RT60 Targets by Room Type</p>
+<table><tr><th>Room Type</th><th>Min (s)</th><th>Max (s)</th></tr>
+<tr><td>Conference Room</td><td>0.4</td><td>0.6</td></tr>
+<tr><td>Open Office</td><td>0.3</td><td>0.5</td></tr>
+<tr><td>Classroom</td><td>0.4</td><td>0.7</td></tr>
+<tr><td>Auditorium</td><td>1.0</td><td>2.0</td></tr>
+<tr><td>Recording Studio</td><td>0.2</td><td>0.4</td></tr>
+<tr><td>Restaurant</td><td>0.8</td><td>1.2</td></tr>
+</table>
+</div>
+
+<script>
+const PRESETS=[
+  ['Concrete floor','0.02',0],['Carpet on concrete','0.37',0],['Gypsum drywall','0.05',0],
+  ['Acoustic tile ceiling','0.75',0],['Painted concrete','0.03',0],['Wood panel','0.15',0],
+  ['Glass window','0.18',0],['Heavy curtain','0.55',0],['Upholstered seats','0.60',0],
+  ['Fabric panel','0.70',0]
+];
+const TARGETS={'Conference Room':[0.4,0.6],'Open Office':[0.3,0.5],'Classroom':[0.4,0.7],
+  'Auditorium':[1.0,2.0],'Recording Studio':[0.2,0.4],'Restaurant':[0.8,1.2],'Lobby / Atrium':[1.0,2.5],'Gymnasium':[1.5,3.0]};
+let surfaces=[];let nid=1;
+function addSurface(){
+  surfaces.push({id:nid++,type:'Concrete floor',area:96,alpha:0.02});
+  renderSurfaces();calc();
+}
+function delS(id){surfaces=surfaces.filter(x=>x.id!==id);renderSurfaces();calc()}
+function updateS(id,field,val){const s=surfaces.find(x=>x.id===id);if(s){s[field]=field==='area'||field==='alpha'?+val:val;if(field==='type'){const p=PRESETS.find(p=>p[0]===val);if(p)s.alpha=+p[1]}calc()}}
+function renderSurfaces(){
+  const el=document.getElementById('surfaces');el.innerHTML='';
+  surfaces.forEach(s=>{
+    el.innerHTML+=`<div class="surface">
+    <select style="flex:1.5;padding:6px;background:#1a1a1a;border:1px solid #444;border-radius:6px;color:#fff;font-size:.8rem" onchange="updateS(${s.id},'type',this.value)">
+    ${PRESETS.map(p=>`<option ${p[0]===s.type?'selected':''}>${p[0]}</option>`).join('')}
+    </select>
+    <input type="number" value="${s.area}" style="width:70px;padding:6px;background:#1a1a1a;border:1px solid #444;border-radius:6px;color:#fff;font-size:.8rem" onchange="updateS(${s.id},'area',this.value)" title="Area m²">
+    <span style="color:#aaa;font-size:.75rem">m²</span>
+    <input type="number" value="${s.alpha}" step="0.01" min="0" max="1" style="width:60px;padding:6px;background:#1a1a1a;border:1px solid #444;border-radius:6px;color:#fff;font-size:.8rem" onchange="updateS(${s.id},'alpha',this.value)" title="α coefficient">
+    <span style="color:#aaa;font-size:.75rem">α</span>
+    <span class="del" onclick="delS(${s.id})">×</span></div>`;
+  });
+}
+function calc(){
+  const L=+document.getElementById('L').value,W=+document.getElementById('W').value,H=+document.getElementById('H').value;
+  const V=L*W*H;if(!V)return;
+  const A=surfaces.reduce((sum,s)=>sum+s.area*s.alpha,0);
+  if(!A)return;
+  const RT60=0.161*V/A;
+  const use=document.getElementById('use').value;
+  const [tMin,tMax]=TARGETS[use]||[0.4,0.8];
+  const status=RT60<tMin?'too dry':RT60>tMax?'too reverberant':'optimal';
+  const color=status==='optimal'?'#16a34a':status==='too dry'?'#3b82f6':'#ef4444';
+  document.getElementById('results').style.display='grid';
+  document.getElementById('results').innerHTML=
+    `<div class="sbox"><div class="v" style="color:${color}">${RT60.toFixed(2)}s</div><div class="l">RT60 (Sabine)</div></div>`+
+    `<div class="sbox"><div class="v">${V.toFixed(0)} m³</div><div class="l">Room Volume</div></div>`+
+    `<div class="sbox"><div class="v">${A.toFixed(1)} Sabins</div><div class="l">Total Absorption</div></div>`;
+  document.getElementById('recCard').style.display='block';
+  const rec=document.getElementById('recs');
+  let msg=`Target for ${use}: ${tMin}–${tMax}s. Current: ${RT60.toFixed(2)}s — `;
+  if(status==='optimal')msg+='Room is acoustically balanced.';
+  else if(status==='too dry')msg+=`Add reflective surfaces or remove absorption. Need RT60 > ${tMin}s.`;
+  else msg+=`Add ${Math.round((0.161*V/((tMin+tMax)/2)-A))} more Sabins of absorption (acoustic panels, carpet, curtains).`;
+  rec.innerHTML=`<div style="color:${color};font-size:.88rem">${msg}</div>`;
+}
+// Load default surfaces for a conference room
+[['Carpet on concrete',60,0.37],['Acoustic tile ceiling',96,0.75],['Gypsum drywall',100,0.05],['Glass window',20,0.18]].forEach(([t,a,al])=>surfaces.push({id:nid++,type:t,area:a,alpha:al}));
+renderSurfaces();calc();
+</script></body></html>

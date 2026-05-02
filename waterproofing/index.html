@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Waterproofing Selector — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+select,input{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.system{background:#0a1a0a;border:1px solid #16a34a33;border-radius:10px;padding:16px;margin-bottom:12px}
+.sys-title{font-weight:700;color:#16a34a;font-size:.95rem;margin-bottom:8px}
+.sys-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600;margin-bottom:8px}
+.primary{background:#0a2a0a;color:#16a34a}.alt{background:#0a1a2a;color:#3b82f6}
+.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:.82rem}
+.row span:first-child{color:#aaa}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.pro,.con{padding:8px;border-radius:6px;font-size:.78rem}
+.pro{background:#0a1a0a;color:#86efac}.con{background:#1a0a0a;color:#fca5a5}
+.pro-title,.con-title{font-weight:600;margin-bottom:4px}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.pros-cons{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Waterproofing System Selector</h1>
+<p class="sub">Select the right waterproofing system by application, substrate, and exposure conditions</p>
+<div class="card">
+<div class="grid2">
+<div><label>Application</label>
+<select id="app" onchange="recommend()">
+<option value="below-slab">Below-Slab (pre-applied)</option>
+<option value="foundation-wall">Foundation / Retaining Wall</option>
+<option value="plaza-deck">Plaza Deck / Podium</option>
+<option value="flat-roof">Flat Roof / Low Slope</option>
+<option value="wet-area">Wet Area (bathroom, kitchen)</option>
+<option value="green-roof">Green Roof</option>
+<option value="tunnel">Tunnel / Underground</option>
+<option value="water-feature">Water Feature / Pool</option>
+</select></div>
+<div><label>Substrate</label>
+<select id="sub" onchange="recommend()">
+<option value="concrete">Concrete</option><option value="masonry">Masonry / CMU</option>
+<option value="wood">Wood / Plywood</option><option value="metal">Metal Deck</option><option value="gypsum">Gypsum Board</option>
+</select></div>
+<div><label>Exposure</label>
+<select id="exp" onchange="recommend()">
+<option value="buried">Buried / No UV exposure</option>
+<option value="covered">Covered / Protected</option>
+<option value="exposed">Exposed to UV and weather</option>
+<option value="immersion">Constant water immersion</option>
+</select></div>
+<div><label>Traffic</label>
+<select id="traffic" onchange="recommend()">
+<option value="none">None</option><option value="foot">Foot traffic</option>
+<option value="vehicle">Vehicular traffic</option><option value="heavy">Heavy loads</option>
+</select></div>
+<div><label>Area to Waterproof (m²)</label><input id="area" type="number" value="200" step="10" oninput="recommend()"></div>
+<div><label>Budget Level</label>
+<select id="budget" onchange="recommend()">
+<option value="economy">Economy</option><option value="standard" selected>Standard</option><option value="premium">Premium</option>
+</select></div>
+</div>
+</div>
+<div id="results"></div>
+<script>
+const SYSTEMS={
+  'below-slab':{
+    primary:{name:'HDPE Sheet Membrane (pre-applied)',spec:'ASTM D7406 Type 1',thickness:'1.0–1.5 mm',cost:'25–45',pros:['Self-adhering to concrete','Excellent chemical resistance','No tie-ins required'],cons:['Requires careful seaming','Puncture risk during pour']},
+    alt:{name:'Bentonite Clay Panel',spec:'ASTM D5890',thickness:'6–9 mm panel',cost:'20–35',pros:['Self-healing','No adhesive required','Fast install'],cons:['Cannot be used with saline groundwater','Needs overburden']}
+  },
+  'foundation-wall':{
+    primary:{name:'Fluid-Applied Polyurethane',spec:'ASTM C898',thickness:'60 mils DFT',cost:'30–55',pros:['Seamless','Bridges cracks','Excellent adhesion'],cons:['Cure time sensitive','Surface prep critical']},
+    alt:{name:'Sheet Membrane (SBS Modified Bitumen)',spec:'ASTM D6164',thickness:'3–4 mm',cost:'20–40',pros:['Cost-effective','Good elongation'],cons:['Seams are weak points','UV exposure limited']}
+  },
+  'flat-roof':{
+    primary:{name:'TPO Single-Ply Membrane',spec:'ASTM D6878',thickness:'60–80 mil',cost:'35–65',pros:['Heat-weldable seams','UV resistant','Energy Star reflective'],cons:['Membrane puncture risk','Expansion/contraction']},
+    alt:{name:'Modified Bitumen (APP/SBS)',spec:'ASTM D6163/D6164',thickness:'4–6 mm',cost:'25–50',pros:['Proven long track record','Good in cold climates'],cons:['Dark surface — heat island','More labor intensive']}
+  },
+  'plaza-deck':{
+    primary:{name:'Hot Fluid-Applied Rubberized Asphalt',spec:'ASTM D1227',thickness:'90 mils',cost:'50–85',pros:['Seamless','Crack-bridging','High performance'],cons:['Requires protection board','High install temperature']},
+    alt:{name:'EPDM Sheet with Protection Layers',spec:'ASTM D4637',thickness:'60 mil + board',cost:'40–70',pros:['Long lifespan (50+ yr)','Chemically inert'],cons:['Adhesive seams critical','Requires drainage design']}
+  },
+  'wet-area':{
+    primary:{name:'Cementitious Slurry (Type I)',spec:'ANSI A118.10',thickness:'1–2 mm (2 coats)',cost:'8–15',pros:['Easy application','Compatible with tile','Vapor open'],cons:['Limited crack bridging','Not for immersion']},
+    alt:{name:'Polyurethane Liquid Membrane',spec:'ASTM C836',thickness:'30–60 mils',cost:'15–28',pros:['Flexible','Crack bridging','Immersion rated'],cons:['Longer cure time','More expensive']}
+  },
+  'green-roof':{
+    primary:{name:'Root-Resistant TPO/EPDM',spec:'FLL / EN 13948',thickness:'80 mil + root barrier',cost:'55–90',pros:['Root-resistant certified','Long lifespan','Recyclable'],cons:['Higher cost','Requires drainage layer']},
+    alt:{name:'Fluid-Applied + Root Barrier Sheet',spec:'ASTM D6878 + EN 13948',thickness:'60 mil + 0.5 mm HDPE',cost:'45–75',pros:['Seamless base','Custom shapes'],cons:['Two-layer system','Labor intensive']}
+  },
+  'tunnel':{
+    primary:{name:'HDPE Geomembrane (composite)',spec:'ASTM GM13',thickness:'1.5–2.0 mm',cost:'40–70',pros:['High chemical resistance','Factory-tested seams','Long service life'],cons:['Requires drainage mat','Complex detailing at penetrations']},
+    alt:{name:'Crystalline Waterproofing (integral)',spec:'ASTM C1585',thickness:'Integral to concrete',cost:'5–12 per m²',pros:['Self-sealing','Permanent','No membrane to puncture'],cons:['Only for concrete','Not standalone system']}
+  },
+  'water-feature':{
+    primary:{name:'Crystalline + Epoxy Topcoat',spec:'ASTM C1202',thickness:'2 mm crystalline + 0.5 epoxy',cost:'45–80',pros:['Chemical resistance','Hygienic surface','Long life'],cons:['Surface prep critical','Rigid — crack risk']},
+    alt:{name:'Polyurea Spray Coating',spec:'ASTM D4541',thickness:'40–60 mils',cost:'35–65',pros:['Fast cure (minutes)','Flexible','Seamless'],cons:['Requires specialized equipment','UV topcoat needed']}
+  }
+};
+function recommend(){
+  const app=document.getElementById('app').value;
+  const area=+document.getElementById('area').value||200;
+  const budget=document.getElementById('budget').value;
+  const data=SYSTEMS[app];if(!data)return;
+  const sys=budget==='economy'?data.alt:budget==='premium'?data.primary:data.primary;
+  const alt=budget==='economy'?data.primary:data.alt;
+  const [lo,hi]=sys.cost.split('–').map(Number);
+  const costLo=Math.round(lo*area),costHi=Math.round(hi*area);
+  const el=document.getElementById('results');
+  el.innerHTML=buildCard(sys,'Primary Recommendation',area)+buildCard(alt,'Alternative System',area);
+}
+function buildCard(sys,label,area){
+  const [lo,hi]=(sys.cost||'0–0').split('–').map(Number);
+  return`<div class="system">
+  <div class="sys-badge ${label.includes('Primary')?'primary':'alt'}">${label}</div>
+  <div class="sys-title">${sys.name}</div>
+  <div class="row"><span>Standard</span><span>${sys.spec}</span></div>
+  <div class="row"><span>Thickness</span><span>${sys.thickness}</span></div>
+  <div class="row"><span>Installed cost</span><span>$${lo}–${hi}/m² → ~$${(lo*area).toLocaleString()}–${(hi*area).toLocaleString()} total</span></div>
+  <div class="pros-cons">
+  <div class="pro"><div class="pro-title">Pros</div>${sys.pros.map(p=>`· ${p}`).join('<br>')}</div>
+  <div class="con"><div class="con-title">Cons</div>${sys.cons.map(c=>`· ${c}`).join('<br>')}</div>
+  </div></div>`;
+}
+recommend();
+</script></body></html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Construction Cost Estimator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+h3{color:#16a34a;font-size:.85rem;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+.item-row{display:grid;grid-template-columns:1fr 80px 90px 90px 30px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #222;font-size:.85rem}
+.item-row.header{color:#aaa;font-size:.75rem;font-weight:600;border-bottom:1px solid #444}
+.del{cursor:pointer;color:#ef4444;font-size:1rem;text-align:center}
+.total-bar{background:#0a2a0a;border:1px solid #16a34a;border-radius:8px;padding:16px;margin-top:12px}
+.kpi{display:flex;gap:12px;flex-wrap:wrap}
+.kpi-box{flex:1;min-width:120px;background:#1a2a1a;border-radius:6px;padding:12px;text-align:center}
+.kpi-box .v{font-size:1.2rem;font-weight:700;color:#16a34a}.kpi-box .l{font-size:.7rem;color:#aaa;margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.item-row{grid-template-columns:1fr 60px 70px 70px 24px}.kpi{flex-direction:column}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Construction Cost Estimator</h1>
+<p class="sub">Build a line-item cost estimate by CSI division — adds contingency, overhead & profit</p>
+
+<div class="card">
+<div class="grid2">
+<div><label>Project Name</label><input id="proj" placeholder="Tower A — Level 3 Fit-Out"></div>
+<div><label>Total Area (sqft)</label><input id="area" type="number" value="10000" step="100"></div>
+<div><label>Contingency (%)</label><input id="cont" type="number" value="10" step="1"></div>
+<div><label>Overhead & Profit (%)</label><input id="oh" type="number" value="15" step="1"></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Add Line Item</h3>
+<div class="grid2">
+<div><label>Description</label><input id="iDesc" placeholder="Concrete slab on grade"></div>
+<div><label>CSI Division</label>
+<select id="iDiv"><option>03 — Concrete</option><option>04 — Masonry</option><option>05 — Metals</option><option>06 — Wood & Plastics</option><option>07 — Thermal & Moisture</option><option>08 — Openings</option><option>09 — Finishes</option><option>10 — Specialties</option><option>11 — Equipment</option><option>21 — Fire Suppression</option><option>22 — Plumbing</option><option>23 — HVAC</option><option>26 — Electrical</option><option>31 — Earthwork</option><option>32 — Exterior Improvements</option></select></div>
+<div><label>Quantity</label><input id="iQty" type="number" value="1" step="1"></div>
+<div><label>Unit</label>
+<select id="iUnit"><option>sqft</option><option>sqm</option><option>LF</option><option>CY</option><option>EA</option><option>LS</option><option>ton</option><option>hr</option></select></div>
+<div><label>Unit Cost ($)</label><input id="iCost" type="number" value="0" step="1"></div>
+</div>
+<button onclick="addItem()">+ Add Item</button>
+</div>
+
+<div class="card">
+<h3>Estimate</h3>
+<div class="item-row header"><span>Description</span><span>Qty</span><span>Unit Cost</span><span>Total</span><span></span></div>
+<div id="itemList"></div>
+<div class="total-bar" id="totals">
+<div class="kpi"><div class="kpi-box"><div class="v" id="kBase">$0</div><div class="l">Base Cost</div></div>
+<div class="kpi-box"><div class="v" id="kCont">$0</div><div class="l">Contingency</div></div>
+<div class="kpi-box"><div class="v" id="kOH">$0</div><div class="l">O&P</div></div>
+<div class="kpi-box"><div class="v" id="kTotal">$0</div><div class="l">Total Estimate</div></div>
+<div class="kpi-box"><div class="v" id="kPSF">$0</div><div class="l">Cost / sqft</div></div></div>
+</div>
+<div style="margin-top:12px"><button class="sec" onclick="exp()">Export CSV</button></div>
+</div>
+
+<script>
+let items=[];let nid=1;
+function fmt(n){return'$'+Math.round(n).toLocaleString()}
+function addItem(){
+  const desc=document.getElementById('iDesc').value||'Item',div=document.getElementById('iDiv').value;
+  const qty=+document.getElementById('iQty').value,unit=document.getElementById('iUnit').value;
+  const cost=+document.getElementById('iCost').value;
+  items.push({id:nid++,desc,div,qty,unit,cost});
+  render();document.getElementById('iDesc').value='';document.getElementById('iQty').value='1';document.getElementById('iCost').value='0';
+}
+function del(id){items=items.filter(x=>x.id!==id);render()}
+function render(){
+  const el=document.getElementById('itemList');el.innerHTML='';
+  items.forEach(r=>{
+    const t=r.qty*r.cost;
+    el.innerHTML+=`<div class="item-row"><span>${r.desc}<br><small style="color:#555">${r.div}</small></span>
+    <span>${r.qty} ${r.unit}</span><span>${fmt(r.cost)}</span><span>${fmt(t)}</span>
+    <span class="del" onclick="del(${r.id})">×</span></div>`;
+  });
+  const base=items.reduce((a,b)=>a+b.qty*b.cost,0);
+  const contPct=+document.getElementById('cont').value/100;
+  const ohPct=+document.getElementById('oh').value/100;
+  const cont=base*contPct;const oh=(base+cont)*ohPct;const total=base+cont+oh;
+  const area=+document.getElementById('area').value||1;
+  document.getElementById('kBase').textContent=fmt(base);
+  document.getElementById('kCont').textContent=fmt(cont);
+  document.getElementById('kOH').textContent=fmt(oh);
+  document.getElementById('kTotal').textContent=fmt(total);
+  document.getElementById('kPSF').textContent=fmt(total/area);
+}
+function exp(){
+  const base=items.reduce((a,b)=>a+b.qty*b.cost,0);
+  const contPct=+document.getElementById('cont').value/100;
+  const ohPct=+document.getElementById('oh').value/100;
+  const cont=base*contPct;const oh=(base+cont)*ohPct;const total=base+cont+oh;
+  let c=`Construction Cost Estimate — ${document.getElementById('proj').value||'Project'}\n\nDescription,Division,Qty,Unit,Unit Cost,Total\n`;
+  items.forEach(r=>c+=`"${r.desc}","${r.div}",${r.qty},${r.unit},${r.cost},${r.qty*r.cost}\n`);
+  c+=`\n,,,,Base Cost,${base}\n,,,,Contingency (${document.getElementById('cont').value}%),${cont}\n,,,,Overhead & Profit (${document.getElementById('oh').value}%),${oh}\n,,,,TOTAL,${total}\n`;
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(c);a.download='cost_estimate.csv';a.click();
+}
+render();
+</script></body></html>

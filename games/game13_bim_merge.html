@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIM Merge</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #0a0f1e; color: #fff; min-height: 100vh; user-select: none; }
+.header { background: #0d1530; border-bottom: 2px solid #00d4ff; padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 22px; font-weight: 900; color: #00d4ff; }
+.badge { background: #00d4ff; color: #0a0f1e; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 700; }
+.game-area { display: flex; gap: 24px; padding: 20px; justify-content: center; flex-wrap: wrap; }
+.board-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.board { display: grid; grid-template-columns: repeat(4,90px); grid-template-rows: repeat(4,90px); gap: 8px; background: #0d1530; border-radius: 12px; padding: 12px; border: 2px solid #1a2a4e; }
+.cell { width: 90px; height: 90px; border-radius: 8px; background: #1a2a4e; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .1s; border: 2px solid transparent; }
+.cell:hover { border-color: #00d4ff; }
+.cell.occupied { cursor: default; }
+.cell.occupied:hover { border-color: transparent; }
+.info-panel { width: 220px; display: flex; flex-direction: column; gap: 12px; }
+.panel { background: #0d1530; border: 1px solid #1a2a4e; border-radius: 10px; padding: 14px; }
+.panel h3 { font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+.stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+.stat-val { font-weight: 700; color: #00d4ff; }
+.next-cell { width: 70px; height: 70px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin: 0 auto; }
+.lb-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #1a2a4e; color: #ccc; }
+.lb-row:last-child { border-bottom: none; }
+.btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: none; width: 100%; }
+.btn-primary { background: #00d4ff; color: #0a0f1e; }
+.btn-primary:hover { background: #00b8d4; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.overlay.hidden { display: none; }
+.modal { background: #0d1530; border: 2px solid #00d4ff; border-radius: 16px; padding: 32px; max-width: 420px; width: 90%; text-align: center; }
+.modal h2 { font-size: 26px; font-weight: 900; color: #00d4ff; margin-bottom: 8px; }
+.modal p { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 16px; }
+.merge-flash { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 32px; font-weight: 900; color: #4fffb0; pointer-events: none; opacity: 0; transition: opacity .3s; z-index: 200; }
+.merge-flash.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>BIM MERGE</h1><span class="badge">LOD 500</span>
+  <span style="font-size:12px;color:#aaa;margin-left:8px;">Merge building systems. Reach the Master Model.</span>
+  <div style="margin-left:auto;display:flex;gap:20px;">
+    <div><div style="font-size:22px;font-weight:700;color:#4fffb0;" id="score">0</div><div style="font-size:10px;color:#aaa;text-transform:uppercase;">Score</div></div>
+    <div><div style="font-size:22px;font-weight:700;color:#f72585;" id="best-score">0</div><div style="font-size:10px;color:#aaa;text-transform:uppercase;">Best</div></div>
+  </div>
+</div>
+<div class="game-area">
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+    <div style="font-size:13px;color:#aaa;">Arrow keys or swipe to merge</div>
+    <button class="btn btn-primary" style="width:180px;" onclick="newGame()">New Game</button>
+  </div>
+  <div class="info-panel">
+    <div class="panel">
+      <h3>Next Piece</h3>
+      <div class="next-cell" id="next-piece"></div>
+    </div>
+    <div class="panel">
+      <h3>BIM Levels</h3>
+      <div style="font-size:11px;color:#aaa;line-height:2;">
+        📐 LOD 100 — Concept<br>
+        📋 LOD 200 — Schematic<br>
+        🔧 LOD 300 — Design Dev<br>
+        ⚙️ LOD 350 — Coord Set<br>
+        🏗️ LOD 400 — Construction<br>
+        🏛️ LOD 500 — As-Built<br>
+        🧠 BIM GOD — Legend
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Leaderboard</h3>
+      <div id="lb"></div>
+    </div>
+  </div>
+</div>
+<div class="merge-flash" id="merge-flash">MERGE!</div>
+
+<div class="overlay hidden" id="end-overlay">
+  <div class="modal">
+    <div id="end-icon" style="font-size:48px;margin-bottom:8px;">🏗️</div>
+    <h2 id="end-title">GAME OVER</h2>
+    <p id="end-desc"></p>
+    <div id="end-lb" style="text-align:left;margin:16px 0;"></div>
+    <button class="btn btn-primary" onclick="newGame()">New Model</button>
+  </div>
+</div>
+
+<script>
+const LEVELS = [
+  { val:2, label:'LOD 100', icon:'📐', color:'#60a5fa', bg:'#1e3a5f' },
+  { val:4, label:'LOD 200', icon:'📋', color:'#818cf8', bg:'#2e1a5f' },
+  { val:8, label:'LOD 300', icon:'🔧', color:'#a78bfa', bg:'#3a1a5f' },
+  { val:16, label:'LOD 350', icon:'⚙️', color:'#f472b6', bg:'#5f1a4a' },
+  { val:32, label:'LOD 400', icon:'🏗️', color:'#fb923c', bg:'#5f2a0a' },
+  { val:64, label:'LOD 500', icon:'🏛️', color:'#facc15', bg:'#5f4a0a' },
+  { val:128, label:'BIM GOD', icon:'🧠', color:'#4fffb0', bg:'#0a4a2a' },
+  { val:256, label:'OMNIBIM', icon:'🌐', color:'#fff', bg:'#2a2a2a' },
+];
+
+function getLvl(v) { return LEVELS.find(l=>l.val===v) || { val:v, label:`v${v}`, icon:'?', color:'#fff', bg:'#333' }; }
+
+let grid, score, bestScore=0, gameCount=0, leaderboard=[], nextVal;
+
+// Easter egg: Konami code → flood fill with LOD 100
+let konami = [], konamiSeq = [38,40,38,40,37,39,37,39];
+document.addEventListener('keydown', e => {
+  konami.push(e.keyCode);
+  konami = konami.slice(-8);
+  if (JSON.stringify(konami)===JSON.stringify(konamiSeq)) {
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++) if(!grid[r][c]) grid[r][c]=2;
+    drawBoard();
+    flash('🎮 KONAMI! Free LOD 100 everywhere!');
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+    if(e.key==='ArrowUp') move('up');
+    if(e.key==='ArrowDown') move('down');
+    if(e.key==='ArrowLeft') move('left');
+    if(e.key==='ArrowRight') move('right');
+  }
+});
+
+let touchStart = null;
+document.getElementById('board').addEventListener('touchstart', e => { touchStart = e.touches[0]; });
+document.getElementById('board').addEventListener('touchend', e => {
+  if (!touchStart) return;
+  const dx = e.changedTouches[0].clientX - touchStart.clientX;
+  const dy = e.changedTouches[0].clientY - touchStart.clientY;
+  if (Math.abs(dx) > Math.abs(dy)) { dx > 0 ? move('right') : move('left'); }
+  else { dy > 0 ? move('down') : move('up'); }
+  touchStart = null;
+});
+
+function newGame() {
+  grid = Array.from({length:4}, () => Array(4).fill(0));
+  score = 0;
+  nextVal = Math.random() < 0.8 ? 2 : 4;
+  addRandom(); addRandom();
+  document.getElementById('end-overlay').classList.add('hidden');
+  document.getElementById('score').textContent = 0;
+  updateNextPiece();
+  drawBoard();
+  renderLB();
+}
+
+function addRandom() {
+  const empty = [];
+  for(let r=0;r<4;r++) for(let c=0;c<4;c++) if(!grid[r][c]) empty.push([r,c]);
+  if (!empty.length) return false;
+  const [r,c] = empty[Math.floor(Math.random()*empty.length)];
+  grid[r][c] = nextVal;
+  nextVal = Math.random() < 0.8 ? 2 : 4;
+  updateNextPiece();
+  return true;
+}
+
+function updateNextPiece() {
+  const l = getLvl(nextVal);
+  const el = document.getElementById('next-piece');
+  el.style.background = l.bg;
+  el.style.color = l.color;
+  el.innerHTML = `<div style="font-size:20px">${l.icon}</div><div>${l.label}</div>`;
+}
+
+function move(dir) {
+  const prev = JSON.stringify(grid);
+  const merged = Array.from({length:4}, () => Array(4).fill(false));
+  let gained = 0;
+  const orders = { up:[[0,1,2,3],[0,1,2,3]], down:[[3,2,1,0],[0,1,2,3]], left:[[0,1,2,3],[0,1,2,3]], right:[[0,1,2,3],[3,2,1,0]] };
+
+  if (dir === 'left' || dir === 'right') {
+    for (let r=0; r<4; r++) {
+      const row = dir==='left' ? [0,1,2,3] : [3,2,1,0];
+      for (let ci=0; ci<4; ci++) {
+        const c = row[ci];
+        if (!grid[r][c]) continue;
+        let tc = c;
+        while (true) {
+          const nc = dir==='left' ? tc-1 : tc+1;
+          if (nc<0||nc>3) break;
+          if (!grid[r][nc]) { grid[r][nc]=grid[r][tc]; grid[r][tc]=0; tc=nc; }
+          else if (grid[r][nc]===grid[r][tc] && !merged[r][nc]) { gained+=grid[r][nc]*2; grid[r][nc]*=2; grid[r][tc]=0; merged[r][nc]=true; score+=gained; gained=0; break; }
+          else break;
+        }
+      }
+    }
+  } else {
+    for (let c=0; c<4; c++) {
+      const col = dir==='up' ? [0,1,2,3] : [3,2,1,0];
+      for (let ri=0; ri<4; ri++) {
+        const r = col[ri];
+        if (!grid[r][c]) continue;
+        let tr = r;
+        while (true) {
+          const nr = dir==='up' ? tr-1 : tr+1;
+          if (nr<0||nr>3) break;
+          if (!grid[nr][c]) { grid[nr][c]=grid[tr][c]; grid[tr][c]=0; tr=nr; }
+          else if (grid[nr][c]===grid[tr][c] && !merged[nr][c]) { gained+=grid[nr][c]*2; grid[nr][c]*=2; grid[tr][c]=0; merged[nr][c]=true; score+=gained; gained=0; break; }
+          else break;
+        }
+      }
+    }
+  }
+  if (JSON.stringify(grid)!==prev) {
+    addRandom();
+    document.getElementById('score').textContent = score;
+    if (score > bestScore) { bestScore=score; document.getElementById('best-score').textContent=bestScore; }
+    if (grid.some(r=>r.some(c=>c>=128))) flash('🧠 BIM GOD UNLOCKED!');
+    drawBoard();
+    if (!canMove()) endGame();
+  }
+}
+
+function canMove() {
+  for(let r=0;r<4;r++) for(let c=0;c<4;c++) {
+    if(!grid[r][c]) return true;
+    if(r<3&&grid[r][c]===grid[r+1][c]) return true;
+    if(c<3&&grid[r][c]===grid[r][c+1]) return true;
+  }
+  return false;
+}
+
+function drawBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  for(let r=0;r<4;r++) for(let c=0;c<4;c++) {
+    const v = grid[r][c];
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (v?' occupied':'');
+    if (v) {
+      const l = getLvl(v);
+      cell.style.background = l.bg;
+      cell.style.color = l.color;
+      cell.style.borderColor = l.color+'55';
+      cell.innerHTML = `<div style="font-size:22px">${l.icon}</div><div style="font-size:10px;margin-top:2px">${l.label}</div>`;
+    }
+    board.appendChild(cell);
+  }
+}
+
+function flash(msg) {
+  const el = document.getElementById('merge-flash');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+function renderLB(container='lb') {
+  const el = document.getElementById(container);
+  if (!leaderboard.length) { el.innerHTML='<div style="font-size:12px;color:#555;">Play a game first.</div>'; return; }
+  el.innerHTML = '';
+  leaderboard.slice(0,5).forEach((e,i) => {
+    const row = document.createElement('div'); row.className='lb-row';
+    row.innerHTML=`<span>#${i+1}</span><span>${e.score}</span>`;
+    el.appendChild(row);
+  });
+}
+
+function endGame() {
+  gameCount++;
+  leaderboard.push({ run:gameCount, score });
+  leaderboard.sort((a,b)=>b.score-a.score);
+  const maxTile = Math.max(...grid.flat());
+  const l = getLvl(maxTile);
+  document.getElementById('end-icon').textContent = l.icon;
+  document.getElementById('end-title').textContent = maxTile >= 128 ? 'BIM GOD' : maxTile >= 32 ? 'LOD MASTER' : 'CLASH DETECTED';
+  document.getElementById('end-desc').textContent = `Score: ${score} | Highest: ${l.label} | Run #${gameCount}. ${maxTile>=128?'You reached BIM GOD. The model is complete. The clash reports are spotless.':maxTile>=32?'Almost there. One more merge and the model lives.':'Merge conflicts. The MEP and structural models refused to cooperate.'}`;
+  renderLB('end-lb');
+  document.getElementById('end-overlay').classList.remove('hidden');
+}
+
+newGame();
+</script>
+</body>
+</html>

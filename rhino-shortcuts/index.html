@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhino 3D Shortcuts — XLMX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:2rem}
+.back{display:inline-block;color:#16a34a;text-decoration:none;font-size:.85rem;margin-bottom:2rem}
+.back:hover{text-decoration:underline}
+h1{font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
+.sub{color:#888;margin-bottom:1.5rem;font-size:.95rem}
+.controls{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+input[type=text]{flex:1;min-width:200px;background:#1a1a1a;border:1px solid #333;color:#fff;padding:.55rem .9rem;border-radius:6px;font-size:.9rem;font-family:inherit}
+input[type=text]:focus{outline:none;border-color:#16a34a}
+.filter-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.35rem .85rem;border-radius:5px;font-size:.78rem;cursor:pointer}
+.tab.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.count{color:#888;font-size:.82rem;margin-bottom:1rem}
+.shortcut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem}
+.item{background:#1a1a1a;border:1px solid #333;border-radius:7px;padding:.9rem;display:flex;gap:.75rem;align-items:flex-start}
+.item:hover{border-color:#444}
+.keys{display:flex;gap:.3rem;flex-wrap:wrap;min-width:90px}
+.key{background:#222;border:1px solid #555;border-radius:4px;padding:.15rem .45rem;font-size:.72rem;font-weight:600;color:#ddd;white-space:nowrap}
+.key.special{background:#16a34a22;border-color:#16a34a66;color:#16a34a}
+.desc{flex:1}
+.desc .name{font-size:.85rem;font-weight:500;margin-bottom:.15rem}
+.desc .note{font-size:.75rem;color:#888}
+.cat-label{display:inline-block;background:#16a34a22;color:#16a34a;padding:.1rem .4rem;border-radius:3px;font-size:.68rem;margin-top:.2rem}
+</style>
+</head>
+<body>
+<a class="back" href="/">← XLMX</a>
+<h1>Rhino 3D Shortcuts</h1>
+<p class="sub">Keyboard shortcut cheat sheet for Rhino 7/8. Search or filter by category.</p>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="Search shortcuts or commands..." oninput="render()">
+</div>
+
+<div class="filter-tabs" id="tabs"></div>
+<div class="count" id="count"></div>
+<div class="shortcut-grid" id="grid"></div>
+
+<script>
+const shortcuts = [
+  // View
+  {keys:['F1'],name:'Help',note:'Open Rhino help',cat:'View'},
+  {keys:['F2'],name:'Command history',note:'Show command history panel',cat:'View'},
+  {keys:['F3'],name:'Object properties',note:'Open properties panel',cat:'View'},
+  {keys:['F4'],name:'Script editor',note:'Open RhinoScript editor',cat:'View'},
+  {keys:['F6'],name:'Camera',note:'Toggle camera viewport',cat:'View'},
+  {keys:['F7'],name:'Grid toggle',note:'Show/hide construction plane grid',cat:'View'},
+  {keys:['F8'],name:'Ortho toggle',note:'Constrain cursor to orthogonal directions',cat:'View'},
+  {keys:['F9'],name:'Snap toggle',note:'Toggle grid snap on/off',cat:'View'},
+  {keys:['F10'],name:'Control points on',note:'Show control points for selected objects',cat:'View'},
+  {keys:['F11'],name:'Control points off',note:'Hide control points',cat:'View'},
+  {keys:['Ctrl','Tab'],name:'Cycle viewports',note:'Switch between active viewports',cat:'View'},
+  {keys:['Num 5'],name:'Toggle projection',note:'Switch perspective/parallel',cat:'View'},
+  {keys:['Num 0'],name:'Named view',note:'Set named camera view',cat:'View'},
+
+  // Navigation
+  {keys:['RMB','drag'],name:'Rotate view',note:'Orbit around target point',cat:'Navigation'},
+  {keys:['Shift','RMB','drag'],name:'Pan view',note:'Pan the viewport',cat:'Navigation'},
+  {keys:['Ctrl','RMB','drag'],name:'Zoom',note:'Zoom in/out in viewport',cat:'Navigation'},
+  {keys:['Z','E'],name:'Zoom extents',note:'Fit all objects in view',cat:'Navigation'},
+  {keys:['Z','S'],name:'Zoom selected',note:'Zoom to selected objects',cat:'Navigation'},
+  {keys:['Z','A'],name:'Zoom all extents',note:'All viewports zoom to extents',cat:'Navigation'},
+  {keys:['\\'],name:'Zoom window',note:'Draw box to zoom region',cat:'Navigation'},
+  {keys:['Home'],name:'Undo view',note:'Step back through view changes',cat:'Navigation'},
+
+  // Select
+  {keys:['Ctrl','A'],name:'Select all',note:'Select all objects in document',cat:'Select'},
+  {keys:['Esc'],name:'Deselect all',note:'Clear selection',cat:'Select'},
+  {keys:['Ctrl','Shift','A'],name:'Invert selection',note:'Select all unselected objects',cat:'Select'},
+  {keys:['Tab'],name:'Select next',note:'Cycle through overlapping objects',cat:'Select'},
+  {keys:['Ctrl','click'],name:'Add to selection',note:'Add individual objects to selection',cat:'Select'},
+  {keys:['Shift','click'],name:'Window select',note:'Select objects in a window',cat:'Select'},
+
+  // Transform
+  {keys:['Ctrl','Z'],name:'Undo',note:'Undo last action',cat:'Transform'},
+  {keys:['Ctrl','Y'],name:'Redo',note:'Redo undone action',cat:'Transform'},
+  {keys:['Ctrl','C'],name:'Copy',note:'Copy to clipboard',cat:'Transform'},
+  {keys:['Ctrl','V'],name:'Paste',note:'Paste from clipboard',cat:'Transform'},
+  {keys:['Ctrl','X'],name:'Cut',note:'Cut to clipboard',cat:'Transform'},
+  {keys:['Del'],name:'Delete',note:'Delete selected objects',cat:'Transform'},
+  {keys:['Ctrl','D'],name:'Duplicate',note:'Duplicate in place',cat:'Transform'},
+  {keys:['Ctrl','G'],name:'Group',note:'Group selected objects',cat:'Transform'},
+  {keys:['Ctrl','Shift','G'],name:'Ungroup',note:'Ungroup selected group',cat:'Transform'},
+  {keys:['Alt','drag'],name:'Copy drag',note:'Drag-copy selected objects',cat:'Transform'},
+  {keys:['G'],name:'Gumball toggle',note:'Show/hide gumball transform widget',cat:'Transform'},
+
+  // Modeling
+  {keys:['E'],name:'Extrude',note:'ExtrudeCrv command',cat:'Modeling'},
+  {keys:['L'],name:'Line',note:'Draw a line',cat:'Modeling'},
+  {keys:['P'],name:'Polyline',note:'Draw polyline',cat:'Modeling'},
+  {keys:['I'],name:'Intersect',note:'Find curve/surface intersections',cat:'Modeling'},
+  {keys:['T'],name:'Trim',note:'Trim curves/surfaces',cat:'Modeling'},
+  {keys:['S'],name:'Split',note:'Split curve or surface',cat:'Modeling'},
+  {keys:['J'],name:'Join',note:'Join open curves/edges into one',cat:'Modeling'},
+  {keys:['X'],name:'Explode',note:'Explode polysurface to faces',cat:'Modeling'},
+  {keys:['B'],name:'BooleanUnion',note:'Boolean union of solids',cat:'Modeling'},
+  {keys:['M'],name:'Move',note:'Move command',cat:'Modeling'},
+  {keys:['R'],name:'Rotate',note:'Rotate around axis',cat:'Modeling'},
+  {keys:['C'],name:'Circle',note:'Draw circle',cat:'Modeling'},
+
+  // Layers & Display
+  {keys:['Ctrl','L'],name:'Layer panel',note:'Toggle Layers panel',cat:'Layers'},
+  {keys:['Ctrl','Shift','L'],name:'Change layer',note:'Move selection to layer',cat:'Layers'},
+  {keys:['Alt','L'],name:'Lock layer',note:'Lock/unlock current layer',cat:'Layers'},
+  {keys:['Ctrl','H'],name:'Hide',note:'Hide selected objects',cat:'Layers'},
+  {keys:['Ctrl','Shift','H'],name:'Show',note:'Show all hidden objects',cat:'Layers'},
+  {keys:['Ctrl','Shift','S'],name:'Save small',name2:'Save Small',note:'Save without preview thumbnail',cat:'File'},
+
+  // File
+  {keys:['Ctrl','S'],name:'Save',note:'Save current file',cat:'File'},
+  {keys:['Ctrl','Shift','S'],name:'Save As',note:'Save with new name/location',cat:'File'},
+  {keys:['Ctrl','O'],name:'Open',note:'Open file',cat:'File'},
+  {keys:['Ctrl','N'],name:'New',note:'New Rhino document',cat:'File'},
+  {keys:['Ctrl','P'],name:'Print',note:'Print/export viewport',cat:'File'},
+  {keys:['Ctrl','Z'],name:'Undo',note:'Undo last operation',cat:'File'},
+];
+
+const cats = ['All', ...new Set(shortcuts.map(s=>s.cat))];
+let activeCat = 'All';
+
+function buildTabs(){
+  document.getElementById('tabs').innerHTML = cats.map(c=>`<div class="tab${c===activeCat?' active':''}" onclick="setCat('${c}')">${c}</div>`).join('');
+}
+
+function setCat(c){ activeCat=c; buildTabs(); render(); }
+
+function render(){
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = shortcuts.filter(s=>{
+    const inCat = activeCat==='All'||s.cat===activeCat;
+    const inQ = !q||s.name.toLowerCase().includes(q)||s.note.toLowerCase().includes(q)||s.keys.join(' ').toLowerCase().includes(q)||s.cat.toLowerCase().includes(q);
+    return inCat && inQ;
+  });
+  document.getElementById('count').textContent = `${filtered.length} shortcuts`;
+  document.getElementById('grid').innerHTML = filtered.map(s=>`
+    <div class="item">
+      <div class="keys">${s.keys.map(k=>`<span class="key${['Ctrl','Shift','Alt','Esc','Del'].includes(k)?' special':''}">${k}</span>`).join('')}</div>
+      <div class="desc">
+        <div class="name">${s.name}</div>
+        <div class="note">${s.note}</div>
+        <div><span class="cat-label">${s.cat}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+buildTabs(); render();
+</script>
+</body>
+</html>

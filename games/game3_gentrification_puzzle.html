@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Gentrification Puzzle</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 16px 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: #2d6a4f; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px; }
+  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: #6c757d; margin-top: 2px; }
+  .bar-wrap { height: 5px; background: #e9ecef; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .main-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 13px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .grid-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .cell { border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .cell:hover { border-color: #2d6a4f; transform: scale(1.05); }
+  .cell.selected { border-color: #2d6a4f; box-shadow: 0 0 0 3px rgba(45,106,79,0.2); }
+  .cell-icon { font-size: 20px; }
+  .cell-label { font-size: 9px; font-weight: 600; color: #555; margin-top: 2px; }
+  .cell-val { font-size: 9px; color: #888; }
+  .type-affordable { background: #d4edda; } .type-store { background: #fff3cd; }
+  .type-community { background: #cce5ff; } .type-vacant { background: #f1f3f4; }
+  .type-industrial { background: #f8d7da; } .type-luxury { background: #e8f4f8; }
+  .type-hotel { background: #ffeaa7; } .type-cowork { background: #dfe6e9; }
+  .type-mixed { background: #a8e063; } .type-park { background: #b8f9b8; }
+  .redeveloped { border: 2px solid #2d6a4f !important; }
+  .btn { padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #2d6a4f; color: #fff; width: 100%; }
+  .btn-primary:hover { background: #1b4332; } .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .option-card { border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .option-card:hover { border-color: #2d6a4f; background: #f0fff4; }
+  .option-card.active { border-color: #2d6a4f; background: #f0fff4; }
+  .option-name { font-size: 13px; font-weight: 600; }
+  .log { background: #f8f9fa; border-radius: 8px; padding: 12px; max-height: 150px; overflow-y: auto; }
+  .log-entry { font-size: 12px; color: #555; padding: 3px 0; border-bottom: 1px solid #eee; }
+  .log-entry.alert { color: #e74c3c; font-weight: 600; } .log-entry.award { color: #2d6a4f; font-weight: 600; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .hidden { display: none; }
+  @media (max-width: 700px) { .dashboard { grid-template-columns: 1fr 1fr; } .main-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:8px;"><h1>The Gentrification Puzzle</h1><span class="badge">XLMX Games</span></div>
+  <div style="font-size:12px;color:#6c757d;margin-top:2px;">Revitalize the neighborhood. Try not to be the villain.</div>
+</div>
+<div class="container">
+  <div class="dashboard">
+    <div class="kpi"><div class="kpi-label">Budget Remaining</div><div class="kpi-val" id="budget-val" style="color:#2d6a4f;">$2,000,000</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Property Value</div><div class="kpi-val" id="prop-val">$245K</div><div class="kpi-sub">Target: $800K</div><div class="bar-wrap"><div class="bar-fill" id="prop-bar" style="width:30%;background:#2d6a4f;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Displacement Meter</div><div class="kpi-val" id="disp-val" style="color:#e74c3c;">12</div><div class="bar-wrap"><div class="bar-fill" id="disp-bar" style="width:12%;background:#e74c3c;"></div></div></div>
+    <div class="kpi"><div class="kpi-label">Design Awards</div><div class="kpi-val" id="award-val" style="color:#f39c12;">0</div></div>
+  </div>
+  <div class="main-layout">
+    <div class="card">
+      <h2>Neighborhood Map</h2>
+      <div class="grid-map" id="grid-map"></div>
+      <div id="selected-info" style="margin-top:12px;font-size:13px;color:#6c757d;">Select a building to see options.</div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px;">
+        <h2>Redevelopment Options</h2>
+        <div id="redevelop-options"><div style="font-size:13px;color:#aaa;">Select a building first.</div></div>
+        <button class="btn btn-primary" id="build-btn" onclick="buildSelected()" disabled style="margin-top:12px;">Build</button>
+      </div>
+      <div class="card"><h2>District Chronicle</h2><div class="log" id="game-log"><div class="log-entry award">Phase 1 — The blank slate. Your vision, their home.</div></div></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="end-modal">
+  <div class="modal">
+    <h2 id="end-title">Neighborhood Transformed</h2>
+    <p id="end-desc"></p>
+    <div style="background:#f0fff4;border-radius:10px;padding:16px;margin:12px 0;">
+      <div style="font-size:13px;font-weight:700;color:#2d6a4f;margin-bottom:6px;">BIAS REVEALED: IKEA Effect & Moral Licensing</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">You built it, so you love it. The IKEA Effect made your designs feel righteous — you worked hard, therefore the outcome is good. Moral Licensing let each ethical building justify the next luxury loft. The displacement meter doesn't lie. The math has no ego.</p>
+    </div>
+    <button class="btn btn-primary" onclick="restartGame()">Revitalize Again</button>
+  </div>
+</div>
+<script>
+const BUILDING_TYPES={affordable:{icon:'🏘️',label:'Affordable',value:80000,community:10,dispRisk:0,color:'type-affordable'},store:{icon:'🏪',label:'Corner Store',value:120000,community:7,dispRisk:2,color:'type-store'},community:{icon:'🏫',label:'Community Ctr',value:90000,community:15,dispRisk:0,color:'type-community'},vacant:{icon:'⬜',label:'Vacant Lot',value:40000,community:0,dispRisk:0,color:'type-vacant'},industrial:{icon:'🏭',label:'Industrial',value:60000,community:2,dispRisk:3,color:'type-industrial'}};
+const REDEVEL_OPTIONS=[{id:'luxury',icon:'🏢',name:'Luxury Loft',cost:400000,valueMult:3.2,dispAdd:18,award:2,color:'type-luxury',desc:'+$320K value | +18 displacement | +2 awards'},{id:'hotel',icon:'🏨',name:'Boutique Hotel',cost:500000,valueMult:2.8,dispAdd:14,award:3,color:'type-hotel',desc:'+$280K value | +14 displacement | +3 awards'},{id:'cowork',icon:'💼',name:'Co-working Space',cost:300000,valueMult:2.0,dispAdd:8,award:1,color:'type-cowork',desc:'+$120K value | +8 displacement | +1 award'},{id:'mixed',icon:'🏗️',name:'Mixed-Income Housing',cost:350000,valueMult:1.5,dispAdd:4,award:0,color:'type-mixed',desc:'+$70K value | +4 displacement | 0 awards'},{id:'park',icon:'🌳',name:'Public Park',cost:150000,valueMult:0,dispAdd:-5,award:1,color:'type-park',desc:'+$0 value | -5 displacement | +1 award'}];
+const initialLayout=['affordable','store','vacant','industrial','affordable','community','affordable','store','affordable','vacant','industrial','vacant','store','community','affordable','affordable','industrial','vacant','store','affordable','community','affordable','affordable','store','vacant'];
+let state={phase:1,budget:2000000,displacement:12,awards:0,selectedCell:null,selectedOption:null,cells:[],gameOver:false};
+function initCells(){state.cells=initialLayout.map((type,i)=>({id:i,type,redeveloped:false,value:BUILDING_TYPES[type].value,community:BUILDING_TYPES[type].community,dispRisk:BUILDING_TYPES[type].dispRisk}));}
+function avgValue(){return state.cells.reduce((s,c)=>s+c.value,0)/state.cells.length;}
+function renderGrid(){const grid=document.getElementById('grid-map');grid.innerHTML='';state.cells.forEach(c=>{const opt=c.redeveloped?REDEVEL_OPTIONS.find(r=>r.id===c.redevelopedAs):null;const origType=BUILDING_TYPES[c.type];const cell=document.createElement('div');cell.className='cell '+(opt?opt.color:origType.color)+(c.redeveloped?' redeveloped':'')+(state.selectedCell===c.id?' selected':'');cell.innerHTML='<div class="cell-icon">'+(opt?opt.icon:origType.icon)+'</div><div class="cell-label">'+(opt?opt.name.split(' ')[0]:origType.label)+'</div><div class="cell-val">$'+Math.round(c.value/1000)+'K</div>';if(!state.gameOver)cell.onclick=()=>selectCell(c.id);grid.appendChild(cell);});}
+function selectCell(id){state.selectedCell=id;state.selectedOption=null;const c=state.cells[id];const bt=BUILDING_TYPES[c.type];document.getElementById('selected-info').innerHTML=c.redeveloped?'<strong>Already redeveloped.</strong>':'<strong>'+bt.label+'</strong> — Value: $'+Math.round(c.value/1000)+'K | Community: '+c.community;renderRedevelOptions(c);renderGrid();}
+function renderRedevelOptions(c){const container=document.getElementById('redevelop-options');container.innerHTML='';REDEVEL_OPTIONS.forEach(opt=>{const canAfford=state.budget>=opt.cost;const div=document.createElement('div');div.className='option-card'+(state.selectedOption===opt.id?' active':'')+(c.redeveloped?' hidden':'');div.innerHTML='<div class="option-name">'+opt.icon+' '+opt.name+(canAfford?'':' <span style="color:#e74c3c;font-size:11px;">No budget</span>')+'</div><div style="font-size:11px;color:#888;margin-top:2px;">Cost: $'+(opt.cost/1000).toFixed(0)+'K | '+opt.desc+'</div>';if(canAfford&&!c.redeveloped){div.onclick=()=>{state.selectedOption=opt.id;renderRedevelOptions(c);document.getElementById('build-btn').disabled=false;};}else{div.style.opacity='0.5';}container.appendChild(div);});if(c.redeveloped){container.innerHTML='<div style="font-size:13px;color:#aaa;">Already redeveloped.</div>';document.getElementById('build-btn').disabled=true;}}
+function buildSelected(){if(state.selectedCell===null||!state.selectedOption)return;const c=state.cells[state.selectedCell];const opt=REDEVEL_OPTIONS.find(r=>r.id===state.selectedOption);if(state.budget<opt.cost)return;state.budget-=opt.cost;c.redeveloped=true;c.redevelopedAs=opt.id;c.value=opt.id==='park'?c.value*0.8:c.value*opt.valueMult;state.displacement=Math.min(100,Math.max(0,state.displacement+opt.dispAdd));state.awards+=opt.award;getNeighbors(state.selectedCell).forEach(nid=>{state.cells[nid].value=Math.round(state.cells[nid].value*1.08);});addLog('Built '+opt.name+' on lot '+(state.selectedCell+1)+'. Cost: $'+(opt.cost/1000).toFixed(0)+'K',opt.dispAdd>10?'alert':'award');if(state.displacement>=60)addLog('CRISIS: Families displaced. Media coverage rising.','alert');state.selectedCell=null;state.selectedOption=null;document.getElementById('build-btn').disabled=true;document.getElementById('selected-info').textContent='Select a building to see options.';document.getElementById('redevelop-options').innerHTML='<div style="font-size:13px;color:#aaa;">Select a building first.</div>';updateDashboard();renderGrid();checkEndgame();}
+function getNeighbors(id){const row=Math.floor(id/5),col=id%5;const nb=[];[[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc])=>{const nr=row+dr,nc=col+dc;if(nr>=0&&nr<5&&nc>=0&&nc<5)nb.push(nr*5+nc);});return nb;}
+function updateDashboard(){const avg=avgValue();document.getElementById('budget-val').textContent='$'+Math.round(state.budget).toLocaleString();document.getElementById('prop-val').textContent='$'+Math.round(avg/1000)+'K';document.getElementById('prop-bar').style.width=Math.min(100,(avg/800000)*100)+'%';document.getElementById('disp-val').textContent=state.displacement;document.getElementById('disp-bar').style.width=state.displacement+'%';document.getElementById('award-val').textContent=state.awards;}
+function checkEndgame(){const avg=avgValue();const redeveloped=state.cells.filter(c=>c.redeveloped).length;if(avg>=800000){endGame('win');}else if(state.displacement>=100){endGame('collapse');}else if(state.budget<150000&&redeveloped<15){endGame('budget');}}
+function endGame(type){state.gameOver=true;const avg=avgValue();let title,desc;if(type==='win'){title='Neighborhood Transformed';desc='Average property value hit $'+Math.round(avg/1000)+'K. '+state.displacement+' displacement units. '+state.awards+' design awards.';}else if(type==='collapse'){title='Community Revolt';desc='Displacement maxed. Lawsuits filed. Construction halted. Value was $'+Math.round(avg/1000)+'K.';}else{title='Budget Exhausted';desc='Ran out at $'+Math.round(avg/1000)+'K average. Target was $800K. '+state.awards+' awards, '+state.displacement+' displacement.';}document.getElementById('end-title').textContent=title;document.getElementById('end-desc').textContent=desc;document.getElementById('end-modal').classList.remove('hidden');}
+function addLog(msg,cls=''){const log=document.getElementById('game-log');const entry=document.createElement('div');entry.className='log-entry '+cls;entry.textContent=msg;log.insertBefore(entry,log.firstChild);}
+function restartGame(){state={phase:1,budget:2000000,displacement:12,awards:0,selectedCell:null,selectedOption:null,cells:[],gameOver:false};initCells();document.getElementById('end-modal').classList.add('hidden');document.getElementById('game-log').innerHTML='<div class="log-entry award">Phase 1 — The blank slate. Your vision, their home.</div>';document.getElementById('selected-info').textContent='Select a building to see options.';document.getElementById('redevelop-options').innerHTML='<div style="font-size:13px;color:#aaa;">Select a building first.</div>';document.getElementById('build-btn').disabled=true;updateDashboard();renderGrid();}
+initCells();updateDashboard();renderGrid();
+</script>
+</body>
+</html>

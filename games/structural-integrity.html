@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Structural Integrity — XLMX</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#e8e0d0; font-family:'Courier New',monospace; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; }
+h1 { font-size:1rem; letter-spacing:0.3em; text-transform:uppercase; color:#c8b89a; margin-bottom:3px; }
+.subtitle { font-size:0.6rem; color:#555; letter-spacing:0.2em; margin-bottom:14px; }
+.game-wrap { display:flex; gap:14px; align-items:flex-start; }
+.panel { border:1px solid #2a2a2a; background:#141414; padding:10px; }
+.panel-label { font-size:0.5rem; letter-spacing:0.25em; color:#555; text-transform:uppercase; margin-bottom:8px; }
+.left-panel { width:160px; display:flex; flex-direction:column; gap:8px; }
+.right-panel { width:185px; display:flex; flex-direction:column; gap:8px; }
+canvas { border:1px solid #2a2a2a; display:block; cursor:crosshair; background:#0a0a0e; }
+.mat-btn { display:flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid #222; cursor:pointer; width:100%; font-family:'Courier New',monospace; font-size:0.58rem; color:#777; text-transform:uppercase; transition:all .15s; }
+.mat-btn:hover { border-color:#555; color:#c8b89a; }
+.mat-btn.active { border-color:#c8b89a; color:#c8b89a; background:#1a1a1a; }
+.mat-bar { width:10px; height:3px; border-radius:1px; flex-shrink:0; margin-top:1px; }
+.btn { background:none; border:1px solid #444; color:#c8b89a; font-family:'Courier New',monospace; font-size:0.58rem; letter-spacing:.12em; padding:6px 10px; cursor:pointer; text-transform:uppercase; width:100%; margin-top:4px; }
+.btn:hover { border-color:#c8b89a; }
+.btn.analyze { border-color:#5a7a9a; color:#8aaac8; }
+.stat-row { display:flex; justify-content:space-between; font-size:0.57rem; margin-bottom:4px; }
+.stat-row span { color:#c8b89a; }
+.member-list { max-height:140px; overflow-y:auto; font-size:0.52rem; color:#555; line-height:2; }
+.member-row { display:flex; justify-content:space-between; padding:1px 4px; border-bottom:1px solid #1a1a1a; }
+.member-row.critical { color:#c04040; background:rgba(192,64,64,0.08); }
+.member-row.warning { color:#c09040; }
+.member-row.ok { color:#40a060; }
+.stress-legend { display:flex; height:8px; margin-top:4px; border:1px solid #1a1a1a; }
+.legend-label { display:flex; justify-content:space-between; font-size:0.5rem; color:#444; margin-top:2px; }
+#mode-hint { font-size:0.52rem; color:#555; text-align:center; margin-top:4px; }
+</style>
+</head>
+<body>
+<h1>Structural Integrity — FEM</h1>
+<div class="subtitle">Build a structure. Apply loads. Analyze stress.</div>
+<div class="game-wrap">
+  <div class="left-panel">
+    <div class="panel">
+      <div class="panel-label">Mode</div>
+      <button class="mat-btn active" data-mode="node" onclick="setMode('node')" style="margin-bottom:4px;"><div class="mat-bar" style="background:#c8b89a;height:8px;width:8px;border-radius:50%;margin-top:0;"></div>Add Node</button>
+      <button class="mat-btn" data-mode="beam" onclick="setMode('beam')"><div class="mat-bar" style="background:#8899aa;width:14px;"></div>Add Beam</button>
+      <button class="mat-btn" data-mode="support" onclick="setMode('support')"><div class="mat-bar" style="background:#c8b89a;height:8px;width:8px;border-radius:2px;margin-top:0;"></div>Pin Support</button>
+      <button class="mat-btn" data-mode="load" onclick="setMode('load')" style="margin-top:4px;"><div class="mat-bar" style="background:#c04040;height:6px;border-radius:1px;"></div>Apply Load</button>
+      <button class="mat-btn" data-mode="delete" onclick="setMode('delete')"><div class="mat-bar" style="background:#553333;"></div>Delete</button>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Material</div>
+      <button class="mat-btn active" data-mat="steel" onclick="setMat('steel')"><div class="mat-bar" style="background:#8899aa;"></div>Steel</button>
+      <button class="mat-btn" data-mat="concrete" onclick="setMat('concrete')"><div class="mat-bar" style="background:#9a8a7a;"></div>Concrete</button>
+      <button class="mat-btn" data-mat="timber" onclick="setMat('timber')"><div class="mat-bar" style="background:#9a7050;"></div>Timber</button>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Load Magnitude</div>
+      <input type="range" id="load-slider" min="1" max="20" value="5" style="width:100%;margin:4px 0;accent-color:#c8b89a;">
+      <div style="font-size:0.6rem;color:#c8b89a;text-align:center;" id="load-label">5 kN</div>
+    </div>
+    <button class="btn analyze" onclick="runFEM()">▶ Analyze Structure</button>
+    <button class="btn" onclick="clearAll()">Clear All</button>
+    <div id="mode-hint">Click canvas to add nodes</div>
+  </div>
+  <canvas id="canvas" width="520" height="460"></canvas>
+  <div class="right-panel">
+    <div class="panel">
+      <div class="panel-label">Structure</div>
+      <div class="stat-row">Nodes <span id="node-count">0</span></div>
+      <div class="stat-row">Members <span id="beam-count">0</span></div>
+      <div class="stat-row">Supports <span id="support-count">0</span></div>
+      <div class="stat-row">Loads applied <span id="load-count">0</span></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">FEM Results</div>
+      <div class="stat-row">Max Stress <span id="max-stress">—</span></div>
+      <div class="stat-row">Max Deflection <span id="max-defl">—</span></div>
+      <div class="stat-row">Status <span id="fem-status">—</span></div>
+      <div class="stress-legend" id="stress-legend"></div>
+      <div class="legend-label"><span>0</span><span>Yield</span><span>Fail</span></div>
+    </div>
+    <div class="panel" style="flex:1;">
+      <div class="panel-label">Member Stress Table</div>
+      <div class="member-list" id="member-list">Run analysis to see results.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Material Limits</div>
+      <div style="font-size:0.52rem;color:#555;line-height:1.9;">Steel: 250 MPa yield<br>Concrete: 30 MPa<br>Timber: 40 MPa</div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const CW=520,CH=460,SNAP=20;
+const MATERIALS={steel:{color:'#8899aa',yield:250,E:210000,label:'S'},concrete:{color:'#9a8a7a',yield:30,E:30000,label:'C'},timber:{color:'#9a7050',yield:40,E:12000,label:'T'}};
+let nodes=[],beams=[],supports=new Set(),loads=[],currentMode='node',currentMat='steel',selectedNode=null,femResults=null,lastAnalyzed=false;
+document.getElementById('load-slider').oninput=function(){document.getElementById('load-label').textContent=this.value+' kN';};
+function snap(v){return Math.round(v/SNAP)*SNAP;}
+function setMode(m){currentMode=m;document.querySelectorAll('.mat-btn[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));selectedNode=null;const hints={node:'Click canvas to add nodes',beam:'Click node → click node to add beam',support:'Click a node to pin it',load:'Click a node to apply load',delete:'Click node or beam to delete'};document.getElementById('mode-hint').textContent=hints[m]||'';render();}
+function setMat(m){currentMat=m;document.querySelectorAll('.mat-btn[data-mat]').forEach(b=>b.classList.toggle('active',b.dataset.mat===m));}
+function getPos(e){const r=canvas.getBoundingClientRect();return{x:snap(e.clientX-r.left),y:snap(e.clientY-r.top)};}
+function nearestNode(x,y,maxD=18){let best=-1,bestD=maxD;nodes.forEach((n,i)=>{const d=Math.sqrt((n.x-x)**2+(n.y-y)**2);if(d<bestD){bestD=d;best=i;}});return best;}
+function nearestBeam(x,y,maxD=10){let best=-1,bestD=maxD;beams.forEach((b,i)=>{const na=nodes[b.a],nb=nodes[b.b];const dx=nb.x-na.x,dy=nb.y-na.y,len=Math.sqrt(dx*dx+dy*dy);const t=Math.max(0,Math.min(1,((x-na.x)*dx+(y-na.y)*dy)/(len*len)));const px=na.x+t*dx,py=na.y+t*dy;const d=Math.sqrt((x-px)**2+(y-py)**2);if(d<bestD){bestD=d;best=i;}});return best;}
+canvas.addEventListener('click',e=>{const{x,y}=getPos(e);lastAnalyzed=false;femResults=null;if(currentMode==='node'){const exists=nodes.some(n=>n.x===x&&n.y===y);if(!exists){nodes.push({x,y});updateStats();render();}}else if(currentMode==='beam'){const ni=nearestNode(x,y);if(ni>=0){if(selectedNode===null){selectedNode=ni;render();}else if(selectedNode!==ni){const exists=beams.some(b=>(b.a===selectedNode&&b.b===ni)||(b.a===ni&&b.b===selectedNode));if(!exists)beams.push({a:selectedNode,b:ni,mat:currentMat,stress:0,utilization:0});selectedNode=null;updateStats();render();}else{selectedNode=null;render();}}}else if(currentMode==='support'){const ni=nearestNode(x,y);if(ni>=0){if(supports.has(ni))supports.delete(ni);else supports.add(ni);updateStats();render();}}else if(currentMode==='load'){const ni=nearestNode(x,y);const mag=parseFloat(document.getElementById('load-slider').value);if(ni>=0){const existing=loads.findIndex(l=>l.node===ni);if(existing>=0)loads.splice(existing,1);else loads.push({node:ni,fx:0,fy:mag});updateStats();render();}}else if(currentMode==='delete'){const ni=nearestNode(x,y,14);if(ni>=0){beams=beams.filter(b=>b.a!==ni&&b.b!==ni);supports.delete(ni);loads=loads.filter(l=>l.node!==ni);beams.forEach(b=>{if(b.a>ni)b.a--;if(b.b>ni)b.b--;});supports=new Set([...supports].map(s=>s>ni?s-1:s));loads.forEach(l=>{if(l.node>ni)l.node--;});nodes.splice(ni,1);updateStats();render();}else{const bi=nearestBeam(x,y);if(bi>=0){beams.splice(bi,1);updateStats();render();}}}});
+function updateStats(){document.getElementById('node-count').textContent=nodes.length;document.getElementById('beam-count').textContent=beams.length;document.getElementById('support-count').textContent=supports.size;document.getElementById('load-count').textContent=loads.length;}
+function runFEM(){if(nodes.length<2||beams.length<1)return;if(supports.size<1){document.getElementById('fem-status').textContent='Need ≥1 support';document.getElementById('fem-status').style.color='#c04040';return;}if(loads.length<1){document.getElementById('fem-status').textContent='No loads applied';document.getElementById('fem-status').style.color='#c04040';return;}const N=nodes.length,DOF=2*N;const K=Array.from({length:DOF},()=>Array(DOF).fill(0));const A=0.01;beams.forEach(b=>{const ni=nodes[b.a],nj=nodes[b.b];const dx=nj.x-ni.x,dy=nj.y-ni.y;const L=Math.sqrt(dx*dx+dy*dy)*0.01;if(L<0.001)return;const c=dx/(L*100),s=dy/(L*100);const mat=MATERIALS[b.mat];const k=mat.E*A*1e6/L;const coeff=[c*c,c*s,-c*c,-c*s,c*s,s*s,-c*s,-s*s,-c*c,-c*s,c*c,c*s,-c*s,-s*s,c*s,s*s];const dofs=[2*b.a,2*b.a+1,2*b.b,2*b.b+1];for(let i=0;i<4;i++)for(let j=0;j<4;j++)K[dofs[i]][dofs[j]]+=k*coeff[i*4+j];});const F=Array(DOF).fill(0);loads.forEach(l=>{F[2*l.node]+=l.fx*1000;F[2*l.node+1]+=l.fy*1000;});const free=[];for(let i=0;i<N;i++){if(!supports.has(i)){free.push(2*i);free.push(2*i+1);}}const n=free.length;const Kf=free.map(i=>free.map(j=>K[i][j]));const Ff=free.map(i=>F[i]);const u=gaussSolve(Kf,Ff);if(!u){document.getElementById('fem-status').textContent='Singular matrix';return;}const U=Array(DOF).fill(0);free.forEach((dof,i)=>U[dof]=u[i]);let maxStress=0,maxDefl=0;beams.forEach(b=>{const ni=nodes[b.a],nj=nodes[b.b];const dx=nj.x-ni.x,dy=nj.y-ni.y;const L=Math.sqrt(dx*dx+dy*dy)*0.01;if(L<0.001)return;const c=dx/(L*100),s=dy/(L*100);const mat=MATERIALS[b.mat];const disp=[U[2*b.a],U[2*b.a+1],U[2*b.b],U[2*b.b+1]];const elongation=(-c*disp[0]-s*disp[1]+c*disp[2]+s*disp[3]);const force=(mat.E*1e9*A/L)*elongation;const stress=Math.abs(force/A)/1e6;b.stress=force/1000;b.sigmaAbs=stress;b.utilization=stress/mat.yield;if(stress>maxStress)maxStress=stress;});for(let i=0;i<N;i++){const d=Math.sqrt(U[2*i]**2+U[2*i+1]**2)*1000;if(d>maxDefl)maxDefl=d;nodes[i].dx=U[2*i];nodes[i].dy=U[2*i+1];}femResults={maxStress,maxDefl};lastAnalyzed=true;document.getElementById('max-stress').textContent=maxStress.toFixed(1)+' MPa';document.getElementById('max-defl').textContent=maxDefl.toFixed(2)+' mm';const anyFail=beams.some(b=>b.utilization>1.0);const femStat=document.getElementById('fem-status');femStat.textContent=anyFail?'MEMBER FAILURE':'OK — All within limits';femStat.style.color=anyFail?'#c04040':'#40a060';const leg=document.getElementById('stress-legend');leg.innerHTML='';['#2244aa','#22aa66','#aaaa22','#aa6622','#aa2222'].forEach(c=>{const d=document.createElement('div');d.style.cssText=`flex:1;background:${c};`;leg.appendChild(d);});const ml=document.getElementById('member-list');ml.innerHTML=beams.map((b,i)=>{const cls=b.utilization>1?'critical':b.utilization>0.7?'warning':'ok';const sign=b.stress>=0?'+':'-';return`<div class="member-row ${cls}">M${i+1} ${MATERIALS[b.mat].label} ${sign}${Math.abs(b.stress).toFixed(1)}kN ${(b.utilization*100).toFixed(0)}%</div>`;}).join('');render();}
+function gaussSolve(A,b){const n=A.length;const M=A.map((row,i)=>[...row,b[i]]);for(let col=0;col<n;col++){let pivot=col;for(let row=col+1;row<n;row++)if(Math.abs(M[row][col])>Math.abs(M[pivot][col]))pivot=row;[M[col],M[pivot]]=[M[pivot],M[col]];if(Math.abs(M[col][col])<1e-12)return null;for(let row=col+1;row<n;row++){const f=M[row][col]/M[col][col];for(let j=col;j<=n;j++)M[row][j]-=f*M[col][j];}}const x=Array(n).fill(0);for(let i=n-1;i>=0;i--){x[i]=M[i][n];for(let j=i+1;j<n;j++)x[i]-=M[i][j]*x[j];x[i]/=M[i][i];}return x;}
+function stressColor(u){const t=Math.min(1,Math.max(0,u));if(t<0.33){const v=t/0.33;return`rgb(${Math.round(34+v*68)},${Math.round(68+v*102)},${Math.round(170-v*68)})`;}if(t<0.66){const v=(t-0.33)/0.33;return`rgb(${Math.round(102+v*68)},${Math.round(170-v*34)},${Math.round(102-v*68)})`;}const v=(t-0.66)/0.34;return`rgb(${Math.round(170+v*85)},${Math.round(136-v*110)},${Math.round(34-v*34)})`;}
+function render(){ctx.clearRect(0,0,CW,CH);ctx.fillStyle='#0a0a0e';ctx.fillRect(0,0,CW,CH);ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=0.5;for(let x=0;x<=CW;x+=SNAP){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CH);ctx.stroke();}for(let y=0;y<=CH;y+=SNAP){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();}const DEFL_SCALE=500;if(lastAnalyzed){ctx.save();ctx.globalAlpha=0.15;ctx.strokeStyle='#c8b89a';ctx.lineWidth=1;ctx.setLineDash([3,5]);beams.forEach(b=>{const ni=nodes[b.a],nj=nodes[b.b];ctx.beginPath();ctx.moveTo(ni.x+(ni.dx||0)*DEFL_SCALE,ni.y+(ni.dy||0)*DEFL_SCALE);ctx.lineTo(nj.x+(nj.dx||0)*DEFL_SCALE,nj.y+(nj.dy||0)*DEFL_SCALE);ctx.stroke();});ctx.setLineDash([]);ctx.restore();}beams.forEach((b,i)=>{const ni=nodes[b.a],nj=nodes[b.b];const mat=MATERIALS[b.mat];const color=lastAnalyzed?stressColor(b.utilization||0):mat.color;ctx.strokeStyle=color;ctx.lineWidth=3.5;ctx.globalAlpha=0.9;ctx.beginPath();ctx.moveTo(ni.x,ni.y);ctx.lineTo(nj.x,nj.y);ctx.stroke();ctx.globalAlpha=1;const mx=(ni.x+nj.x)/2,my=(ni.y+nj.y)/2;ctx.fillStyle='rgba(200,184,154,0.4)';ctx.font='8px Courier New';ctx.textAlign='center';ctx.fillText('M'+(i+1),mx,my-5);if(lastAnalyzed&&b.stress!==undefined){ctx.fillStyle=stressColor(b.utilization||0);ctx.fillText((b.utilization*100).toFixed(0)+'%',mx,my+9);}ctx.textAlign='left';});nodes.forEach((n,i)=>{const isSupport=supports.has(i),hasLoad=loads.some(l=>l.node===i),isSelected=selectedNode===i;if(isSupport){ctx.fillStyle='#c8b89a';ctx.globalAlpha=0.8;ctx.beginPath();ctx.moveTo(n.x,n.y+4);ctx.lineTo(n.x-10,n.y+18);ctx.lineTo(n.x+10,n.y+18);ctx.closePath();ctx.fill();ctx.strokeStyle='#c8b89a';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(n.x-12,n.y+20);ctx.lineTo(n.x+12,n.y+20);ctx.stroke();ctx.globalAlpha=1;}ctx.beginPath();ctx.arc(n.x,n.y,isSelected?7:5,0,Math.PI*2);ctx.fillStyle=isSelected?'#ffffff':isSupport?'#c8b89a':hasLoad?'#c04040':'#5a7a9a';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='rgba(200,184,154,0.5)';ctx.font='8px Courier New';ctx.textAlign='center';ctx.fillText('N'+(i+1),n.x,n.y-9);ctx.textAlign='left';if(lastAnalyzed&&(n.dx||n.dy)){ctx.beginPath();ctx.arc(n.x+(n.dx||0)*DEFL_SCALE,n.y+(n.dy||0)*DEFL_SCALE,3,0,Math.PI*2);ctx.fillStyle='rgba(200,184,154,0.3)';ctx.fill();}});loads.forEach(l=>{const n=nodes[l.node];if(!n)return;const mag=l.fy,arrowLen=20+mag*3;ctx.strokeStyle='#c04040';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(n.x,n.y-arrowLen-10);ctx.lineTo(n.x,n.y-5);ctx.stroke();ctx.fillStyle='#c04040';ctx.beginPath();ctx.moveTo(n.x,n.y-5);ctx.lineTo(n.x-5,n.y-14);ctx.lineTo(n.x+5,n.y-14);ctx.closePath();ctx.fill();ctx.font='9px Courier New';ctx.textAlign='center';ctx.fillText(mag+'kN',n.x,n.y-arrowLen-14);ctx.textAlign='left';});}
+function clearAll(){nodes=[];beams=[];supports=new Set();loads=[];femResults=null;lastAnalyzed=false;selectedNode=null;updateStats();document.getElementById('fem-status').textContent='—';document.getElementById('max-stress').textContent='—';document.getElementById('max-defl').textContent='—';document.getElementById('member-list').textContent='Run analysis to see results.';render();}
+render();
+</script>
+</body>
+</html>

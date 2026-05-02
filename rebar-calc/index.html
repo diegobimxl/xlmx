@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rebar Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.result{background:#0a2a0a;border:1px solid #16a34a;border-radius:12px;padding:20px;margin-top:16px;display:none}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a3a1a}
+.row span:first-child{color:#aaa}.row span:last-child{color:#16a34a;font-weight:600}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Rebar Calculator</h1>
+<p class="sub">Steel reinforcement weight, count & cost by bar size and length</p>
+<div class="card">
+<label>Bar Size</label>
+<select id="bar">
+<option value="3">#3 (3/8" — 10mm)</option><option value="4">#4 (1/2" — 13mm)</option>
+<option value="5" selected>#5 (5/8" — 16mm)</option><option value="6">#6 (3/4" — 19mm)</option>
+<option value="7">#7 (7/8" — 22mm)</option><option value="8">#8 (1" — 25mm)</option>
+<option value="9">#9 (1-1/8" — 29mm)</option><option value="10">#10 (1-1/4" — 32mm)</option>
+</select>
+<label>Total Length Required (m)</label>
+<input id="len" type="number" value="120" step="1">
+<label>Bar Stock Length (m)</label>
+<input id="stock" type="number" value="12" step="0.5">
+<label>Overlap / Lap Splice (cm)</label>
+<input id="lap" type="number" value="40" step="5">
+<label>Price per kg (USD)</label>
+<input id="price" type="number" value="1.10" step="0.01">
+<button onclick="calc()">Calculate</button>
+</div>
+<div class="result" id="res"></div>
+<script>
+const W={3:0.559,4:0.994,5:1.552,6:2.235,7:3.042,8:3.973,9:5.028,10:6.404};
+const D={3:9.5,4:12.7,5:15.9,6:19.1,7:22.2,8:25.4,9:28.7,10:32.3};
+function calc(){
+  const sz=+document.getElementById('bar').value,len=+document.getElementById('len').value;
+  const stock=+document.getElementById('stock').value,lap=+document.getElementById('lap').value/100;
+  const price=+document.getElementById('price').value;
+  const eff=stock-lap;
+  const bars=Math.ceil(len/eff);
+  const totalLen=bars*stock;
+  const wpm=W[sz];
+  const totalKg=totalLen*wpm;
+  const cost=totalKg*price;
+  const splices=bars-1;
+  const r=document.getElementById('res');r.style.display='block';
+  r.innerHTML=`<div class="row"><span>Bar diameter</span><span>${D[sz]} mm</span></div>`+
+  `<div class="row"><span>Unit weight</span><span>${wpm.toFixed(3)} kg/m</span></div>`+
+  `<div class="row"><span>Effective length/bar</span><span>${eff.toFixed(2)} m</span></div>`+
+  `<div class="row"><span>Bars needed</span><span>${bars}</span></div>`+
+  `<div class="row"><span>Lap splices</span><span>${splices}</span></div>`+
+  `<div class="row"><span>Total steel length</span><span>${totalLen.toFixed(1)} m</span></div>`+
+  `<div class="row"><span>Total weight</span><span>${totalKg.toFixed(1)} kg</span></div>`+
+  `<div class="row"><span>Estimated cost</span><span>$${cost.toFixed(2)} USD</span></div>`;
+}
+</script></body></html>

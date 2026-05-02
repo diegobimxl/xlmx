@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Facade Ratio Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600}
+button:hover{background:#15803d}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;text-align:center}
+.kbox .v{font-size:1.4rem;font-weight:700}.kbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+.elevation{background:#0a0a0a;border-radius:8px;padding:16px;margin-bottom:12px;position:relative}
+.elev-title{color:#16a34a;font-size:.82rem;font-weight:600;margin-bottom:8px}
+.bar-wrap{height:30px;background:#222;border-radius:4px;overflow:hidden;margin-bottom:6px;position:relative}
+.bar-opaque{position:absolute;left:0;top:0;height:100%;background:#555;border-radius:4px}
+.bar-glaze{position:absolute;top:0;height:100%;background:#3b82f6;opacity:.8;border-radius:4px}
+.bar-labels{display:flex;justify-content:space-between;font-size:.72rem;color:#aaa}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222;font-size:.85rem}
+.row span:first-child{color:#aaa}.row span:last-child{font-weight:600}
+.pass{color:#16a34a}.fail{color:#ef4444}.warn{color:#f59e0b}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.kpi{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Facade Ratio Calculator</h1>
+<p class="sub">Window-to-Wall Ratio (WWR) and Glazing Ratio by elevation — ASHRAE 90.1 compliance check</p>
+<div class="card">
+<div class="grid2">
+<div><label>Climate Zone</label>
+<select id="zone"><option>1</option><option>2</option><option>3</option><option value="4" selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+<div><label>Building Type</label>
+<select id="btype"><option>Office</option><option>Retail</option><option>Healthcare</option><option>Education</option><option>Residential</option><option>Industrial</option></select></div>
+</div>
+<p style="color:#16a34a;font-size:.82rem;margin-bottom:12px">Enter gross wall area and glazed area per elevation:</p>
+<div class="grid2">
+<div><label>North — Gross Wall (m²)</label><input id="nW" type="number" value="200" step="5"></div>
+<div><label>North — Glazing (m²)</label><input id="nG" type="number" value="60" step="5"></div>
+<div><label>South — Gross Wall (m²)</label><input id="sW" type="number" value="200" step="5"></div>
+<div><label>South — Glazing (m²)</label><input id="sG" type="number" value="80" step="5"></div>
+<div><label>East — Gross Wall (m²)</label><input id="eW" type="number" value="120" step="5"></div>
+<div><label>East — Glazing (m²)</label><input id="eG" type="number" value="30" step="5"></div>
+<div><label>West — Gross Wall (m²)</label><input id="wW" type="number" value="120" step="5"></div>
+<div><label>West — Glazing (m²)</label><input id="wG" type="number" value="25" step="5"></div>
+<div><label>Roof Lights / Skylights (m²)</label><input id="sky" type="number" value="0" step="5"></div>
+<div><label>Total Roof Area (m²)</label><input id="roof" type="number" value="400" step="10"></div>
+</div>
+<button onclick="calc()">Calculate Facade Ratios</button>
+</div>
+<div id="res" style="display:none">
+<div class="kpi" id="kpi"></div>
+<div id="elevs"></div>
+<div class="card" id="summary"></div>
+</div>
+<script>
+// ASHRAE 90.1 max WWR by zone (vertical fenestration)
+const MAX_WWR={1:0.40,2:0.40,3:0.40,4:0.40,5:0.40,6:0.40,7:0.40,8:0.40};
+const MAX_SKY=0.05;
+function calc(){
+  const zone=+document.getElementById('zone').value||4;
+  const dirs=[['North',+document.getElementById('nW').value,+document.getElementById('nG').value],
+    ['South',+document.getElementById('sW').value,+document.getElementById('sG').value],
+    ['East',+document.getElementById('eW').value,+document.getElementById('eG').value],
+    ['West',+document.getElementById('wW').value,+document.getElementById('wG').value]];
+  const sky=+document.getElementById('sky').value,roof=+document.getElementById('roof').value;
+  const totalWall=dirs.reduce((a,d)=>a+d[1],0);
+  const totalGlaze=dirs.reduce((a,d)=>a+d[2],0);
+  const totalWWR=totalWall?totalGlaze/totalWall:0;
+  const skyRatio=roof?sky/roof:0;
+  const maxWWR=MAX_WWR[zone]||0.40;
+  const passWWR=totalWWR<=maxWWR,passSky=skyRatio<=MAX_SKY;
+  document.getElementById('res').style.display='block';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v ${passWWR?'pass':'fail'}">${(totalWWR*100).toFixed(1)}%</div><div class="l">Overall WWR (max ${(maxWWR*100).toFixed(0)}%)</div></div>`+
+    `<div class="kbox"><div class="v">${totalGlaze.toFixed(0)} m²</div><div class="l">Total Glazed Area</div></div>`+
+    `<div class="kbox"><div class="v ${passSky?'pass':'fail'}">${(skyRatio*100).toFixed(1)}%</div><div class="l">Skylight Ratio (max ${(MAX_SKY*100).toFixed(0)}%)</div></div>`;
+  const elevEl=document.getElementById('elevs');elevEl.innerHTML='';
+  dirs.forEach(([name,wall,glaze])=>{
+    const wwr=wall?glaze/wall:0;const pass=wwr<=maxWWR;
+    elevEl.innerHTML+=`<div class="elevation">
+    <div class="elev-title">${name} Elevation — WWR: ${(wwr*100).toFixed(1)}% <span class="${pass?'pass':'fail'}">${pass?'✓ PASS':'✗ FAIL'}</span></div>
+    <div class="bar-wrap"><div class="bar-opaque" style="width:100%"></div><div class="bar-glaze" style="left:0;width:${Math.min(wwr*100,100)}%"></div></div>
+    <div class="bar-labels"><span>0%</span><span style="color:#3b82f6">Glazing ${(wwr*100).toFixed(1)}%</span><span>Limit ${(maxWWR*100).toFixed(0)}%</span></div>
+    <div class="row" style="margin-top:8px"><span>Gross wall</span><span>${wall} m²</span></div>
+    <div class="row"><span>Glazed area</span><span>${glaze} m²</span></div>
+    <div class="row"><span>Opaque wall</span><span>${wall-glaze} m²</span></div>
+    </div>`;
+  });
+  const sum=document.getElementById('summary');
+  sum.innerHTML=`<p style="color:#16a34a;font-weight:600;margin-bottom:10px">Overall ASHRAE 90.1 — Zone ${zone}</p>`+
+    `<div class="row"><span>Overall WWR</span><span class="${passWWR?'pass':'fail'}">${(totalWWR*100).toFixed(1)}% — ${passWWR?'Compliant':'Exceeds limit of '+(maxWWR*100).toFixed(0)+'%'}</span></div>`+
+    `<div class="row"><span>Skylight Ratio</span><span class="${passSky?'pass':'fail'}">${(skyRatio*100).toFixed(1)}% — ${passSky?'Compliant':'Exceeds 5% limit'}</span></div>`+
+    `<div class="row"><span>Total facade area</span><span>${totalWall} m²</span></div>`+
+    `<div class="row"><span>Total glazing</span><span>${totalGlaze} m²</span></div>`;
+}
+calc();
+</script></body></html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Methodology - US Solar Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111;line-height:1.7}
+.wrap{max-width:740px;margin:0 auto;padding:32px 20px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+h2{font-size:16px;font-weight:600;margin:28px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}
+h3{font-size:14px;font-weight:600;margin:16px 0 6px}
+p{font-size:14px;color:#333;margin-bottom:12px}
+a.back{display:inline-block;font-size:13px;color:#228b22;text-decoration:none;margin-bottom:16px}
+a.back:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#f5f5f5;border-bottom:2px solid #ddd;font-weight:600}
+td{padding:8px 10px;border-bottom:1px solid #eee}
+.formula{background:#f8f8f8;padding:12px 16px;border-left:3px solid #228b22;margin:12px 0;font-family:monospace;font-size:13px}
+.src{font-size:12px;color:#888;margin-top:4px}
+.note{font-size:13px;color:#666;background:#fffbe6;padding:10px 14px;border-left:3px solid #b80;margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="main.html">&larr; Back to calculator</a>
+<h1>Methodology and Scientific Sources</h1>
+<p style="color:#888;font-size:13px">US Solar Calculator — Technical Document v1.0 — March 2026</p>
+
+<h2>1. Solar Irradiance Model</h2>
+
+<h3>1.1 Peak Sun Hours (PSH)</h3>
+<p>Solar irradiance is expressed as Peak Sun Hours (PSH), equivalent to kWh/m2/day. One PSH represents 1 hour of irradiance at 1,000 W/m2 (Standard Test Conditions, STC). Values used are annual averages per city derived from the following sources:</p>
+
+<p>Primary source: NASA POWER (Prediction of Worldwide Energy Resources), Surface Solar Radiation (SSR) database, 0.5° x 0.5° resolution, 1991-2020 climatological average. Parameter: ALLSKY_SFC_SW_DWN (all-sky surface shortwave downward irradiance).</p>
+<p class="src">URL: https://power.larc.nasa.gov/</p>
+
+<p>Secondary source: NREL National Solar Radiation Database (NSRDB), TMY3 data (Typical Meteorological Year), 4km x 4km resolution from GOES satellite imagery combined with ground station validation. Parameter: GHI (Global Horizontal Irradiance).</p>
+<p class="src">URL: https://nsrdb.nrel.gov/</p>
+
+<p>Tertiary source: Global Solar Atlas 2.0 (World Bank / Solargis), satellite-based model at 250m resolution, validated against ground stations. Used for cross-validation.</p>
+<p class="src">URL: https://globalsolaratlas.info/</p>
+
+<h3>1.2 Tilt and Orientation Factor</h3>
+<p>The model applies a combined tilt and orientation (azimuth) factor on Global Horizontal Irradiance (GHI) to estimate Plane of Array (POA) irradiance.</p>
+
+<div class="formula">
+POA = GHI x Tilt_Factor x Orientation_Factor
+</div>
+
+<p>Tilt factor: simplified latitude-optimal model. For latitude L of each city, optimal tilt is approximately L degrees facing south. At 0° (flat), factor = 1.0. At optimal tilt, factor = 1.15 (15% gain). Beyond optimal tilt, factor decreases linearly.</p>
+
+<div class="formula">
+If pitch &lt;= L: TiltFactor = 1.0 + 0.15 x (pitch / L)<br>
+If pitch &gt; L: TiltFactor = 1.15 - 0.15 x ((pitch - L) / (45 - L))
+</div>
+
+<p>Orientation factors based on azimuth loss studies for mid-latitude northern hemisphere locations (25-48°N):</p>
+
+<table>
+<tr><th>Orientation</th><th>Factor</th><th>Note</th></tr>
+<tr><td>South (S)</td><td>1.00</td><td>Optimal for northern hemisphere</td></tr>
+<tr><td>SSE / SSW</td><td>0.97</td><td>Minimal loss</td></tr>
+<tr><td>SE / SW</td><td>0.92</td><td>Moderate loss</td></tr>
+<tr><td>East / West</td><td>0.82</td><td>Morning or afternoon irradiance only</td></tr>
+<tr><td>NE / NW</td><td>0.60</td><td>Minimal direct irradiance</td></tr>
+<tr><td>North (N)</td><td>0.50</td><td>Opposite to sun — worst case</td></tr>
+</table>
+
+<p class="src">Reference: Duffie, J.A. & Beckman, W.A. (2013). Solar Engineering of Thermal Processes, 4th Ed. Wiley. Chapters 1-2.</p>
+<p class="src">Reference: Marion, B. et al. (2014). "Performance parameters for grid-connected PV systems." NREL/CP-520-37358.</p>
+
+<p>For north-facing orientations (N, NE, NW), tilt reduces output instead of increasing it, applying a 2% penalty per degree of tilt:</p>
+<div class="formula">
+TiltFactor(North) = 1.0 - 0.02 x pitch
+</div>
+
+<h2>2. Photovoltaic System Specifications</h2>
+
+<table>
+<tr><th>Parameter</th><th>Value</th><th>Justification</th></tr>
+<tr><td>Panel wattage</td><td>400 W</td><td>Standard US residential panel 2025-2026 (REC, LG, Panasonic, Q Cells)</td></tr>
+<tr><td>Panel area</td><td>21 sq ft (1.95 m2)</td><td>Typical 400W panel: ~6.2ft x 3.4ft</td></tr>
+<tr><td>System efficiency</td><td>80%</td><td>Includes losses: inverter (3-5%), wiring (1-2%), temperature (5-8%), soiling (2-5%), degradation (1-2%)</td></tr>
+<tr><td>System lifetime</td><td>25 years</td><td>Standard tier-1 manufacturer warranty. Annual degradation ~0.5%</td></tr>
+<tr><td>Install cost</td><td>$2.75 USD/W</td><td>Post-ITC average installed cost per EnergySage 2025 data. Range: $2.40-$3.50/W by state</td></tr>
+</table>
+
+<h3>2.1 Annual Generation Calculation</h3>
+<div class="formula">
+Annual_Generation (kWh) = System_kWp x Effective_PSH x 365 x System_Efficiency
+</div>
+<p>Where Effective_PSH = Base_PSH x Tilt_Factor x Orientation_Factor</p>
+
+<h3>2.2 System Sizing</h3>
+<div class="formula">
+Daily_Consumption (kWh) = (Monthly_Bill / Rate_per_kWh) x 12 / 365<br>
+Required_kWp = Daily_Consumption / (Effective_PSH x Efficiency)<br>
+Num_Panels = min( ceil(kWp x 1000 / Panel_Wp), floor(Roof_sqft / Panel_sqft) )
+</div>
+<p>The system is capped at the lesser of: panels needed to cover consumption, or panels that physically fit on the roof.</p>
+
+<h2>3. Economic Model</h2>
+
+<h3>3.1 Electricity Rates</h3>
+<p>Unlike Mexico's uniform DAC tariff, US residential electricity rates vary dramatically by state and utility. This calculator uses city-specific average residential rates from the U.S. Energy Information Administration (EIA).</p>
+
+<table>
+<tr><th>City</th><th>Rate ($/kWh)</th><th>Note</th></tr>
+<tr><td>San Diego, CA</td><td>$0.32</td><td>Highest — SDG&E territory</td></tr>
+<tr><td>San Francisco, CA</td><td>$0.31</td><td>PG&E territory</td></tr>
+<tr><td>Los Angeles, CA</td><td>$0.30</td><td>SCE/LADWP territory</td></tr>
+<tr><td>San Jose, CA</td><td>$0.29</td><td>PG&E territory</td></tr>
+<tr><td>Sacramento, CA</td><td>$0.27</td><td>SMUD territory</td></tr>
+<tr><td>Boston, MA</td><td>$0.25</td><td>Eversource/National Grid</td></tr>
+<tr><td>New York, NY</td><td>$0.22</td><td>ConEd territory</td></tr>
+<tr><td>Detroit, MI</td><td>$0.18</td><td>DTE Energy</td></tr>
+<tr><td>Chicago, IL</td><td>$0.16</td><td>ComEd territory</td></tr>
+<tr><td>Philadelphia, PA</td><td>$0.16</td><td>PECO territory</td></tr>
+<tr><td>Washington DC</td><td>$0.15</td><td>Pepco territory</td></tr>
+<tr><td>Phoenix, AZ</td><td>$0.13</td><td>APS/SRP territory</td></tr>
+<tr><td>Houston/Dallas, TX</td><td>$0.13</td><td>Deregulated market avg</td></tr>
+<tr><td>Seattle, WA</td><td>$0.12</td><td>Seattle City Light (hydro)</td></tr>
+<tr><td>Oklahoma City, OK</td><td>$0.11</td><td>OG&E territory</td></tr>
+</table>
+
+<p class="src">Source: U.S. Energy Information Administration (EIA) — Electric Power Monthly, Table 5.6.a, Average Retail Price of Electricity by State, 2025. https://www.eia.gov/electricity/monthly/</p>
+
+<div class="note">
+Key insight: ROI is driven by the rate/sun ratio, not sun alone. California cities dominate the ROI ranking despite having less sun than Arizona because their electricity rates are 2-3x higher. San Diego ($0.32/kWh, 5.7 PSH) has faster payback than Phoenix ($0.13/kWh, 6.6 PSH) because the high rate makes each kWh of solar generation worth more.
+</div>
+
+<h3>3.2 Installation Cost</h3>
+<p>Reference cost: $2.75 USD per Watt-peak installed. This reflects the post-Federal Investment Tax Credit (ITC) cost for residential systems in 2025. Includes: panels, microinverter/string inverter, racking, wiring, permitting, labor, and utility interconnection.</p>
+<p class="src">Source: EnergySage Solar Marketplace — 2025 installation cost data across 50 states. https://www.energysage.com/</p>
+<p class="src">Source: NREL — U.S. Solar Photovoltaic System and Energy Storage Cost Benchmarks Q1 2025. https://www.nrel.gov/solar/market-research-analysis.html</p>
+
+<div class="note">
+Note: The Federal ITC (Investment Tax Credit) at 30% under the Inflation Reduction Act (IRA) is NOT included in this calculator's ROI. Including ITC would reduce effective cost to ~$1.93/W and improve ROI by approximately 30%. This model is conservative.
+</div>
+
+<h3>3.3 ROI Calculation</h3>
+<div class="formula">
+Total_Investment = System_kWp x 1000 x Cost_per_W<br>
+Annual_Savings = Annual_Generation x Rate_per_kWh<br>
+ROI (years) = Total_Investment / Annual_Savings<br>
+Breakeven (months) = Total_Investment / Monthly_Savings<br>
+25yr_Net_Profit = (Annual_Savings x 25) - Total_Investment
+</div>
+
+<h2>4. CO2 Emissions Model</h2>
+<p>The grid emission factor for the US is derived from EPA eGRID (Emissions & Generation Resource Integrated Database), which provides emission rates by NERC region and state.</p>
+
+<table>
+<tr><th>Parameter</th><th>Value</th><th>Source</th></tr>
+<tr><td>CO2 emission factor</td><td>0.417 kg CO2/kWh</td><td>EPA eGRID — US national average 2023 (most recent published)</td></tr>
+<tr><td>Annual CO2 avoided</td><td>Generation x 0.417 / 1000 (tonnes)</td><td>Direct calculation</td></tr>
+<tr><td>25yr CO2 avoided</td><td>Annual_CO2 x 25 x 0.95</td><td>0.95 factor for cumulative panel degradation</td></tr>
+</table>
+
+<p class="src">Source: EPA eGRID — Emissions & Generation Resource Integrated Database. https://www.epa.gov/egrid</p>
+
+<h2>5. Model Limitations</h2>
+<p>This simplified model has the following limitations:</p>
+<p>1. Flat rate assumption: assumes constant electricity rate over 25 years. In reality, US residential rates have increased 2-4% annually. Actual ROI is faster than calculated.</p>
+<p>2. No annual degradation: does not model ~0.5%/year panel degradation (except in 25yr CO2 calculation where a 0.95 factor is applied).</p>
+<p>3. No seasonal variation: uses annual average PSH. Actual production varies by month (higher in summer, lower in winter).</p>
+<p>4. No net metering specifics: assumes 1:1 net metering credit. Some utilities (notably California NEM 3.0) use time-of-use export rates that significantly reduce the value of exported solar.</p>
+<p>5. No Federal ITC: the 30% Investment Tax Credit under the IRA is NOT included. Including it would reduce payback by ~30%.</p>
+<p>6. No state/local incentives: does not include SRECs (Solar Renewable Energy Credits), state tax credits, or utility rebates that vary significantly by location.</p>
+<p>7. Simplified tilt factor: uses linear model instead of Perez or Liu-Jordan models for diffuse radiation.</p>
+<p>8. No temperature derating: does not model the negative temperature coefficient (-0.35%/°C above STC 25°C), relevant in hot climates like Phoenix and Las Vegas.</p>
+<p>9. National average CO2 factor: uses US national average rather than regional eGRID subregion factors, which vary from ~0.2 (hydro-heavy Pacific NW) to ~0.9 (coal-heavy Midwest).</p>
+
+<h2>6. References</h2>
+<p>Duffie, J.A. & Beckman, W.A. (2013). Solar Engineering of Thermal Processes, 4th Edition. John Wiley & Sons.</p>
+<p>NASA Langley Research Center. POWER Project — Prediction of Worldwide Energy Resources. https://power.larc.nasa.gov/</p>
+<p>NREL. National Solar Radiation Database (NSRDB). https://nsrdb.nrel.gov/</p>
+<p>World Bank Group / Solargis. Global Solar Atlas 2.0. https://globalsolaratlas.info/</p>
+<p>U.S. EIA. Electric Power Monthly — Average Retail Price of Electricity. https://www.eia.gov/electricity/monthly/</p>
+<p>EPA. eGRID — Emissions & Generation Resource Integrated Database. https://www.epa.gov/egrid</p>
+<p>NREL. U.S. Solar Photovoltaic System and Energy Storage Cost Benchmarks, Q1 2025.</p>
+<p>EnergySage. 2025 Solar Installation Cost Data. https://www.energysage.com/</p>
+<p>Marion, B. et al. (2014). Performance parameters for grid-connected PV systems. NREL/CP-520-37358.</p>
+<p>IEA-PVPS. Trends in Photovoltaic Applications 2024. International Energy Agency.</p>
+<p>U.S. Congress. Inflation Reduction Act of 2022 — Section 13101 (Residential Clean Energy Credit).</p>
+
+<div style="font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px;margin-top:28px">
+US Solar Calculator v1.0 — March 2026<br>
+<a href="main.html" style="color:#228b22">Back to calculator</a>
+</div>
+</div>
+</body>
+</html>

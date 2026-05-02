@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>US Solar Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px}
+h1{font-size:26px;font-weight:700;letter-spacing:-0.5px}
+.sub{font-size:14px;color:#888;margin:4px 0 28px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:8px}
+canvas{display:block;width:100%}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:28px}
+.card{border:1px solid #e0e0e0;padding:14px;cursor:pointer;transition:all 0.15s;border-radius:4px}
+.card:hover{border-color:#228b22;background:#f8fff8}
+.card h3{font-size:14px;font-weight:600;margin-bottom:2px}
+.card .st{font-size:11px;color:#888}
+.card .sun{font-size:12px;color:#228b22;margin-top:6px;font-weight:600}
+.card .pop{font-size:11px;color:#aaa;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>US Solar Calculator</h1>
+<p class="sub">Top 30 US cities — select your city to calculate your solar ROI</p>
+<div class="lbl">ROI ranking — fastest return on investment first ($200/mo electric bill)</div>
+<canvas id="barChart"></canvas>
+<div class="cards" id="cards"></div>
+<div style="font-size:11px;color:#aaa;margin-top:28px;border-top:1px solid #eee;padding-top:12px">
+Solar irradiance data: NASA POWER / NREL / Global Solar Atlas annual averages.<br>
+ROI based on avg US residential rate per city, 400W panels, $2.75 USD/W installed, 80% system efficiency.<br>
+<a href="methodology.html" style="color:#228b22">View methodology and scientific sources</a>
+</div>
+</div>
+<script>
+var cities=[
+{name:'Phoenix',state:'Arizona',pop:4.9,sun:6.6,lat:33.45,rate:0.13},
+{name:'Las Vegas',state:'Nevada',pop:2.3,sun:6.4,lat:36.17,rate:0.12},
+{name:'Tucson',state:'Arizona',pop:1.0,sun:6.3,lat:32.22,rate:0.13},
+{name:'Albuquerque',state:'New Mexico',pop:0.9,sun:6.2,lat:35.08,rate:0.14},
+{name:'El Paso',state:'Texas',pop:0.9,sun:6.1,lat:31.76,rate:0.12},
+{name:'Sacramento',state:'California',pop:2.4,sun:5.8,lat:38.58,rate:0.27},
+{name:'Los Angeles',state:'California',pop:13.2,sun:5.7,lat:34.05,rate:0.30},
+{name:'San Diego',state:'California',pop:3.3,sun:5.7,lat:32.72,rate:0.32},
+{name:'Denver',state:'Colorado',pop:2.9,sun:5.6,lat:39.74,rate:0.14},
+{name:'San Antonio',state:'Texas',pop:2.6,sun:5.5,lat:29.42,rate:0.12},
+{name:'Austin',state:'Texas',pop:2.3,sun:5.4,lat:30.27,rate:0.12},
+{name:'Dallas',state:'Texas',pop:7.6,sun:5.3,lat:32.78,rate:0.13},
+{name:'Houston',state:'Texas',pop:7.1,sun:5.2,lat:29.76,rate:0.13},
+{name:'Oklahoma City',state:'Oklahoma',pop:1.4,sun:5.2,lat:35.47,rate:0.11},
+{name:'San Jose',state:'California',pop:2.0,sun:5.5,lat:37.34,rate:0.29},
+{name:'San Francisco',state:'California',pop:4.7,sun:5.3,lat:37.77,rate:0.31},
+{name:'Miami',state:'Florida',pop:6.2,sun:5.3,lat:25.76,rate:0.14},
+{name:'Tampa',state:'Florida',pop:3.2,sun:5.2,lat:27.95,rate:0.13},
+{name:'Jacksonville',state:'Florida',pop:1.6,sun:5.1,lat:30.33,rate:0.13},
+{name:'Atlanta',state:'Georgia',pop:6.1,sun:5.0,lat:33.75,rate:0.13},
+{name:'Nashville',state:'Tennessee',pop:1.9,sun:4.9,lat:36.16,rate:0.11},
+{name:'Charlotte',state:'North Carolina',pop:2.7,sun:5.0,lat:35.23,rate:0.12},
+{name:'Washington DC',state:'DC',pop:6.3,sun:4.7,lat:38.91,rate:0.15},
+{name:'Philadelphia',state:'Pennsylvania',pop:6.2,sun:4.6,lat:39.95,rate:0.16},
+{name:'New York',state:'New York',pop:20.1,sun:4.6,lat:40.71,rate:0.22},
+{name:'Boston',state:'Massachusetts',pop:4.9,sun:4.5,lat:42.36,rate:0.25},
+{name:'Chicago',state:'Illinois',pop:9.5,sun:4.4,lat:41.88,rate:0.16},
+{name:'Minneapolis',state:'Minnesota',pop:3.7,sun:4.3,lat:44.98,rate:0.14},
+{name:'Detroit',state:'Michigan',pop:4.3,sun:4.2,lat:42.33,rate:0.18},
+{name:'Seattle',state:'Washington',pop:4.0,sun:3.8,lat:47.61,rate:0.12}
+];
+var D={wp:400,pa:1.95,eff:0.80,costW:2.75};
+function calcROI(sun,rate){
+  var bill=200,mk=bill/rate,ak=mk*12,dk=ak/365;
+  var kw=dk/(sun*D.eff);
+  var raw=Math.ceil(kw*1000/D.wp);
+  var akw=raw*D.wp/1000;
+  var gen=akw*sun*365*D.eff;
+  var inv=akw*1000*D.costW;
+  var as2=gen*rate;
+  return as2>0?inv/as2:99;
+}
+cities.sort(function(a,b){return calcROI(a.sun,a.rate)-calcROI(b.sun,b.rate);});
+function fmt(n,d){d=d||0;return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function drawBar(){
+  var c=document.getElementById('barChart');
+  var ctx=c.getContext('2d');
+  var W=c.parentElement.getBoundingClientRect().width;
+  if(W<100)W=800;
+  var barH=22,gap=3,pL=140,pR=200,pT=6,pB=6;
+  var H=pT+pB+cities.length*(barH+gap);
+  var dpr=window.devicePixelRatio||1;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var rois=[];
+  for(var i=0;i<cities.length;i++){rois.push(calcROI(cities[i].sun,cities[i].rate));}
+  var maxROI=Math.max.apply(null,rois)*1.15;
+  var cW=W-pL-pR;
+  for(var i=0;i<cities.length;i++){
+    var roi=rois[i];
+    var y=pT+i*(barH+gap);
+    var bw=(roi/maxROI)*cW;
+    var ratio=1-(roi/maxROI);
+    var shade=Math.round(20+ratio*60);
+    ctx.fillStyle='rgb('+shade+','+shade+','+shade+')';
+    ctx.fillRect(pL,y,bw,barH-1);
+    ctx.fillStyle='#111';ctx.font='11px -apple-system,sans-serif';ctx.textAlign='right';
+    ctx.fillText(cities[i].name,pL-8,y+barH/2+1);
+    ctx.fillStyle='#888';ctx.font='11px -apple-system,sans-serif';ctx.textAlign='left';
+    ctx.fillText(roi.toFixed(1)+' yrs  |  '+cities[i].sun+' sun hrs  |  $'+cities[i].rate+'/kWh  |  '+cities[i].state,pL+bw+8,y+barH/2+1);
+    if(bw>50){
+      ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='bold 10px -apple-system,sans-serif';ctx.textAlign='right';
+      ctx.fillText(roi.toFixed(1)+'y',pL+bw-6,y+barH/2+1);
+    }
+  }
+}
+drawBar();
+window.addEventListener('resize',drawBar);
+var cardsEl=document.getElementById('cards');
+for(var i=0;i<cities.length;i++){
+  var ct=cities[i];
+  var roi=calcROI(ct.sun,ct.rate);
+  var d=document.createElement('div');
+  d.className='card';
+  d.innerHTML='<h3>'+ct.name+'</h3><div class="st">'+ct.state+'</div><div class="sun">'+ct.sun+' sun hrs/day · ROI '+roi.toFixed(1)+' yrs</div><div class="pop">Pop. '+ct.pop+'M · $'+ct.rate+'/kWh · Lat '+ct.lat+'°N</div>';
+  d.setAttribute('data-idx',i);
+  d.addEventListener('click',function(){
+    var idx=Number(this.getAttribute('data-idx'));
+    var c2=cities[idx];
+    window.location.href='calc.html?city='+encodeURIComponent(c2.name)+'&state='+encodeURIComponent(c2.state)+'&sun='+c2.sun+'&lat='+c2.lat+'&rate='+c2.rate;
+  });
+  cardsEl.appendChild(d);
+}
+</script>
+</body>
+</html>

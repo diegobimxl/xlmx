@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditor SAT — Conciliacion Fiscal CFDI</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="header">
+  <h1>Auditor SAT</h1>
+  <p>Conciliacion fiscal CFDI 3.3 / 4.0</p>
+</div>
+<div class="container">
+  <div class="upload-zone" id="uploadZone">
+    <h2>Arrastra tus archivos XML</h2>
+    <p>Emitidos y recibidos (.xml)</p>
+    <input type="file" id="fileInput" multiple accept=".xml">
+    <div id="fileCount" class="file-count hidden">0</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btnAudit" disabled>Auditar</button>
+    <button class="btn btn-export hidden" id="btnExport">Exportar CSV</button>
+  </div>
+  <div id="statusBar" class="status-bar hidden"></div>
+  <div id="results">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="periodo-filter">
+      <label>Periodo:</label>
+      <select id="periodoSelect"><option value="">Todos</option></select>
+    </div>    <div class="tabs" id="tabBar">
+      <button class="tab active" data-tab="resumen">Resumen</button>
+      <button class="tab" data-tab="emitidos">Emitidos</button>
+      <button class="tab" data-tab="recibidos">Recibidos</button>
+      <button class="tab" data-tab="conciliacion">Conciliacion</button>
+      <button class="tab" data-tab="rfc">Por RFC</button>
+    </div>
+    <div class="table-wrap">
+      <div class="tab-content active" id="tab-resumen"></div>
+      <div class="tab-content" id="tab-emitidos"></div>
+      <div class="tab-content" id="tab-recibidos"></div>
+      <div class="tab-content" id="tab-conciliacion"></div>
+      <div class="tab-content" id="tab-rfc"></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

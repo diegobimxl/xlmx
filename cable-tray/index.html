@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cable Tray Fill Calculator — XLMX</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;padding:20px}
+h1{font-size:1.6rem;margin-bottom:4px}p.sub{color:#999;margin-bottom:20px;font-size:.85rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;color:#aaa;font-size:.8rem;margin-bottom:4px}
+input,select{width:100%;padding:10px;background:#222;border:1px solid #444;border-radius:8px;color:#fff;font-size:.95rem;margin-bottom:12px}
+button{padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600;margin-right:8px}
+button:hover{background:#15803d}button.sec{background:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kbox{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;text-align:center}
+.kbox .v{font-size:1.3rem;font-weight:700}.kbox .l{color:#aaa;font-size:.7rem;margin-top:4px}
+.pass{color:#16a34a}.warn{color:#f59e0b}.fail{color:#ef4444}
+.tray-vis{height:60px;background:#333;border-radius:6px;overflow:hidden;position:relative;margin-bottom:12px}
+.cable-fill{position:absolute;bottom:0;height:100%;border-radius:6px;transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 6px;border-bottom:1px solid #444;color:#aaa;font-size:.72rem;text-transform:uppercase}
+td{padding:6px;border-bottom:1px solid #1e1e1e}
+.del{color:#ef4444;cursor:pointer}
+a.back{color:#16a34a;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:16px}
+@media(max-width:600px){.grid2,.kpi{grid-template-columns:1fr}}
+</style></head><body>
+<a class="back" href="/">← XLMX</a>
+<h1>Cable Tray Fill Calculator</h1>
+<p class="sub">NEC 392 cable tray fill — allowable area, current cables, and utilization percentage</p>
+<div class="card">
+<div class="grid2">
+<div><label>Tray Width (mm)</label>
+<select id="tw"><option value="150">150 mm (6")</option><option value="300" selected>300 mm (12")</option><option value="450">450 mm (18")</option><option value="600">600 mm (24")</option><option value="750">750 mm (30")</option><option value="900">900 mm (36")</option></select></div>
+<div><label>Tray Type</label>
+<select id="ttype"><option value="ladder">Ladder</option><option value="solid">Solid Bottom</option><option value="ventilated">Ventilated</option><option value="wire">Wire Basket</option></select></div>
+<div><label>Cable Type Mix</label>
+<select id="ctype"><option value="0.5">All same diameter (50% fill allowed)</option><option value="0.4">Mixed diameters (40% fill)</option><option value="0.33">Single-layer rule (33% fill)</option></select></div>
+<div><label>Tray Depth (mm)</label>
+<input id="depth" type="number" value="100" step="25"></div>
+</div>
+</div>
+<div class="card">
+<p style="color:#16a34a;font-size:.85rem;font-weight:600;margin-bottom:10px">Add Cables</p>
+<div class="grid2" style="margin-bottom:12px">
+<div><label>Cable Type</label>
+<select id="cDesc"><option value="25|THW 10 AWG">THW 10 AWG — 25mm OD</option><option value="35|THW 8 AWG">THW 8 AWG — 35mm OD</option><option value="45|THWN 6 AWG">THWN 6 AWG — 45mm OD</option><option value="55|THWN 4 AWG">THWN 4 AWG — 55mm OD</option><option value="70|THWN 2 AWG">THWN 2 AWG — 70mm OD</option><option value="90|THWN 1/0">THWN 1/0 AWG — 90mm OD</option><option value="110|THWN 2/0">THWN 2/0 AWG — 110mm OD</option><option value="20|Cat6 UTP">Cat6 UTP — 20mm OD</option><option value="15|Fiber 12-strand">Fiber 12-strand — 15mm OD</option><option value="0|Custom">Custom OD</option></select></div>
+<div><label>OD (mm) — auto-filled above</label><input id="cod" type="number" value="25" step="1"></div>
+<div><label>Quantity</label><input id="cqty" type="number" value="4" step="1"></div>
+<div><button style="margin-top:20px" onclick="addCable()">+ Add</button></div>
+</div>
+<table><thead><tr><th>Cable</th><th>OD (mm)</th><th>Qty</th><th>Area (mm²)</th><th></th></tr></thead>
+<tbody id="ctb"></tbody></table>
+</div>
+<div class="kpi" id="kpi">
+<div class="kbox"><div class="v">—</div><div class="l">Tray Allowable Area</div></div>
+<div class="kbox"><div class="v">—</div><div class="l">Cable Fill Area</div></div>
+<div class="kbox"><div class="v">—</div><div class="l">Utilization</div></div>
+</div>
+<div class="tray-vis"><div class="cable-fill" id="cfill" style="width:0%;background:#16a34a"></div></div>
+<script>
+let cables=[];let nid=1;
+document.getElementById('cDesc').addEventListener('change',function(){const [od]=this.value.split('|');if(od!=='0')document.getElementById('cod').value=od});
+function addCable(){
+  const sel=document.getElementById('cDesc');const [,desc]=sel.value.split('|');
+  const od=+document.getElementById('cod').value,qty=+document.getElementById('cqty').value;
+  cables.push({id:nid++,desc:desc||'Custom',od,qty});render();
+}
+function del(id){cables=cables.filter(x=>x.id!==id);render()}
+function render(){
+  const tw=+document.getElementById('tw').value;const fillPct=+document.getElementById('ctype').value;
+  const allowed=tw*1*fillPct*1000; // simplified: width(mm) × depth factor × fill pct in mm²
+  const allowedArea=(tw*tw/4)*Math.PI*fillPct; // better: π×r²×fill where r=tw/2
+  const realAllowed=tw*100*fillPct; // width × depth × fill (mm²)
+  const tb=document.getElementById('ctb');tb.innerHTML='';
+  let total=0;
+  cables.forEach(c=>{const a=Math.PI*(c.od/2)**2*c.qty;total+=a;tb.innerHTML+=`<tr><td>${c.desc}</td><td>${c.od}</td><td>${c.qty}</td><td>${a.toFixed(0)}</td><td class="del" onclick="del(${c.id})">×</td></tr>`});
+  const util=realAllowed>0?(total/realAllowed*100):0;
+  const color=util<=80?'#16a34a':util<=100?'#f59e0b':'#ef4444';
+  const status=util<=80?'pass':util<=100?'warn':'fail';
+  document.getElementById('kpi').innerHTML=
+    `<div class="kbox"><div class="v">${realAllowed.toFixed(0)} mm²</div><div class="l">Allowable Fill Area (NEC ${(fillPct*100).toFixed(0)}%)</div></div>`+
+    `<div class="kbox"><div class="v">${total.toFixed(0)} mm²</div><div class="l">Current Cable Area</div></div>`+
+    `<div class="kbox"><div class="v ${status}">${util.toFixed(1)}%</div><div class="l">${util<=80?'OK — Room to grow':util<=100?'Near limit':'⚠ Exceeds NEC limit'}</div></div>`;
+  const cf=document.getElementById('cfill');cf.style.width=Math.min(util,100)+'%';cf.style.background=color;
+}
+render();
+</script></body></html>

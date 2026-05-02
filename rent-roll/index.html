@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rent Roll Summary — XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#111;font-size:14px;padding-bottom:60px}
+header{padding:24px 32px 16px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:16px}
+header a{color:#111;text-decoration:none;font-size:13px;opacity:.5}
+header a:hover{opacity:1}
+header h1{font-size:18px;font-weight:600}
+.main{max-width:1100px;margin:0 auto;padding:24px 32px}
+.controls{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.controls input,.controls select{padding:7px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;font-family:inherit}
+.controls button{padding:7px 14px;border:1px solid #e5e5e5;border-radius:6px;background:#111;color:#fff;font-size:13px;cursor:pointer;font-family:inherit}
+.controls button.sec{background:#fff;color:#111}
+.controls button:hover{opacity:.85}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.kpi{border:1px solid #e5e5e5;border-radius:8px;padding:16px}
+.kpi .label{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.kpi .value{font-size:22px;font-weight:600}
+.kpi .sub{font-size:11px;color:#666;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;border-bottom:2px solid #e5e5e5;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#666}
+td{padding:8px 10px;border-bottom:1px solid #e5e5e5;vertical-align:top}
+tr:hover td{background:#fafafa}
+td input,td select{border:none;background:transparent;font-size:13px;font-family:inherit;width:100%;color:#111;outline:none}
+td input:focus,td select:focus{background:#f5f5f5;border-radius:4px;padding:2px 4px}
+.status-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.status-occupied{background:#dcfce7;color:#166534}
+.status-vacant{background:#fee2e2;color:#991b1b}
+.status-notice{background:#fef9c3;color:#713f12}
+.status-renewal{background:#dbeafe;color:#1e40af}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 4px}
+.del-btn:hover{color:#ef4444}
+.occupancy-bar{height:8px;background:#e5e5e5;border-radius:4px;margin-top:8px;overflow:hidden}
+.occupancy-fill{height:100%;background:#111;border-radius:4px;transition:width .3s}
+.section-title{font-size:13px;font-weight:600;margin-bottom:10px;color:#666;text-transform:uppercase;letter-spacing:.04em}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;padding:12px 32px;font-size:11px;color:#999;display:flex;justify-content:space-between}
+@media print{footer{display:none}.controls{display:none}body{padding:0}}
+</style>
+</head>
+<body>
+<header>
+  <a href="../">← Back</a>
+  <h1>Rent Roll Summary</h1>
+</header>
+<div class="main">
+  <div class="controls">
+    <input type="text" id="propertyName" placeholder="Property name" value="Project Beta Mixed-Use" style="min-width:200px">
+    <select id="currency">
+      <option value="$">USD $</option>
+      <option value="MXN $" selected>MXN $</option>
+    </select>
+    <button onclick="addUnit()">+ Add Unit</button>
+    <button class="sec" onclick="loadSample()">Load Sample</button>
+    <button class="sec" onclick="window.print()">Print / PDF</button>
+  </div>
+  <div class="kpi-row" id="kpis"></div>
+  <div class="section-title">Units</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Unit</th><th>Type</th><th>Tenant</th><th>Lease Start</th><th>Lease End</th>
+        <th>Monthly Rent</th><th>Deposit</th><th>Status</th><th></th>
+      </tr>
+    </thead>
+    <tbody id="unitBody"></tbody>
+  </table>
+</div>
+<footer>
+  <span id="footerLeft">XLMX — Rent Roll</span>
+  <span id="footerRight"></span>
+</footer>
+
+<script>
+let units=[];
+let uid=1;
+
+function addUnit(u){
+  const id=uid++;
+  units.push(u||{id,unit:'',type:'Commercial',tenant:'',start:'',end:'',rent:0,deposit:0,status:'Vacant'});
+  render();
+}
+
+function removeUnit(id){units=units.filter(u=>u.id!==id);render();}
+
+function getVal(id,field){
+  const u=units.find(u=>u.id===id);
+  if(!u)return;
+  const el=document.querySelector(`[data-id="${id}"][data-field="${field}"]`);
+  if(!el)return;
+  u[field]=el.type==='number'?parseFloat(el.value)||0:el.value;
+  render();
+}
+
+function render(){
+  const cur=document.getElementById('currency').value;
+  const prop=document.getElementById('propertyName').value||'Property';
+  const body=document.getElementById('unitBody');
+  body.innerHTML=units.map(u=>`
+    <tr>
+      <td><input data-id="${u.id}" data-field="unit" value="${u.unit}" placeholder="101" onchange="getVal(${u.id},'unit')"></td>
+      <td><select data-id="${u.id}" data-field="type" onchange="getVal(${u.id},'type')">
+        ${['Studio','1BR','2BR','3BR','Commercial','Office','Retail','Parking'].map(t=>`<option${t===u.type?' selected':''}>${t}</option>`).join('')}
+      </select></td>
+      <td><input data-id="${u.id}" data-field="tenant" value="${u.tenant}" placeholder="Tenant name" onchange="getVal(${u.id},'tenant')"></td>
+      <td><input type="date" data-id="${u.id}" data-field="start" value="${u.start}" onchange="getVal(${u.id},'start')"></td>
+      <td><input type="date" data-id="${u.id}" data-field="end" value="${u.end}" onchange="getVal(${u.id},'end')"></td>
+      <td><input type="number" data-id="${u.id}" data-field="rent" value="${u.rent}" onchange="getVal(${u.id},'rent')"></td>
+      <td><input type="number" data-id="${u.id}" data-field="deposit" value="${u.deposit}" onchange="getVal(${u.id},'deposit')"></td>
+      <td><select data-id="${u.id}" data-field="status" onchange="getVal(${u.id},'status')">
+        ${['Occupied','Vacant','Notice','Renewal'].map(s=>`<option${s===u.status?' selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><button class="del-btn" onclick="removeUnit(${u.id})">×</button></td>
+    </tr>
+  `).join('');
+  updateKPIs(cur,prop);
+}
+
+function updateKPIs(cur,prop){
+  const total=units.length;
+  const occupied=units.filter(u=>u.status==='Occupied'||u.status==='Renewal').length;
+  const vacant=units.filter(u=>u.status==='Vacant').length;
+  const notice=units.filter(u=>u.status==='Notice').length;
+  const occ=total?Math.round(occupied/total*100):0;
+  const grossRent=units.reduce((s,u)=>s+(u.status!=='Vacant'?u.rent:0),0);
+  const potentialRent=units.reduce((s,u)=>s+u.rent,0);
+  const totalDeposit=units.reduce((s,u)=>s+u.deposit,0);
+  const fmt=n=>cur+(n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':n.toLocaleString());
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="label">Total Units</div><div class="value">${total}</div>
+      <div class="sub">${occupied} occupied · ${vacant} vacant · ${notice} notice</div>
+      <div class="occupancy-bar"><div class="occupancy-fill" style="width:${occ}%"></div></div></div>
+    <div class="kpi"><div class="label">Occupancy Rate</div><div class="value">${occ}%</div>
+      <div class="sub">Target 95%+</div></div>
+    <div class="kpi"><div class="label">Gross Monthly Rent</div><div class="value">${fmt(grossRent)}</div>
+      <div class="sub">Potential: ${fmt(potentialRent)}</div></div>
+    <div class="kpi"><div class="label">Annual Revenue</div><div class="value">${fmt(grossRent*12)}</div>
+      <div class="sub">Vacancy loss: ${fmt((potentialRent-grossRent)*12)}/yr</div></div>
+    <div class="kpi"><div class="label">Total Deposits Held</div><div class="value">${fmt(totalDeposit)}</div>
+      <div class="sub">${units.filter(u=>u.deposit>0).length} units with deposit</div></div>
+  `;
+  const now=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('footerLeft').textContent=`${prop} — Rent Roll`;
+  document.getElementById('footerRight').textContent=`Generated ${now} · ${total} units`;
+}
+
+function loadSample(){
+  units=[];uid=1;
+  const data=[
+    {unit:'101',type:'Commercial',tenant:'Farmacia Guadalajara',start:'2024-01-01',end:'2026-12-31',rent:28000,deposit:56000,status:'Occupied'},
+    {unit:'102',type:'Retail',tenant:'Café Punta del Cielo',start:'2024-03-01',end:'2025-02-28',rent:18500,deposit:37000,status:'Renewal'},
+    {unit:'103',type:'Office',tenant:'Estudio Arq. Rodríguez',start:'2023-09-01',end:'2025-08-31',rent:22000,deposit:44000,status:'Occupied'},
+    {unit:'201',type:'2BR',tenant:'Familia Hernández',start:'2024-06-01',end:'2025-05-31',rent:12500,deposit:25000,status:'Occupied'},
+    {unit:'202',type:'2BR',tenant:'',start:'',end:'',rent:13000,deposit:0,status:'Vacant'},
+    {unit:'203',type:'1BR',tenant:'Ana García',start:'2025-01-15',end:'2026-01-14',rent:9800,deposit:19600,status:'Occupied'},
+    {unit:'204',type:'Studio',tenant:'Luis Martínez',start:'2024-11-01',end:'2025-10-31',rent:7500,deposit:15000,status:'Notice'},
+    {unit:'P01',type:'Parking',tenant:'Farmacia Guadalajara',start:'2024-01-01',end:'2026-12-31',rent:1500,deposit:3000,status:'Occupied'},
+  ];
+  data.forEach(d=>addUnit({...d,id:uid++}));
+  document.getElementById('propertyName').value='Project Beta Mixed-Use';
+  document.getElementById('currency').value='MXN $';
+  render();
+}
+
+document.getElementById('currency').addEventListener('change',render);
+document.getElementById('propertyName').addEventListener('input',render);
+loadSample();
+</script>
+</body>
+</html>

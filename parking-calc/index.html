@@ -1,0 +1,118 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Parking Calculator — XLMX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:1.5rem;margin-bottom:4px}
+.sub{font-size:.75rem;color:#888;margin-bottom:20px}
+label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+select{appearance:auto}
+button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}
+button:hover{background:#15803d}
+button.sec{background:#333}
+button.sec:hover{background:#444}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}
+td{padding:6px 8px;border-bottom:1px solid #222}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}
+.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.bo{background:#f9731622;color:#f97316}.bb{background:#3b82f622;color:#3b82f6}
+.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}
+.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head><body>
+<div class="container">
+<h1>Parking Calculator</h1>
+<p class="sub">Calculate required parking spaces by building use and local code — MX and US standards.</p>
+<div class="card">
+<div class="grid2">
+<div><label>Country</label><select id="country" onchange="updateUses()"><option value="MX">Mexico</option><option value="US">United States</option></select></div>
+<div><label>Use Type</label><select id="use" onchange="calc()"></select></div>
+</div>
+<div class="grid2" style="margin-top:8px;">
+<div><label id="areaLabel">Area (m²)</label><input id="area" type="number" placeholder="5000" oninput="calc()"></div>
+<div><label>Units (if residential)</label><input id="units" type="number" placeholder="0" oninput="calc()"></div>
+</div>
+</div>
+<div id="uses-list" class="card" style="display:none;"><h3 style="font-size:.85rem;margin-bottom:8px;">Add Mixed Uses</h3><div id="mixed"></div><button class="sec" onclick="addUse()" style="margin-top:8px;">+ Add Use</button></div>
+<div id="result"></div>
+</div>
+<script>
+const RATES={
+MX:{
+'Residential (Apartments)':{per_unit:1.5,per_m2:null,label:'1.5 spaces per unit',hc:.02,bike:.1},
+'Residential (Houses)':{per_unit:2,per_m2:null,label:'2 spaces per unit',hc:.02,bike:0},
+'Office':{per_unit:null,per_m2:30,label:'1 per 30 m²',hc:.02,bike:.05},
+'Commercial / Retail':{per_unit:null,per_m2:40,label:'1 per 40 m²',hc:.02,bike:.03},
+'Restaurant':{per_unit:null,per_m2:15,label:'1 per 15 m²',hc:.02,bike:.02},
+'Hotel':{per_unit:null,per_m2:50,label:'1 per 50 m² (or 1 per 2 rooms)',hc:.02,bike:.02},
+'Hospital':{per_unit:null,per_m2:30,label:'1 per 30 m²',hc:.05,bike:.02},
+'Industrial / Warehouse':{per_unit:null,per_m2:100,label:'1 per 100 m²',hc:.02,bike:.02},
+'School / University':{per_unit:null,per_m2:40,label:'1 per 40 m²',hc:.02,bike:.1},
+},
+US:{
+'Residential (Apartments)':{per_unit:1.5,per_m2:null,label:'1.5 spaces per unit',hc:.02,bike:.1},
+'Residential (Houses)':{per_unit:2,per_m2:null,label:'2 spaces per unit',hc:.02,bike:0},
+'Office':{per_unit:null,per_m2:28,label:'1 per 300 ft² (28 m²)',hc:.02,bike:.05},
+'Commercial / Retail':{per_unit:null,per_m2:19,label:'1 per 200 ft² (19 m²)',hc:.02,bike:.03},
+'Restaurant':{per_unit:null,per_m2:9,label:'1 per 100 ft² (9 m²)',hc:.02,bike:.02},
+'Hotel':{per_unit:null,per_m2:46,label:'1 per room (~46 m²)',hc:.02,bike:.02},
+'Hospital':{per_unit:null,per_m2:23,label:'1 per 250 ft² (23 m²)',hc:.05,bike:.02},
+'Industrial / Warehouse':{per_unit:null,per_m2:93,label:'1 per 1000 ft² (93 m²)',hc:.02,bike:.02},
+'School / University':{per_unit:null,per_m2:19,label:'1 per 200 ft² (19 m²)',hc:.02,bike:.1},
+}
+};
+function updateUses(){
+const c=document.getElementById('country').value;
+const s=document.getElementById('use');
+s.innerHTML='';
+Object.keys(RATES[c]).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;s.appendChild(o);});
+document.getElementById('areaLabel').textContent=c==='MX'?'Area (m²)':'Area (ft²)';
+calc();
+}
+function calc(){
+const c=document.getElementById('country').value;
+const u=document.getElementById('use').value;
+const area=parseFloat(document.getElementById('area').value)||0;
+const units=parseInt(document.getElementById('units').value)||0;
+const rate=RATES[c][u];
+if(!rate)return;
+let spaces=0;
+if(rate.per_unit&&units>0)spaces=Math.ceil(units*rate.per_unit);
+else if(rate.per_m2&&area>0){
+let a=area;
+if(c==='US')a=area*0.0929;
+spaces=Math.ceil(area/rate.per_m2);
+}
+const hc=Math.max(1,Math.ceil(spaces*rate.hc));
+const bike=Math.ceil(spaces*rate.bike);
+const compact=Math.ceil(spaces*0.15);
+const unitArea=c==='MX'?'m²':'ft²';
+let h=`<div class="card"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+<div class="stat"><div class="n" style="color:#16a34a;">${spaces}</div><div class="l">Total Spaces</div></div>
+<div class="stat"><div class="n">${hc}</div><div class="l">Accessible</div></div>
+<div class="stat"><div class="n">${bike}</div><div class="l">Bicycle</div></div>
+<div class="stat"><div class="n">${compact}</div><div class="l">Compact (15%)</div></div>
+</div></div>
+<div class="card"><table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Rate</td><td>${rate.label}</td></tr>
+<tr><td>Input Area</td><td>${area.toLocaleString()} ${unitArea}</td></tr>
+<tr><td>Units (if applicable)</td><td>${units||'N/A'}</td></tr>
+<tr><td>Standard Spaces</td><td>${spaces-hc}</td></tr>
+<tr><td>Accessible Spaces (${(rate.hc*100).toFixed(0)}%)</td><td>${hc}</td></tr>
+<tr><td>Bicycle Parking (${(rate.bike*100).toFixed(0)}%)</td><td>${bike}</td></tr>
+<tr><td>Compact Allowed (15%)</td><td>${compact}</td></tr>
+<tr><td>Est. Parking Area (${unitArea})</td><td>${c==='MX'?(spaces*25).toLocaleString()+' m² (25 m²/space)':(spaces*300).toLocaleString()+' ft² (300 ft²/space)'}</td></tr>
+</table></div>`;
+document.getElementById('result').innerHTML=h;
+}
+updateUses();
+</script></body></html>

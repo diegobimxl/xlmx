@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Traductor BIM Estándar MX</title>
+<style>
+:root{--bg:#fff;--text:#111;--dim:#888;--border:#e0e0e0;--hover:#f5f5f5;--ok:#2e7d32;--warn:#b8860b;--alert:#c00}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:16px;padding-bottom:60px}
+h1{font-size:1.3em;margin-bottom:4px}
+.sub{font-size:.85em;color:var(--dim);margin-bottom:16px}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 16px;cursor:pointer;border:none;background:none;font-size:.9em;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{border-bottom-color:var(--text);font-weight:600}
+.panel{display:none}.panel.active{display:block}
+input[type="text"]{width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:.9em;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:.85em}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{background:var(--hover);font-weight:600;position:sticky;top:0}
+tr:hover{background:var(--hover)}
+</style>
+</head>
+<body>
+<h1>Traductor BIM Estándar MX</h1>
+<p class="sub">Glosario bilingüe de términos BIM, LOD/LOI y fases ISO 19650 para el mercado mexicano</p>
+<div class="tabs">
+<button class="tab active" onclick="showTab('glosario')">Glosario</button>
+<button class="tab" onclick="showTab('lod')">LOD / LOI</button>
+<button class="tab" onclick="showTab('iso')">Fases ISO 19650</button>
+<button class="tab" onclick="showTab('entregables')">Matriz de Entregables</button>
+</div>
+
+<div id="glosario" class="panel active">
+<input type="text" id="searchG" placeholder="Buscar término..." oninput="filterG()">
+<table><thead><tr><th>Término EN</th><th>Término ES</th><th>Categoría</th><th>Definición</th></tr></thead>
+<tbody id="gtbody"></tbody></table>
+</div>
+
+<div id="lod" class="panel">
+<h2 style="font-size:1.1em;margin-bottom:12px">Niveles de Desarrollo (LOD) y Nivel de Información (LOI)</h2>
+<table><thead><tr><th>LOD</th><th>Nombre EN</th><th>Nombre ES</th><th>Descripción</th><th>LOI Típico</th></tr></thead>
+<tbody id="ltbody"></tbody></table>
+</div>
+
+<div id="iso" class="panel">
+<h2 style="font-size:1.1em;margin-bottom:12px">Fases ISO 19650 — Gestión de Información</h2>
+<table><thead><tr><th>Fase</th><th>Nombre EN</th><th>Nombre ES</th><th>Descripción</th><th>Entregable Clave</th></tr></thead>
+<tbody id="itbody"></tbody></table>
+</div>
+
+<div id="entregables" class="panel">
+<h2 style="font-size:1.1em;margin-bottom:12px">Matriz de Entregables por Fase</h2>
+<table><thead><tr><th>Fase</th><th>Modelo</th><th>Planos</th><th>Tablas</th><th>Reportes</th></tr></thead>
+<tbody id="etbody"></tbody></table>
+</div>
+<script>
+const glossary=[
+{en:'BIM',es:'BIM (Modelado de Información de la Construcción)',cat:'General',def:'Proceso de creación y gestión de información digital de un activo construido'},
+{en:'LOD',es:'Nivel de Desarrollo',cat:'Modelado',def:'Grado de completitud geométrica y de información de un elemento BIM'},
+{en:'LOI',es:'Nivel de Información',cat:'Modelado',def:'Cantidad y detalle de datos no gráficos asociados a un elemento'},
+{en:'CDE',es:'Entorno Común de Datos',cat:'Gestión',def:'Plataforma centralizada para almacenar, compartir y gestionar información del proyecto'},
+{en:'IFC',es:'IFC (Industry Foundation Classes)',cat:'Interoperabilidad',def:'Formato abierto estándar para intercambio de modelos BIM entre software'},
+{en:'BCF',es:'BCF (BIM Collaboration Format)',cat:'Coordinación',def:'Formato abierto para comunicar incidencias y observaciones sobre modelos BIM'},
+{en:'Clash Detection',es:'Detección de Interferencias',cat:'Coordinación',def:'Proceso automatizado para identificar conflictos geométricos entre disciplinas'},
+{en:'Model Element Author',es:'Autor del Elemento del Modelo',cat:'Gestión',def:'Responsable de crear y mantener elementos específicos dentro del modelo BIM'},
+{en:'BEP',es:'Plan de Ejecución BIM',cat:'Gestión',def:'Documento que define procesos, roles y estándares BIM para un proyecto'},
+{en:'EIR / OIR',es:'Requisitos de Información',cat:'Gestión',def:'Especificación del cliente sobre qué información necesita del modelo'},
+{en:'Asset Information Model',es:'Modelo de Información del Activo',cat:'Operación',def:'Modelo BIM para la fase de operación y mantenimiento del edificio'},
+{en:'Project Information Model',es:'Modelo de Información del Proyecto',cat:'Diseño',def:'Modelo BIM que evoluciona durante diseño y construcción'},
+{en:'Work in Progress (WIP)',es:'Trabajo en Proceso',cat:'CDE',def:'Zona del CDE donde se desarrolla información antes de compartir'},
+{en:'Shared',es:'Compartido',cat:'CDE',def:'Zona del CDE para información verificada y lista para coordinación'},
+{en:'Published',es:'Publicado',cat:'CDE',def:'Zona del CDE para información aprobada formalmente'},
+{en:'Federated Model',es:'Modelo Federado',cat:'Coordinación',def:'Modelo compuesto por la unión de modelos de múltiples disciplinas'},
+{en:'4D BIM',es:'BIM 4D (Programación)',cat:'Simulación',def:'Integración del modelo 3D con la programación de obra (tiempo)'},
+{en:'5D BIM',es:'BIM 5D (Costos)',cat:'Simulación',def:'Integración del modelo con estimación y control de costos'},
+{en:'6D BIM',es:'BIM 6D (Sustentabilidad)',cat:'Simulación',def:'Análisis energético y de sustentabilidad basado en el modelo'},
+{en:'7D BIM',es:'BIM 7D (Facility Management)',cat:'Operación',def:'Uso del modelo para operación y mantenimiento del edificio'},
+{en:'Navisworks',es:'Navisworks',cat:'Software',def:'Herramienta Autodesk para revisión de modelos y detección de interferencias'},
+{en:'Revit',es:'Revit',cat:'Software',def:'Software principal de modelado BIM de Autodesk'},
+{en:'Point Cloud',es:'Nube de Puntos',cat:'Captura',def:'Conjunto de puntos 3D capturados por escáner láser que representa geometría existente'},
+{en:'As-Built',es:'Modelo As-Built / Como Construido',cat:'Construcción',def:'Modelo que refleja las condiciones reales de lo construido'},
+{en:'RFI',es:'Solicitud de Información (RFI)',cat:'Gestión',def:'Solicitud formal para aclarar información del proyecto'},
+{en:'Submittal',es:'Submittal / Entregable Técnico',cat:'Gestión',def:'Documento técnico o muestra enviada para aprobación'},
+{en:'COBie',es:'COBie',cat:'Datos',def:'Formato estándar para entregar información de activos al propietario'},
+{en:'Model Audit',es:'Auditoría de Modelo',cat:'QA/QC',def:'Revisión sistemática del modelo para verificar cumplimiento de estándares'},
+{en:'BIM Mandate',es:'Mandato BIM',cat:'Regulación',def:'Requisito gubernamental o contractual de usar BIM en proyectos'},
+{en:'Digital Twin',es:'Gemelo Digital',cat:'Operación',def:'Réplica digital dinámica de un activo físico conectada en tiempo real'}
+];
+const lodData=[
+{lod:'100',en:'Conceptual',es:'Conceptual',desc:'Representación genérica del elemento — masa, área aproximada',loi:'Nombre, clasificación básica'},
+{lod:'200',en:'Approximate Geometry',es:'Geometría Aproximada',desc:'Tamaño, forma y ubicación general del elemento',loi:'Materiales genéricos, costo estimado'},
+{lod:'300',en:'Precise Geometry',es:'Geometría Precisa',desc:'Cantidad, tamaño, forma y ubicación exactos',loi:'Especificaciones, fabricante, datos de rendimiento'},
+{lod:'350',en:'Construction Detail',es:'Detalle Constructivo',desc:'Incluye conexiones e interfaces con otros sistemas',loi:'Datos de instalación, secuencia constructiva'},
+{lod:'400',en:'Fabrication',es:'Fabricación',desc:'Suficiente para fabricación y montaje',loi:'Datos completos de fabricación y ensamblaje'},
+{lod:'500',en:'As-Built / Verified',es:'Como Construido / Verificado',desc:'Verificado en campo — refleja condición real',loi:'Datos de operación, garantías, manuales'}
+];
+
+const isoPhases=[
+{phase:'0',en:'Strategic Need',es:'Necesidad Estratégica',desc:'Definición de la necesidad del proyecto y caso de negocio',key:'OIR (Requisitos de Información Organizacional)'},
+{phase:'1',en:'Preparation & Brief',es:'Preparación y Brief',desc:'Establecer requisitos de información y plan de ejecución BIM',key:'EIR, BEP pre-contrato'},
+{phase:'2',en:'Concept Design',es:'Diseño Conceptual',desc:'Desarrollo de opciones de diseño y selección de concepto',key:'Modelo conceptual LOD 100-200'},
+{phase:'3',en:'Spatial Coordination',es:'Coordinación Espacial',desc:'Coordinación entre disciplinas y detección de interferencias',key:'Modelo coordinado, reportes de clash'},
+{phase:'4',en:'Technical Design',es:'Diseño Técnico',desc:'Desarrollo técnico completo para construcción',key:'Modelo LOD 300-400, planos constructivos'},
+{phase:'5',en:'Manufacturing & Construction',es:'Fabricación y Construcción',desc:'Producción de componentes y ejecución en obra',key:'Modelo de fabricación, programa 4D'},
+{phase:'6',en:'Handover',es:'Entrega',desc:'Entrega de información del activo al propietario/operador',key:'AIM, COBie, manuales O&M'},
+{phase:'7',en:'Operations',es:'Operaciones',desc:'Gestión y mantenimiento del activo en operación',key:'Gemelo digital, datos FM'}
+];
+const deliverables=[
+{phase:'Conceptual',modelo:'Masas / volúmenes',planos:'Plantas esquemáticas',tablas:'Programa arquitectónico',reportes:'Análisis de sitio'},
+{phase:'Esquemático',modelo:'Modelo LOD 200',planos:'Plantas, cortes, fachadas',tablas:'Estimado de áreas',reportes:'Estudio de factibilidad'},
+{phase:'Desarrollo',modelo:'Modelo LOD 300',planos:'Planos de coordinación',tablas:'Cuantificación preliminar',reportes:'Reporte de interferencias'},
+{phase:'Documentos CD',modelo:'Modelo LOD 350-400',planos:'Planos constructivos',tablas:'Catálogo de conceptos',reportes:'Especificaciones técnicas'},
+{phase:'Construcción',modelo:'Modelo 4D/5D',planos:'Planos de taller',tablas:'Control de cantidades',reportes:'Progreso de obra'},
+{phase:'Entrega',modelo:'Modelo As-Built LOD 500',planos:'Planos récord',tablas:'COBie / datos FM',reportes:'Manual de operación'}
+];
+
+function showTab(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');event.target.classList.add('active');}
+
+function filterG(){const q=document.getElementById('searchG').value.toLowerCase();document.querySelectorAll('#gtbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none'});}
+
+function renderAll(){
+let g='';glossary.forEach(t=>{g+=`<tr><td>${t.en}</td><td>${t.es}</td><td>${t.cat}</td><td style="font-size:.8em;color:#555">${t.def}</td></tr>`;});
+document.getElementById('gtbody').innerHTML=g;
+let l='';lodData.forEach(t=>{l+=`<tr><td style="font-weight:600">LOD ${t.lod}</td><td>${t.en}</td><td>${t.es}</td><td style="font-size:.8em">${t.desc}</td><td style="font-size:.8em;color:#555">${t.loi}</td></tr>`;});
+document.getElementById('ltbody').innerHTML=l;
+let i='';isoPhases.forEach(t=>{i+=`<tr><td style="font-weight:600">${t.phase}</td><td>${t.en}</td><td>${t.es}</td><td style="font-size:.8em">${t.desc}</td><td style="font-size:.8em;color:#555">${t.key}</td></tr>`;});
+document.getElementById('itbody').innerHTML=i;
+let e='';deliverables.forEach(t=>{e+=`<tr><td style="font-weight:600">${t.phase}</td><td>${t.modelo}</td><td>${t.planos}</td><td>${t.tablas}</td><td>${t.reportes}</td></tr>`;});
+document.getElementById('etbody').innerHTML=e;
+}
+renderAll();
+</script>
+<div id="pro-gate" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;justify-content:center;align-items:center">
+<div style="background:#fff;padding:32px;border-radius:8px;max-width:420px;width:90%;text-align:center">
+<h2 style="font-size:1.2em;margin-bottom:8px">Te esta gustando? / Enjoying the tool?</h2>
+<p style="font-size:.85em;color:#888;margin-bottom:16px">Ingresa tu email para seguir usando gratis. / Enter your email to continue free.</p>
+<input id="pro-email" type="email" placeholder="tu@email.com" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:4px;font-size:.9em;margin-bottom:8px">
+<button onclick="proUnlock()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.9em;margin-bottom:8px">Continuar Gratis / Continue Free</button>
+<button onclick="document.getElementById('pro-gate').style.display='none';document.body.style.overflow='auto'" style="width:100%;padding:8px;background:none;border:1px solid #e0e0e0;border-radius:4px;cursor:pointer;font-size:.85em;color:#888">Ahora no / Not now</button>
+</div></div>
+<div style="position:fixed;bottom:0;left:0;width:100%;background:#111;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:.8em;z-index:9998">
+<span>Version gratuita. <strong>Pro</strong>: sincronización en la nube, equipos y API.</span>
+<a href="#" style="background:#fff;color:#111;padding:6px 16px;border-radius:4px;text-decoration:none;font-weight:600;font-size:.85em">Upgrade to Pro</a>
+</div>
+<script>
+(function(){const key='pro_uses_'+location.pathname;let uses=parseInt(localStorage.getItem(key)||'0');uses++;localStorage.setItem(key,uses);if(!localStorage.getItem('pro_email')&&uses>5){document.getElementById('pro-gate').style.display='flex';document.body.style.overflow='hidden';}document.body.style.paddingBottom='50px';})();
+function proUnlock(){const email=document.getElementById('pro-email').value;if(!email||!email.includes('@'))return;localStorage.setItem('pro_email',email);document.getElementById('pro-gate').style.display='none';document.body.style.overflow='auto';}
+</script>
+</body>
+</html>

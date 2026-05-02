@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stacking Diagram — XLMX</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}.container{max-width:900px;margin:0 auto;padding:20px}h1{font-size:1.5rem;margin-bottom:4px}.sub{font-size:.75rem;color:#888;margin-bottom:20px}label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}textarea{min-height:80px;resize:vertical}button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}button:hover{background:#15803d}button.sec{background:#333}button.sec:hover{background:#444}button.del{background:#dc2626;padding:4px 8px;font-size:.7rem}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}table{width:100%;border-collapse:collapse;font-size:.78rem}th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}td{padding:6px 8px;border-bottom:1px solid #222}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+</style><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>.stk-row{display:flex;align-items:center;margin:2px 0}.stk-bar{height:28px;border-radius:3px;display:flex;align-items:center;padding:0 10px;font-size:.7rem;font-weight:600;flex:1;margin-left:50px}.stk-lbl{width:50px;text-align:right;font-size:.65rem;color:#888;padding-right:8px;position:absolute}</style>
+</head><body>
+<div class="container">
+<h1>Stacking Diagram</h1>
+<p class="sub">Visualize building program as a vertical stacking diagram by floor and use.</p>
+<div class="card">
+<div class="grid3">
+<div><label>Number of Floors</label><input id="nfloors" type="number" value="8" min="1" max="80" onchange="buildFloors()"></div>
+<div><label>Basements</label><input id="nbsmt" type="number" value="2" min="0" max="10" onchange="buildFloors()"></div>
+<div><label>Floor Height (m)</label><input id="fh" type="number" value="3.5" step="0.1"></div>
+</div>
+</div>
+<div class="card" id="floors"></div>
+<div style="margin:10px 0"><button onclick="renderDiagram()">Generate Diagram</button></div>
+<div id="diagram"></div>
+<div id="summary"></div>
+</div>
+<script>
+const USES={Parking:'#555',Retail:'#eab308',Office:'#3b82f6',Residential:'#16a34a',Hotel:'#a855f7',Amenity:'#ec4899',Mechanical:'#78716c',Lobby:'#f97316'};
+let floors=[];
+function buildFloors(){
+const n=parseInt(document.getElementById('nfloors').value)||1;
+const b=parseInt(document.getElementById('nbsmt').value)||0;
+floors=[];
+for(let i=b;i>0;i--)floors.push({name:'B'+i,use:'Parking'});
+floors.push({name:'Ground',use:'Lobby'});
+for(let i=1;i<n;i++)floors.push({name:''+i,use:i<3?'Retail':'Office'});
+renderFloorList();
+}
+function renderFloorList(){
+let h='<table><tr><th>Floor</th><th>Use Type</th></tr>';
+floors.forEach((f,i)=>{
+h+=`<tr><td>${f.name}</td><td><select onchange="floors[${i}].use=this.value;renderDiagram()">`;
+Object.keys(USES).forEach(u=>h+=`<option ${u===f.use?'selected':''}>${u}</option>`);
+h+=`</select></td></tr>`;
+});
+h+='</table>';
+document.getElementById('floors').innerHTML=h;
+renderDiagram();
+}
+function renderDiagram(){
+const fh=parseFloat(document.getElementById('fh').value)||3.5;
+const rev=[...floors].reverse();
+let h='<div class="card">';
+rev.forEach(f=>{
+const c=USES[f.use]||'#555';
+h+=`<div class="stk-row" style="position:relative;"><span class="stk-lbl">${f.name}</span><div class="stk-bar" style="background:${c}30;border-left:4px solid ${c};color:${c}">${f.use}</div></div>`;
+});
+h+=`<div style="text-align:center;margin-top:10px;font-size:.7rem;color:#888;">Total Height: ${(floors.length*fh).toFixed(1)}m · ${floors.length} levels</div></div>`;
+const counts={};
+floors.forEach(f=>counts[f.use]=(counts[f.use]||0)+1);
+h+=`<div class="card"><h3 style="font-size:.85rem;margin-bottom:8px;">Program Summary</h3><table><tr><th>Use</th><th>Floors</th><th>%</th><th>Color</th></tr>`;
+Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([u,c])=>{
+h+=`<tr><td>${u}</td><td>${c}</td><td>${(c/floors.length*100).toFixed(1)}%</td><td><span style="display:inline-block;width:20px;height:12px;border-radius:2px;background:${USES[u]}"></span></td></tr>`;
+});
+h+=`</table></div>`;
+document.getElementById('diagram').innerHTML=h;
+}
+buildFloors();
+</script></body></html>
