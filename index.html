@@ -311,7 +311,7 @@ grid.innerHTML='';
 list.forEach(function(t){
 var div=document.createElement('div');
 div.className='tool-card';
-div.innerHTML='<a class="tool-name" href="'+t.href+'" data-en="'+t.en+'" data-es="'+t.es+'">'+( activeLang==='es'?t.es:t.en )+'</a><div class="tool-desc" data-en="'+t.den+'" data-es="'+t.des+'">'+( activeLang==='es'?t.des:t.den )+'</div>';
+div.innerHTML='<a class="tool-name" href="'+getHref(t)+'" data-en="'+t.en+'" data-es="'+t.es+'">'+( activeLang==='es'?t.es:t.en )+'</a><div class="tool-desc" data-en="'+t.den+'" data-es="'+t.des+'">'+( activeLang==='es'?t.des:t.den )+'</div>';
 grid.appendChild(div);
 });
 wrap.style.display=list.length?'block':'none';
@@ -323,7 +323,7 @@ if(search){activeCat=null;var wrap=document.getElementById('tools-wrap');var gri
 var list=TOOLS.filter(function(t){return(t.en+t.es+t.den+t.des).toLowerCase().indexOf(search)>-1;});
 list.sort(function(a,b){return(activeLang==='es'?a.es:a.en).localeCompare(activeLang==='es'?b.es:b.en);});
 grid.innerHTML='';
-list.forEach(function(t){var div=document.createElement('div');div.className='tool-card';div.innerHTML='<a class="tool-name" href="'+t.href+'" data-en="'+t.en+'" data-es="'+t.es+'">'+( activeLang==='es'?t.es:t.en )+'</a><div class="tool-desc" data-en="'+t.den+'" data-es="'+t.des+'">'+( activeLang==='es'?t.des:t.den )+'</div>';grid.appendChild(div);});
+list.forEach(function(t){var div=document.createElement('div');div.className='tool-card';div.innerHTML='<a class="tool-name" href="'+getHref(t)+'" data-en="'+t.en+'" data-es="'+t.es+'">'+( activeLang==='es'?t.es:t.en )+'</a><div class="tool-desc" data-en="'+t.den+'" data-es="'+t.des+'">'+( activeLang==='es'?t.des:t.den )+'</div>';grid.appendChild(div);});
 wrap.style.display=list.length?'block':'none';renderCategories();}
 else{document.getElementById('tools-wrap').style.display='none';renderCategories();}
 }else{renderTools();}
