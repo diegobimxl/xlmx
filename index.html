@@ -268,7 +268,12 @@ TOOLS=TOOLS.concat(T4);var T5=[
 ];
 TOOLS=TOOLS.concat(T5);var activeCat=null;
 var activeLang='en';
-function renderCategories(){
+function getHref(t){
+var ov={'ninos':'Tool_ninos/','parras':'Tool_parras/','cuentos':'Tool_cuentos/','propinas':'Tool_propinas/','nombres':'Tool_nombres/','solar':'Tool_solar/','reglamento':'Tool_reglamento/Archive/','rentavcompra':'Tool_rentavcompra/'};
+if(ov[t.id])return ov[t.id];
+if(t.href&&t.href.indexOf('games/')===0)return t.href;
+return t.id+'/';
+}function renderCategories(){
 var g=document.getElementById('cat-grid');
 if(!g)return;
 g.innerHTML='';
