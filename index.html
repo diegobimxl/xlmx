@@ -197,6 +197,7 @@ TOOLS=TOOLS.concat(TOOLS2);var T3=[
 {id:'rent-roll',href:'tools/rent-roll.html',cat:'re',en:'Rent Roll',es:'Rol de Rentas',den:'Manage tenant rent roll with lease dates and terms.',des:'Gestiona el rol de rentas con fechas de arrendamiento.'},
 {id:'rentavcompra',href:'tools/rentavcompra.html',cat:'re',en:'Rent vs Buy',es:'Renta vs Compra',den:'Compare renting vs buying a property over time.',des:'Compara arrendar vs comprar una propiedad en el tiempo.'},
 {id:'roi-calculator',href:'tools/roi-calculator.html',cat:'re',en:'ROI Calculator',es:'Calculadora de ROI',den:'Calculate return on investment for real estate acquisitions.',des:'Calcula el retorno sobre inversión en adquisiciones inmobiliarias.'},
+{id:'manufacturing-map',href:'tools/manufacturing-map.html',cat:'re',en:'Manufacturing Megacluster Map',es:'Mapa de Megacluster Industrial',den:'Interactive map of North American OEM assemblers and Tier 1/2 suppliers across the US and Mexico.',des:'Mapa interactivo de OEMs y proveedores Tier 1/2 en México y Estados Unidos.'},
 {id:'auditor',href:'tools/auditor.html',cat:'biz',en:'Business Auditor',es:'Auditor de Negocio',den:'Quick financial health audit for small businesses.',des:'Auditoria rápida de salud financiera para pequeños negocios.'},
 {id:'break-even',href:'tools/break-even.html',cat:'biz',en:'Break-Even Calculator',es:'Punto de Equilibrio',den:'Find the revenue point where costs and income balance.',des:'Encuentra el punto donde costos e ingresos se equilibran.'},
 {id:'business-name-gen',href:'tools/business-name-gen.html',cat:'biz',en:'Business Name Generator',es:'Generador de Nombres',den:'Generate brand-aligned business name ideas.',des:'Genera ideas de nombres de empresa alineados con la marca.'},
@@ -269,7 +270,7 @@ TOOLS=TOOLS.concat(T4);var T5=[
 TOOLS=TOOLS.concat(T5);var activeCat=null;
 var activeLang='en';
 function getHref(t){
-var ov={'ninos':'Tool_ninos/','parras':'Tool_parras/','cuentos':'Tool_cuentos/','propinas':'Tool_propinas/','nombres':'Tool_nombres/','solar':'Tool_solar/','reglamento':'Tool_reglamento/Archive/','rentavcompra':'Tool_rentavcompra/'};
+var ov={'ninos':'Tool_ninos/','parras':'Tool_parras/','cuentos':'Tool_cuentos/','propinas':'Tool_propinas/','nombres':'Tool_nombres/','solar':'Tool_solar/','reglamento':'Tool_reglamento/Archive/','rentavcompra':'Tool_rentavcompra/','manufacturing-map':'manufacturing-map/'};
 if(ov[t.id])return ov[t.id];
 if(t.href&&t.href.indexOf('games/')===0)return t.href;
 return t.id+'/';

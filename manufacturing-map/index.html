@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auto Manufacturing Megacluster Map — XLMX</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#111;color:#eee}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#1a1a1a;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;gap:8px}
+.back{font-size:11px;color:#16a34a;text-decoration:none;font-weight:600}
+.back:hover{text-decoration:underline}
+.title{font-size:14px;font-weight:700;color:#fff}
+.subtitle{font-size:11px;color:#888;margin-top:2px}
+.legend{display:flex;gap:16px;align-items:center;font-size:11px}
+.leg-item{display:flex;align-items:center;gap:6px}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.leg-oem{background:#f59e0b}
+.leg-sup{background:#3b82f6}
+.filters{display:flex;gap:8px;padding:10px 20px;background:#1a1a1a;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:5px 14px;font-size:11px;font-weight:600;border:1px solid #333;border-radius:20px;background:#222;color:#aaa;cursor:pointer;transition:all .15s}
+.filter-btn.active{background:#fff;color:#111;border-color:#fff}
+.search-box{padding:5px 12px;font-size:11px;background:#222;border:1px solid #333;border-radius:20px;color:#eee;outline:none;width:180px}
+.search-box::placeholder{color:#555}
+.stats-bar{display:flex;gap:20px;padding:8px 20px;background:#161616;font-size:11px;color:#666;border-bottom:1px solid #1e1e1e}
+.stat-val{color:#eee;font-weight:700}
+#map{height:calc(100vh - 130px);width:100%}
+.leaflet-popup-content-wrapper{background:#1e1e1e;color:#eee;border:1px solid #333;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.leaflet-popup-tip{background:#1e1e1e}
+.popup-name{font-size:13px;font-weight:700;margin-bottom:4px}
+.popup-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.popup-type.oem{color:#f59e0b}
+.popup-type.supplier{color:#3b82f6}
+.popup-desc{font-size:11px;color:#aaa;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div>
+    <a href="../" class="back">← back XLMX</a>
+    <div class="title" style="margin-top:4px">Auto Manufacturing Megacluster Map</div>
+    <div class="subtitle">North American OEMs and Tier 1/2 Supply Chain — US & Mexico</div>
+  </div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot leg-oem"></div>OEM Assembler</div>
+    <div class="leg-item"><div class="leg-dot leg-sup"></div>Tier 1/2 Supplier</div>
+  </div>
+</div>
+<div class="filters">
+  <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+  <button class="filter-btn" onclick="setFilter('oem',this)">OEMs Only</button>
+  <button class="filter-btn" onclick="setFilter('supplier',this)">Suppliers Only</button>
+  <button class="filter-btn" onclick="setFilter('mx',this)">Mexico</button>
+  <button class="filter-btn" onclick="setFilter('us',this)">United States</button>
+  <input class="search-box" id="search" type="text" placeholder="Search facilities..." oninput="searchMarkers()">
+</div>
+<div class="stats-bar">
+  <span>OEMs: <span class="stat-val" id="cnt-oem">—</span></span>
+  <span>Suppliers: <span class="stat-val" id="cnt-sup">—</span></span>
+  <span>Showing: <span class="stat-val" id="cnt-total">—</span></span>
+</div>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var map = L.map('map',{center:[26,−98],zoom:5});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19
+}).addTo(map);
+
+var FACILITIES=[
+  {name:'GM Ramos Arizpe',type:'oem',lat:25.5456,lng:-100.9328,country:'MX',desc:'General Motors — Chevrolet/Equinox, Blazer. Major assembly complex in Coahuila.'},
+  {name:'Stellantis Saltillo Truck',type:'oem',lat:25.4232,lng:-101.0033,country:'MX',desc:'Ram trucks assembly. Key North American truck production hub in Saltillo.'},
+  {name:'GM Silao',type:'oem',lat:20.9333,lng:-101.4333,country:'MX',desc:'General Motors — Chevrolet Silverado, GMC Sierra. High-volume truck plant in Guanajuato.'},
+  {name:'VW Puebla',type:'oem',lat:18.9242,lng:-98.1747,country:'MX',desc:'Volkswagen — Jetta, Tiguan. One of the largest VW plants globally.'},
+  {name:'Audi San José Chiapa',type:'oem',lat:19.1667,lng:-97.7167,country:'MX',desc:'Audi — Q5. Premium SUV production in Puebla state.'},
+  {name:'Kia Pesquería',type:'oem',lat:25.7500,lng:-100.0500,country:'MX',desc:'Kia — Rio, Forte. Major Korean OEM footprint in Nuevo León.'},
+  {name:'Nissan Aguascalientes 1',type:'oem',lat:21.8818,lng:-102.2842,country:'MX',desc:'Nissan — Versa, Kicks. High-volume compact vehicle assembly.'},
+  {name:'BMW San Luis Potosí',type:'oem',lat:22.1565,lng:-100.9855,country:'MX',desc:'BMW — 3 Series, BMW Z4. Premium EV-capable facility.'},
+  {name:'Toyota Apaseo el Grande',type:'oem',lat:20.5278,lng:-100.6028,country:'MX',desc:'Toyota — Tacoma. Major pickup truck production center in Guanajuato.'},
+  {name:'Honda Celaya',type:'oem',lat:20.5236,lng:-100.8131,country:'MX',desc:'Honda — HR-V, CR-V. Mid-size SUV assembly in Guanajuato.'},
+  {name:'Ford Hermosillo',type:'oem',lat:29.0729,lng:-110.9559,country:'MX',desc:'Ford — Bronco Sport, Maverick. Strategic Ford hub in Sonora.'},
+  {name:'Mazda Salamanca',type:'oem',lat:20.5731,lng:-101.1953,country:'MX',desc:'Mazda — Mazda2, Mazda3. Joint venture facility in Guanajuato.'},
+  {name:'Toyota Georgetown KY',type:'oem',lat:38.2098,lng:-84.5574,country:'US',desc:'Toyota — Camry, Avalon, RAV4, ES350. Flagship US Toyota plant.'},
+  {name:'GM Spring Hill TN',type:'oem',lat:35.7512,lng:-86.9300,country:'US',desc:'General Motors — Cadillac Lyriq EV, GMC Acadia. EV transition site.'},
+  {name:'Ford Chicago Assembly',type:'oem',lat:41.7636,lng:-87.6553,country:'US',desc:'Ford — Explorer, Lincoln Aviator. Large Chicago metro plant.'},
+  {name:'Stellantis Sterling Heights MI',type:'oem',lat:42.5803,lng:-83.0302,country:'US',desc:'Stellantis — Ram 1500 Classic. Core Detroit-area truck assembly.'},
+  {name:'BMW Spartanburg SC',type:'oem',lat:34.9496,lng:-82.0021,country:'US',desc:'BMW — X3, X4, X5, X6, X7. Largest BMW plant worldwide by volume.'},
+  {name:'Mercedes Vance AL',type:'oem',lat:33.1773,lng:-87.5300,country:'US',desc:'Mercedes-Benz — GLE, GLS, EQS SUV. Alabama premium assembly hub.'},
+  {name:'Hyundai Montgomery AL',type:'oem',lat:32.3668,lng:-86.2999,country:'US',desc:'Hyundai — Sonata, Elantra. Growing southeastern corridor footprint.'},
+  {name:'Volkswagen Chattanooga TN',type:'oem',lat:35.0456,lng:-85.3097,country:'US',desc:'Volkswagen — ID.4 EV, Atlas. VW sole US manufacturing site.'},
+  {name:'Tesla Fremont CA',type:'oem',lat:37.4924,lng:-121.9460,country:'US',desc:'Tesla — Model 3, Model Y, Model S, Model X. Former NUMMI plant.'},
+  {name:'Tesla Giga Texas',type:'oem',lat:30.2264,lng:-97.6208,country:'US',desc:'Tesla — Model Y, Cybertruck. Newest and largest Tesla Gigafactory.'},
+  {name:'Rivian Normal IL',type:'oem',lat:40.5142,lng:-88.9906,country:'US',desc:'Rivian — R1T, R1S, Amazon EDV. EV truck and SUV startup plant.'},
+  {name:'Lucid Casa Grande AZ',type:'oem',lat:32.8795,lng:-111.7571,country:'US',desc:'Lucid Motors — Air sedan. Premium EV greenfield facility.'},
+  {name:'Lear Corp Saltillo',type:'supplier',lat:25.4400,lng:-101.0100,country:'MX',desc:'Tier 1 — Seating systems and electrical distribution for multiple OEMs.'},
+  {name:'Nemak Monterrey',type:'supplier',lat:25.6866,lng:-100.3161,country:'MX',desc:'Tier 1 — Aluminum engine components and structural castings. Major Mexican supplier.'},
+  {name:'Vitro Glass Monterrey',type:'supplier',lat:25.6750,lng:-100.2900,country:'MX',desc:'Tier 1 — Automotive glass systems. Global exporter based in Nuevo León.'},
+  {name:'Katcon Escobedo',type:'supplier',lat:25.7950,lng:-100.3300,country:'MX',desc:'Tier 1 — Exhaust systems and catalytic converters for North America market.'},
+  {name:'ZF Juárez',type:'supplier',lat:31.6904,lng:-106.4245,country:'MX',desc:'Tier 1 — Transmissions, chassis, and safety systems. Border proximity advantage.'},
+  {name:'Aptiv Juárez',type:'supplier',lat:31.7200,lng:-106.4100,country:'MX',desc:'Tier 1 — Wiring harnesses and electrical architecture. Massive border operation.'},
+  {name:'Bosch Monterrey',type:'supplier',lat:25.6500,lng:-100.2800,country:'MX',desc:'Tier 1 — Fuel systems, braking, and powertrain components.'},
+  {name:'Continental Guanajuato',type:'supplier',lat:21.0190,lng:-101.2574,country:'MX',desc:'Tier 1 — Tires, instrumentation, and ADAS sensors.'},
+  {name:'Magna San Luis Potosí',type:'supplier',lat:22.1800,lng:-100.9700,country:'MX',desc:'Tier 1 — Body and chassis systems. Supports BMW and GM plants nearby.'},
+  {name:'Yanfeng Ramos Arizpe',type:'supplier',lat:25.5500,lng:-100.9400,country:'MX',desc:'Tier 1 — Interior systems and cockpit modules. Adjacent to GM Ramos Arizpe.'},
+  {name:'Faurecia Puebla',type:'supplier',lat:18.9500,lng:-98.2000,country:'MX',desc:'Tier 1 — Seating and interior systems for VW Puebla complex.'},
+  {name:'Plastic Omnium Querétaro',type:'supplier',lat:20.5880,lng:-100.3899,country:'MX',desc:'Tier 1 — Bumpers and exterior plastic systems.'},
+  {name:'Denso Battle Creek MI',type:'supplier',lat:42.3211,lng:-85.1797,country:'US',desc:'Tier 1 — HVAC, thermal, and powertrain components. Key Midwest facility.'},
+  {name:'BorgWarner Auburn Hills MI',type:'supplier',lat:42.6764,lng:-83.2341,country:'US',desc:'Tier 1 — EV drive systems, transmissions, thermal management.'},
+  {name:'Delphi Technologies Troy MI',type:'supplier',lat:42.6056,lng:-83.1499,country:'US',desc:'Tier 1 — Propulsion and aftermarket components. Detroit metro hub.'},
+  {name:'Lear Corp Southfield MI',type:'supplier',lat:42.4734,lng:-83.2219,country:'US',desc:'Tier 1 HQ — Seating and electrical. Global operations managed from metro Detroit.'},
+  {name:'Martinrea Shelby Township MI',type:'supplier',lat:42.6667,lng:-83.0500,country:'US',desc:'Tier 1 — Metal forming, assemblies, and fluid systems for OEM supply chain.'},
+  {name:'Autoliv Ogden UT',type:'supplier',lat:41.2230,lng:-111.9738,country:'US',desc:'Tier 1 — Airbags and seatbelts. Largest safety systems plant in the US.'},
+  {name:'Gentex Zeeland MI',type:'supplier',lat:42.8139,lng:-86.0153,country:'US',desc:'Tier 1 — Auto-dimming mirrors, camera monitoring systems, and HomeLink.'},
+  {name:'Tower International Lansing MI',type:'supplier',lat:42.7325,lng:-84.5555,country:'US',desc:'Tier 1 — Stamped metal structural components and assemblies.'},
+  {name:'American Axle Detroit MI',type:'supplier',lat:42.3314,lng:-83.0458,country:'US',desc:'Tier 1 — Driveline, metal forming, powertrain components for trucks and SUVs.'},
+  {name:'Flex-N-Gate Urbana IL',type:'supplier',lat:40.1106,lng:-88.2073,country:'US',desc:'Tier 1 — Bumpers, lighting, and exterior systems. Fast-growing private supplier.'},
+  {name:'Modine Manufacturing WI',type:'supplier',lat:43.7730,lng:-87.7295,country:'US',desc:'Tier 1 — Thermal management for EVs and ICE vehicles.'},
+  {name:'Superior Industries Southfield MI',type:'supplier',lat:42.4800,lng:-83.2500,country:'US',desc:'Tier 1 — Aluminum wheels. Major OEM supplier for North American market.'},
+  {name:'Dorman Products Colmar PA',type:'supplier',lat:40.3001,lng:-75.3374,country:'US',desc:'Tier 2 — OE-replacement automotive parts and complex modules.'},
+  {name:'Shiloh Industries Valley City OH',type:'supplier',lat:41.2381,lng:-81.9243,country:'US',desc:'Tier 2 — Lightweighting solutions, stamping, and machined components.'},
+  {name:'NN Inc Johnson City TN',type:'supplier',lat:36.3134,lng:-82.3571,country:'US',desc:'Tier 2 — Precision components for powertrain and chassis systems.'}
+];
+
+var allMarkers=[];
+var currentFilter='all';
+
+function makeIcon(type){
+  var color=type==='oem'?'#f59e0b':'#3b82f6';
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="'+color+'" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="12" r="5" fill="#fff" fill-opacity="0.9"/></svg>';
+  return L.divIcon({html:svg,iconSize:[24,36],iconAnchor:[12,36],popupAnchor:[0,-36],className:''});
+}
+
+function updateCounts(){
+  var vis=allMarkers.filter(function(m){return map.hasLayer(m.marker);});
+  var oems=vis.filter(function(m){return m.data.type==='oem';}).length;
+  var sups=vis.filter(function(m){return m.data.type==='supplier';}).length;
+  document.getElementById('cnt-oem').textContent=oems;
+  document.getElementById('cnt-sup').textContent=sups;
+  document.getElementById('cnt-total').textContent=oems+sups;
+}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function searchMarkers(){applyFilters();}
+
+function applyFilters(){
+  var search=document.getElementById('search').value.toLowerCase();
+  allMarkers.forEach(function(m){
+    var d=m.data;
+    var typeOk=(currentFilter==='all')||(currentFilter==='oem'&&d.type==='oem')||(currentFilter==='supplier'&&d.type==='supplier')||(currentFilter==='mx'&&d.country==='MX')||(currentFilter==='us'&&d.country==='US');
+    var searchOk=!search||(d.name+d.desc).toLowerCase().indexOf(search)>-1;
+    if(typeOk&&searchOk){map.addLayer(m.marker);}else{map.removeLayer(m.marker);}
+  });
+  updateCounts();
+}
+
+FACILITIES.forEach(function(f){
+  var marker=L.marker([f.lat,f.lng],{icon:makeIcon(f.type)});
+  var typeLabel=f.type==='oem'?'OEM Assembler':'Tier 1/2 Supplier';
+  marker.bindPopup('<div class="popup-name">'+f.name+'</div><div class="popup-type '+f.type+'">'+typeLabel+' · '+f.country+'</div><div class="popup-desc">'+f.desc+'</div>',{maxWidth:260});
+  marker.addTo(map);
+  allMarkers.push({marker:marker,data:f});
+});
+
+updateCounts();
+</script>
+</body>
+</html>
