@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cap Rate & NOI Calculator | BIM XL Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding:0}
+.topbar{background:#111;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px;opacity:.7}
+.topbar a:hover{opacity:1}
+.topbar-title{color:#e0e0e0;font-size:15px;font-weight:600}
+.container{max-width:720px;margin:0 auto;padding:40px 24px}
+h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}
+.subtitle{color:#888;font-size:14px;margin-bottom:32px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:6px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;color:#e0e0e0;font-size:15px;padding:10px 12px;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:20px}
+.btn:hover{background:#d4b97e}
+.result{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:16px;margin-top:16px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e}
+.result-row:last-child{border-bottom:none}
+.result-label{font-size:13px;color:#888}
+.result-value{font-size:18px;font-weight:700;color:#c8a96e}
+.sep{height:1px;background:#2a2a2a;margin:20px 0}
+footer{text-align:center;padding:40px 24px 24px;color:#444;font-size:12px}
+footer a{color:#666;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a>
+  <span class="topbar-title">Cap Rate & NOI Calculator</span>
+</div>
+<div class="container">
+<h1>Cap Rate & NOI Calculator</h1>
+<p class="subtitle">Calculate cap rate, NOI, and implied property value for real estate.</p>
+
+<div class="card">
+  <h2>Cap Rate Calculator</h2>
+  <label>Net Operating Income (NOI) / year</label><input id="noi" type="number" placeholder="e.g. 120000">
+  <label>Property Value (or Purchase Price)</label><input id="pv" type="number" placeholder="e.g. 1500000">
+  <button class="btn" onclick="calcCap()">Calculate Cap Rate</button>
+  <div class="result" id="r1" style="display:none">
+    <div class="result-row"><span class="result-label">Cap Rate</span><span class="result-value" id="r1c"></span></div>
+    <div class="result-row"><span class="result-label">GRM (if gross rents known)</span><span class="result-value" id="r1g" style="font-size:13px;color:#666">Enter gross rents below</span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>NOI Builder</h2>
+  <label>Gross Scheduled Rent / year</label><input id="gsr" type="number" placeholder="e.g. 160000">
+  <label>Vacancy Rate (%)</label><input id="vac" type="number" placeholder="e.g. 5" value="5">
+  <label>Operating Expenses / year</label><input id="exp" type="number" placeholder="e.g. 28000">
+  <button class="btn" onclick="calcNOI()">Calculate NOI</button>
+  <div class="result" id="r2" style="display:none">
+    <div class="result-row"><span class="result-label">Effective Gross Income</span><span class="result-value" id="r2e"></span></div>
+    <div class="result-row"><span class="result-label">Net Operating Income</span><span class="result-value" id="r2n"></span></div>
+    <div class="result-row"><span class="result-label">Expense Ratio</span><span class="result-value" id="r2r"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Value from Cap Rate</h2>
+  <label>NOI / year</label><input id="vn" type="number" placeholder="e.g. 120000">
+  <label>Target Cap Rate (%)</label><input id="vc" type="number" placeholder="e.g. 6.5">
+  <button class="btn" onclick="calcVal()">Estimate Value</button>
+  <div class="result" id="r3" style="display:none">
+    <div class="result-row"><span class="result-label">Implied Value</span><span class="result-value" id="r3v"></span></div>
+  </div>
+</div>
+<script>
+function fm(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function calcCap(){
+  var noi=+document.getElementById('noi').value,pv=+document.getElementById('pv').value;
+  if(!noi||!pv)return;
+  document.getElementById('r1c').textContent=(noi/pv*100).toFixed(2)+'%';
+  document.getElementById('r1').style.display='block';
+}
+function calcNOI(){
+  var gsr=+document.getElementById('gsr').value,vac=+document.getElementById('vac').value,exp=+document.getElementById('exp').value;
+  if(!gsr)return;
+  var egi=gsr*(1-vac/100),noi=egi-exp;
+  document.getElementById('r2e').textContent=fm(egi);
+  document.getElementById('r2n').textContent=fm(noi);
+  document.getElementById('r2r').textContent=(exp/egi*100).toFixed(1)+'%';
+  document.getElementById('r2').style.display='block';
+  document.getElementById('noi').value=noi;
+  document.getElementById('gsr').value=gsr;
+}
+function calcVal(){
+  var n=+document.getElementById('vn').value,c=+document.getElementById('vc').value;
+  if(!n||!c)return;
+  document.getElementById('r3v').textContent=fm(n/(c/100));
+  document.getElementById('r3').style.display='block';
+}
+</script>
+
+</div>
+<footer>BIM XL Tools &mdash; <a href="https://bimxl.com">bimxl.com</a></footer>
+</body>
+</html>

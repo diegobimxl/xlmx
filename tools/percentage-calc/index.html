@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Percentage Calculator | BIM XL Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding:0}
+.topbar{background:#111;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px;opacity:.7}
+.topbar a:hover{opacity:1}
+.topbar-title{color:#e0e0e0;font-size:15px;font-weight:600}
+.container{max-width:720px;margin:0 auto;padding:40px 24px}
+h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}
+.subtitle{color:#888;font-size:14px;margin-bottom:32px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:6px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;color:#e0e0e0;font-size:15px;padding:10px 12px;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:20px}
+.btn:hover{background:#d4b97e}
+.result{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:16px;margin-top:16px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e}
+.result-row:last-child{border-bottom:none}
+.result-label{font-size:13px;color:#888}
+.result-value{font-size:18px;font-weight:700;color:#c8a96e}
+.sep{height:1px;background:#2a2a2a;margin:20px 0}
+footer{text-align:center;padding:40px 24px 24px;color:#444;font-size:12px}
+footer a{color:#666;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a>
+  <span class="topbar-title">Percentage Calculator</span>
+</div>
+<div class="container">
+<h1>Percentage Calculator</h1>
+<p class="subtitle">Percentage, change, and markup/margin calculations.</p>
+
+<div class="card">
+  <h2>Basic Percentage</h2>
+  <label>Value</label><input id="pv" type="number" placeholder="e.g. 250">
+  <label>Percentage (%)</label><input id="pp" type="number" placeholder="e.g. 15">
+  <button class="btn" onclick="calcBasic()">Calculate</button>
+  <div class="result" id="r1" style="display:none">
+    <div class="result-row"><span class="result-label">Result</span><span class="result-value" id="r1v"></span></div>
+    <div class="result-row"><span class="result-label">Remainder</span><span class="result-value" id="r1r"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Percentage Change</h2>
+  <label>Original Value</label><input id="co" type="number" placeholder="e.g. 100000">
+  <label>New Value</label><input id="cn" type="number" placeholder="e.g. 115000">
+  <button class="btn" onclick="calcChange()">Calculate Change</button>
+  <div class="result" id="r2" style="display:none">
+    <div class="result-row"><span class="result-label">Change</span><span class="result-value" id="r2v"></span></div>
+    <div class="result-row"><span class="result-label">Difference</span><span class="result-value" id="r2d"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Markup vs Margin</h2>
+  <label>Cost</label><input id="mc" type="number" placeholder="e.g. 80000">
+  <label>Enter as</label>
+  <select id="mtype">
+    <option value="markup">Markup % (on cost)</option>
+    <option value="margin">Margin % (on price)</option>
+  </select>
+  <label>Percentage (%)</label><input id="mp" type="number" placeholder="e.g. 25">
+  <button class="btn" onclick="calcMarkup()">Calculate</button>
+  <div class="result" id="r3" style="display:none">
+    <div class="result-row"><span class="result-label">Selling Price</span><span class="result-value" id="r3p"></span></div>
+    <div class="result-row"><span class="result-label">Profit</span><span class="result-value" id="r3pr"></span></div>
+    <div class="result-row"><span class="result-label">Markup %</span><span class="result-value" id="r3mu"></span></div>
+    <div class="result-row"><span class="result-label">Margin %</span><span class="result-value" id="r3mg"></span></div>
+  </div>
+</div>
+<script>
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function calcBasic(){
+  var v=+document.getElementById('pv').value, p=+document.getElementById('pp').value;
+  if(!v||isNaN(p))return;
+  var res=v*p/100;
+  document.getElementById('r1v').textContent=fmt(res);
+  document.getElementById('r1r').textContent=fmt(v-res);
+  document.getElementById('r1').style.display='block';
+}
+function calcChange(){
+  var o=+document.getElementById('co').value, n=+document.getElementById('cn').value;
+  if(!o)return;
+  var chg=(n-o)/o*100;
+  document.getElementById('r2v').textContent=(chg>=0?'+':'')+fmt(chg)+'%';
+  document.getElementById('r2d').textContent=(n>=o?'+':'')+fmt(n-o);
+  document.getElementById('r2').style.display='block';
+}
+function calcMarkup(){
+  var c=+document.getElementById('mc').value, p=+document.getElementById('mp').value, t=document.getElementById('mtype').value;
+  if(!c||!p)return;
+  var price,profit,markup,margin;
+  if(t==='markup'){price=c*(1+p/100);profit=price-c;markup=p;margin=profit/price*100;}
+  else{price=c/(1-p/100);profit=price-c;markup=profit/c*100;margin=p;}
+  document.getElementById('r3p').textContent='$'+fmt(price);
+  document.getElementById('r3pr').textContent='$'+fmt(profit);
+  document.getElementById('r3mu').textContent=fmt(markup)+'%';
+  document.getElementById('r3mg').textContent=fmt(margin)+'%';
+  document.getElementById('r3').style.display='block';
+}
+</script>
+
+</div>
+<footer>BIM XL Tools &mdash; <a href="https://bimxl.com">bimxl.com</a></footer>
+</body>
+</html>

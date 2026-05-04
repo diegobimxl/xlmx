@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slope & Grade Calculator | BIM XL Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding:0}
+.topbar{background:#111;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px;opacity:.7}
+.topbar a:hover{opacity:1}
+.topbar-title{color:#e0e0e0;font-size:15px;font-weight:600}
+.container{max-width:720px;margin:0 auto;padding:40px 24px}
+h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}
+.subtitle{color:#888;font-size:14px;margin-bottom:32px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:6px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;color:#e0e0e0;font-size:15px;padding:10px 12px;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:20px}
+.btn:hover{background:#d4b97e}
+.result{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:16px;margin-top:16px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e}
+.result-row:last-child{border-bottom:none}
+.result-label{font-size:13px;color:#888}
+.result-value{font-size:18px;font-weight:700;color:#c8a96e}
+.sep{height:1px;background:#2a2a2a;margin:20px 0}
+footer{text-align:center;padding:40px 24px 24px;color:#444;font-size:12px}
+footer a{color:#666;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a>
+  <span class="topbar-title">Slope & Grade Calculator</span>
+</div>
+<div class="container">
+<h1>Slope & Grade Calculator</h1>
+<p class="subtitle">Convert between slope percentage, ratio, degrees, and rise/run.</p>
+
+<div class="card">
+  <h2>Rise / Run to Slope</h2>
+  <label>Rise (vertical)</label><input id="rise" type="number" placeholder="e.g. 1" step="any">
+  <label>Run (horizontal)</label><input id="run" type="number" placeholder="e.g. 12" step="any">
+  <button class="btn" onclick="calcRR()">Calculate</button>
+  <div class="result" id="r1" style="display:none">
+    <div class="result-row"><span class="result-label">Slope %</span><span class="result-value" id="rp"></span></div>
+    <div class="result-row"><span class="result-label">Ratio (1:x)</span><span class="result-value" id="rr"></span></div>
+    <div class="result-row"><span class="result-label">Angle (degrees)</span><span class="result-value" id="rd"></span></div>
+    <div class="result-row"><span class="result-label">Grade description</span><span class="result-value" id="rg" style="font-size:13px"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Percent to Degrees / Ratio</h2>
+  <label>Slope %</label><input id="sp" type="number" placeholder="e.g. 8.33" step="any">
+  <button class="btn" onclick="calcPct()">Convert</button>
+  <div class="result" id="r2" style="display:none">
+    <div class="result-row"><span class="result-label">Angle</span><span class="result-value" id="r2d"></span></div>
+    <div class="result-row"><span class="result-label">Ratio (1:x)</span><span class="result-value" id="r2r"></span></div>
+    <div class="result-row"><span class="result-label">Rise per 12" run</span><span class="result-value" id="r2p"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Elevation Change</h2>
+  <label>Horizontal distance</label><input id="hd" type="number" placeholder="e.g. 100" step="any">
+  <label>Slope %</label><input id="sl" type="number" placeholder="e.g. 2" step="any">
+  <button class="btn" onclick="calcElev()">Calculate</button>
+  <div class="result" id="r3" style="display:none">
+    <div class="result-row"><span class="result-label">Elevation change</span><span class="result-value" id="r3e"></span></div>
+    <div class="result-row"><span class="result-label">Slope length</span><span class="result-value" id="r3l"></span></div>
+  </div>
+</div>
+<script>
+function f2(n){return n.toFixed(2);}
+function grade(p){if(p<1)return'Flat';if(p<3)return'Gentle';if(p<8)return'Moderate';if(p<15)return'Steep';return'Very Steep';}
+function calcRR(){
+  var r=+document.getElementById('rise').value,u=+document.getElementById('run').value;
+  if(!u)return;
+  var p=r/u*100,ang=Math.atan(r/u)*180/Math.PI;
+  document.getElementById('rp').textContent=f2(p)+'%';
+  document.getElementById('rr').textContent='1:'+(u/r).toFixed(2);
+  document.getElementById('rd').textContent=f2(ang)+'°';
+  document.getElementById('rg').textContent=grade(p);
+  document.getElementById('r1').style.display='block';
+}
+function calcPct(){
+  var p=+document.getElementById('sp').value;
+  if(!p)return;
+  var ang=Math.atan(p/100)*180/Math.PI;
+  document.getElementById('r2d').textContent=f2(ang)+'°';
+  document.getElementById('r2r').textContent='1:'+(100/p).toFixed(2);
+  document.getElementById('r2p').textContent=f2(12*p/100)+'"';
+  document.getElementById('r2').style.display='block';
+}
+function calcElev(){
+  var h=+document.getElementById('hd').value,s=+document.getElementById('sl').value;
+  if(!h||!s)return;
+  var e=h*s/100,l=Math.sqrt(h*h+e*e);
+  document.getElementById('r3e').textContent=f2(e);
+  document.getElementById('r3l').textContent=f2(l);
+  document.getElementById('r3').style.display='block';
+}
+</script>
+
+</div>
+<footer>BIM XL Tools &mdash; <a href="https://bimxl.com">bimxl.com</a></footer>
+</body>
+</html>

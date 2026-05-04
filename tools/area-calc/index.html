@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Area & Perimeter Calculator | BIM XL Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding:0}
+.topbar{background:#111;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px;opacity:.7}
+.topbar a:hover{opacity:1}
+.topbar-title{color:#e0e0e0;font-size:15px;font-weight:600}
+.container{max-width:720px;margin:0 auto;padding:40px 24px}
+h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}
+.subtitle{color:#888;font-size:14px;margin-bottom:32px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:6px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;color:#e0e0e0;font-size:15px;padding:10px 12px;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:20px}
+.btn:hover{background:#d4b97e}
+.result{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:16px;margin-top:16px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e}
+.result-row:last-child{border-bottom:none}
+.result-label{font-size:13px;color:#888}
+.result-value{font-size:18px;font-weight:700;color:#c8a96e}
+.sep{height:1px;background:#2a2a2a;margin:20px 0}
+footer{text-align:center;padding:40px 24px 24px;color:#444;font-size:12px}
+footer a{color:#666;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a>
+  <span class="topbar-title">Area & Perimeter Calculator</span>
+</div>
+<div class="container">
+<h1>Area & Perimeter Calculator</h1>
+<p class="subtitle">Calculate area and perimeter for rectangles, circles, triangles, and L-shapes.</p>
+
+<div class="card">
+  <h2>Rectangle / Square</h2>
+  <label>Width</label><input id="rw" type="number" placeholder="e.g. 25" step="any">
+  <label>Length</label><input id="rl" type="number" placeholder="e.g. 40" step="any">
+  <button class="btn" onclick="calcRect()">Calculate</button>
+  <div class="result" id="r1" style="display:none">
+    <div class="result-row"><span class="result-label">Area</span><span class="result-value" id="r1a"></span></div>
+    <div class="result-row"><span class="result-label">Perimeter</span><span class="result-value" id="r1p"></span></div>
+    <div class="result-row"><span class="result-label">Diagonal</span><span class="result-value" id="r1d"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Circle</h2>
+  <label>Radius (or enter diameter below)</label><input id="cr" type="number" placeholder="e.g. 15" step="any">
+  <label>Diameter (optional)</label><input id="cd" type="number" placeholder="e.g. 30" step="any">
+  <button class="btn" onclick="calcCirc()">Calculate</button>
+  <div class="result" id="r2" style="display:none">
+    <div class="result-row"><span class="result-label">Area</span><span class="result-value" id="r2a"></span></div>
+    <div class="result-row"><span class="result-label">Circumference</span><span class="result-value" id="r2p"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Triangle</h2>
+  <label>Base</label><input id="tb" type="number" placeholder="e.g. 20" step="any">
+  <label>Height</label><input id="th" type="number" placeholder="e.g. 15" step="any">
+  <button class="btn" onclick="calcTri()">Calculate</button>
+  <div class="result" id="r3" style="display:none">
+    <div class="result-row"><span class="result-label">Area</span><span class="result-value" id="r3a"></span></div>
+  </div>
+</div>
+<div class="card">
+  <h2>L-Shape</h2>
+  <label>Total Width (A)</label><input id="la" type="number" placeholder="e.g. 40" step="any">
+  <label>Total Length (B)</label><input id="lb" type="number" placeholder="e.g. 30" step="any">
+  <label>Cutout Width (C)</label><input id="lc" type="number" placeholder="e.g. 15" step="any">
+  <label>Cutout Length (D)</label><input id="ld" type="number" placeholder="e.g. 12" step="any">
+  <button class="btn" onclick="calcL()">Calculate</button>
+  <div class="result" id="r4" style="display:none">
+    <div class="result-row"><span class="result-label">Area</span><span class="result-value" id="r4a"></span></div>
+    <div class="result-row"><span class="result-label">Perimeter</span><span class="result-value" id="r4p"></span></div>
+  </div>
+</div>
+<script>
+function f2(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function calcRect(){
+  var w=+document.getElementById('rw').value,l=+document.getElementById('rl').value;
+  if(!w||!l)return;
+  document.getElementById('r1a').textContent=f2(w*l)+' sq units';
+  document.getElementById('r1p').textContent=f2(2*(w+l))+' units';
+  document.getElementById('r1d').textContent=f2(Math.sqrt(w*w+l*l))+' units';
+  document.getElementById('r1').style.display='block';
+}
+function calcCirc(){
+  var d=+document.getElementById('cd').value,r=d?d/2:(+document.getElementById('cr').value);
+  if(!r)return;
+  document.getElementById('r2a').textContent=f2(Math.PI*r*r)+' sq units';
+  document.getElementById('r2p').textContent=f2(2*Math.PI*r)+' units';
+  document.getElementById('r2').style.display='block';
+}
+function calcTri(){
+  var b=+document.getElementById('tb').value,h=+document.getElementById('th').value;
+  if(!b||!h)return;
+  document.getElementById('r3a').textContent=f2(0.5*b*h)+' sq units';
+  document.getElementById('r3').style.display='block';
+}
+function calcL(){
+  var a=+document.getElementById('la').value,b=+document.getElementById('lb').value;
+  var c=+document.getElementById('lc').value,d=+document.getElementById('ld').value;
+  if(!a||!b)return;
+  var area=a*b-(c*d);
+  var perim=2*(a+b);
+  document.getElementById('r4a').textContent=f2(area)+' sq units';
+  document.getElementById('r4p').textContent=f2(perim)+' units (outer)';
+  document.getElementById('r4').style.display='block';
+}
+</script>
+
+</div>
+<footer>BIM XL Tools &mdash; <a href="https://bimxl.com">bimxl.com</a></footer>
+</body>
+</html>
