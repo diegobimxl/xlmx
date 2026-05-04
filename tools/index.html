@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIM XL — Tool Library</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e0e0e0;min-height:100vh}
+a{color:inherit;text-decoration:none}
+header{background:#111;border-bottom:1px solid #1e1e1e;padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.brand-row{display:flex;align-items:baseline;gap:16px}
+.logo{font-size:22px;font-weight:700;letter-spacing:-.02em;color:#fff}
+.logo span{color:#c8a96e}
+.tagline{font-size:13px;color:#444}
+.stat-badge{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:20px;padding:6px 16px;font-size:12px;color:#666;white-space:nowrap}
+.stat-badge b{color:#c8a96e;font-weight:600}
+.controls{padding:20px 32px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #1a1a1a;position:sticky;top:0;background:#0d0d0d;z-index:10}
+.search-wrap{position:relative;max-width:480px}
+.search-wrap input{width:100%;background:#161616;border:1px solid #2e2e2e;border-radius:6px;padding:10px 12px 10px 36px;color:#e0e0e0;font-size:13px;outline:none;transition:border-color .15s}
+.search-wrap input:focus{border-color:#c8a96e55}
+.search-wrap input::placeholder{color:#3a3a3a}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#3a3a3a;font-size:15px;pointer-events:none}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cat-btn{background:none;border:1px solid #222;border-radius:20px;padding:5px 13px;font-size:11px;color:#555;cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.02em}
+.cat-btn:hover{border-color:#444;color:#aaa}
+.cat-btn.active{border-color:#c8a96e;color:#c8a96e;background:#c8a96e11}
+.grid-wrap{padding:24px 32px}
+.results-info{font-size:11px;color:#333;margin-bottom:16px;letter-spacing:.04em;text-transform:uppercase}
+#toolGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
+.tool-card{background:#111;border:1px solid #1a1a1a;border-left:3px solid var(--cc,#2a2a2a);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:8px;transition:background .15s,border-color .15s}
+.tool-card.live{cursor:pointer}
+.tool-card.live:hover{background:#161616;border-color:var(--cc,#333)}
+.tool-card.soon{opacity:.4}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-name{font-size:13px;font-weight:600;color:#ddd;line-height:1.3}
+.badge{font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;font-weight:500}
+.b-live{background:#c8a96e18;color:#c8a96e;border:1px solid #c8a96e33}
+.b-new{background:#34d39918;color:#34d399;border:1px solid #34d39933}
+.b-soon{color:#333;border:1px solid #222}
+.card-desc{font-size:12px;color:#484848;line-height:1.55;flex:1}
+.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
+.card-cat{font-size:10px;color:var(--cc,#333);letter-spacing:.02em}
+.card-open{font-size:11px;color:#c8a96e;opacity:.7}
+.tool-card.live:hover .card-open{opacity:1}
+.empty{padding:60px;text-align:center;color:#2a2a2a;grid-column:1/-1;font-size:13px}
+footer{padding:20px 32px;border-top:1px solid #161616;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#2e2e2e;margin-top:24px}
+@media(max-width:640px){header,.controls,.grid-wrap{padding:16px}#toolGrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand-row">
+      <div class="logo">BIM<span> XL</span></div>
+      <div class="tagline">Professional tools for AEC &amp; Real Estate</div>
+    </div>
+  </div>
+  <div class="stat-badge"><b id="liveCount">0</b>&nbsp;live &nbsp;·&nbsp; <b id="totalCount">0</b>&nbsp;total</div>
+</header>
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="search" id="searchBox" placeholder="Search 1000+ tools..." oninput="doFilter()">
+  </div>
+  <div class="cats" id="catRow"></div>
+</div>
+<div class="grid-wrap">
+  <div class="results-info" id="info"></div>
+  <div id="toolGrid"></div>
+</div>
+<footer>
+  <span>BIM XL &mdash; xlmx.bimxl.com</span>
+  <span>New tools added weekly</span>
+</footer>
+<script>
+var CC={
+  'BIM & VDC':'#c8a96e',
+  'Project Management':'#60a5fa',
+  'Architecture & Design':'#a78bfa',
+  'Construction & Engineering':'#fb923c',
+  'Real Estate & Development':'#34d399',
+  'MEP Engineering':'#2dd4bf',
+  'Sustainability & Code':'#a3e635',
+  'Contracts & Legal':'#f87171',
+  'General Productivity':'#94a3b8',
+  'Calculators':'#fbbf24'
+};
+
+var TOOLS=[
+  // ── BIM & VDC ──────────────────────────────────────────────────
+  {n:'LOD Checker',d:'Validate Level of Development compliance across phases. Reference matrix + project gap report.',c:'BIM & VDC',u:'/lod-checker',s:'live'},
+  {n:'Clash Matrix',d:'Track coordination clashes between 8 disciplines. Click-to-edit grid, sorted log, CSV/JSON export.',c:'BIM & VDC',u:'/clash-matrix',s:'live'},
+  {n:'BIM Execution Plan Builder',d:'Wizard to generate a project BEP aligned with ISO 19650 requirements.',c:'BIM & VDC',s:'soon'},
+  {n:'Model Health Scorecard',d:'Score your Revit model on naming, worksets, linked files, and coordination readiness.',c:'BIM & VDC',s:'soon'},
+  {n:'ISO 19650 Compliance Checklist',d:'Interactive checklist for information management compliance across project stages.',c:'BIM & VDC',s:'soon'},
+  {n:'Coordination Issue Log',d:'Track RFIs and coordination issues with assignee, priority, and resolution date.',c:'BIM & VDC',s:'soon'},
+  {n:'Transmittal Generator',d:'Create formal document transmittals with revision tracking and distribution lists.',c:'BIM & VDC',s:'soon'},
+  {n:'BIM Role & Responsibility Matrix',d:'Define and assign BIM tasks across team members by discipline and project phase.',c:'BIM & VDC',s:'soon'},
+  {n:'LOD Hour Estimator',d:'Estimate modeling hours by LOD level and element count for fee proposals.',c:'BIM & VDC',s:'soon'},
+  {n:'ISO 19650 File Namer',d:'Generate compliant container naming strings for any project using the ISO 19650 convention.',c:'BIM & VDC',s:'soon'},
+  {n:'4D Sequencing Planner',d:'Map model elements to construction sequence phases for 4D BIM planning.',c:'BIM & VDC',s:'soon'},
+  {n:'VDC Scope Matrix',d:'Define VDC deliverables by phase, use case, and responsible party.',c:'BIM & VDC',s:'soon'},
+  {n:'Workset Naming Generator',d:'Generate standardized Revit workset names by discipline and use case.',c:'BIM & VDC',s:'soon'},
+  {n:'Model Element Counter',d:'Log element counts by category to track model growth and scope changes.',c:'BIM & VDC',s:'soon'},
+  {n:'Federated Model Tracker',d:'Track linked model versions, dates, and responsible parties in a federated BIM workflow.',c:'BIM & VDC',s:'soon'},
+
+  // ── Project Management ─────────────────────────────────────────
+  {n:'Project Dashboard',d:'Executive one-pager with KPI strip, milestones, risks, action items, and print-to-PDF.',c:'Project Management',u:'/project-dash',s:'live'},
+  {n:'RACI Matrix Builder',d:'Define roles and responsibilities across tasks with a clean RACI grid and export.',c:'Project Management',s:'soon'},
+  {n:'Risk Register',d:'Log, score, and track project risks with probability × impact matrix.',c:'Project Management',s:'soon'},
+  {n:'Meeting Minutes Generator',d:'Structured meeting minutes with attendees, decisions, and auto-formatted action items.',c:'Project Management',s:'soon'},
+  {n:'RFI Tracker',d:'Log Requests for Information with status, due dates, days open, and response tracking.',c:'Project Management',s:'soon'},
+  {n:'Submittal Log',d:'Track submittals by spec section, required date, reviewer, and return status.',c:'Project Management',s:'soon'},
+  {n:'Punch List Manager',d:'Manage closeout punch items by area, trade, assignee, and completion status.',c:'Project Management',s:'soon'},
+  {n:'Change Order Log',d:'Track PCOs, CCOs, and approved COs with running cost and schedule impact.',c:'Project Management',s:'soon'},
+  {n:'Project Fee Tracker',d:'Monitor fee consumption by phase against contracted amount with burn rate.',c:'Project Management',s:'soon'},
+  {n:'Issue Tracker',d:'General project issue log with priority, owner, and resolution workflow.',c:'Project Management',s:'soon'},
+  {n:'Project Closeout Checklist',d:'Phase-by-phase closeout checklist with owner assignments and sign-off.',c:'Project Management',s:'soon'},
+  {n:'Document Control Log',d:'Track drawing revisions, issue dates, and distribution in a single log.',c:'Project Management',s:'soon'},
+  {n:'Milestone Gantt Builder',d:'Visual milestone timeline with phase bars and dependency markers.',c:'Project Management',s:'soon'},
+  {n:'Weekly Status Report Generator',d:'Generate a structured project status report from key metrics and notes.',c:'Project Management',s:'soon'},
+  {n:'Budget vs Actual Tracker',d:'Track budget, commitments, and actual costs by cost code with variance.',c:'Project Management',s:'soon'},
+
+  // ── Architecture & Design ──────────────────────────────────────
+  {n:'Room Area Calculator',d:'Calculate net, gross, and efficiency ratios for any building program list.',c:'Architecture & Design',s:'soon'},
+  {n:'Occupancy Load Calculator',d:'Calculate occupant loads per IBC based on use type and floor area.',c:'Architecture & Design',s:'soon'},
+  {n:'Parking Ratio Calculator',d:'Determine required parking count by use type, area, and jurisdiction ratio.',c:'Architecture & Design',s:'soon'},
+  {n:'FAR & Density Calculator',d:'Calculate Floor Area Ratio and allowable buildout for any site.',c:'Architecture & Design',s:'soon'},
+  {n:'Setback Compliance Checker',d:'Verify front, rear, and side setback compliance against zoning requirements.',c:'Architecture & Design',s:'soon'},
+  {n:'Stair Calculator',d:'Calculate riser and tread dimensions for code-compliant stair design.',c:'Architecture & Design',s:'soon'},
+  {n:'Ramp Slope Checker',d:'Verify ADA and IBC ramp slope, landing, and handrail requirements.',c:'Architecture & Design',s:'soon'},
+  {n:'Program Area Planner',d:'Build a space program with categories, quantities, unit areas, and totals.',c:'Architecture & Design',s:'soon'},
+  {n:'CSI Spec Section Finder',d:'Find MasterFormat spec sections by keyword, number, or trade.',c:'Architecture & Design',s:'soon'},
+  {n:'Building Area Calculator',d:'Sum gross, rentable, and usable areas with BOMA efficiency metrics.',c:'Architecture & Design',s:'soon'},
+  {n:'Exterior Wall Area Calculator',d:'Calculate exterior facade area by elevation with deductions for openings.',c:'Architecture & Design',s:'soon'},
+  {n:'Ceiling Height Optimizer',d:'Compare structural depth options against floor-to-floor height constraints.',c:'Architecture & Design',s:'soon'},
+  {n:'Accessibility Compliance Checklist',d:'ADA/IBC checklist fong',s:'soon'},
+  {n:'Excavation Volume Calculator',d:'Calculate cut and fill volumes for site excavation by shape and depth.',c:'Construction & Engineering',s:'soon'},
+  {n:'Compaction Factor Tool',d:'Apply swell and compaction factors to raw earthwork quantities.',c:'Construction & Engineering',s:'soon'},
+  {n:'Cost per SF Benchmarker',d:'Compare project cost/SF against construction type and region benchmarks.',c:'Construction & Engineering',s:'soon'},
+  {n:'Roof Area Calculator',d:'Calculate roof surface area by pitch and plan dimensions for material takeoff.',c:'Construction & Engineering',s:'soon'},
+  {n:'Drywall Estimator',d:'Estimate drywall sheets, joint compound, and screws by room dimensions.',c:'Construction & Engineering',s:'soon'},
+  {n:'Paint Coverage Calculator',d:'Estimate paint gallons by surface area, coat count, and spread rate.',c:'Construction & Engineering',s:'soon'},
+  {n:'Tile & Flooring Estimator',d:'Calculate tile or flooring quantities with waste factor by room.',c:'Construction & Engineering',s:'soon'},
+  {n:'Lumber Takeoff Calculator',d:'Estimate dimensional lumber quantities for framing by wall length and spacing.',c:'Construction & Engineering',s:'soon'},
+  {n:'Footing Size Calculator',d:'Size spread footings from column load, soil bearing capacity, and safety factor.',c:'Construction & Engineering',s:'soon'},
+  {n:'Construction Schedule Compressor',d:'Identify critical path and fast-tracking opportunities in a phase schedule.',c:'Construction & Engineering',s:'soon'},
+  {n:'Bid Leveling Sheet',d:'Compare subcontractor bids side-by-side with apples-to-apples leveling.',c:'Construction & Engineering',s:'soon'},
+
+  // ── Real Estate & Development ──────────────────────────────────
+  {n:'Cap Rate Calculator',d:'Calculate capitalization rate from Net Operating Income and asset value.',c:'Real Estate & Development',s:'soon'},
+  {n:'ROI Calculator',d:'Calculate return on investment for development, acquisition, or renovation.',c:'Real Estate & Development',s:'soon'},
+  {n:'IRR Estimator',d:'Estimate Internal Rate of Return for multi-year real estate cash flows.',c:'Real Estate & Development',s:'soon'},
+  {n:'Cash-on-Cash Calculator',d:'Calculate annual cash-on-cash return from equity invested and cash flow.',c:'Real Estate & Development',s:'soon'},
+  {n:'Debt Service Calculator',d:'Calculate loan payments, total interest, and amortization for any loan.',c:'Real Estate & Development',s:'soon'},
+  {n:'Simple Pro Forma Builder',d:'Development pro forma with acquisition, hard costs, soft costs, and returns.',c:'Real Estate & Development',s:'soon'},
+  {n:'GRM Calculator',d:'Gross Rent Multiplier quick valuation from annual rent and price.',c:'Real Estate & Development',s:'soon'},
+  {n:'Break-Even Occupancy Calculator',d:'Find the occupancy rate needed to break even on operating expenses.',c:'Real Estate & Development',s:'soon'},
+  {n:'Development Fee Estimator',d:'Estimate development management fees as % of hard and soft costs by phase.',c:'Real Estate & Development',s:'soon'},
+  {n:'Hurdle Rate Checker',d:'Test if a deal clears your minimum IRR and equity multiple threshold.',c:'Real Estate & Development',s:'soon'},
+  {n:'Promote & Waterfall Calculator',d:'Model GP/LP promote distributions across equity waterfall tiers.',c:'Real Estate & Development',s:'soon'},
+  {n:'Rent Roll Builder',d:'Build a property rent roll with tenants, SF, rent/SF, and expiration dates.',c:'Real Estate & Development',s:'soon'},
+  {n:'NOI Builder',d:'Calculate Net Operating Income from revenues and operating expenses.',c:'Real Estate & Development',s:'soon'},
+  {n:'Vacancy Impact Calculator',d:'Model the revenue impact of vacancy changes on NOI and cap rate value.',c:'Real Estate & Development',s:'soon'},
+  {n:'Land Residual Calculator',d:'Back into land value from stabilized NOI, cap rate, and development costs.',c:'Real Estate & Development',s:'soon'},
+
+  // ── MEP Engineering ────────────────────────────────────────────
+  {n:'HVAC Tonnage Estimator',d:'Quick HVAC cooling load estimate by area, use type, and climate zone.',c:'MEP Engineering',s:'soon'},
+  {n:'Plumbing Fixture Counter',d:'Calculate minimum fixture counts per IPC by occupancy type and load.',c:'MEP Engineering',s:'soon'},
+  {n:'Electrical Load Calculator',d:'Estimate connected and demand load for a building by use and area.',c:'MEP Engineering',s:'soon'},
+  {n:'Duct Size Reference',d:'Quick duct sizing by CFM with equal friction method and velocity check.',c:'MEP Engineering',s:'soon'},
+  {n:'Water Heater Sizing Tool',d:'Size domestic hot water heaters by occupancy, peak demand, and recovery.',c:'MEP Engineering',s:'soon'},
+  {n:'Lighting Power Density Checker',d:'Compare installed LPD against ASHRAE 90.1 allowances by space type.',c:'MEP Engineering',s:'soon'},
+  {n:'Pipe Sizing Reference',d:'Quick reference for water pipe sizing by fixture unit count and pressure.',c:'MEP Engineering',s:'soon'},
+  {n:'Generator Sizing Estimator',d:'Estimate standby generator kW requirements by critical load list.',c:'MEP Engineering',s:'soon'},
+  {n:'Fire Sprinkler Density Checker',d:'Verify sprinkler density against NFPA 13 hazard classification requirements.',c:'MEP Engineering',s:'soon'},
+  {n:'Grease Interceptor Sizing',d:'Size grease interceptors for commercial kitchen applications per PDI standards.',c:'MEP Engineering',s:'soon'},
+
+  // ── Sustainability & Code ──────────────────────────────────────
+  {n:'Energy Use Intensity Benchmarker',d:'Compare building EUI against CBECS benchmarks by building type and climate.',c:'Sustainability & Code',s:'soon'},
+  {n:'LEED Credit Tracker',d:'Track LEED credit pursuit and point totals across all categories with status.',c:'Sustainability & Code',s:'soon'},
+  {n:'Window-to-Wall Ratio Calculator',d:'Calculate WWR by facade orientation and compare against energy code limits.',c:'Sustainability & Code',s:'soon'},
+  {n:'Carbon Footprint Estimator',d:'Rough embodied carbon estimate for structural systems by material and volume.',c:'Sustainability & Code',s:'soon'},
+  {n:'Rainwater Harvesting Calculator',d:'Estimate rainwater collection potential by roof area and annual rainfall.',c:'Sustainability & Code',s:'soon'},
+  {n:'Solar Panel Area Estimator',d:'Estimate roof area needed for target solar offset by location and load.',c:'Sustainability & Code',s:'soon'},
+  {n:'Building Code Occupancy Finder',d:'Look up IBC occupancy classifications and use group requirements by building type.',c:'Sustainability & Code',s:'soon'},
+
+  // ── Contracts & Legal ──────────────────────────────────────────
+  {n:'Scope of Work Generator',d:'Draft a professional Scope of Work from project description and deliverables.',c:'Contracts & Legal',s:'soon'},
+  {n:'AIA Fee Proposal Builder',d:'Structure a professional fee proposal with phases, scope, and exclusions.',c:'Contracts & Legal',s:'soon'},
+  {n:'Contract Terms Checklist',d:'Checklist of critical contract terms to review before signing any AEC agreement.',c:'Contracts & Legal',s:'soon'},
+  {n:'Retainage Calculator',d:'Calculate retainage holdback and release milestones on any construction contract.',c:'Contracts & Legal',s:'soon'},
+  {n:'Delay & Liquidated Damages Calculator',d:'Calculate potential LD exposure from schedule delays on a fixed-fee contract.',c:'Contracts & Legal',s:'soon'},
+  {n:'Lien Waiver Tracker',d:'Track conditional and unconditional lien waivers by subcontractor and pay app.',c:'Contracts & Legal',s:'soon'},
+  {n:'Pay App Review Checklist',d:'Structured checklist for reviewing contractor payment applications for completeness.',c:'Contracts & Legal',s:'soon'},
+
+  // ── General Productivity ───────────────────────────────────────
+  {n:'Imperial / Metric Converter',d:'Convert lengths, areas, volumes, and weights between imperial and metric units.',c:'General Productivity',s:'soon'},
+  {n:'Working Days Calculator',d:'Calculate working days between dates, excluding weekends and holidays.',c:'General Productivity',s:'soon'},
+  {n:'Project Email Subject Generator',d:'Generate professional project email subjects with the BIMXL acronym-prefix format.',c:'General Productivity',s:'soon'},
+  {n:'Meeting Agenda Builder',d:'Build a timed meeting agenda with topics, presenters, and duration blocks.',c:'General Productivity',s:'soon'},
+  {n:'Action Item Tracker',d:'Simple persistent action item list with owner, due date, and status.',c:'General Productivity',s:'soon'},
+  {n:'Project Contact Directory',d:'Maintain a project-specific contact list with role, phone, and email.',c:'General Productivity',st for reviewing contractor payment applications for completeness.',c:'Contracts & Legal',s:'soon'},
+
+  // ── General Productivity ───────────────────────────────────────
+  {n:'Imperial / Metric Converter',d:'Convert lengths, areas, volumes, and weights between imperial and metric units.',c:'General Productivity',s:'soon'},
+  {n:'Working Days Calculator',d:'Calculate working days between dates, excluding weekends and holidays.',c:'General Productivity',s:'soon'},
+  {n:'Project Email Subject Generator',d:'Generate professional project email subjects with the BIMXL acronym-prefix format.',c:'General Productivity',s:'soon'},
+  {n:'Meeting Agenda Builder',d:'Build a timed meeting agenda with topics, presenters, and duration blocks.',c:'General Productivity',s:'soon'},
+  {n:'Action Item Tracker',d:'Simple persistent action item list with owner, due date, and status.',c:'General Productivity',s:'soon'},
+  {n:'Project Contact Directory',d:'Maintain a project-specific contact list with role, phone, and email.',c:'General Productivity',s:'soon'},
+  {n:'Lesson Learned Log',d:'Capture project lessons learned by phase with category and recommendation.',c:'General Productivity',s:'soon'},
+  {n:'Project Acronym Dictionary',d:'Build and share a project-specific glossary of acronyms and defined terms.',c:'General Productivity',s:'soon'},
+  {n:'Decision Log',d:'Record key project decisions with date, rationale, and approver.',c:'General Productivity',s:'soon'},
+  {n:'Assumption Log',d:'Track project assumptions with validation status and owner.',c:'General Productivity',s:'soon'},
+
+  // ── Calculators ────────────────────────────────────────────────
+  {n:'Percentage Calculator',d:'Quick percentage, change, and markup/margin calculations.',c:'Calculators',s:'soon'},
+  {n:'Area & Perimeter Calculator',d:'Calculate area and perimeter for rectangles, circles, triangles, and L-shapes.',c:'Calculators',s:'soon'},
+  {n:'Volume Calculator',d:'Calculate volumes for common geometric shapes used in construction.',c:'Calculators',s:'soon'},
+  {n:'Slope & Grade Calculator',d:'Convert between slope percentage, ratio, degrees, and rise/run.',c:'Calculators',s:'soon'},
+  {n:'Aspect Ratio Calculator',d:'Calculate and lock aspect ratios for drawings, images, and scaled plans.',c:'Calculators',s:'soon'},
+  {n:'Scale Converter',d:'Convert real dimensions to drawing scale and back for any scale ratio.',c:'Calculators',s:'soon'},
+  {n:'Compound Interest Calculator',d:'Calculate compound growth for investment returns and loan balances.',c:'Calculators',s:'soon'},
+  {n:'Inflation Adjuster',d:'Adjust historical construction costs to current dollars using CPI data.',c:'Calculators',s:'soon'},
+  {n:'Markup vs Margin Calculator',d:'Convert between markup percentage and margin percentage for pricing.',c:'Calculators',s:'soon'},
+  {n:'Unit Price Normalizer',d:'Normalize costs from different units (SF, SY, LF, CY) to compare bids.',c:'Calculators',s:'soon'}
+];
+
+var _cat='all';
+var _q='';
+
+function doFilter(){_q=document.getElementById('searchBox').value.toLowerCase();render();}
+function setcat(c){_cat=c;document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.toggle('active',b.dataset.cat===c);});render();}
+
+function render(){
+  var f=TOOLS.filter(function(t){
+    return (_cat==='all'||t.c===_cat)&&(!_q||t.n.toLowerCase().includes(_q)||t.d.toLowerCase().includes(_q)||t.c.toLowerCase().includes(_q));
+  });
+  document.getElementById('info').textContent=f.length+' of '+TOOLS.length+' tools';
+  if(!f.length){document.getElementById('toolGrid').innerHTML='<div class="empty">No tools match your search.</div>';return;}
+  var h='';
+  f.forEach(function(t){
+    var col=CC[t.c]||'#444';
+    var badge=t.s==='live'?'<span class="badge b-live">Live</span>':t.s==='new'?'<span class="badge b-new">New</span>':'<span class="badge b-soon">Soon</span>';
+    var foot=t.u?'<span class="card-open">Open →</span>':'<span></span>';
+    var card='<div class="tool-card '+t.s+'"'+(t.u?' onclick="location.href=\''+t.u+'\'"':'')+' style="--cc:'+col+'">'
+      +'<div class="card-top"><span class="card-name">'+t.n+'</span>'+badge+'</div>'
+      +'<div class="card-desc">'+t.d+'</div>'
+      +'<div class="card-foot"><span class="card-cat">'+t.c+'</span>'+foot+'</div>'
+      +'</div>';
+    h+=card;
+  });
+  document.getElementById('toolGrid').innerHTML=h;
+}
+
+function init(){
+  var cats=['all'].concat(Object.keys(CC));
+  var row=document.getElementById('catRow');
+  cats.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='cat-btn'+(c==='all'?' active':'');
+    b.dataset.cat=c;
+    b.textContent=c==='all'?'All':c;
+    b.onclick=function(){setcat(c);};
+    row.appendChild(b);
+  });
+  var live=TOOLS.filter(function(t){return t.s==='live'||t.s==='new';}).length;
+  document.getElementById('liveCount').textContent=live;
+  document.getElementById('totalCount').textContent=TOOLS.length;
+  render();
+}
+init();
+</script>
+</body>
+</html>
