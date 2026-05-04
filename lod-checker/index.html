@@ -1,80 +1,234 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LOD Checker — XLMX</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LOD Checker - BIM XL</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#111;color:#fff;min-height:100vh}
-.container{max-width:900px;margin:0 auto;padding:20px}
-h1{font-size:1.5rem;margin-bottom:4px}
-.sub{font-size:.75rem;color:#888;margin-bottom:20px}
-label{display:block;font-size:.75rem;color:#aaa;margin:8px 0 3px}
-input,select,textarea{width:100%;padding:8px 10px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:4px;font-size:.85rem;font-family:inherit}
-textarea{min-height:80px;resize:vertical}
-select{appearance:auto}
-button{padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}
-button:hover{background:#15803d}
-button.sec{background:#333}
-button.sec:hover{background:#444}
-.card{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px;margin-bottom:12px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-table{width:100%;border-collapse:collapse;font-size:.78rem}
-th{background:#222;padding:8px;text-align:left;font-weight:600;color:#aaa;border-bottom:1px solid #333}
-td{padding:6px 8px;border-bottom:1px solid #222}
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700}
-.bg{background:#16a34a22;color:#16a34a}.br{background:#dc262622;color:#dc2626}.by{background:#eab30822;color:#eab308}.bo{background:#f9731622;color:#f97316}.bb{background:#3b82f622;color:#3b82f6}
-.stat{text-align:center;padding:12px}.stat .n{font-size:1.8rem;font-weight:800}.stat .l{font-size:.65rem;color:#888}
-.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.tag{font-size:.65rem;padding:3px 8px;border-radius:3px;background:#222;color:#aaa}
-@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d0d0d;color:#e8e8e8;min-height:100vh}
+header{background:#111;border-bottom:1px solid #222;padding:14px 24px;display:flex;align-items:center;gap:14px}
+header a{color:#555;text-decoration:none;font-size:13px}
+header a:hover{color:#e8e8e8}
+h1{font-size:19px;font-weight:600;color:#fff}
+.sub{font-size:12px;color:#555;margin-left:auto}
+.tabs{display:flex;border-bottom:1px solid #222;background:#111;padding:0 24px}
+.tab{padding:11px 18px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:#666}
+.tab.active{color:#c8a96e;border-bottom-color:#c8a96e}
+.tab:hover:not(.active){color:#ccc}
+.panel{display:none;padding:24px}
+.panel.active{display:block}
+.ctrl{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.ctrl input,.ctrl select{background:#1a1a1a;border:1px solid #2e2e2e;color:#e8e8e8;padding:7px 11px;border-radius:5px;font-size:12px}
+.ctrl input{width:240px}
+.ctrl input::placeholder{color:#555}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.badge{padding:3px 9px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.3px}
+.b1{background:#101828;color:#60a5fa;border:1px solid #1e3a5f}
+.b2{background:#0f2318;color:#4ade80;border:1px solid #1a4a2a}
+.b3{background:#1f1a08;color:#fbbf24;border:1px solid #4a3a10}
+.b4{background:#1a0f0f;color:#f87171;border:1px solid #4a1a1a}
+.b5{background:#1a0a1a;color:#c084fc;border:1px solid #3a1a4a}
+.wrap{max-height:calc(100vh - 280px);overflow-y:auto;border:1px solid #222;border-radius:7px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#161616;padding:9px 12px;text-align:left;border:1px solid #242424;font-weight:600;color:#888;position:sticky;top:0;z-index:2;font-size:11px}
+thead th.lh{text-align:center;min-width:140px}
+tbody tr:hover td{background:#131313}
+td{padding:7px 12px;border:1px solid #1d1d1d;vertical-align:top;line-height:1.5;font-size:11px}
+td.elem{color:#ccc;font-weight:500;font-size:12px;min-width:180px}
+tr.cat td{background:#161616;color:#c8a96e;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.6px;padding:6px 12px}
+td.lc{color:#333}
+td.lc.on{color:#bbb}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22py}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:7px;padding:18px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;margin-bottom:14px}
+.f{margin-bottom:11px}
+.f label{display:block;font-size:10px;color:#555;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.f input,.f select,.f textarea{width:100%;background:#1a1a1a;border:1px solid #2e2e2e;color:#e8e8e8;padding:7px 10px;border-radius:5px;font-size:12px}
+.f textarea{resize:vertical;min-height:60px}
+.brow{display:flex;gap:10px;margin-bottom:22px}
+.btn{padding:9px 18px;border-radius:5px;border:none;font-size:12px;font-weight:600;cursor:pointer}
+.btn-p{background:#c8a96e;color:#111}
+.btn-s{background:#1a1a1a;color:#bbb;border:1px solid #2e2e2e}
+.report{background:#111;border:1px solid #222;border-radius:7px;padding:20px}
+.report h3{font-size:13px;font-weight:600;margin-bottom:4px;color:#fff}
+.rpt-meta{font-size:11px;color:#555;margin-bottom:16px}
+.summary{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.scard{background:#161616;border:1px solid #222;border-radius:5px;padding:10px 16px;text-align:center}
+.scard .n{font-size:22px;font-weight:700;color:#c8a96e}
+.scard .l{font-size:10px;color:#555;margin-top:2px}
+.gap-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #191919;font-size:12px}
+.gap-row:last-child{border-bottom:none}
+.gap-elem{color:#ccc;flex:1}
+.gap-req{color:#666;font-size:11px;margin:0 12px;max-width:220px}
+.gt{padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700}
+.tok{background:#0f2318;color:#4ade80}
+.tgap{background:#1f1a08;color:#fbbf24}
+.tmiss{background:#1a0f0f;color:#f87171}
+.prog{height:5px;background:#1a1a1a;border-radius:3px;margin-top:14px;overflow:hidden}
+.prog-fill{height:100%;background:#c8a96e;border-radius:3px;transition:width .6s}
+@media print{header,.tabs,.ctrl,.legend,.brow .btn-s{display:none!important}body{background:#fff;color:#000}.report,.card{border-color:#ccc;background:#fff}.scard{background:#f5f5f5}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-</head><body>
-<div class="container">
-<h1>LOD Checker</h1>
-<p class="sub">Validate BIM element Level of Development against ISO 19650 and BIMForum standards.</p>
-<div class="card grid2">
-<div><label>Element Category</label>
-<select id="cat" onchange="check()"><option value="">Select...</option>
-<option>Walls</option><option>Doors</option><option>Windows</option><option>Columns</option><option>Floors/Slabs</option><option>Roofs</option><option>Stairs</option><option>MEP Ducts</option><option>MEP Pipes</option><option>Electrical</option><option>Furniture</option><option>Curtain Walls</option></select></div>
-<div><label>Target LOD</label>
-<select id="lod" onchange="check()"><option value="">Select...</option>
-<option>100</option><option>200</option><option>300</option><option>350</option><option>400</option><option>500</option></select></div>
+</head>
+<body>
+<header>
+  <a href="../">&larr; Library</a>
+  <h1>LOD Checker</h1>
+  <span class="sub">BIM XL &mdash; Level of Development Reference &amp; Gap Analysis</span>
+</header>
+<div class="tabs">
+  <div class="tab active" id="tab0" onclick="switchTab(0)">LOD Matrix</div>
+  <div class="tab" id="tab1" onclick="switchTab(1)">Project LOD Checker</div>
 </div>
-<div id="results"></div>
+<div class="panel active" id="p0">
+  <div class="ctrl">
+    <input type="text" id="srch" placeholder="Search element..." oninput="filterMatrix()">
+    <select id="catF" onchange="filterMatrix()"><option value="">All Categories</option></select>
+    <select id="lodF" onchange="filterMatrix()">
+      <option value="">All Levels</option>
+      <option value="0">LOD 100</option><option value="1">LOD 200</option>
+      <option value="2">LOD 300</option><option value="3">LOD 350</option><option value="4">LOD 400</option>
+    </select>
+    <span id="rowCount" style="font-size:11px;color:#555;margin-left:4px"></span>
+  </div>
+  <div class="legend">
+    <span class="badge b1">LOD 100 &mdash; Conceptual</span>
+    <span class="badge b2">LOD 200 &mdash; Approximate Geometry</span>
+    <span class="badge b3">LOD 300 &mdash; Precise Geometry</span>
+    <span class="badge b4">LOD 350 &mdash; Coordination Ready</span>
+    <span class="badge b5">LOD 400 &mdash; Fabrication / Installation</span>
+  </div>
+  <div class="wrap">
+    <table id="mtbl">
+      <thead><tr>
+        <th>Element</th>
+        <th class="lh">LOD 100</th><th class="lh">LOD 200</th>
+        <th class="lh">LOD 300</th><th class="lh">LOD 350</th><th class="lh">LOD 400</th>
+      </tr></thead>
+      <tbody id="mbody"></tbody>
+    </table>
+  </div>
+</div>
+<div class="panel" id="p1">
+  <div class="grid2">
+    <div class="card">
+      <h3>Project Info</h3>
+      <div class="f"><label>Project Name</label><input id="pname" placeholder="e.g. Tower A - SD Phase"></div>
+      <div class="f"><label>Phase</label>
+        <select id="pphase">
+          <option>Schematic Design (SD)</option><option>Design Development (DD)</option>
+          <option>Construction Documents (CD)</option><option>Construction Administration (CA)</option>
+        </select>
+      </div>
+      <div class="f"><label>Required LOD</label>
+        <select id="preq">
+          <option value="0">LOD 100</option><option value="1">LOD 200</option>
+          <option value="2" selected>LOD 300</option><option value="3">LOD 350</option><option value="4">LOD 400</option>
+        </select>
+      </div>
+      <div class="f"><label>Notes</label><textarea id="pnotes" placeholder="Additional context..."></textarea></div>
+    </div>
+    <div class="card">
+      <h3>Elements to Check</h3>
+      <p style="font-size:11px;color:#555;margin-bottom:12px">Select elements relevant to this phase.</p>
+      <div id="elemChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:260px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <div class="brow">
+    <button class="btn btn-p" onclick="runCheck()">Generate Gap Report</button>
+    <button class="btn btn-s" onclick="window.print()">Print / PDF</button>
+    <button class="btn btn-s" onclick="resetCheck()">Reset</button>
+  </div>
+  <div class="report" id="rpt" style="display:none">
+    <h3 id="rpt-title"></h3>
+    <div class="rpt-meta" id="rpt-meta"></div>
+    <div class="summary" id="rpt-summary"></div>
+    <div id="rpt-rows"></div>
+    <div class="prog"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div style="font-size:10px;color:#555;margin-top:6px;text-align:right" id="prog-label"></div>
+  </div>
 </div>
 <script>
-const DB={
-Walls:{100:['Massing/conceptual representation','Approximate location'],200:['Generic wall type indicated','Approximate geometry','Orientation shown'],300:['Specific wall assembly','Accurate dimensions','Material layers defined','Opening locations'],350:['Connection details','Fire rating specified','Acoustic rating','Structural attachments'],400:['Fabrication-ready geometry','Shop drawing level detail','Embed locations','Exact material specs'],500:['As-built verification','Field-verified dimensions','Maintenance data attached']},
-Doors:{100:['Symbol or placeholder only'],200:['Generic door type','Approximate size','Swing direction'],300:['Specific manufacturer/model','Exact dimensions','Frame type specified','Hardware group assigned'],350:['Threshold details','Weather stripping','Fire rating label','Glazing specs if applicable'],400:['Shop drawing geometry','Hardware schedule complete','Installation clearances','Finish specifications'],500:['As-built verification','Warranty data','Maintenance schedule']},
-Windows:{100:['Placeholder opening'],200:['Generic window type','Approximate size','Rough opening'],300:['Specific type and manufacturer','Mullion layout','Glass type specified','U-value defined'],350:['Sill and head details','Flashing requirements','Structural support connections'],400:['Fabrication geometry','Shop drawings complete','Hardware specified','Finish and color codes'],500:['As-built verification','Performance test data','Warranty info']},
-Columns:{100:['Approximate location and height'],200:['Generic shape (round/square)','Approximate dimensions'],300:['Specific size and material','Connection type indicated','Reinforcement schedule (concrete)','Steel section specified'],350:['Base plate details','Splice locations','Fireproofing requirements'],400:['Fabrication-ready with connections','Embed plates','Camber specifications','Erection marks'],500:['As-built location verified','Load test results','Maintenance coating data']},
-'Floors/Slabs':{100:['Horizontal plane at level'],200:['Generic slab thickness','Floor-to-floor height'],300:['Slab type and thickness','Reinforcement layout','Topping if applicable','Edge conditions'],350:['Pour sequence','Construction joints','Embed locations','MEP penetrations coordinated'],400:['Formwork design','Rebar detailing complete','Post-tension layout if applicable'],500:['As-built elevations','Core test results','Flatness measurements']},
-Roofs:{100:['Conceptual roof plane'],200:['Generic roof type and slope'],300:['Roofing assembly layers','Drainage pattern','Penetration locations'],350:['Flashing details','Expansion joints','Equipment support coordination'],400:['Shop drawing details','Membrane seam layout','Attachment pattern'],500:['As-built conditions','Warranty documentation']},
-Stairs:{100:['Placeholder vertical circulation'],200:['Generic stair configuration','Approximate dimensions'],300:['Riser/tread dimensions to code','Railing type','Material specified','Landing dimensions'],350:['Connection to structure','Guard details','Nosing profile','Non-slip specification'],400:['Fabrication geometry','Steel stringer details','Embed locations'],500:['As-built verification','Code compliance documentation']},
-'MEP Ducts':{100:['Schematic routing zones'],200:['Approximate routing paths','Major equipment locations'],300:['Duct sizes specified','Fittings modeled','Insulation indicated','Diffuser locations'],350:['Hangers and supports','Access doors','Fire damper locations','Coordination clearances verified'],400:['Fabrication spool drawings','Seam and joint details','TAB-ready'],500:['As-built routing verified','Balancing report data']},
-'MEP Pipes':{100:['Schematic routing zones'],200:['Approximate pipe routing','Main equipment'],300:['Pipe sizes and material','Fittings modeled','Valve locations','Insulation type'],350:['Supports and hangers','Sleeve locations','Coordination clearances','Pressure ratings'],400:['Fabrication spool drawings','Weld locations','Isometric details'],500:['As-built verified','Pressure test documentation']},
-Electrical:{100:['Zone allocation for panels'],200:['Panel locations','Major conduit routes'],300:['Circuit assignments','Conduit sizes','Device locations','Load calculations'],350:['Box fill calculations','Grounding details','Coordination with structure'],400:['Fabrication-ready panel schedules','Conduit bend details','Pull box locations'],500:['As-built verified','Metering data','Test results']},
-Furniture:{100:['Space allocation blocks'],200:['Generic furniture type and size'],300:['Specific manufacturer and model','Accurate dimensions','Finish specified'],350:['Power/data connection requirements','Mounting details','Accessibility clearances verified'],400:['Installation drawings','Anchorage details if required'],500:['As-installed photos','Warranty data','Maintenance schedule']},
-'Curtain Walls':{100:['Conceptual facade plane'],200:['Generic system type','Module grid approximate'],300:['Mullion profiles specified','Panel types defined','Structural attachment type','Thermal performance values'],350:['Anchor and bracket details','Movement joint locations','Drainage paths','Sealant joints'],400:['Shop drawing details','Glass make-up','Extrusion profiles','Hardware'],500:['As-built verification','Water test results','Performance certificates']},
-};
-function check(){
-const cat=document.getElementById('cat').value;
-const lod=document.getElementById('lod').value;
-if(!cat||!lod)return;
-const data=DB[cat];
-if(!data){document.getElementById('results').innerHTML='<div class="card">Category not found.</div>';return;}
-const levels=['100','200','300','350','400','500'];
-const target=parseInt(lod);
-let h='<div class="card"><h3 style="margin-bottom:10px;font-size:.9rem;">'+cat+' — LOD '+lod+' Requirements</h3>';
-const reqs=data[lod]||[];
-reqs.forEach(r=>{h+=`<div style="margin:4px 0;padding:6px 10px;background:#16a34a15;border-left:3px solid #16a34a;border-radius:2px;font-size:.8rem;">✓ ${r}</div>`;});
-h+='</div>';
-h+=`<div class="card"><h3 style="margin-bottom:10px;font-size:.9rem;">Full LOD Comparison — ${cat}</h3><table><tr><th>LOD</th><th>Requirements</th><th>Status</th></tr>`;
-levels.forEach(l=>{
-const items=data[l]||[];
-const active=parseInt(l)<=target;
-h+=`<tr style="opacity:${active?1:.4}"><td><span class="badge ${active?'bg':''}">${l}</span></td><td style="font-size:.75rem;">${items.join('; ')}</td><td>${active?'<span class="badge bg">INCLUDED</span>':'<span class="tag">Above target</span>'}</td></tr>`;
-});
-h+=`</table></div>`;
-document.getElementById('results').innerHTML=h;
+var CATS=[{id:'arch',name:'Architecture'},{id:'struct',name:'Structure'},{id:'mep',name:'MEP'},{id:'site',name:'Site / Civil'},{id:'interior',name:'Interiors'},{id:'facade',name:'Facade / Envelope'},{id:'fire',name:'Fire Protection'}];
+var ELEMS=[
+  {cat:'arch',name:'Walls - Exterior',lods:['Overall massing','Type + approx dimensions','Full geometry, materials, fire rating','Connections + penetrations detailed','Shop drawing geometry, specs']},
+  {cat:'arch',name:'Walls - Interior',lods:['Schematic layout','Partition type + height','Exact dims, type mark, fire rating','Opening coords, anchorage','Fabrication detail']},
+  {cat:'arch',name:'Floors / Slabs',lods:['Area massing','Approx thickness, material','Exact elevation, slope, edge detail','Embed + penetration coordination','Pour sequence, rebar layout']},
+  {cat:'arch',name:'Roofs',lods:['Outline + slope concept','Roof type + approx pitch','Drainage, edge detail, insulation','HVAC curb + penetration coords','Membrane + detail specs']},
+  {cat:'arch',name:'Ceilings',lods:['Zone indication','Height + general type','Exact height, tile grid, soffits','Coord with MEP grid, access panels','T-bar layout, tile specs']},
+  {cat:'arch',name:'Stairs',lods:['Location, conceptual','Rise/run, width approx','Code-compliant geometry','Handrail coords, clearances','Steel fabrication detail']},
+  {cat:'arch',name:'Doors',lods:['Opening in wall','Type, size, hardware family','Frame detail, threshold, fire rating','Coord with structure + wall type','Hardware schedule, manufacturer']},
+  {cat:'arch',name:'Windows / Glazing',lods:['Opening in facade','Type, size, rough opening','Frame detail, sill, head','Anchor coords, weatherproofing','Manufacturer shop drawing data']},
+  {cat:'struct',name:'Foundations',lods:['Location concept','Approx size, type','Exact dims, elevation, capacity','Embed plates, anchor bolts','Rebar + pour sequence detail']},
+  {cat:'struct',name:'Structural Columns',lods:['Location grid','Section size + material','Exact section, elevation, connection','Base plate + anchor bolt coord','Fabrication drawing, camber data']},
+  {cat:'struct',name:'Structural Beams',lods:['Span location','Section + span approx','Exact section, bearing, camber','Connection plates, deck openings','Shop drawing, weld details']},
+  {cat:'struct',name:'Structural Slabs',lods:['Slab area','Thickness + type','Elevation, rebar zone','Embed, penetration, deck','Pour sequence, rebar placement']},
+  {cat:'struct',name:'Shear Walls',lods:['Location indication','Type + approx thickness','Exact dims, reinforcing zone','Boundary element + connection','Rebar placement + connection detail']},
+  {cat:'struct',name:'Trusses',lods:['Span concept','Depth + chord type','Member size + geometry','Connection node detail','Fabrication drawing + camber']},
+  {cat:'mep',name:'HVAC - Ductwork',lods:['Zone concept','Routing + approx size','Exact routing, size, material','Insulation, support spacing','Manufacturer model, connections']},
+  {cat:'mep',name:'HVAC - Equipment',lods:['Space allocation','Approx size + service area','Exact footprint, weight, utility','Anchor, structural load, clearances','Equipment submittal data, tag']},
+  {cat:'mep',name:'Plumbing - Pipes',lods:['Routing zone','Pipe size + material approx','Exact routing, size, slope, insulation','Support + sleeve coordination','Manufacturer spec, tag']},
+  {cat:'mep',name:'Plumbing - Fixtures',lods:['Location placeholder','Fixture type + rough-in','Exact location, rough-in dims','ADA clearance, drain coord','Manufacturer model, connections']},
+  {cat:'mep',name:'Electrical - Conduit',lods:['Zone routing','Size + material approx','Exact routing + size','Support, junction box, penetration','Manufacturer spec, tag']},
+  {cat:'mep',name:'Electrical - Panels',lods:['Location placeholder','Panel type + approx size','Exact footprint, circuit count','Arc flash zone, clearances','Submittal data, schedule']},
+  {cat:'mep',name:'Fire Suppression',lods:['Coverage zone','Head spacing approx','Exact layout + pipe size','Coord with ceiling grid + structure','Head model, test cert']},
+  {cat:'site',name:'Grading / Earthwork',lods:['Existing topo','Proposed contours concept','Spot elevations + cut/fill','Drainage swales, detention','Earthwork volume, export plan']},
+  {cat:'site',name:'Paving / Hardscape',lods:['Area concept','Material + layout approx','Exact dims, slope, joint pattern','Sub-base, edge restraint detail','Paving schedule, spec']},
+  {cat:'site',name:'Site Utilities',lods:['Routing concept','Pipe size + invert approx','Exact routing, size, invert, manhole','Sleeve + duct bank coordination','As-built record data']},
+  {cat:'interior',name:'Millwork / Casework',lods:['Zone placeholder','Type + approx dims','Exact dims, material, hardware','Mech + electrical coordination','Shop drawing, manufacturer']},
+  {cat:'interior',name:'Flooring',lods:['Material zone','Type + pattern approx','Exact layout, transition detail','Substrate + drain coord','Tile/plank schedule, spec']},
+  {cat:'facade',name:'Curtain Wall',lods:['Grid concept','Mullion size + glazing type','Exact mullion, panel, sill detail','Anchor to structure, sealant','Shop drawing, thermal calc']},
+  {cat:'facade',name:'Cladding Panels',lods:['Material zone','Panel size + fixing type','Exact panel + fixing geometry','Structural support + joint detail','Fabrication drawing, material cert']},
+  {cat:'fire',name:'Fire Rated Assemblies',lods:['Zone indication','Rating + wall type approx','Exact rating, UL assembly number','Penetration seal + damper coord','Product submittal, test cert']},
+  {cat:'fire',name:'Fire Doors / Frames',lods:['Opening placeholder','Rating + size approx','Exact frame, hardware, label','Coordination with egress path','Hardware submittal, label']}
+];
+function switchTab(i){document.querySelectorAll('.tab').forEach(function(t,j){t.classList.toggle('active',i===j)});document.querySelectorAll('.panel').forEach(function(p,j){p.classList.toggle('active',i===j)});if(i===1)buildElemChecks();}
+function buildCatFilter(){var sel=document.getElementById('catF');CATS.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o)});}
+function filterMatrix(){
+  var q=document.getElementById('srch').value.toLowerCase();
+  var cat=document.getElementById('catF').value;
+  var body=document.getElementById('mbody');body.innerHTML='';
+  var count=0,lastCat='';
+  ELEMS.forEach(function(e){
+    if(cat&&e.cat!==cat)return;
+    if(q&&e.name.toLowerCase().indexOf(q)<0)return;
+    if(e.cat!==lastCat){var tr=document.createElement('tr');tr.className='cat';var td=document.createElement('td');td.colSpan=6;td.textContent=CATS.find(function(c){return c.id===e.cat}).name;tr.appendChild(td);body.appendChild(tr);lastCat=e.cat;}
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td class="elem">'+e.name+'</td>'+e.lods.map(function(l){return '<td class="lc'+(l?' on':'')+'">'+l+'</td>';}).join('');
+    body.appendChild(tr);count++;
+  });
+  document.getElementById('rowCount').textContent=count+' elements';
 }
-</script></body></html>
+function buildElemChecks(){var div=document.getElementById('elemChecks');if(div.children.length>0)return;ELEMS.forEach(function(e,i){var label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:5px;font-size:11px;color:#bbb;cursor:pointer;padding:2px 0';var cb=document.createElement('input');cb.type='checkbox';cb.value=i;cb.style.accentColor='#c8a96e';label.appendChild(cb);label.appendChild(document.createTextNode(e.name));div.appendChild(label);});}
+function runCheck(){
+  var pname=document.getElementById('pname').value||'Unnamed Project';
+  var phase=document.getElementById('pphase').value;
+  var reqLod=parseInt(document.getElementById('preq').value);
+  var lodLabels=['LOD 100','LOD 200','LOD 300','LOD 350','LOD 400'];
+  var checks=document.querySelectorAll('#elemChecks input[type=checkbox]:checked');
+  if(!checks.length){alert('Select at least one element.');return;}
+  var selected=Array.from(checks).map(function(cb){return ELEMS[parseInt(cb.value)]});
+  var ok=0,gap=0,miss=0,rows='';
+  selected.forEach(function(e){
+    var def=e.lods[reqLod];var tag,cls;
+    if(def&&def.length>5){tag='OK';cls='tok';ok++;}
+    else if(reqLod>0&&e.lods[reqLod-1]){tag='PARTIAL';cls='tgap';gap++;}
+    else{tag='NOT DEFINED';cls='tmiss';miss++;}
+    rows+='<div class="gap-row"><span class="gap-elem">'+e.name+'</span><span class="gap-req">'+(def||'Not defined at this LOD')+'</span><span class="gt '+cls+'">'+tag+'</span></div>';
+  });
+  var total=selected.length,pct=Math.round(ok/total*100);
+  document.getElementById('rpt-title').textContent=pname+' - LOD Gap Report';
+  document.getElementById('rpt-meta').textContent=phase+' | Required: '+lodLabels[reqLod]+' | '+new Date().toLocaleDateString();
+  document.getElementById('rpt-summary').innerHTML='<div class="scard"><div class="n">'+total+'</div><div class="l">Checked</div></div><div class="scard"><div class="n" style="color:#4ade80">'+ok+'</div><div class="l">Compliant</div></div><div class="scard"><div class="n" style="color:#fbbf24">'+gap+'</div><div class="l">Partial</div></div><div class="scard"><div class="n" style="color:#f87171">'+miss+'</div><div class="l">Not Defined</div></div><div class="scard"><div class="n">'+pct+'%</div><div class="l">Score</div></div>';
+  document.getElementById('rpt-rows').innerHTML=rows;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=pct+'% LOD compliance';
+  document.getElementById('rpt').style.display='block';
+  document.getElementById('rpt').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function resetCheck(){document.querySelectorAll('#elemChecks input[type=checkbox]').forEach(function(cb){cb.checked=false});document.getElementById('rpt').style.display='none';}
+buildCatFilter();filterMatrix();
+</script>
+</body>
+</html>

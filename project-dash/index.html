@@ -1,1 +1,343 @@
-﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Dashboard — XLMX</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111;color:#fff;min-height:100vh;padding:24px}h1{font-size:20px;font-weight:700;margin-bottom:4px}.sub{font-size:12px;color:#888;margin-bottom:24px}.tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}.tab{padding:7px 16px;background:#1a1a1a;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:12px;color:#888}.tab.active{background:#16a34a;border-color:#16a34a;color:#fff}.panel{display:none}.panel.active{display:block}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}.kpi{background:#1a1a1a;border:1px solid #222;border-radius:8px;padding:16px}.kpi-val{font-size:28px;font-weight:700;color:#16a34a}.kpi-lbl{font-size:11px;color:#666;margin-top:4px}.kpi-sub{font-size:11px;margin-top:6px}.card{background:#1a1a1a;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:14px}.card-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:640px){.grid2{grid-template-columns:1fr}}label{font-size:11px;color:#888;display:block;margin-bottom:4px}input,select{width:100%;background:#111;border:1px solid #333;color:#fff;padding:9px 12px;border-radius:6px;font-size:13px}input:focus,select:focus{outline:none;border-color:#16a34a}.btn{padding:9px 20px;background:#16a34a;border:none;border-radius:6px;color:#fff;font-size:13px;cursor:pointer}.metric-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #111}.m-label{font-size:12px;color:#aaa}.m-val{font-size:13px;font-weight:600}.prog-bar{height:8px;background:#222;border-radius:4px;overflow:hidden;margin-top:6px}.prog-fill{height:100%;border-radius:4px;transition:width .4s}.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.status-card{background:#111;border:1px solid #1e1e1e;border-radius:6px;padding:12px}.sc-title{font-size:11px;color:#888;margin-bottom:6px}.sc-val{font-size:18px;font-weight:700}.sc-prog{margin-top:6px}.rag{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px}.rag-g{background:#16a34a}.rag-a{background:#f59e0b}.rag-r{background:#ef4444}.milestone-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #111}.ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}.ms-name{flex:1;font-size:13px;color:#ccc}.ms-date{font-size:11px;color:#888}.ms-status{font-size:11px;font-weight:600}</style></head><body><h1>Project Dashboard</h1><div class="sub">Master project overview — schedule, cost, BIM, and team status</div><div class="tabs"><div class="tab active" onclick="setTab(0)">Overview</div><div class="tab" onclick="setTab(1)">Schedule</div><div class="tab" onclick="setTab(2)">Cost</div><div class="tab" onclick="setTab(3)">BIM Status</div><div class="tab" onclick="setTab(4)">Settings</div></div><div class="panel active" id="p0"><div class="kpi-grid" id="kpis"></div><div class="grid2"><div><div class="card"><div class="card-title">Phase Status — RAG</div><div id="rag-list"></div></div></div><div><div class="card"><div class="card-title">Key Milestones</div><div id="milestones"></div></div></div></div></div><div class="panel" id="p1"><div class="card"><div class="card-title">Schedule Summary</div><div id="sched-detail"></div></div></div><div class="panel" id="p2"><div class="card"><div class="card-title">Cost Summary</div><div id="cost-detail"></div></div></div><div class="panel" id="p3"><div class="card"><div class="card-title">BIM Discipline Status</div><div id="bim-detail"></div></div></div><div class="panel" id="p4"><div class="card"><div class="card-title">Project Settings</div><div class="grid2" style="gap:12px"><div><label>Project Name</label><input id="cfg-name" oninput="saveCfg()"></div><div><label>Project Number</label><input id="cfg-num" oninput="saveCfg()"></div><div><label>Client</label><input id="cfg-client" oninput="saveCfg()"></div><div><label>PM</label><input id="cfg-pm" oninput="saveCfg()"></div><div><label>Contract Value ($)</label><input type="number" id="cfg-contract" oninput="saveCfg()"></div><div><label>Current Invoiced ($)</label><input type="number" id="cfg-inv" oninput="saveCfg()"></div><div><label>Schedule % Complete</label><input type="number" id="cfg-sched" min="0" max="100" oninput="saveCfg()"></div><div><label>Budget % Spent</label><input type="number" id="cfg-budg" min="0" max="100" oninput="saveCfg()"></div></div></div></div><script>var defaults={name:"Mixed-Use Office Tower",num:"XL-2025-001",client:"Client Co. / Your Firm",pm:"Diego Rodriguez",contract:2400000,inv:960000,sched:40,budg:38};var cfg=JSON.parse(localStorage.getItem("dash-cfg")||JSON.stringify(defaults));var phases=[{name:"Pre-Design",rag:"g",pct:100},{name:"Schematic Design (SD)",rag:"g",pct:100},{name:"Design Development (DD)",rag:"a",pct:85},{name:"Construction Documents (CD)",rag:"a",pct:40},{name:"Bidding / Procurement",rag:"r",pct:0},{name:"Construction Administration",rag:"r",pct:0}];var milestones=[{name:"SD Submittal",date:"2025-02-14",done:true},{name:"DD Submittal",date:"2025-04-28",done:true},{name:"Permit Submittal",date:"2025-05-30",done:false},{name:"100% CD",date:"2025-07-15",done:false},{name:"GC Bid Award",date:"2025-08-20",done:false},{name:"Construction Start",date:"2025-09-01",done:false},{name:"Substantial Completion",date:"2026-08-01",done:false}];var bimDiscs=[{name:"Architecture",lod:300,target:350,pct:88},{name:"Structural",lod:300,target:350,pct:92},{name:"Mechanical",lod:200,target:300,pct:65},{name:"Electrical",lod:200,target:300,pct:60},{name:"Plumbing",lod:200,target:300,pct:58},{name:"Fire Protection",lod:100,target:200,pct:30}];function saveCfg(){cfg.name=document.getElementById("cfg-name").value;cfg.num=document.getElementById("cfg-num").value;cfg.client=document.getElementById("cfg-client").value;cfg.pm=document.getElementById("cfg-pm").value;cfg.contract=parseFloat(document.getElementById("cfg-contract").value)||0;cfg.inv=parseFloat(document.getElementById("cfg-inv").value)||0;cfg.sched=parseFloat(document.getElementById("cfg-sched").value)||0;cfg.budg=parseFloat(document.getElementById("cfg-budg").value)||0;localStorage.setItem("dash-cfg",JSON.stringify(cfg));renderAll();}function loadCfg(){document.getElementById("cfg-name").value=cfg.name;document.getElementById("cfg-num").value=cfg.num;document.getElementById("cfg-client").value=cfg.client;document.getElementById("cfg-pm").value=cfg.pm;document.getElementById("cfg-contract").value=cfg.contract;document.getElementById("cfg-inv").value=cfg.inv;document.getElementById("cfg-sched").value=cfg.sched;document.getElementById("cfg-budg").value=cfg.budg;}function usd(n){return "$"+Math.round(n).toLocaleString();}function renderAll(){var spi=cfg.budg?(cfg.sched/cfg.budg).toFixed(2):"—";var remaining=cfg.contract-cfg.inv;document.getElementById("kpis").innerHTML="<div class=\"kpi\"><div class=\"kpi-val\">"+cfg.sched+"%</div><div class=\"kpi-lbl\">Schedule Complete</div><div class=\"prog-bar\"><div class=\"prog-fill\" style=\"width:"+cfg.sched+"%;background:#16a34a\"></div></div></div><div class=\"kpi\"><div class=\"kpi-val\">"+cfg.budg+"%</div><div class=\"kpi-lbl\">Budget Spent</div><div class=\"prog-bar\"><div class=\"prog-fill\" style=\"width:"+cfg.budg+"%;background:"+(cfg.budg>cfg.sched+5?"#ef4444":"#16a34a")+"\"></div></div></div><div class=\"kpi\"><div class=\"kpi-val\">"+usd(cfg.inv)+"</div><div class=\"kpi-lbl\">Invoiced</div><div class=\"kpi-sub\" style=\"color:#888\">of "+usd(cfg.contract)+"</div></div><div class=\"kpi\"><div class=\"kpi-val\">"+usd(remaining)+"</div><div class=\"kpi-lbl\">Remaining Fee</div></div><div class=\"kpi\"><div class=\"kpi-val\">"+spi+"</div><div class=\"kpi-lbl\">SPI (Sched/Cost)</div><div class=\"kpi-sub\" style=\"color:"+(parseFloat(spi)>=1?"#16a34a":"#f87171")+"\">"+( parseFloat(spi)>=1?"On Track":"Behind Schedule")+"</div></div>";var ragList=document.getElementById("rag-list");ragList.innerHTML="";phases.forEach(function(ph){ragList.innerHTML+="<div class=\"milestone-row\"><span class=\"rag rag-"+(ph.pct===100?"g":ph.pct>0?"a":"r")+"\"></span><div class=\"ms-name\">"+ph.name+"</div><div style=\"font-size:12px;font-weight:600;color:#fff\">"+ph.pct+"%</div></div>";});var ms=document.getElementById("milestones");ms.innerHTML="";milestones.forEach(function(m){var past=new Date(m.date)<new Date();var col=m.done?"#16a34a":past?"#ef4444":"#888";ms.innerHTML+="<div class=\"milestone-row\"><div class=\"ms-dot\" style=\"background:"+col+"\"></div><div class=\"ms-name\">"+m.name+"</div><div class=\"ms-date\">"+m.date+"</div><div class=\"ms-status\" style=\"color:"+col+"\">"+(m.done?"DONE":past?"OVERDUE":"UPCOMING")+"</div></div>";});document.getElementById("sched-detail").innerHTML=phases.map(function(ph){return "<div class=\"metric-row\"><div class=\"m-label\">"+ph.name+"</div><div class=\"m-val\">"+ph.pct+"%</div></div><div class=\"prog-bar\" style=\"margin-bottom:8px\"><div class=\"prog-fill\" style=\"width:"+ph.pct+"%;background:#16a34a\"></div></div>";}).join("");document.getElementById("cost-detail").innerHTML="<div class=\"metric-row\"><div class=\"m-label\">Contract Value</div><div class=\"m-val\">"+usd(cfg.contract)+"</div></div><div class=\"metric-row\"><div class=\"m-label\">Total Invoiced</div><div class=\"m-val\" style=\"color:#16a34a\">"+usd(cfg.inv)+"</div></div><div class=\"metric-row\"><div class=\"m-label\">Remaining</div><div class=\"m-val\">"+usd(cfg.contract-cfg.inv)+"</div></div><div class=\"metric-row\" style=\"border:none\"><div class=\"m-label\">Invoice Rate</div><div class=\"m-val\">"+( cfg.contract?Math.round(cfg.inv/cfg.contract*100):0)+"%</div></div><div class=\"prog-bar\" style=\"margin-top:8px\"><div class=\"prog-fill\" style=\"width:"+( cfg.contract?Math.round(cfg.inv/cfg.contract*100):0)+"%;background:#16a34a\"></div></div>";document.getElementById("bim-detail").innerHTML=bimDiscs.map(function(d){var col=d.pct>=80?"#16a34a":d.pct>=50?"#fbbf24":"#f87171";return "<div class=\"metric-row\"><div class=\"m-label\">"+d.name+"</div><div style=\"display:flex;gap:8px;align-items:center\"><span style=\"font-size:11px;color:#888\">LOD "+d.lod+"</span><div class=\"m-val\" style=\"color:"+col+"\">"+d.pct+"%</div></div></div><div class=\"prog-bar\" style=\"margin-bottom:8px\"><div class=\"prog-fill\" style=\"width:"+d.pct+"%;background:"+col+"\"></div></div>";}).join("");}function setTab(i){document.querySelectorAll(".tab").forEach(function(t,idx){t.classList.toggle("active",idx===i)});document.querySelectorAll(".panel").forEach(function(p,idx){p.classList.toggle("active",idx===i)});}loadCfg();renderAll();</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Project Dashboard - BIM XL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d0d0d;color:#e8e8e8;min-height:100vh}
+header{background:#111;border-bottom:1px solid #222;padding:14px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header a{color:#555;text-decoration:none;font-size:13px}
+header a:hover{color:#e8e8e8}
+h1{font-size:19px;font-weight:600;color:#fff}
+.proj-title{font-size:14px;color:#c8a96e;font-weight:500}
+.hdr-meta{font-size:11px;color:#555;margin-left:auto}
+.toolbar{display:flex;gap:10px;padding:12px 24px;background:#111;border-bottom:1px solid #1e1e1e;flex-wrap:wrap;align-items:center}
+.btn{padding:6px 13px;font-size:12px;font-weight:500;border:1px solid #333;border-radius:4px;cursor:pointer;background:#1a1a1a;color:#ccc;transition:all .15s}
+.btn:hover{background:#252525;color:#fff;border-color:#444}
+.btn.primary{background:#c8a96e;border-color:#c8a96e;color:#000}
+.btn.primary:hover{background:#d4b87a}
+input.txt,select.sel,textarea.ta{background:#1a1a1a;border:1px solid #2e2e2e;color:#e8e8e8;padding:6px 10px;font-size:13px;border-radius:4px;font-family:inherit}
+input.txt:focus,select.sel:focus,textarea.ta:focus{outline:none;border-color:#c8a96e}
+input.txt[data-w="lg"]{width:260px}
+input.txt[data-w="md"]{width:160px}
+.main{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+/* KPI strip */
+.kpi-strip{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{background:#111;border:1px solid #1e1e1e;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-val{font-size:28px;font-weight:700;line-height:1}
+.kpi-label{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.05em}
+.kpi-sub{font-size:11px;color:#666}
+/* Sections */
+.section{background:#111;border:1px solid #1e1e1e;border-radius:6px;overflow:hidden}
+.section.full{grid-column:1/-1}
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1e1e1e;background:#141414}
+.sec-head h2{font-size:13px;font-weight:600;color:#ddd;letter-spacing:.02em}
+.sec-add{background:none;border:1px solid #2e2e2e;color:#666;font-size:11px;padding:3px 10px;border-radius:3px;cursor:pointer}
+.sec-add:hover{border-color:#c8a96e;color:#c8a96e}
+/* Milestone */
+.ms-row{display:grid;grid-template-columns:1fr 110px 90px 28px;gap:8px;padding:9px 14px;border-bottom:1px solid #161616;align-items:center}
+.ms-row:last-child{border-bottom:none}
+.ms-name{font-size:13px;color:#ccc}
+.ms-date{font-size:12px;color:#777}
+.ms-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;text-align:center}
+.st-done{background:#14291e;color:#4ade80}
+.st-on{background:#1e2a3a;color:#60a5fa}
+.st-risk{background:#2a2114;color:#fbbf24}
+.st-late{background:#2a1414;color:#f87171}
+.st-pending{background:#1e1e1e;color:#666}
+.del-btn{background:none;border:none;color:#444;font-size:14px;cursor:pointer;padding:0 2px}
+.del-btn:hover{color:#f87171}
+/* Risk */
+.risk-row{display:grid;grid-template-columns:1fr 70px 70px 28px;gap:8px;padding:9px 14px;border-bottom:1px solid #161616;align-items:start}
+.risk-row:last-child{border-bottom:none}
+.risk-desc{font-size:12px;color:#ccc;line-height:1.4}
+.risk-owner{font-size:11px;color:#888;margin-top:2px}
+.prob-badge,.impact-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;text-align:center}
+.p-high{background:#2a1414;color:#f87171}
+.p-med{background:#2a2114;color:#fbbf24}
+.p-low{background:#14291e;color:#4ade80}
+/* Actions */
+.act-row{display:grid;grid-template-columns:1fr 100px 28px;gap:8px;padding:9px 14px;border-bottom:1px solid #161616;align-items:center}
+.act-row:last-child{border-bottom:none}
+.act-text{font-size:12px;color:#ccc}
+.act-owner{font-size:11px;color:#888}
+.act-due{font-size:11px;color:#666}
+/* Notes */
+#notesArea{width:100%;background:#111;border:none;color:#bbb;font-size:13px;padding:14px;resize:vertical;min-height:100px;font-family:inherit;line-height:1.6}
+#notesArea:focus{outline:none}
+/* Status dot */
+.sdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.sdot.green{background:#4ade80}
+.sdot.yellow{background:#fbbf24}
+.sdot.red{background:#f87171}
+.sdot.blue{background:#60a5fa}
+.sdot.grey{background:#555}
+/* Empty */
+.empty{padding:20px;text-align:center;color:#444;font-size:12px}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#161616;border:1px solid #2e2e2e;border-radius:8px;width:400px;max-width:92vw;padding:22px}
+.modal h2{font-size:14px;font-weight:600;color:#fff;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{width:100%}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+/* Print */
+@media print{
+  @page{size:landscape;margin:12mm}
+  .toolbar,.sec-add,.del-btn,.overlay{display:none!important}
+  body{background:#fff;color:#000}
+  header,header a,h1,.proj-title,.hdr-meta{color:#000!important;background:#fff!important;border-color:#ccc!important}
+  .kpi,.section{border-color:#ccc!important;background:#fff!important}
+  .sec-head{background:#f5f5f5!important}
+  .main{gap:14px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a href="/">← Home</a>
+  <h1>Project Dashboard</h1>
+  <span class="proj-title" id="hdrTitle">New Project</span>
+  <span class="hdr-meta" id="hdrMeta"></span>
+</header>
+<div class="toolbar">
+  <input class="txt" data-w="lg" id="projName" placeholder="Project name..." oninput="updateHeader();save()">
+  <select class="sel" id="projPhase" onchange="updateHeader();save()">
+    <option value="SD">Schematic Design</option>
+    <option value="DD">Design Development</option>
+    <option value="CD">Construction Documents</option>
+    <option value="CA">Construction Admin</option>
+    <option value="BID">Bidding</option>
+    <option value="CLOSE">Closeout</option>
+  </select>
+  <select class="sel" id="projHealth" onchange="updateHeader();save()">
+    <option value="green">Health: On Track</option>
+    <option value="yellow">Health: At Risk</option>
+    <option value="red">Health: Off Track</option>
+    <option value="blue">Health: On Hold</option>
+  </select>
+  <button class="btn primary" onclick="window.print()">Print / PDF</button>
+  <button class="btn" onclick="resetAll()">Reset</button>
+</div>
+<div class="main" id="main">
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <span class="kpi-val" id="kpiMs">0</span>
+      <span class="kpi-label">Milestones</span>
+      <span class="kpi-sub" id="kpiMsSub">— done</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val" id="kpiRisk">0</span>
+      <span class="kpi-label">Open Risks</span>
+      <span class="kpi-sub" id="kpiRiskSub">— high</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val" id="kpiAct">0</span>
+      <span class="kpi-label">Actions</span>
+      <span class="kpi-sub" id="kpiActSub">open items</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val" id="kpiLod">—</span>
+      <span class="kpi-label">LOD Target</span>
+      <span class="kpi-sub" id="kpiLodSub">current phase</span>
+    </div>
+  </div>
+  <!-- Milestones -->
+  <div class="section">
+    <div class="sec-head">
+      <h2>Milestones</h2>
+      <button class="sec-add" onclick="openModal('ms')">+ Add</button>
+    </div>
+    <div id="msList"></div>
+  </div>
+  <!-- Risks -->
+  <div class="section">
+    <div class="sec-head">
+      <h2>Risks</h2>
+      <button class="sec-add" onclick="openModal('risk')">+ Add</button>
+    </div>
+    <div id="riskList"></div>
+  </div>
+  <!-- Actions -->
+  <div class="section">
+    <div class="sec-head">
+      <h2>Action Items</h2>
+      <button class="sec-add" onclick="openModal('act')">+ Add</button>
+    </div>
+    <div id="actList"></div>
+  </div>
+  <!-- Notes -->
+  <div class="section">
+    <div class="sec-head"><h2>Notes / Context</h2></div>
+    <textarea id="notesArea" placeholder="Project notes, decisions, context..." oninput="save()"></textarea>
+  </div>
+</div>
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox">
+    <h2 id="modalTitle">Add Item</h2>
+    <div id="modalFields"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+<script>
+var state={milestones:[],risks:[],actions:[]};
+var modalType=null;
+var LOD_BY_PHASE={SD:'LOD 100',DD:'LOD 200',CD:'LOD 300',CA:'LOD 350/400',BID:'LOD 300',CLOSE:'LOD 400'};
+var MS_STATUS=['pending','on-track','at-risk','late','done'];
+var MS_LABEL={pending:'Pending','on-track':'On Track','at-risk':'At Risk',late:'Late',done:'Done'};
+var MS_CLS={pending:'st-pending','on-track':'st-on','at-risk':'st-risk',late:'st-late',done:'st-done'};
+var PROB=['high','med','low'];
+
+function updateHeader(){
+  var n=document.getElementById('projName').value||'New Project';
+  var ph=document.getElementById('projPhase').value;
+  var h=document.getElementById('projHealth').value;
+  document.getElementById('hdrTitle').textContent=n;
+  document.getElementById('hdrMeta').textContent=ph+' | '+new Date().toLocaleDateString();
+  document.getElementById('kpiLod').textContent=LOD_BY_PHASE[ph]||'—';
+  document.getElementById('kpiLodSub').textContent=ph+' phase';
+  var dot='<span class="sdot '+h+'"></span>';
+  document.getElementById('hdrTitle').innerHTML=dot+n;
+}
+function renderMs(){
+  var ms=state.milestones;
+  document.getElementById('kpiMs').textContent=ms.length;
+  var done=ms.filter(function(m){return m.status==='done';}).length;
+  document.getElementById('kpiMsSub').textContent=done+' of '+ms.length+' done';
+  if(!ms.length){document.getElementById('msList').innerHTML='<div class="empty">No milestones — add one.</div>';return;}
+  var html='';
+  ms.forEach(function(m,i){
+    html+='<div class="ms-row">'
+      +'<span class="ms-name">'+esc(m.name)+'</span>'
+      +'<span class="ms-date">'+esc(m.date||'—')+'</span>'
+      +'<span class="ms-badge '+MS_CLS[m.status]+'">'+MS_LABEL[m.status]+'</span>'
+      +'<button class="del-btn" onclick="del(\'ms\','+i+')">×</button>'
+      +'</div>';
+  });
+  document.getElementById('msList').innerHTML=html;
+}
+function renderRisks(){
+  var rs=state.risks;
+  document.getElementById('kpiRisk').textContent=rs.length;
+  var hi=rs.filter(function(r){return r.prob==='high';}).length;
+  document.getElementById('kpiRiskSub').textContent=hi+' high probability';
+  if(!rs.length){document.getElementById('riskList').innerHTML='<div class="empty">No risks logged.</div>';return;}
+  var html='';
+  rs.forEach(function(r,i){
+    html+='<div class="risk-row">'
+      +'<div><div class="risk-desc">'+esc(r.desc)+'</div><div class="risk-owner">'+esc(r.owner||'Unassigned')+'</div></div>'
+      +'<span class="prob-badge p-'+r.prob+'">'+r.prob.toUpperCase()+'</span>'
+      +'<span class="impact-badge p-'+r.impact+'">'+r.impact.toUpperCase()+'</span>'
+      +'<button class="del-btn" onclick="del(\'risk\','+i+')">×</button>'
+      +'</div>';
+  });
+  document.getElementById('riskList').innerHTML=html;
+}
+function renderActions(){
+  var ac=state.actions;
+  document.getElementById('kpiAct').textContent=ac.length;
+  document.getElementById('kpiActSub').textContent='open items';
+  if(!ac.length){document.getElementById('actList').innerHTML='<div class="empty">No action items.</div>';return;}
+  var html='';
+  ac.forEach(function(a,i){
+    html+='<div class="act-row">'
+      +'<div><div class="act-text">'+esc(a.text)+'</div><div class="act-owner">'+esc(a.owner||'—')+' &nbsp;·&nbsp; <span class="act-due">Due: '+esc(a.due||'TBD')+'</span></div></div>'
+      +'<span class="ms-badge '+MS_CLS[a.status||'pending']+'">'+MS_LABEL[a.status||'pending']+'</span>'
+      +'<button class="del-btn" onclick="del(\'act\','+i+')">×</button>'
+      +'</div>';
+  });
+  document.getElementById('actList').innerHTML=html;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function del(type,i){
+  if(type==='ms')state.milestones.splice(i,1);
+  else if(type==='risk')state.risks.splice(i,1);
+  else state.actions.splice(i,1);
+  render();save();
+}
+function render(){renderMs();renderRisks();renderActions();}
+function openModal(type){
+  modalType=type;
+  var fields='';
+  if(type==='ms'){
+    document.getElementById('modalTitle').textContent='Add Milestone';
+    fields='<div class="field"><label>Milestone Name</label><input class="txt" id="f1" placeholder="DD Submission" style="width:100%"></div>'
+      +'<div class="field"><label>Target Date</label><input class="txt" type="date" id="f2" style="width:100%"></div>'
+      +'<div class="field"><label>Status</label><select class="sel" id="f3" style="width:100%">'
+      +MS_STATUS.map(function(s){return '<option value="'+s+'">'+MS_LABEL[s]+'</option>';}).join('')
+      +'</select></div>';
+  } else if(type==='risk'){
+    document.getElementById('modalTitle').textContent='Add Risk';
+    fields='<div class="field"><label>Risk Description</label><textarea class="ta" id="f1" rows="3" style="width:100%"></textarea></div>'
+      +'<div class="field"><label>Owner</label><input class="txt" id="f2" placeholder="Responsible party" style="width:100%"></div>'
+      +'<div class="field"><label>Probability</label><select class="sel" id="f3" style="width:100%"><option value="high">High</option><option value="med">Med</option><option value="low">Low</option></select></div>'
+      +'<div class="field"><label>Impact</label><select class="sel" id="f4" style="width:100%"><option value="high">High</option><option value="med">Med</option><option value="low">Low</option></select></div>';
+  } else {
+    document.getElementById('modalTitle').textContent='Add Action Item';
+    fields='<div class="field"><label>Action</label><input class="txt" id="f1" placeholder="What needs to happen" style="width:100%"></div>'
+      +'<div class="field"><label>Owner</label><input class="txt" id="f2" placeholder="Person responsible" style="width:100%"></div>'
+      +'<div class="field"><label>Due Date</label><input class="txt" type="date" id="f3" style="width:100%"></div>'
+      +'<div class="field"><label>Status</label><select class="sel" id="f4" style="width:100%">'
+      +MS_STATUS.map(function(s){return '<option value="'+s+'">'+MS_LABEL[s]+'</option>';}).join('')
+      +'</select></div>';
+  }
+  document.getElementById('modalFields').innerHTML=fields;
+  document.getElementById('overlay').classList.add('open');
+  var f=document.getElementById('f1');if(f)f.focus();
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');modalType=null;}
+function saveModal(){
+  var f1=document.getElementById('f1'),f2=document.getElementById('f2'),f3=document.getElementById('f3'),f4=document.getElementById('f4');
+  if(modalType==='ms'){
+    if(!f1.value.trim()){f1.focus();return;}
+    state.milestones.push({name:f1.value.trim(),date:f2?f2.value:'',status:f3?f3.value:'pending'});
+  } else if(modalType==='risk'){
+    if(!f1.value.trim()){f1.focus();return;}
+    state.risks.push({desc:f1.value.trim(),owner:f2?f2.value:'',prob:f3?f3.value:'med',impact:f4?f4.value:'med'});
+  } else {
+    if(!f1.value.trim()){f1.focus();return;}
+    state.actions.push({text:f1.value.trim(),owner:f2?f2.value:'',due:f3?f3.value:'',status:f4?f4.value:'pending'});
+  }
+  render();save();closeModal();
+}
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+function save(){
+  try{
+    localStorage.setItem('dashState',JSON.stringify(state));
+    localStorage.setItem('dashProj',document.getElementById('projName').value);
+    localStorage.setItem('dashPhase',document.getElementById('projPhase').value);
+    localStorage.setItem('dashHealth',document.getElementById('projHealth').value);
+    localStorage.setItem('dashNotes',document.getElementById('notesArea').value);
+  }catch(ex){}
+}
+function load(){
+  try{
+    var s=localStorage.getItem('dashState');if(s)state=JSON.parse(s);
+    var p=localStorage.getItem('dashProj');if(p)document.getElementById('projName').value=p;
+    var ph=localStorage.getItem('dashPhase');if(ph)document.getElementById('projPhase').value=ph;
+    var h=localStorage.getItem('dashHealth');if(h)document.getElementById('projHealth').value=h;
+    var n=localStorage.getItem('dashNotes');if(n)document.getElementById('notesArea').value=n;
+  }catch(ex){}
+}
+function resetAll(){
+  if(!confirm('Reset all dashboard data?'))return;
+  state={milestones:[],risks:[],actions:[]};
+  document.getElementById('projName').value='';
+  document.getElementById('notesArea').value='';
+  save();updateHeader();render();
+}
+load();updateHeader();render();
+</script>
+</body>
+</html>
