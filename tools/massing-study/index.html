@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Massing Study | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
+@media(max-width:600px){.wrap{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 10px;border-radius:6px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.sec{font-size:11px;color:#c8a96e;font-weight:700;margin-top:20px;margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+.kpis{display:flex;flex-direction:column;gap:10px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.kpi .lbl{font-size:12px;color:#888}.kpi .val{font-size:18px;font-weight:700;color:#c8a96e}
+.pass{color:#4caf50!important}.fail{color:#f44336!important}.warn{color:#ff9800!important}
+canvas{display:block;margin-top:16px;border-radius:8px;background:#111;border:1px solid #2a2a2a}
+.note{color:#666;font-size:11px;margin-top:12px;line-height:1.5;grid-column:1/-1}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Massing Study Calculator</h1></div>
+<div class=wrap>
+<div>
+<div class=sec>Site</div>
+<label>Lot Width (ft)</label><input type=number id=lw value=120 min=10 oninput=calc()>
+<label>Lot Depth (ft)</label><input type=number id=ld value=150 min=10 oninput=calc()>
+<label>Lot Area Override (sf — leave 0 to use W×D)</label><input type=number id=la value=0 min=0 oninput=calc()>
+<div class=sec>Zoning</div>
+<label>Max FAR</label><input type=number id=far value=2.5 step=0.1 min=0.1 oninput=calc()>
+<label>Max Height (ft)</label><input type=number id=maxh value=45 min=10 oninput=calc()>
+<label>Max Lot Coverage (%)</label><input type=number id=cov value=60 min=10 max=100 oninput=calc()>
+<label>Front Setback (ft)</label><input type=number id=sf value=15 min=0 oninput=calc()>
+<label>Rear Setback (ft)</label><input type=number id=sr value=10 min=0 oninput=calc()>
+<label>Side Setback — each side (ft)</label><input type=number id=ss value=5 min=0 oninput=calc()>
+<div class=sec>Building</div>
+<label>Proposed Floors</label><input type=number id=fl value=3 min=1 max=40 oninput=calc()>
+<label>Floor-to-Floor Height (ft)</label><input type=number id=fh value=14 min=8 oninput=calc()>
+<label>Efficiency Ratio (net/gross)</label><input type=number id=eff value=0.82 step=0.01 min=0.5 max=0.98 oninput=calc()>
+</div>
+<div>
+<div class=sec>Results</div>
+<div class=kpis id=kpis></div>
+<canvas id=cv width=380 height=320></canvas>
+</div>
+<p class=note>FAR = Total GFA / Lot Area. Coverage = Footprint / Lot Area. Results are conceptual — verify against local zoning code. Diagram is schematic only.</p>
+</div>
+<script>
+function calc(){
+  const lw=+document.getElementById('lw').value;
+  const ldep=+document.getElementById('ld').value;
+  const laOvr=+document.getElementById('la').value;
+  const lotArea=laOvr>0?laOvr:lw*ldep;
+  const maxFAR=+document.getElementById('far').value;
+  const maxH=+document.getElementById('maxh').value;
+  const maxCov=+document.getElementById('cov').value/100;
+  const setF=+document.getElementById('sf').value;
+  const setR=+document.getElementById('sr').value;
+  const setS=+document.getElementById('ss').value;
+  const floors=+document.getElementById('fl').value;
+  const fh=+document.getElementById('fh').value;
+  const eff=+document.getElementById('eff').value;
+  const bldgW=lw-2*setS;
+  const bldgD=ldep-setF-setR;
+  const footprint=Math.max(0,bldgW*bldgD);
+  const totalH=floors*fh;
+  const totalGFA=footprint*floors;
+  const netArea=totalGFA*eff;
+  const proposedFAR=totalGFA/lotArea;
+  const proposedCov=footprint/lotArea;
+  const farOK=proposedFAR<=maxFAR;
+  const covOK=proposedCov<=maxCov;
+  const htOK=totalH<=maxH;
+  const maxGFA=maxFAR*lotArea;
+  const maxFootprint=maxCov*lotArea;
+  const kc=document.getElementById('kpis');
+  kc.innerHTML=`
+  <div class=kpi><span class=lbl>Lot Area</span><span class=val>${lotArea.toLocaleString()} sf</span></div>
+  <div class=kpi><span class=lbl>Buildable Footprint</span><span class=val>${footprint.toLocaleString()} sf</span></div>
+  <div class=kpi><span class=lbl>Building Height</span><span class="val ${htOK?'pass':'fail'}">${totalH} ft ${htOK?'':'— EXCEEDS'}</span></div>
+  <div class=kpi><span class=lbl>Total GFA</span><span class=val>${totalGFA.toLocaleString()} sf</span></div>
+  <div class=kpi><span class=lbl>Net Rentable Area</span><span class=val>${Math.round(netArea).toLocaleString()} sf</span></div>
+  <div class=kpi><span class=lbl>Proposed FAR</span><span class="val ${farOK?'pass':'fail'}">${proposedFAR.toFixed(2)} (max ${maxFAR}) ${farOK?'':'OVER'}</span></div>
+  <div class=kpi><span class=lbl>Lot Coverage</span><span class="val ${covOK?'pass':'fail'}">${(proposedCov*100).toFixed(1)}% (max ${(maxCov*100).toFixed(0)}%) ${covOK?'':'OVER'}</span></div>
+  <div class=kpi><span class=lbl>Max GFA Allowed</span><span class=val>${maxGFA.toLocaleString()} sf</span></div>`;
+  drawLot(lw,ldep,bldgW,bldgD,setF,setR,setS,floors,fh,farOK&&covOK&&htOK);
+}
+function drawLot(lw,ld,bw,bd,sf,sr,ss,fl,fh,ok){
+  const cv=document.getElementById('cv');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const pad=30,scale=Math.min((W-2*pad)/lw,(H-2*pad)/ld);
+  const ox=(W-lw*scale)/2,oy=pad;
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(ox,oy,lw*scale,ld*scale);
+  ctx.strokeStyle='#c8a96e';ctx.lineWidth=2;ctx.strokeRect(ox,oy,lw*scale,ld*scale);
+  ctx.fillStyle='#c8a96e22';ctx.strokeStyle=ok?'#4caf50':'#f44336';ctx.lineWidth=2;ctx.setLineDash([]);
+  const bx=ox+ss*scale,by=oy+sf*scale,bwS=bw*scale,bdS=bd*scale;
+  ctx.fillRect(bx,by,bwS,bdS);ctx.strokeRect(bx,by,bwS,bdS);
+  ctx.setLineDash([4,4]);ctx.strokeStyle='#555';ctx.lineWidth=1;
+  ctx.strokeRect(ox+ss*scale,oy+sf*scale,bw*scale,bd*scale);
+  ctx.setLineDash([]);
+  ctx.fillStyle='#e8e8e8';ctx.font='11px system-ui';ctx.textAlign='center';
+  ctx.fillText(`${lw}'`,ox+lw*scale/2,oy-8);
+  ctx.save();ctx.translate(ox-8,oy+ld*scale/2);ctx.rotate(-Math.PI/2);ctx.fillText(`${ld}'`,0,0);ctx.restore();
+  ctx.fillStyle='#c8a96e';ctx.font='bold 12px system-ui';
+  if(bwS>40&&bdS>20)ctx.fillText(`${fl} FL`,bx+bwS/2,by+bdS/2+4);
+}
+calc();
+</script></body></html>

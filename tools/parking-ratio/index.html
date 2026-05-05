@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Parking Ratio | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+.sub{color:#888;font-size:14px;margin-bottom:24px}
+.rows{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:8px;align-items:center}
+.row input,.row select{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 10px;border-radius:5px;font-size:13px;width:100%}
+.row input:focus,.row select:focus{outline:none;border-color:#c8a96e}
+.hdr{font-size:11px;color:#666;padding:0 4px}
+.del{background:#2a1a1a;border:1px solid #3a1a1a;color:#c88;padding:0;width:32px;height:32px;border-radius:5px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.del:hover{background:#3a1a1a}
+.add{background:#1a1a1a;border:1px solid #333;color:#c8a96e;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;margin-bottom:20px}
+.add:hover{border-color:#c8a96e}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Parking Ratio Calculator</h1></div>
+<div class=wrap>
+<p class=sub>Add uses by type. ITE-based ratios — adjust as needed for local code.</p>
+<div class=rows id=rows></div>
+<button class=add onclick=addRow()>+ Add Use</button>
+<div class=kpis id=kpis></div>
+<table class=tbl><thead><tr><th>Use</th><th>Area / Units</th><th>Ratio</th><th>Spaces Req</th><th>Stall SF</th><th>Pkg Area SF</th></tr></thead>
+<tbody id=tbody></tbody>
+<tfoot><tr style="background:#1a1a1a"><td colspan=3><b>Total</b></td><td id=tot_sp></td><td></td><td id=tot_area></td></tr></tfoot>
+</table>
+<p class=note>ITE Parking Generation Manual ratios used as defaults. Stall area includes drive aisle allocation (330 sf/stall typical surface; 350 sf/stall structured). Adjust ratio per local zoning ordinance.</p>
+</div>
+<script>
+const USES=[
+ {label:'Office',unit:'1,000 SF GFA',ratio:3.0,stallSF:330},
+ {label:'Retail',unit:'1,000 SF GLA',ratio:4.0,stallSF:330},
+ {label:'Restaurant',unit:'1,000 SF GFA',ratio:10.0,stallSF:350},
+ {label:'Multifamily',unit:'Dwelling Units',ratio:1.5,stallSF:330},
+ {label:'Hotel',unit:'Rooms',ratio:1.0,stallSF:330},
+ {label:'Medical Office',unit:'1,000 SF GFA',ratio:4.5,stallSF:350},
+ {label:'Industrial/Warehouse',unit:'1,000 SF GFA',ratio:1.0,stallSF:330},
+ {label:'Gym/Fitness',unit:'1,000 SF GFA',ratio:5.5,stallSF:350},
+ {label:'Cinema',unit:'Seats',ratio:0.3,stallSF:350},
+ {label:'Elementary School',unit:'Classrooms',ratio:2.0,stallSF:330},
+ {label:'Custom',unit:'Units',ratio:2.0,stallSF:330},
+];
+let rows=[];
+function addRow(use=null){
+  const u=use||USES[0];
+  const id=Date.now()+Math.random();
+  rows.push({id,useIdx:0,qty:10,ratio:u.ratio,stallSF:u.stallSF});
+  render();
+}
+function delRow(id){rows=rows.filter(r=>r.id!==id);render();}
+function render(){
+  const c=document.getElementById('rows');
+  if(rows.length===0){c.innerHTML='';addRow();return;}
+  const hdr=`<div class=row>
+    <span class=hdr>Use Type</span><span class=hdr>Quantity</span>
+    <span class=hdr>Ratio (stalls/unit)</span><span class=hdr>Stall SF</span><span></span></div>`;
+  c.innerHTML=hdr+rows.map(r=>`
+  <div class=row id="row_${r.id}">
+    <select onchange="upd('${r.id}','useIdx',this.value)">
+      ${USES.map((u,i)=>`<option value=${i} ${i==r.useIdx?'selected':''}>${u.label}</option>`).join('')}
+    </select>
+    <input type=number value=${r.qty} min=0 onchange="upd('${r.id}','qty',this.value)">
+    <input type=number value=${r.ratio} step=0.1 min=0 onchange="upd('${r.id}','ratio',this.value)">
+    <input type=number value=${r.stallSF} min=200 onchange="upd('${r.id}','stallSF',this.value)">
+    <button class=del onclick="delRow('${r.id}')">&#x2715;</button>
+  </div>`).join('');
+  calcTotals();
+}
+function upd(id,key,val){
+  const r=rows.find(x=>x.id==id);
+  if(!r)return;
+  if(key==='useIdx'){r.useIdx=+val;r.ratio=USES[+val].ratio;r.stallSF=USES[+val].stallSF;}
+  else r[key]=+val;
+  render();
+}
+function calcTotals(){
+  let totSp=0,totArea=0;
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML=rows.map(r=>{
+    const u=USES[r.useIdx];
+    const sp=Math.ceil(r.qty*r.ratio);
+    const area=sp*r.stallSF;
+    totSp+=sp;totArea+=area;
+    return `<tr><td>${u.label}</td><td>${r.qty} ${u.unit}</td><td>${r.ratio}</td><td>${sp}</td><td>${r.stallSF}</td><td>${area.toLocaleString()}</td></tr>`;
+  }).join('');
+  document.getElementById('tot_sp').innerHTML=`<b>${totSp}</b>`;
+  document.getElementById('tot_area').innerHTML=`<b>${totArea.toLocaleString()}</b>`;
+  const totGFA=rows.reduce((a,r)=>a+r.qty,0);
+  document.getElementById('kpis').innerHTML=`
+    <div class=kpi><div class=val>${totSp}</div><div class=lbl>Total Spaces</div></div>
+    <div class=kpi><div class=val>${(totArea/43560).toFixed(2)}</div><div class=lbl>Parking Acres</div></div>
+    <div class=kpi><div class=val>${totArea.toLocaleString()}</div><div class=lbl>Parking SF</div></div>
+    <div class=kpi><div class=val>${totGFA>0?(totSp/totGFA).toFixed(2):'-'}</div><div class=lbl>Avg Ratio</div></div>`;
+}
+addRow();
+</script></body></html>

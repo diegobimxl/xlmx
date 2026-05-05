@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>HVAC Equipment Schedule | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.tb-right{margin-left:auto;display:flex;gap:8px}
+.wrap{max-width:1200px;margin:0 auto;padding:24px}
+.add-bar{display:grid;grid-template-columns:100px 140px 1fr 80px 80px 80px 80px 120px 36px;gap:8px;margin-bottom:12px;align-items:end}
+.add-bar label{font-size:10px;color:#666;display:block;margin-bottom:3px}
+.add-bar input,.add-bar select{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:6px 8px;border-radius:5px;font-size:12px;width:100%}
+.add-bar input:focus,.add-bar select:focus{outline:none;border-color:#c8a96e}
+.add-btn{background:#c8a96e;color:#0d0d0d;border:none;padding:7px 0;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;width:100%}
+.btn-sm{background:#1a1a1a;border:1px solid #333;color:#c8a96e;padding:5px 12px;border-radius:4px;font-size:12px;cursor:pointer}
+.btn-sm:hover{border-color:#c8a96e}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 8px;text-align:left;border:1px solid #2a2a2a;white-space:nowrap}
+.tbl td{padding:6px 8px;border:1px solid #1e1e1e;vertical-align:middle}
+.tbl tr:hover td{background:#161616}
+.tbl td input,.tbl td select{background:transparent;border:none;color:#e8e8e8;font-size:12px;width:100%;min-width:60px}
+.tbl td input:focus,.tbl td select:focus{outline:none;border-bottom:1px solid #c8a96e}
+.del{background:transparent;border:none;color:#c88;cursor:pointer;font-size:13px}
+.sum{background:#1a1a1a;padding:12px 16px;border-radius:6px;margin-top:16px;display:flex;gap:24px;font-size:13px}
+.sum span{color:#c8a96e;font-weight:700}
+@media print{.tb-right,.add-bar,.del{display:none!important}body{background:#fff;color:#000}.tbl th{background:#eee;color:#000}.tbl td{border-color:#ccc}}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>HVAC Equipment Schedule</h1>
+<div class=tb-right>
+<button class=btn-sm onclick=exportCSV()>Export CSV</button>
+<button class=btn-sm onclick=window.print()>Print</button>
+</div></div>
+<div class=wrap>
+<div class=add-bar>
+<div><label>Tag</label><input type=text id=ni_tag placeholder="AHU-1"></div>
+<div><label>Type</label><select id=ni_type>
+<option>AHU</option><option>RTU</option><option>FCU</option><option>VAV</option>
+<option>Chiller</option><option>Boiler</option><option>Cooling Tower</option>
+<option>Heat Pump</option><option>Exhaust Fan</option><option>Supply Fan</option>
+<option>MAU</option><option>VRF ODU</option><option>VRF IDU</option>
+</select></div>
+<div><label>Serves / Location</label><input type=text id=ni_loc placeholder="Level 2 Office"></div>
+<div><label>CFM</label><input type=number id=ni_cfm placeholder="2000"></div>
+<div><label>Cooling (tons)</label><input type=number id=ni_cool step=0.5 placeholder="5"></div>
+<div><label>Heating (MBH)</label><input type=number id=ni_heat placeholder="50"></div>
+<div><label>kW / HP</label><input type=number id=ni_kw step=0.1 placeholder="3.0"></div>
+<div><label>Notes</label><input type=text id=ni_note placeholder="e.g. 100% OA"></div>
+<div style="margin-top:18px"><button class=add-btn onclick=addItem()>Add</button></div>
+</div>
+<table class=tbl><thead><tr>
+<th>Tag</th><th>Type</th><th>Serves / Location</th><th>CFM</th><th>Cooling (tons)</th><th>Heating (MBH)</th><th>kW / HP</th><th>Notes</th><th></th>
+</tr></thead><tbody id=tbody></tbody></table>
+<div class=sum id=sum></div>
+</div>
+<script>
+let items=[];
+const TYPES=['AHU','RTU','FCU','VAV','Chiller','Boiler','Cooling Tower','Heat Pump','Exhaust Fan','Supply Fan','MAU','VRF ODU','VRF IDU'];
+function addItem(){
+  const tag=document.getElementById('ni_tag').value||('EQ-'+(items.length+1));
+  items.push({
+    id:Date.now(),tag,
+    type:document.getElementById('ni_type').value,
+    loc:document.getElementById('ni_loc').value,
+    cfm:document.getElementById('ni_cfm').value,
+    cool:document.getElementById('ni_cool').value,
+    heat:document.getElementById('ni_heat').value,
+    kw:document.getElementById('ni_kw').value,
+    note:document.getElementById('ni_note').value
+  });
+  ['ni_tag','ni_loc','ni_cfm','ni_cool','ni_heat','ni_kw','ni_note'].forEach(id=>document.getElementById(id).value='');
+  render();
+}
+function del(id){items=items.filter(x=>x.id!==id);render();}
+function upd(id,k,v){const i=items.find(x=>x.id===id);if(i)i[k]=v;renderSum();}
+function render(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=items.map(it=>`<tr>
+    <td><input value="${it.tag}" onchange="upd(${it.id},'tag',this.value)"></td>
+    <td><select onchange="upd(${it.id},'type',this.value)">${TYPES.map(t=>`<option ${t===it.type?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><input value="${it.loc}" onchange="upd(${it.id},'loc',this.value)"></td>
+    <td><input type=number value="${it.cfm}" onchange="upd(${it.id},'cfm',this.value)"></td>
+    <td><input type=number value="${it.cool}" step=0.5 onchange="upd(${it.id},'cool',this.value)"></td>
+    <td><input type=number value="${it.heat}" onchange="upd(${it.id},'heat',this.value)"></td>
+    <td><input type=number value="${it.kw}" step=0.1 onchange="upd(${it.id},'kw',this.value)"></td>
+    <td><input value="${it.note}" onchange="upd(${it.id},'note',this.value)"></td>
+    <td><button class=del onclick="del(${it.id})">&#x2715;</button></td>
+  </tr>`).join('');
+  renderSum();
+}
+function renderSum(){
+  const totCFM=items.reduce((a,i)=>a+(+i.cfm||0),0);
+  const totCool=items.reduce((a,i)=>a+(+i.cool||0),0);
+  const totHeat=items.reduce((a,i)=>a+(+i.heat||0),0);
+  const totKW=items.reduce((a,i)=>a+(+i.kw||0),0);
+  document.getElementById('sum').innerHTML=`<b>Totals:</b>
+    CFM <span>${totCFM.toLocaleString()}</span> &nbsp;|&nbsp;
+    Cooling <span>${totCool.toFixed(1)} tons</span> &nbsp;|&nbsp;
+    Heating <span>${totHeat.toLocaleString()} MBH</span> &nbsp;|&nbsp;
+    Power <span>${totKW.toFixed(1)} kW</span> &nbsp;|&nbsp;
+    ${items.length} pieces of equipment`;
+}
+// seed
+items=[
+ {id:1,tag:'AHU-1',type:'AHU',loc:'Penthouse / Level 3',cfm:'8000',cool:'20',heat:'200',kw:'7.5',note:'100% OA, ERV'},
+ {id:2,tag:'RTU-1',type:'RTU',loc:'Roof / Level 1 Retail',cfm:'3000',cool:'7.5',heat:'75',kw:'3.0',note:'Gas heat'},
+ {id:3,tag:'FCU-101',type:'FCU',loc:'Office 101',cfm:'400',cool:'1',heat:'10',kw:'0.37',note:'4-pipe'},
+];
+render();
+function exportCSV(){
+  const rows=[['Tag','Type','Serves/Location','CFM','Cooling (tons)','Heating (MBH)','kW/HP','Notes'],...items.map(i=>[i.tag,i.type,i.loc,i.cfm,i.cool,i.heat,i.kw,i.note])];
+  const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='HVAC_Equipment_Schedule.csv';a.click();
+}
+</script></body></html>

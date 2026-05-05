@@ -1,113 +1,122 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Punch List | XLMX</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
-.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
-.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
-.container{max-width:900px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
-.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
-.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
-label{font-size:11px;color:#888;display:block;margin-bottom:4px}
-input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:7px 10px;width:100%}
-input:focus,select:focus{outline:none;border-color:#c8a96e}
-.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer}
-.btn-ghost{background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer}
-.btn-ghost:hover{border-color:#c8a96e;color:#c8a96e}
-.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
-.card-label{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase}.card-val{font-size:22px;font-weight:700;color:#c8a96e}
-.pbar{background:#1a1a1a;border-radius:4px;height:6px;margin-top:6px}.pfill{background:#c8a96e;border-radius:4px;height:6px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
-td{padding:7px 8px;border-bottom:1px solid #141414}tr:hover td{background:#151515}
-.del-btn{background:transparent;border:none;color:#555;cursor:pointer;font-size:13px;padding:2px 6px}
-.del-btn:hover{color:#e05252}
-.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer}
-.b-open{background:#3a1a1a;color:#e05252}.b-ip{background:#3a3010;color:#c8a96e}.b-done{background:#1a3a2a;color:#52c87a}
-.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
-.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.filter-btn{padding:5px 12px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid #2a2a2a;background:#111;color:#888}
-.filter-btn.active{background:#c8a96e;color:#000;border-color:#c8a96e;font-weight:600}
-</style></head>
-<body>
-<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Punch List</h1></div>
-<div class="container">
-<p class="desc">Track construction deficiencies and closeout items. Filter by status, trade, or location.</p>
-<div class="summary-grid">
-<div class="card"><div class="card-label">Total Items</div><div class="card-val" id="s-total">0</div></div>
-<div class="card"><div class="card-label">Open</div><div class="card-val red" id="s-open">0</div></div>
-<div class="card"><div class="card-label">In Progress</div><div class="card-val gold" id="s-ip">0</div></div>
-<div class="card"><div class="card-label">Complete</div><div class="card-val green" id="s-done">0</div><div class="pbar"><div class="pfill" id="s-pbar" style="width:0%"></div></div></div>
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Punch List | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.tb-actions{margin-left:auto;display:flex;gap:8px}
+.wrap{max-width:1000px;margin:0 auto;padding:24px}
+.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.meta input{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 12px;border-radius:6px;font-size:13px;width:100%}
+.meta input:focus{outline:none;border-color:#c8a96e}
+.meta label{font-size:11px;color:#666;margin-bottom:3px;display:block}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:10px;text-align:center}
+.kpi .val{font-size:18px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:10px;color:#888;margin-top:2px}
+.add-row{display:grid;grid-template-columns:60px 1fr 2fr 100px 100px 36px;gap:8px;margin-bottom:8px;align-items:center}
+.add-row input,.add-row select{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:6px 8px;border-radius:5px;font-size:12px;width:100%}
+.add-row input:focus,.add-row select:focus{outline:none;border-color:#c8a96e}
+.add-btn{background:#1a1a1a;border:1px solid #333;color:#c8a96e;padding:6px 12px;border-radius:5px;font-size:12px;cursor:pointer}
+.add-btn:hover{border-color:#c8a96e}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:7px 10px;text-align:left;border:1px solid #2a2a2a;position:sticky;top:0}
+.tbl td{padding:6px 10px;border:1px solid #1e1e1e;vertical-align:middle}
+.tbl tr:hover td{background:#161616}
+.tbl td input,.tbl td select{background:transparent;border:none;color:#e8e8e8;font-size:12px;width:100%;padding:0}
+.tbl td input:focus,.tbl td select:focus{outline:none;border-bottom:1px solid #c8a96e}
+.status-open{color:#ff9800}.status-complete{color:#4caf50}.status-na{color:#666}
+.badge{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700}
+.btn-sm{background:#1a1a1a;border:1px solid #333;color:#c8a96e;padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer}
+.btn-sm:hover{border-color:#c8a96e}
+.del-btn{background:transparent;border:none;color:#c88;cursor:pointer;font-size:14px;padding:2px 6px}
+@media print{.tb-actions,.del-btn,.add-row,.add-btn{display:none!important}body{background:#fff;color:#000}.kpi{border:1px solid #ccc}.tbl th{background:#eee;color:#000}.tbl td{border-color:#ccc}}
+</style></head><body>
+<div class=tb>
+<a href="/tools/">&larr; Tools</a><h1>Punch List</h1>
+<div class=tb-actions>
+<button class=btn-sm onclick=addItem()>+ Item</button>
+<button class=btn-sm onclick=exportCSV()>Export CSV</button>
+<button class=btn-sm onclick=window.print()>Print</button>
+</div></div>
+<div class=wrap>
+<div class=meta>
+<div><label>Project</label><input type=text id=proj placeholder="Project name"></div>
+<div><label>Inspection Date</label><input type=date id=date></div>
+<div><label>Inspector</label><input type=text id=insp placeholder="Name"></div>
 </div>
-<div class="section">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-<span style="font-size:13px;font-weight:600">Items</span>
-<button class="btn-ghost" onclick="addRow()">+ Add Item</button>
+<div class=kpis id=kpis></div>
+<div class=add-row>
+<input type=text id=ni_num placeholder="#" style="width:60px">
+<input type=text id=ni_loc placeholder="Location / Room">
+<input type=text id=ni_desc placeholder="Description of deficiency">
+<select id=ni_resp><option>GC</option><option>Owner</option><option>MEP</option><option>Structural</option><option>Arch</option></select>
+<select id=ni_stat><option>Open</option><option>Complete</option><option>N/A</option></select>
+<button class=add-btn onclick=addItem()>Add</button>
 </div>
-<div id="farea"></div>
-<div class="filter-bar">
-<span style="font-size:11px;color:#888;line-height:24px">Filter:</span>
-<button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-<button class="filter-btn" onclick="setFilter('open',this)">Open</button>
-<button class="filter-btn" onclick="setFilter('ip',this)">In Progress</button>
-<button class="filter-btn" onclick="setFilter('done',this)">Complete</button>
-</div>
-<table>
-<thead><tr><th>#</th><th>Description</th><th>Location</th><th>Trade</th><th>Assigned To</th><th>Due</th><th>Status</th><th></th></tr></thead>
-<tbody id="tbody"><tr><td colspan="8" style="text-align:center;color:#555;padding:16px">No items. Click + Add Item.</td></tr></tbody>
-</table>
-</div>
+<table class=tbl><thead><tr><th style="width:60px">#</th><th>Location</th><th>Description</th><th>Responsible</th><th>Status</th><th>Date Due</th><th></th></tr></thead>
+<tbody id=tbody></tbody></table>
 </div>
 <script>
-var items=[],ctr=0,filter="all";
-var red="red";var gold="gold";var green="green";
-function addRow(){
-ctr++;var id=ctr;
-var d=document.createElement("div");d.className="form-grid";d.id="fr"+id;
-d.innerHTML='<div><label>Description</label><input type="text" id="fd'+id+'" placeholder="e.g. Paint touch-up Room 201"></div>'
-+'<div><label>Location</label><input type="text" id="fl'+id+'" placeholder="Level 2"></div>'
-+'<div><label>Trade</label><input type="text" id="ft'+id+'" placeholder="Painter"></div>'
-+'<div><label>Assigned To</label><input type="text" id="fa'+id+'" placeholder="Contractor"></div>'
-+'<div style="display:flex;align-items:flex-end"><button class="btn" onclick="saveRow('+id+')">Add</button></div>';
-document.getElementById("farea").appendChild(d);
+let items=[];let nextN=1;
+const RESPS=['GC','Owner','MEP','Structural','Arch','Civil','Landscape'];
+const STATS=['Open','Complete','N/A'];
+const STATUS_COLOR={Open:'#ff9800',Complete:'#4caf50','N/A':'#666'};
+document.getElementById('date').value=new Date().toISOString().slice(0,10);
+function addItem(){
+  const num=document.getElementById('ni_num').value||nextN;
+  const loc=document.getElementById('ni_loc').value;
+  const desc=document.getElementById('ni_desc').value;
+  if(!desc){alert('Enter a description.');return;}
+  const resp=document.getElementById('ni_resp').value;
+  const stat=document.getElementById('ni_stat').value;
+  items.push({id:Date.now(),num:String(num),loc,desc,resp,stat,due:''});
+  nextN=items.length+1;
+  document.getElementById('ni_num').value='';
+  document.getElementById('ni_loc').value='';
+  document.getElementById('ni_desc').value='';
+  render();
 }
-function saveRow(id){
-var desc=document.getElementById("fd"+id).value.trim()||"Item";
-var loc=document.getElementById("fl"+id).value.trim()||"";
-var trade=document.getElementById("ft"+id).value.trim()||"";
-var assign=document.getElementById("fa"+id).value.trim()||"";
-items.push({id:id,n:ctr,desc:desc,loc:loc,trade:trade,assign:assign,status:"open",due:""});
-document.getElementById("fr"+id).remove();render();
-}
-function delItem(id){items=items.filter(function(i){return i.id!==id});render()}
-function cycleStatus(id){
-var item=items.find(function(i){return i.id===id});
-if(!item)return;
-var order=["open","ip","done"];
-var idx=order.indexOf(item.status);
-item.status=order[(idx+1)%3];render();
-}
-function setFilter(f,el){filter=f;document.querySelectorAll(".filter-btn").forEach(function(b){b.classList.remove("active")});el.classList.add("active");render()}
-var labels={open:"Open",ip:"In Progress",done:"Complete"};
-var badges={open:"b-open",ip:"b-ip",done:"b-done"};
+function delItem(id){items=items.filter(x=>x.id!==id);render();}
+function upd(id,key,val){const i=items.find(x=>x.id===id);if(i)i[key]=val;renderKPIs();}
 function render(){
-var tot=items.length,nOpen=0,nIp=0,nDone=0;
-items.forEach(function(i){if(i.status==="open")nOpen++;else if(i.status==="ip")nIp++;else nDone++;});
-document.getElementById("s-total").textContent=tot;
-document.getElementById("s-open").textContent=nOpen;
-document.getElementById("s-ip").textContent=nIp;
-document.getElementById("s-done").textContent=nDone;
-document.getElementById("s-pbar").style.width=(tot>0?Math.round(nDone/tot*100):0)+"%";
-var vis=filter==="all"?items:items.filter(function(i){return i.status===filter});
-var tb=document.getElementById("tbody");
-if(!vis.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:#555;padding:16px">No items match filter.</td></tr>';return;}
-tb.innerHTML=vis.map(function(item){
-return'<tr><td style="color:#555">'+item.n+'</td><td>'+item.desc+'</td><td style="color:#888">'+item.loc+'</td><td style="color:#888">'+item.trade+'</td><td style="color:#888">'+item.assign+'</td><td style="color:#888">'+item.due+'</td>'
-+'<td><span class="badge '+badges[item.status]+'" onclick="cycleStatus('+item.id+')" title="Click to cycle status">'+labels[item.status]+'</span></td>'
-+'<td><button class="del-btn" onclick="delItem('+item.id+')">X</button></td></tr>';
-}).join("");
+  renderKPIs();
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=items.map(it=>`<tr>
+    <td><input value="${it.num}" onchange="upd(${it.id},'num',this.value)" style="width:50px"></td>
+    <td><input value="${it.loc}" onchange="upd(${it.id},'loc',this.value)"></td>
+    <td><input value="${it.desc}" onchange="upd(${it.id},'desc',this.value)"></td>
+    <td><select onchange="upd(${it.id},'resp',this.value)">${RESPS.map(r=>`<option ${r===it.resp?'selected':''}>${r}</option>`).join('')}</select></td>
+    <td style="color:${STATUS_COLOR[it.stat]}""><select onchange="upd(${it.id},'stat',this.value)">${STATS.map(s=>`<option ${s===it.stat?'selected':''}>${s}</option>`).join('')}</select></td>
+    <td><input type=date value="${it.due}" onchange="upd(${it.id},'due',this.value)"></td>
+    <td><button class=del-btn onclick="delItem(${it.id})">&#x2715;</button></td>
+  </tr>`).join('');
 }
+function renderKPIs(){
+  const total=items.length;
+  const open=items.filter(i=>i.stat==='Open').length;
+  const done=items.filter(i=>i.stat==='Complete').length;
+  const na=items.filter(i=>i.stat==='N/A').length;
+  const pct=total>0?Math.round((done/total)*100):0;
+  document.getElementById('kpis').innerHTML=`
+    <div class=kpi><div class=val>${total}</div><div class=lbl>Total Items</div></div>
+    <div class=kpi><div class=val style="color:#ff9800">${open}</div><div class=lbl>Open</div></div>
+    <div class=kpi><div class=val style="color:#4caf50">${done}</div><div class=lbl>Complete</div></div>
+    <div class=kpi><div class=val style="color:#666">${na}</div><div class=lbl>N/A</div></div>
+    <div class=kpi><div class=val>${pct}%</div><div class=lbl>% Complete</div></div>`;
+}
+function exportCSV(){
+  const proj=document.getElementById('proj').value||'Project';
+  const dt=document.getElementById('date').value;
+  const rows=[['#','Location','Description','Responsible','Status','Due Date'],...items.map(i=>[i.num,i.loc,i.desc,i.resp,i.stat,i.due])];
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=proj.replace(/\s+/g,'_')+'_PunchList_'+dt+'.csv';a.click();
+}
+renderKPIs();
+// seed sample data
+['ni_loc','ni_desc','ni_resp','ni_stat'].forEach(id=>{});
+items=[
+ {id:1,num:'PL-001',loc:'Level 1 Lobby',desc:'Paint touchup at east wall — scuff marks near door frame',resp:'GC',stat:'Open',due:''},
+ {id:2,num:'PL-002',loc:'Restroom 110',desc:'Toilet paper holder not installed per drawings',resp:'GC',stat:'Open',due:''},
+ {id:3,num:'PL-003',loc:'Mechanical Room',desc:'Label all electrical panels per NEC 110.22',resp:'MEP',stat:'Open',due:''},
+];
+nextN=4;render();
 </script></body></html>

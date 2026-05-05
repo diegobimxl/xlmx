@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Tenant Improvement Budget | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:16px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:24px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 28px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:24px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:20px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.tbl td:last-child{text-align:right}
+.tbl td:nth-child(2){text-align:right;color:#888}
+.tbl tr.total td{background:#1a1a1a;font-weight:700}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Tenant Improvement Budget Estimator</h1></div>
+<div class=wrap>
+<label>Rentable Area (SF)</label><input type=number id=sf value=5000 min=100>
+<label>Use Type</label>
+<select id=use>
+<option value=office>Office — Standard</option>
+<option value=office_high>Office — High-End / Class A</option>
+<option value=retail>Retail — Shell Buildout</option>
+<option value=medical>Medical / Dental Office</option>
+<option value=restaurant>Restaurant</option>
+<option value=lab>Lab / R&D</option>
+<option value=industrial>Industrial / Flex</option>
+</select>
+<label>Condition of Existing Space</label>
+<select id=cond>
+<option value=warm>Warm Shell (HVAC, lights, restrooms in)</option>
+<option value=cold>Cold Shell (slab, windows, roof only)</option>
+<option value=2nd_gen>2nd Generation (existing TI, minor rework)</option>
+</select>
+<label>Contingency (%)</label><input type=number id=cont value=10 min=0 max=30>
+<label>Design + Permits (%)</label><input type=number id=design value=8 min=0 max=20>
+<button class=btn onclick=calc()>Estimate TI Budget</button>
+<div id=out></div>
+<p class=note>Cost ranges based on 2024 US national averages (RSMeans / Rider Levett Bucknall). Actual costs vary significantly by market, tenant requirements, and existing conditions. Add 10-30% for high-cost markets (NYC, SF, Boston). Excludes FF&E, AV/tech, signage, and moving costs unless noted.</p>
+</div>
+<script>
+const BASE={
+  office:{warm:[65,90],cold:[90,120],s2g:[30,55],name:'Office — Standard'},
+  office_high:{warm:[110,160],cold:[140,200],s2g:[60,100],name:'Office — High-End'},
+  retail:{warm:[45,75],cold:[70,110],s2g:[25,45],name:'Retail Shell Buildout'},
+  medical:{warm:[120,180],cold:[160,220],s2g:[80,130],name:'Medical / Dental'},
+  restaurant:{warm:[150,250],cold:[200,320],s2g:[80,150],name:'Restaurant'},
+  lab:{warm:[200,350],cold:[280,450],s2g:[150,250],name:'Lab / R&D'},
+  industrial:{warm:[15,35],cold:[30,55],s2g:[8,20],name:'Industrial / Flex'},
+};
+const LINE_PCT={
+  'Demolition & Prep':0.05,
+  'Concrete / Structural':0.04,
+  'Framing & Drywall':0.12,
+  'Doors, Frames & Hardware':0.06,
+  'Ceilings':0.07,
+  'Flooring':0.10,
+  'Paint & Wall Finishes':0.05,
+  'HVAC':0.18,
+  'Plumbing':0.08,
+  'Electrical':0.14,
+  'Fire Suppression':0.05,
+  'Specialties / Millwork':0.06,
+};
+function calc(){
+  const sf=+document.getElementById('sf').value;
+  const use=document.getElementById('use').value;
+  const cond=document.getElementById('cond').value;
+  const cont=+document.getElementById('cont').value/100;
+  const design=+document.getElementById('design').value/100;
+  const condKey=cond==='warm'?'warm':cond==='cold'?'cold':'s2g';
+  const [lo,hi]=BASE[use][condKey];
+  const midPSF=(lo+hi)/2;
+  const base=midPSF*sf;
+  const contingency=base*cont;
+  const designFee=(base+contingency)*design;
+  const total=base+contingency+designFee;
+  const lines=Object.entries(LINE_PCT).map(([k,p])=>({cat:k,psf:(midPSF*p).toFixed(2),amt:(base*p)}));
+  document.getElementById('out').innerHTML=`
+  <div class=kpis>
+    <div class=kpi><div class=val>$${(total/sf).toFixed(0)}/SF</div><div class=lbl>Total TI ($/SF)</div></div>
+    <div class=kpi><div class=val>$${(total/1000).toFixed(0)}K</div><div class=lbl>Total Budget</div></div>
+    <div class=kpi><div class=val>$${lo}–$${hi}</div><div class=lbl>Base Range ($/SF)</div></div>
+    <div class=kpi><div class=val>$${(contingency/1000).toFixed(0)}K</div><div class=lbl>Contingency</div></div>
+    <div class=kpi><div class=val>$${(designFee/1000).toFixed(0)}K</div><div class=lbl>Design + Permits</div></div>
+  </div>
+  <table class=tbl>
+    <thead><tr><th>Category</th><th>$/SF</th><th>Estimated Cost</th></tr></thead>
+    <tbody>${lines.map(l=>`<tr><td>${l.cat}</td><td>$${l.psf}</td><td>$${l.amt.toLocaleString(undefined,{maximumFractionDigits:0})}</td></tr>`).join('')}
+    <tr><td>Subtotal</td><td>$${midPSF.toFixed(0)}</td><td>$${base.toLocaleString(undefined,{maximumFractionDigits:0})}</td></tr>
+    <tr><td>Contingency (${(cont*100).toFixed(0)}%)</td><td></td><td>$${contingency.toLocaleString(undefined,{maximumFractionDigits:0})}</td></tr>
+    <tr><td>Design + Permits (${(design*100).toFixed(0)}%)</td><td></td><td>$${designFee.toLocaleString(undefined,{maximumFractionDigits:0})}</td></tr>
+    </tbody>
+    <tfoot><tr class=total><td>TOTAL BUDGET</td><td>$${(total/sf).toFixed(0)}/SF</td><td>$${total.toLocaleString(undefined,{maximumFractionDigits:0})}</td></tr></tfoot>
+  </table>`;
+}
+calc();
+</script></body></html>

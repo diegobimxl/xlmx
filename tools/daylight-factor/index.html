@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Daylight Factor | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:700px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:16px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:24px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 28px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:24px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.pass{color:#4caf50}.fail{color:#f44336}.warn{color:#ff9800}
+.bar{background:#111;border-radius:4px;height:12px;margin-top:8px;overflow:hidden}
+.bar-fill{height:100%;background:#c8a96e;border-radius:4px;transition:width .4s}
+.checks{margin-top:24px;display:flex;flex-direction:column;gap:8px}
+.check{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.badge{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700}
+.badge.pass{background:#1a2a1a;color:#4caf50}.badge.fail{background:#2a1010;color:#f44336}.badge.warn{background:#2a2010;color:#ff9800}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Daylight Factor + WFR Calculator</h1></div>
+<div class=wrap>
+<label>Room Floor Area (sf)</label><input type=number id=flr value=400 min=50>
+<label>Total Window (Glazing) Area (sf)</label><input type=number id=win value=60 min=0>
+<label>Visible Light Transmittance (VT) of glazing</label><input type=number id=vt value=0.4 step=0.01 min=0.1 max=0.9>
+<label>Room Reflectance (avg walls + ceiling)</label>
+<select id=refl>
+<option value=0.5>Low — dark finishes (0.50)</option>
+<option value=0.65 selected>Typical — medium finishes (0.65)</option>
+<option value=0.75>High — light finishes (0.75)</option>
+<option value=0.85>Very High — white surfaces (0.85)</option>
+</select>
+<label>Sky Condition (affects available illuminance)</label>
+<select id=sky>
+<option value=5000>Overcast sky — 5,000 fc</option>
+<option value=8000 selected>Mixed — 8,000 fc</option>
+<option value=12000>Clear sky — 12,000 fc</option>
+</select>
+<label>Room Depth (ft) — for depth check</label><input type=number id=depth value=20 min=5>
+<label>Ceiling Height (ft)</label><input type=number id=ht value=10 min=6>
+<button class=btn onclick=calc()>Calculate Daylight</button>
+<div id=out></div>
+<p class=note>Simplified Daylight Factor: DF = (Aw/Af) x VT x Refl x correction. WFR = Aw/Af. References: IES HB-10 Recommended Illuminance, LEED v4 EQc7 Daylight (min 300 lux / 28 fc for 55% of regularly occupied area), ASHRAE 189.1 and California Title 24 daylighting mandates.</p>
+</div>
+<script>
+function calc(){
+  const Af=+document.getElementById('flr').value;
+  const Aw=+document.getElementById('win').value;
+  const vt=+document.getElementById('vt').value;
+  const refl=+document.getElementById('refl').value;
+  const sky=+document.getElementById('sky').value;
+  const depth=+document.getElementById('depth').value;
+  const ht=+document.getElementById('ht').value;
+  const wfr=Aw/Af;
+  const df=wfr*vt*refl*100;
+  const illum=df/100*sky;
+  const depthRatio=depth/ht;
+  const pctLEED=Math.min(100,wfr*vt*300);
+  const wfrPct=(wfr*100).toFixed(1);
+  const c1=wfr>=0.02?'pass':'fail';
+  const c2=illum>=50?'pass':illum>=30?'warn':'fail';
+  const c3=depthRatio<=2.5?'pass':depthRatio<=4?'warn':'fail';
+  const c4=pctLEED>=55?'pass':pctLEED>=40?'warn':'fail';
+  const barW=Math.min(100,(wfr/0.05)*100);
+  document.getElementById('out').innerHTML=`
+  <div class=kpis>
+    <div class=kpi><div class="val ${wfr>=0.02?'pass':'fail'}">${(wfr*100).toFixed(1)}%</div><div class=lbl>WFR (Win/Floor)</div>
+    <div class=bar><div class=bar-fill style="width:${barW}%"></div></div></div>
+    <div class=kpi><div class="val ${df>=2?'pass':'fail'">${df.toFixed(2)}%</div><div class=lbl>Daylight Factor</div></div>
+    <div class=kpi><div class="val ${illum>=50?'pass':'warn'">${illum.toFixed(0)}</div><div class=lbl>Avg Illuminance (fc)</div></div>
+    <div class=kpi><div class="val">${depthRatio.toFixed(1)}</div><div class=lbl>Depth/Height Ratio</div></div>
+  </div>
+  <div class=checks>
+    <div class=check><span>WFR &ge; 2% (minimum daylighting)</span><span class="badge ${c1}">${c1.toUpperCase()}</span></div>
+    <div class=check><span>Illuminance &ge; 50 fc (IES Office)</span><span class="badge ${c2}">${c2.toUpperCase()}</span></div>
+    <div class=check><span>Room Depth/Height &le; 2.5</span><span class="badge ${c3}">${c3.toUpperCase()}</span></div>
+    <div class=check><span>LEED v4 EQc7 ~55% area @28fc</span><span class="badge ${c4}">${c4.toUpperCase()}</span></div>
+  </div>`;
+}
+calc();
+</script></body></html>
