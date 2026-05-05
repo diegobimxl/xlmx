@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Net Sheet Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:40px;font-weight:700;color:#c8a96e;text-align:center;padding:12px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.green{color:#52c87a}.red{color:#e05252}
+.divider{border-top:2px solid #2a2a2a;margin:4px 0}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Seller Net Sheet</h1></div>
+<div class="container">
+<p class="desc">Estimate seller net proceeds after closing costs, commissions, mortgage payoff, and taxes.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Sale &amp; Mortgage</h2>
+<div class="field"><label>Sale Price ($)</label><input type="number" id="sp" placeholder="500000" oninput="calc()"></div>
+<div class="field"><label>Mortgage Payoff ($)</label><input type="number" id="mort" placeholder="250000" oninput="calc()"></div>
+<div class="field"><label>Purchase Price / Cost Basis ($)</label><input type="number" id="basis" placeholder="300000" oninput="calc()"></div>
+<h2 style="margin-top:4px">Costs (%)</h2>
+<div class="field"><label>Buyer Agent Commission (%)</label><input type="number" id="bac" value="2.5" step="0.1" oninput="calc()"></div>
+<div class="field"><label>Seller Agent Commission (%)</label><input type="number" id="sac" value="2.5" step="0.1" oninput="calc()"></div>
+<div class="field"><label>Closing Costs (%)</label><input type="number" id="cc" value="1.0" step="0.1" oninput="calc()"></div>
+<div class="field"><label>Transfer / Excise Tax (%)</label><input type="number" id="tt" value="0.5" step="0.1" oninput="calc()"></div>
+<h2 style="margin-top:4px">Other Deductions ($)</h2>
+<div class="field"><label>Repairs / Concessions ($)</label><input type="number" id="rep" value="0" oninput="calc()"></div>
+<div class="field"><label>Other ($)</label><input type="number" id="other" value="0" oninput="calc()"></div>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Estimated Net Proceeds</div>
+<div class="big green" id="net-big">&#8212;</div>
+<div class="result-row"><span class="result-label">Sale Price</span><span class="result-val" id="r-sp">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Commission (total)</span><span class="result-val red" id="r-comm">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Closing Costs</span><span class="result-val red" id="r-cc">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Transfer Tax</span><span class="result-val red" id="r-tt">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Repairs / Concessions</span><span class="result-val red" id="r-rep">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Total Closing Deductions</span><span class="result-val red" id="r-ded">&#8212;</span></div>
+<div class="result-row divider"><span class="result-label">Gross Proceeds</span><span class="result-val gold" id="r-gross">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Mortgage Payoff</span><span class="result-val red" id="r-mort">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Net Proceeds</span><span class="result-val green" id="r-net">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Gain on Sale</span><span class="result-val" id="r-gain">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Return on Basis</span><span class="result-val" id="r-roi">&#8212;</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function fm(n){return(n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString("en-US")}
+function fp(n){return n.toFixed(2)+"%"}
+function calc(){
+var sp=parseFloat(document.getElementById("sp").value)||0;
+var mort=parseFloat(document.getElementById("mort").value)||0;
+var basis=parseFloat(document.getElementById("basis").value)||0;
+var bac=parseFloat(document.getElementById("bac").value)||0;
+var sac=parseFloat(document.getElementById("sac").value)||0;
+var cc=parseFloat(document.getElementById("cc").value)||0;
+var tt=parseFloat(document.getElementById("tt").value)||0;
+var rep=parseFloat(document.getElementById("rep").value)||0;
+var other=parseFloat(document.getElementById("other").value)||0;
+var comm=sp*(bac+sac)/100,ccAmt=sp*cc/100,ttAmt=sp*tt/100;
+var totDed=comm+ccAmt+ttAmt+rep+other;
+var gross=sp-totDed,net=gross-mort,gain=net-basis,roi=basis>0?gain/basis*100:0;
+document.getElementById("net-big").textContent=fm(net);
+document.getElementById("net-big").className="big "+(net>=0?"green":"red");
+document.getElementById("r-sp").textContent=fm(sp);
+document.getElementById("r-comm").textContent="-"+fm(comm);
+document.getElementById("r-cc").textContent="-"+fm(ccAmt);
+document.getElementById("r-tt").textContent="-"+fm(ttAmt);
+document.getElementById("r-rep").textContent="-"+fm(rep+other);
+document.getElementById("r-ded").textContent="-"+fm(totDed);
+document.getElementById("r-gross").textContent=fm(gross);
+document.getElementById("r-mort").textContent="-"+fm(mort);
+document.getElementById("r-net").textContent=fm(net);
+document.getElementById("r-gain").textContent=fm(gain);
+document.getElementById("r-gain").className="result-val "+(gain>=0?"green":"red");
+document.getElementById("r-roi").textContent=basis>0?fp(roi):"N/A";
+}
+calc();
+</script></body></html>

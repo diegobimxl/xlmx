@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Density Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #2a2a2a;background:#111;color:#888}
+.tab.active{background:#c8a96e;color:#000;border-color:#c8a96e;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:40px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Development Density Calculator</h1></div>
+<div class="container">
+<p class="desc">Calculate residential density (DU/acre), commercial density (SF/acre), or required land area.</p>
+<div class="tabs">
+<div class="tab active" onclick="showTab(0,this)">Units per Acre</div>
+<div class="tab" onclick="showTab(1,this)">SF per Acre</div>
+<div class="tab" onclick="showTab(2,this)">Land Required</div>
+</div>
+<div class="grid">
+<div>
+<div class="section" id="tab0">
+<h2>Residential Density</h2>
+<div class="field"><label>Site Area (acres)</label><input type="number" id="t0-ac" placeholder="5.0" step="0.01"></div>
+<div class="field"><label>Gross Site Area (SF)</label><input type="number" id="t0-sf" placeholder="217800" step="100"></div>
+<div class="field"><label>Number of Units</label><input type="number" id="t0-u" placeholder="80"></div>
+<div class="field"><label>Net-to-Gross Ratio (%)</label><input type="number" id="t0-ng" value="75" min="10" max="100"></div>
+<button class="btn" onclick="calcDU()">Calculate</button>
+</div>
+<div class="section" id="tab1" style="display:none">
+<h2>Commercial SF Density</h2>
+<div class="field"><label>Site Area (acres)</label><input type="number" id="t1-ac" placeholder="5.0" step="0.01"></div>
+<div class="field"><label>GFA / Leasable SF</label><input type="number" id="t1-sf" placeholder="50000"></div>
+<div class="field"><label>FAR</label><input type="number" id="t1-far" placeholder="0.5" step="0.1"></div>
+<button class="btn" onclick="calcSF()">Calculate</button>
+</div>
+<div class="section" id="tab2" style="display:none">
+<h2>Land Required</h2>
+<div class="field"><label>Number of Units</label><input type="number" id="t2-u" placeholder="80"></div>
+<div class="field"><label>Target Density (DU/acre)</label><input type="number" id="t2-d" placeholder="16" step="0.5"></div>
+<div class="field"><label>Net-to-Gross Ratio (%)</label><input type="number" id="t2-ng" value="75"></div>
+<button class="btn" onclick="calcLand()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl" id="r-lbl">Density</div>
+<div class="big" id="r-big">&#8212;</div>
+<div class="result-row"><span class="result-label">Result</span><span class="result-val gold" id="r-main">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Gross Site Area</span><span class="result-val" id="r-gross">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Net Dev. Area</span><span class="result-val" id="r-net">&#8212;</span></div>
+<div class="result-row"><span class="result-label">SF per Unit</span><span class="result-val" id="r-spu">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Density Type</span><span class="result-val" id="r-type">&#8212;</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function showTab(n,el){[0,1,2].forEach(function(i){document.getElementById("tab"+i).style.display=i===n?"":"none"});document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});el.classList.add("active")}
+function lo(n){return n.toLocaleString("en-US")}
+function densityType(dua){return dua<5?"Low Density":(dua<20?"Medium Density":(dua<50?"High Density":"Very High Density"))}
+function calcDU(){
+var ac=parseFloat(document.getElementById("t0-ac").value)||0;
+var sf=parseFloat(document.getElementById("t0-sf").value)||0;
+var u=parseFloat(document.getElementById("t0-u").value)||0;
+var ng=parseFloat(document.getElementById("t0-ng").value)||75;
+if(!sf&&ac)sf=ac*43560;if(!ac&&sf)ac=sf/43560;
+if(!ac||!u){alert("Enter site area and units.");return;}
+var dua=u/ac,net=sf*ng/100;
+document.getElementById("r-lbl").textContent="DU / Acre";
+document.getElementById("r-big").textContent=dua.toFixed(1);
+document.getElementById("r-main").textContent=dua.toFixed(2)+" DU/acre";
+document.getElementById("r-gross").textContent=lo(Math.round(sf))+" SF ("+ac.toFixed(2)+" ac)";
+document.getElementById("r-net").textContent=lo(Math.round(net))+" SF";
+document.getElementById("r-spu").textContent=lo(Math.round(net/u))+" SF/unit (net)";
+document.getElementById("r-type").textContent=densityType(dua);
+}
+function calcSF(){
+var ac=parseFloat(document.getElementById("t1-ac").value)||0;
+var sf=parseFloat(document.getElementById("t1-sf").value)||0;
+var far=parseFloat(document.getElementById("t1-far").value)||0;
+if(!ac){alert("Enter site area.");return;}
+var siteSF=ac*43560;var calcSF2=far?siteSF*far:sf;var calcFAR=siteSF>0?calcSF2/siteSF:0;
+document.getElementById("r-lbl").textContent="FAR";
+document.getElementById("r-big").textContent=calcFAR.toFixed(2);
+document.getElementById("r-main").textContent=lo(Math.round(calcSF2))+" GFA";
+document.getElementById("r-gross").textContent=lo(Math.round(siteSF))+" SF ("+ac.toFixed(2)+" ac)";
+document.getElementById("r-net").textContent=calcFAR.toFixed(2)+" FAR";
+document.getElementById("r-spu").textContent=lo(Math.round(calcSF2/ac))+" SF/acre";
+document.getElementById("r-type").textContent=calcFAR<0.5?"Low intensity":(calcFAR<2?"Medium intensity":"High intensity");
+}
+function calcLand(){
+var u=parseFloat(document.getElementById("t2-u").value)||0;
+var d=parseFloat(document.getElementById("t2-d").value)||0;
+var ng=parseFloat(document.getElementById("t2-ng").value)||75;
+if(!u||!d){alert("Enter units and target density.");return;}
+var netAc=u/d,grossAc=netAc/(ng/100),sf=grossAc*43560;
+document.getElementById("r-lbl").textContent="Gross Acres Needed";
+document.getElementById("r-big").textContent=grossAc.toFixed(2);
+document.getElementById("r-main").textContent=grossAc.toFixed(2)+" ac gross";
+document.getElementById("r-gross").textContent=lo(Math.round(sf))+" SF";
+document.getElementById("r-net").textContent=netAc.toFixed(2)+" net acres";
+document.getElementById("r-spu").textContent=lo(Math.round(sf/u))+" SF/unit";
+document.getElementById("r-type").textContent=densityType(d)+" @ "+d+" DU/ac";
+}
+</script></body></html>

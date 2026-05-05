@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Column Load Takedown | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:800px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.btn-ghost{background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer;margin-top:8px;width:100%}
+.btn-ghost:hover{border-color:#c8a96e;color:#c8a96e}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:right;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+th:first-child{text-align:left}td{padding:7px 8px;border-bottom:1px solid #141414;text-align:right}
+td:first-child{text-align:left;color:#888}
+.gold{color:#c8a96e;font-weight:600}.green{color:#52c87a}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px;margin-bottom:0}
+.card-label{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase}.card-val{font-size:18px;font-weight:700;color:#c8a96e}
+.floor-row{display:grid;grid-template-columns:120px 1fr 1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Column Load Takedown</h1></div>
+<div class="container">
+<p class="desc">Cumulative axial load on a column from dead load, live load, and floor area per level.</p>
+<div class="section">
+<h2>Tributary Area &amp; Unit Loads</h2>
+<div class="grid3">
+<div class="field"><label>Tributary Area per Floor (SF)</label><input type="number" id="trib" placeholder="400" min="0"></div>
+<div class="field"><label>Unit Dead Load (psf)</label><input type="number" id="dl" value="80" min="0"></div>
+<div class="field"><label>Unit Live Load (psf)</label><input type="number" id="ll" value="50" min="0"></div>
+<div class="field"><label>Partition / MEP (psf)</label><input type="number" id="part" value="15" min="0"></div>
+<div class="field"><label>Roof DL (psf)</label><input type="number" id="rdl" value="25" min="0"></div>
+<div class="field"><label>Roof LL (psf)</label><input type="number" id="rll" value="20" min="0"></div>
+</div>
+</div>
+<div class="section">
+<h2>Floors</h2>
+<div id="floors"></div>
+<button class="btn-ghost" onclick="addFloor()">+ Add Floor</button>
+<button class="btn" onclick="calc()" style="margin-top:12px">Calculate</button>
+</div>
+<div class="section">
+<div class="grid3" style="margin-bottom:16px">
+<div class="card"><div class="card-label">Total DL</div><div class="card-val" id="s-dl">&#8212;</div></div>
+<div class="card"><div class="card-label">Total LL</div><div class="card-val" id="s-ll">&#8212;</div></div>
+<div class="card"><div class="card-label">Factored Load (1.2D+1.6L)</div><div class="card-val gold" id="s-pu">&#8212;</div></div>
+</div>
+<table>
+<thead><tr><th>Level</th><th>Floor DL</th><th>Floor LL</th><th>Cumul. DL</th><th>Cumul. LL</th><th>Factored Pu</th></tr></thead>
+<tbody id="tbody"><tr><td colspan="6" style="text-align:center;color:#555;padding:16px">Add floors and calculate.</td></tr></tbody>
+</table>
+</div>
+</div>
+<script>
+var fc=0,flrs=[];
+function addFloor(){
+fc++;var id=fc;
+var d=document.createElement("div");d.className="floor-row";d.id="flr"+id;
+d.innerHTML='<div><label>Level</label><input type="text" id="fn'+id+'" value="Floor '+fc+'"></div>'
++'<div><label>Override Trib SF (0=default)</label><input type="number" id="ft'+id+'" value="0" min="0"></div>'
++'<div><label>Override DL psf (0=def)</label><input type="number" id="fd'+id+'" value="0" min="0"></div>'
++'<div><label>Override LL psf (0=def)</label><input type="number" id="fl'+id+'" value="0" min="0"></div>'
++'<div style="display:flex;align-items:flex-end"><button onclick="rmFloor('+id+')" style="background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:12px;width:100%">X</button></div>';
+flrs.push(id);document.getElementById("floors").appendChild(d);
+}
+function rmFloor(id){document.getElementById("flr"+id).remove();flrs=flrs.filter(function(i){return i!==id})}
+function calc(){
+var trib=parseFloat(document.getElementById("trib").value)||0;
+var dlU=parseFloat(document.getElementById("dl").value)||0;
+var llU=parseFloat(document.getElementById("ll").value)||0;
+var part=parseFloat(document.getElementById("part").value)||0;
+var rdl=parseFloat(document.getElementById("rdl").value)||0;
+var rll=parseFloat(document.getElementById("rll").value)||0;
+if(!trib){alert("Enter tributary area.");return;}
+var cDL=0,cLL=0,rows=[];
+// Roof first (assume last added floor is roof? or add separately)
+// Just iterate floors in order
+flrs.forEach(function(id,idx){
+var name=document.getElementById("fn"+id).value;
+var tribI=parseFloat(document.getElementById("ft"+id).value)||trib;
+var dlI=(parseFloat(document.getElementById("fd"+id).value)||0)||(dlU+part);
+var llI=(parseFloat(document.getElementById("fl"+id).value)||0)||llU;
+if(!parseFloat(document.getElementById("fd"+id).value))dlI=dlU+part;
+if(!parseFloat(document.getElementById("fl"+id).value))llI=llU;
+var fDL=dlI*tribI/1000,fLL=llI*tribI/1000;
+cDL+=fDL;cLL+=fLL;
+var pu=1.2*cDL+1.6*cLL;
+rows.push({name:name,fDL:fDL,fLL:fLL,cDL:cDL,cLL:cLL,pu:pu});
+});
+function fk(n){return n.toFixed(1)+" k"}
+document.getElementById("tbody").innerHTML=rows.map(function(r){
+return'<tr><td>'+r.name+'</td><td>'+fk(r.fDL)+'</td><td>'+fk(r.fLL)+'</td>'
++'<td>'+fk(r.cDL)+'</td><td>'+fk(r.cLL)+'</td><td class="gold">'+fk(r.pu)+'</td></tr>';
+}).join("");
+var totDL=rows.length?rows[rows.length-1].cDL:0;
+var totLL=rows.length?rows[rows.length-1].cLL:0;
+var totPu=1.2*totDL+1.6*totLL;
+document.getElementById("s-dl").textContent=totDL.toFixed(1)+" kips";
+document.getElementById("s-ll").textContent=totLL.toFixed(1)+" kips";
+document.getElementById("s-pu").textContent=totPu.toFixed(1)+" kips";
+}
+[1,2,3].forEach(function(){addFloor()});
+</script></body></html>

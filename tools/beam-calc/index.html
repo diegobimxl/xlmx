@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simple Beam Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #2a2a2a;background:#111;color:#888}
+.tab.active{background:#c8a96e;color:#000;border-color:#c8a96e;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:36px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.green{color:#52c87a}.red{color:#e05252}
+.diagram{background:#161616;border-radius:8px;padding:16px;margin-bottom:14px;text-align:center;font-size:11px;color:#666}
+.ref{font-size:11px;color:#555;margin-top:8px;line-height:1.6}
+.ref b{color:#888}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Simple Beam Calculator</h1></div>
+<div class="container">
+<p class="desc">Reactions, maximum moment, and midspan deflection for simply supported and cantilever beams.</p>
+<div class="tabs">
+<div class="tab active" onclick="showTab(0,this)">Uniform Load (UDL)</div>
+<div class="tab" onclick="showTab(1,this)">Point Load</div>
+</div>
+<div class="grid">
+<div>
+<div id="tab0">
+<div class="section">
+<h2>Simply Supported — UDL</h2>
+<div class="diagram">|&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;|<br>w (kip/ft) uniformly distributed<br>&#9651;&#9634;&#9634;&#9634;&#9634;&#9634;&#9634;&#9634;&#9634;&#9634;&#9651;</div>
+<div class="field"><label>Span L (ft)</label><input type="number" id="u-l" placeholder="20" min="0" step="0.5"></div>
+<div class="field"><label>Uniform Load w (kip/ft)</label><input type="number" id="u-w" placeholder="2" min="0" step="0.1"></div>
+<div class="field"><label>Modulus E (ksi)</label><input type="number" id="u-e" value="29000" min="1000"></div>
+<div class="field"><label>Moment of Inertia I (in&#8308;)</label><input type="number" id="u-i" placeholder="200" min="0"></div>
+<button class="btn" onclick="calcUDL()">Calculate</button>
+</div>
+</div>
+<div id="tab1" style="display:none">
+<div class="section">
+<h2>Simply Supported — Point Load</h2>
+<div class="diagram">P (kips) at position a<br>|&#8212;&#8212;a&#8212;&#8212;P&#8212;&#8212;b&#8212;&#8212;|<br>&#9651;&#9651;</div>
+<div class="field"><label>Span L (ft)</label><input type="number" id="p-l" placeholder="20" min="0" step="0.5"></div>
+<div class="field"><label>Point Load P (kips)</label><input type="number" id="p-p" placeholder="10" min="0" step="0.1"></div>
+<div class="field"><label>Distance a from left (ft)</label><input type="number" id="p-a" placeholder="10" min="0" step="0.5"></div>
+<div class="field"><label>Modulus E (ksi)</label><input type="number" id="p-e" value="29000" min="1000"></div>
+<div class="field"><label>Moment of Inertia I (in&#8308;)</label><input type="number" id="p-i" placeholder="200" min="0"></div>
+<button class="btn" onclick="calcPL()">Calculate</button>
+</div>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Max Moment</div>
+<div class="big" id="m-big">&#8212;</div>
+<div class="result-row"><span class="result-label">Reaction A (left)</span><span class="result-val gold" id="r-ra">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Reaction B (right)</span><span class="result-val gold" id="r-rb">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Max Moment</span><span class="result-val" id="r-m">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Max Moment Location</span><span class="result-val" id="r-mx">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Max Shear</span><span class="result-val" id="r-v">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Max Deflection</span><span class="result-val" id="r-d">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Span/Deflection Ratio</span><span class="result-val" id="r-sd">&#8212;</span></div>
+</div>
+<div class="ref">
+<b>L/360</b>: Live load limit (floors)<br>
+<b>L/240</b>: Total load limit (floors)<br>
+<b>L/180</b>: Roof rafters<br>
+Note: provide E and I for deflection. Steel: E=29,000 ksi. Concrete: E&#8776;4,000 ksi. Wood: E&#8776;1,600 ksi.
+</div>
+</div>
+</div>
+</div>
+<script>
+function showTab(n,el){
+document.getElementById("tab0").style.display=n===0?"":"none";
+document.getElementById("tab1").style.display=n===1?"":"none";
+document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});el.classList.add("active");
+}
+function setResults(ra,rb,m,mx,v,defl,L){
+document.getElementById("r-ra").textContent=ra.toFixed(2)+" kips";
+document.getElementById("r-rb").textContent=rb.toFixed(2)+" kips";
+document.getElementById("m-big").textContent=m.toFixed(2)+" kip&#183;ft";
+document.getElementById("r-m").textContent=m.toFixed(3)+" kip&#183;ft = "+(m*12).toFixed(1)+" kip&#183;in";
+document.getElementById("r-mx").textContent=mx;
+document.getElementById("r-v").textContent=v.toFixed(2)+" kips";
+if(defl!==null){
+var Lin=L*12;
+document.getElementById("r-d").textContent=defl.toFixed(4)+'"';
+document.getElementById("r-sd").textContent="L/"+(Lin/defl).toFixed(0);
+}else{document.getElementById("r-d").textContent="Enter E and I";document.getElementById("r-sd").textContent="&#8212;";}
+}
+function calcUDL(){
+var L=parseFloat(document.getElementById("u-l").value)||0;
+var w=parseFloat(document.getElementById("u-w").value)||0;
+var E=parseFloat(document.getElementById("u-e").value)||0;
+var I=parseFloat(document.getElementById("u-i").value)||0;
+if(!L||!w){alert("Enter span and load.");return;}
+var ra=w*L/2,rb=ra,m=w*L*L/8,v=ra;
+var defl=null;
+if(E&&I){var Lin=L*12;var EI=E*I;defl=5*w/12*Math.pow(Lin,4)/(384*EI);}
+setResults(ra,rb,m,"Midspan (L/2)",v,defl,L);
+}
+function calcPL(){
+var L=parseFloat(document.getElementById("p-l").value)||0;
+var P=parseFloat(document.getElementById("p-p").value)||0;
+var a=parseFloat(document.getElementById("p-a").value)||L/2;
+var E=parseFloat(document.getElementById("p-e").value)||0;
+var I=parseFloat(document.getElementById("p-i").value)||0;
+if(!L||!P){alert("Enter span and load.");return;}
+var b=L-a,ra=P*b/L,rb=P*a/L;
+var m=ra*a,v=Math.max(ra,rb);
+var defl=null;
+if(E&&I){var Lin=L*12,ai=a*12,bi=b*12;
+if(Math.abs(a-b)<0.01)defl=P/1000*Math.pow(Lin,3)/(48*E*I);
+else defl=P/1000*ai*bi*(ai+bi)/(3*E*I*Math.sqrt(3));
+}
+setResults(ra,rb,m,"x = "+a.toFixed(1)+" ft from left",v,defl,L);
+}
+</script></body></html>

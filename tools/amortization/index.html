@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loan Amortization | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.card-label{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase}.card-val{font-size:17px;font-weight:700;color:#c8a96e}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:right;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+th:first-child{text-align:left}
+td{padding:5px 8px;border-bottom:1px solid #111;text-align:right}td:first-child{text-align:left;color:#888}
+tr:hover td{background:#151515}
+.gold{color:#c8a96e}.green{color:#52c87a}.red{color:#e05252}
+.scroll{max-height:480px;overflow-y:auto;border:1px solid #1e1e1e;border-radius:8px}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Loan Amortization</h1></div>
+<div class="container">
+<p class="desc">Full amortization schedule with monthly payment breakdown, cumulative interest, and remaining balance.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Loan Parameters</h2>
+<div class="field"><label>Loan Amount ($)</label><input type="number" id="loan" placeholder="1000000" min="0"></div>
+<div class="field"><label>Annual Interest Rate (%)</label><input type="number" id="rate" placeholder="6.5" min="0" step="0.125"></div>
+<div class="field"><label>Term (years)</label><input type="number" id="term" value="30" min="1" max="40"></div>
+<div class="field"><label>Extra Monthly Payment ($)</label><input type="number" id="extra" value="0" min="0"></div>
+<button class="btn" onclick="calc()">Generate Schedule</button>
+</div>
+<div class="section">
+<h2>Summary</h2>
+<div id="summary"><p style="color:#555;font-size:12px">Run calculation first.</p></div>
+</div>
+</div>
+<div>
+<div class="section">
+<h2>Amortization Schedule</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Month</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+<tbody id="tbody"><tr><td colspan="5" style="text-align:center;color:#555;padding:20px">Enter loan details and click Generate.</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function fm(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function calc(){
+var loan=parseFloat(document.getElementById("loan").value)||0;
+var rate=parseFloat(document.getElementById("rate").value)/100/12||0;
+var term=parseInt(document.getElementById("term").value)||30;
+var extra=parseFloat(document.getElementById("extra").value)||0;
+if(!loan||!rate){alert("Enter loan amount and rate.");return;}
+var n=term*12;
+var pmt=rate===0?loan/n:loan*rate*Math.pow(1+rate,n)/(Math.pow(1+rate,n)-1);
+var rows=[],bal=loan,totI=0,totP=0,month=0;
+while(bal>0.01&&month<600){
+month++;
+var interest=bal*rate;
+var principal=Math.min(bal,pmt-interest+extra);
+if(principal<0)principal=0;
+bal=Math.max(0,bal-principal);
+totI+=interest;totP+=principal;
+rows.push({m:month,pmt:principal+interest,p:principal,i:interest,b:bal});
+}
+var tb=document.getElementById("tbody");
+tb.innerHTML=rows.map(function(r){
+return'<tr><td>'+r.m+'</td><td>'+fm(r.pmt)+'</td><td class="green">'+fm(r.p)+'</td><td class="red">'+fm(r.i)+'</td><td class="gold">'+fm(r.b)+'</td></tr>';
+}).join("");
+var summary='<div class="summary-grid">'
++'<div class="card"><div class="card-label">Monthly Payment</div><div class="card-val">'+fm(pmt+extra)+'</div></div>'
++'<div class="card"><div class="card-label">Total Interest</div><div class="card-val red">'+fm(totI)+'</div></div>'
++'<div class="card"><div class="card-label">Payoff</div><div class="card-val">'+month+' mo</div></div>'
++'<div class="card"><div class="card-label">Total Paid</div><div class="card-val">'+fm(totI+loan)+'</div></div>'
++'<div class="card"><div class="card-label">Interest %</div><div class="card-val">'+(totI/(totI+loan)*100).toFixed(1)+'%</div></div>'
++'<div class="card"><div class="card-label">Loan Amount</div><div class="card-val gold">'+fm(loan)+'</div></div>'
++'</div>';
+document.getElementById("summary").innerHTML=summary;
+}
+</script></body></html>

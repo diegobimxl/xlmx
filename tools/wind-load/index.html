@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wind Load Reference | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:40px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+th{text-align:left;padding:5px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #141414;color:#aaa}
+.note{font-size:11px;color:#555;margin-top:10px;line-height:1.5}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Wind Load Reference</h1></div>
+<div class="container">
+<p class="desc">Simplified wind pressure calculation (ASCE 7 Method 1 envelope). For preliminary design only — engage a licensed SE for final values.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Site &amp; Building</h2>
+<div class="field"><label>Basic Wind Speed V (mph)</label><input type="number" id="v" placeholder="115" min="60" max="200"></div>
+<div class="field"><label>Exposure Category</label>
+<select id="exp">
+<option value="0.85">B — Suburban / Wooded</option>
+<option value="1.0" selected>C — Open Terrain</option>
+<option value="1.15">D — Coastal / Open Water</option>
+</select></div>
+<div class="field"><label>Building Height (ft)</label><input type="number" id="h" placeholder="40" min="0"></div>
+<div class="field"><label>Building Width (ft)</label><input type="number" id="w" placeholder="60" min="0"></div>
+<div class="field"><label>Building Depth (ft)</label><input type="number" id="depth" placeholder="80" min="0"></div>
+<div class="field"><label>Occupancy / Risk Category</label>
+<select id="rc">
+<option value="0.87">I — Low hazard (sheds, etc.)</option>
+<option value="1.0" selected>II — Standard (most buildings)</option>
+<option value="1.15">III — Substantial hazard</option>
+<option value="1.15">IV — Essential facilities</option>
+</select></div>
+<div class="field"><label>Roof Type</label>
+<select id="roof">
+<option value="0.75">Flat / Low Slope</option>
+<option value="0.85">Gable / Hip</option>
+</select></div>
+<button class="btn" onclick="calc()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Design Wind Pressure</div>
+<div class="big" id="p-big">&#8212;</div>
+<div class="result-row"><span class="result-label">Velocity Pressure qz</span><span class="result-val gold" id="r-qz">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Wall Windward</span><span class="result-val" id="r-ww">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Wall Leeward</span><span class="result-val" id="r-lw">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Total Lateral Force</span><span class="result-val" id="r-f">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Roof Uplift</span><span class="result-val" id="r-up">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Overturning Moment</span><span class="result-val" id="r-ot">&#8212;</span></div>
+</div>
+<div class="section" style="margin-top:0">
+<h2>Typical Design Wind Speeds</h2>
+<table>
+<tr><th>Region</th><th>V (mph)</th></tr>
+<tr><td>Central US (non-hurricane)</td><td>90&#8211;100</td></tr>
+<tr><td>Florida coast</td><td>150&#8211;180</td></tr>
+<tr><td>Gulf Coast</td><td>130&#8211;160</td></tr>
+<tr><td>Pacific Northwest</td><td>95&#8211;115</td></tr>
+<tr><td>Mountain West</td><td>100&#8211;130</td></tr>
+</table>
+</div>
+</div>
+</div>
+<p class="note">ASCE 7 simplified method. Kz from exposure category at mean roof height. Kzt=1.0, Kd=0.85. Cp: windward 0.8, leeward -0.5. For preliminary feasibility use only.</p>
+</div>
+<script>
+function calc(){
+var V=parseFloat(document.getElementById("v").value)||0;
+var Ke=parseFloat(document.getElementById("exp").value)||1.0;
+var h=parseFloat(document.getElementById("h").value)||0;
+var w=parseFloat(document.getElementById("w").value)||0;
+var d=parseFloat(document.getElementById("depth").value)||0;
+var Iw=parseFloat(document.getElementById("rc").value)||1.0;
+var Cr=parseFloat(document.getElementById("roof").value)||0.75;
+if(!V||!h){alert("Enter wind speed and building height.");return;}
+// Kz simplified: open terrain
+var Kz=Ke*Math.pow(h/33,2/9.5);Kz=Math.max(0.85,Math.min(2.01,Kz));
+var Kzt=1.0,Kd=0.85;
+var qz=0.00256*Kz*Kzt*Kd*V*V*Iw;
+var pWW=qz*(0.8+0.18); // windward wall incl. internal +0.18
+var pLW=qz*(-0.5-0.18); // leeward
+var pNet=pWW+Math.abs(pLW);
+var F=pNet*h*d/144; // kips approx for 1ft wall if psf
+var Awall=h*d;
+var FLat=pNet*Awall/1000;
+var Aroof=w*d;
+var pUp=qz*(-0.9)*Aroof/1000;
+var OT=FLat*h/2/1000;
+document.getElementById("p-big").textContent=pNet.toFixed(1)+" psf";
+document.getElementById("r-qz").textContent=qz.toFixed(2)+" psf";
+document.getElementById("r-ww").textContent=pWW.toFixed(2)+" psf";
+document.getElementById("r-lw").textContent=pLW.toFixed(2)+" psf";
+document.getElementById("r-f").textContent=FLat.toFixed(1)+" kips";
+document.getElementById("r-up").textContent=pUp.toFixed(1)+" kips (uplift)";
+document.getElementById("r-ot").textContent=(FLat*h/2).toFixed(0)+" kip-ft";
+}
+</script></body></html>

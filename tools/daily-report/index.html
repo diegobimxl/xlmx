@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daily Construction Report | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:800px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select,textarea{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#c8a96e}
+textarea{resize:vertical;min-height:72px}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:8px 16px;font-size:12px;cursor:pointer;margin-left:8px}
+.btn-ghost:hover{border-color:#c8a96e;color:#c8a96e}
+.crew-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end}
+.del-btn{background:transparent;border:none;color:#555;cursor:pointer;font-size:13px;padding:2px 6px}
+.del-btn:hover{color:#e05252}
+.print-area{display:none}
+@media print{body{background:#fff;color:#000}.topbar,.btn,.btn-ghost,.del-btn,.no-print{display:none!important}.print-area{display:block}.section{border:1px solid #ccc;background:#fff}}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Daily Construction Report</h1></div>
+<div class="container">
+<p class="desc">Standardized daily site report. Fill in and print or save as PDF.</p>
+<div class="section">
+<h2>Project Info</h2>
+<div class="grid3">
+<div class="field"><label>Project Name</label><input type="text" id="proj" placeholder="Project name"></div>
+<div class="field"><label>Date</label><input type="date" id="date"></div>
+<div class="field"><label>Report #</label><input type="text" id="repno" placeholder="001"></div>
+<div class="field"><label>Superintendent</label><input type="text" id="super" placeholder="Name"></div>
+<div class="field"><label>Weather</label><select id="weather"><option>Clear</option><option>Partly Cloudy</option><option>Overcast</option><option>Rain</option><option>Heavy Rain</option><option>Snow</option><option>Wind</option><option>Extreme Heat</option></select></div>
+<div class="field"><label>Temp (&#176;F)</label><input type="number" id="temp" placeholder="72"></div>
+</div>
+</div>
+<div class="section">
+<h2>Work Performed</h2>
+<div class="field"><textarea id="work" placeholder="Describe work activities completed today..."></textarea></div>
+</div>
+<div class="section">
+<h2>Crew / Labor</h2>
+<div id="crew-area"></div>
+<button class="btn-ghost no-print" onclick="addCrew()" style="margin-bottom:4px">+ Add Trade</button>
+</div>
+<div class="section">
+<h2>Equipment on Site</h2>
+<div class="field"><textarea id="equip" placeholder="List equipment used today..."></textarea></div>
+</div>
+<div class="section">
+<h2>Materials Delivered</h2>
+<div class="field"><textarea id="mats" placeholder="List materials received today..."></textarea></div>
+</div>
+<div class="section">
+<h2>Issues / Delays</h2>
+<div class="field"><textarea id="issues" placeholder="Describe any issues, delays, or safety incidents..."></textarea></div>
+</div>
+<div class="section">
+<h2>Visitors on Site</h2>
+<div class="field"><textarea id="visitors" placeholder="Name, company, purpose of visit..."></textarea></div>
+</div>
+<div class="section">
+<h2>Notes / Next Day Plan</h2>
+<div class="field"><textarea id="notes" placeholder="Tomorrow's planned activities..."></textarea></div>
+</div>
+<div style="display:flex;align-items:center">
+<button class="btn" onclick="window.print()">Print / Save PDF</button>
+<span style="font-size:11px;color:#555;margin-left:12px">Use browser Print → Save as PDF</span>
+</div>
+</div>
+<script>
+var cc=0;
+function addCrew(){
+cc++;var id=cc;
+var d=document.createElement("div");d.className="crew-row";d.id="cr"+id;
+d.innerHTML='<div><label>Trade</label><input type="text" id="ct'+id+'" placeholder="e.g. Framing Crew"></div>'
++'<div><label>Workers</label><input type="number" id="cw'+id+'" placeholder="4" min="0"></div>'
++'<div><label>Hours Each</label><input type="number" id="ch'+id+'" placeholder="8" min="0" step="0.5"></div>'
++'<div style="display:flex;align-items:flex-end" class="no-print"><button class="del-btn" onclick="document.getElementById(\'cr'+id+'\').remove()">X</button></div>';
+document.getElementById("crew-area").appendChild(d);
+}
+// set today date
+document.getElementById("date").value=new Date().toISOString().split("T")[0];
+addCrew();
+</script></body></html>

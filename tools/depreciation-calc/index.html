@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Depreciation Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:800px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.gold{color:#c8a96e}.green{color:#52c87a}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:right;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+th:first-child{text-align:left}td{padding:5px 8px;border-bottom:1px solid #111;text-align:right}
+td:first-child{text-align:left;color:#888}tr:hover td{background:#151515}
+.scroll{max-height:440px;overflow-y:auto;border:1px solid #1e1e1e;border-radius:8px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #2a2a2a;background:#111;color:#888}
+.tab.active{background:#c8a96e;color:#000;border-color:#c8a96e;font-weight:600}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Depreciation Calculator</h1></div>
+<div class="container">
+<p class="desc">Straight-line, declining balance, and sum-of-years-digits depreciation schedules with annual breakdown.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Asset</h2>
+<div class="field"><label>Asset Cost ($)</label><input type="number" id="cost" placeholder="500000" min="0"></div>
+<div class="field"><label>Salvage Value ($)</label><input type="number" id="salvage" value="0" min="0"></div>
+<div class="field"><label>Useful Life (years)</label><input type="number" id="life" value="27.5" min="1" max="50" step="0.5"></div>
+<div class="field"><label>Method</label>
+<select id="method">
+<option value="sl">Straight-Line (SL)</option>
+<option value="db">Declining Balance (200% DB)</option>
+<option value="syd">Sum-of-Years Digits (SYD)</option>
+</select></div>
+<div class="field"><label>Asset Type (for reference)</label>
+<select id="atype" onchange="prefillLife()">
+<option value="0">Custom</option>
+<option value="27.5">Residential Real Estate (27.5 yr)</option>
+<option value="39">Commercial Real Estate (39 yr)</option>
+<option value="15">Land Improvements (15 yr)</option>
+<option value="7">Equipment / Furniture (7 yr)</option>
+<option value="5">Vehicles / Computers (5 yr)</option>
+</select></div>
+<button class="btn" onclick="calc()">Generate Schedule</button>
+</div>
+<div class="section">
+<div class="result-row"><span class="result-label">Annual Deduction (SL)</span><span class="result-val gold" id="r-sl">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Depreciable Basis</span><span class="result-val" id="r-basis">&#8212;</span></div>
+<div class="result-row"><span class="result-label">SL Rate</span><span class="result-val" id="r-rate">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Total Depreciation</span><span class="result-val" id="r-total">&#8212;</span></div>
+</div>
+</div>
+<div>
+<div class="section">
+<h2>Depreciation Schedule</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Year</th><th>Depreciation</th><th>Accum. Depr.</th><th>Book Value</th></tr></thead>
+<tbody id="tbody"><tr><td colspan="4" style="text-align:center;color:#555;padding:20px">Enter asset details and click Generate.</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function prefillLife(){var v=document.getElementById("atype").value;if(v!=="0")document.getElementById("life").value=v}
+function fm(n){return"$"+Math.round(n).toLocaleString("en-US")}
+function fmd(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function calc(){
+var cost=parseFloat(document.getElementById("cost").value)||0;
+var salvage=parseFloat(document.getElementById("salvage").value)||0;
+var life=parseFloat(document.getElementById("life").value)||27.5;
+var method=document.getElementById("method").value;
+if(!cost){alert("Enter asset cost.");return;}
+var basis=cost-salvage,annSL=basis/life,slRate=100/life;
+document.getElementById("r-sl").textContent=fmd(annSL)+"/yr";
+document.getElementById("r-basis").textContent=fm(basis);
+document.getElementById("r-rate").textContent=slRate.toFixed(2)+"%";
+document.getElementById("r-total").textContent=fm(basis);
+var rows=[],bv=cost,accum=0,n=Math.ceil(life);
+for(var yr=1;yr<=n;yr++){
+var d;
+if(method==="sl"){d=basis/life;}
+else if(method==="db"){var r=2/life;d=bv*r;if(bv-d<salvage)d=Math.max(0,bv-salvage);}
+else{var s=n*(n+1)/2,rem=n-yr+1;d=basis*(rem/s);}
+d=Math.min(d,bv-salvage);if(d<0)d=0;
+bv-=d;accum+=d;
+rows.push({yr:yr,d:d,acc:accum,bv:bv});
+}
+document.getElementById("tbody").innerHTML=rows.map(function(r){
+return'<tr><td>'+r.yr+'</td><td class="gold">'+fmd(r.d)+'</td><td>'+fm(r.acc)+'</td><td class="green">'+fm(r.bv)+'</td></tr>';
+}).join("");
+}
+</script></body></html>
