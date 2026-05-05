@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Load Estimator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.tot td{color:#c8a96e;font-weight:700;border-top:1px solid #333}
+.note{font-size:11px;color:#666;margin-top:10px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>HVAC Load Estimator</h1></div>
+<div class="container">
+<h2>HVAC Load Estimator</h2>
+<p class="sub">Simplified Manual J cooling and heating load. Schematic-level sizing for early design or fee proposals.</p>
+<div class="card">
+<h3>Building Parameters</h3>
+<div class="grid3">
+<div><label>Conditioned Area (sf)</label><input type="number" id="sf" value="12000"></div>
+<div><label>Climate Zone</label>
+<select id="cz">
+<option value="hot-humid">Hot-Humid (Miami, Houston)</option>
+<option value="hot-dry">Hot-Dry (Phoenix, Las Vegas)</option>
+<option value="mixed-humid" selected>Mixed-Humid (Atlanta, Dallas)</option>
+<option value="cold">Cold (Chicago, Denver)</option>
+<option value="very-cold">Very Cold (Minneapolis, Anchorage)</option>
+</select></div>
+<div><label>Building Type</label>
+<select id="btype">
+<option value="office">Office</option>
+<option value="retail">Retail</option>
+<option value="residential">Residential (Multi-family)</option>
+<option value="hotel">Hotel / Hospitality</option>
+<option value="warehouse">Warehouse</option>
+</select></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Window-to-Wall Ratio (%)</label><input type="number" id="wwr" value="40" min="5" max="90"></div>
+<div><label>Number of Occupants</label><input type="number" id="occ" value="80"></div>
+<div><label>Lighting Load (W/sf)</label><input type="number" id="lpd" value="0.82" step="0.1"></div>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Estimate Load</button>
+<div id="out" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="kCoolTons">—</div><div class="kpi-lbl">Cooling (tons)</div></div>
+<div class="kpi"><div class="kpi-val" id="kHeatMBH">—</div><div class="kpi-lbl">Heating (MBH)</div></div>
+<div class="kpi"><div class="kpi-val" id="kSFperTon">—</div><div class="kpi-lbl">SF / Ton</div></div>
+<div class="kpi"><div class="kpi-val" id="kCFM">—</div><div class="kpi-lbl">Est. Airflow (CFM)</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+<h3>Load Breakdown</h3>
+<table><thead><tr><th>Load Source</th><th>Cooling (BTU/hr)</th><th>Heating (BTU/hr)</th></tr></thead>
+<tbody id="loadbody"></tbody>
+<tfoot><tr class="tot"><td>TOTAL</td><td id="fCool">—</td><td id="fHeat">—</td></tr></tfoot>
+</table>
+<p class="note">Simplified estimate only — not a substitute for full Manual J / energy model. Use for schematic sizing, fee proposals, and preliminary equipment selections.</p>
+</div>
+</div>
+</div>
+<script>
+const CLIMATE={
+  'hot-humid':{cooling:1.0,heating:0.5,od_cool:95,od_heat:32,delta_cool:20,delta_heat:55},
+  'hot-dry':{cooling:1.15,heating:0.4,od_cool:110,od_heat:28,delta_cool:25,delta_heat:50},
+  'mixed-humid':{cooling:0.85,heating:0.7,od_cool:95,od_heat:18,delta_cool:20,delta_heat:57},
+  'cold':{cooling:0.7,heating:1.1,od_cool:88,od_heat:-5,delta_cool:18,delta_heat:75},
+  'very-cold':{cooling:0.55,heating:1.4,od_cool:85,od_heat:-20,delta_cool:15,delta_heat:90}
+};
+const BTYPE={
+  office:{oLoad:250,eqLoad:1.5,infil:0.15},
+  retail:{oLoad:200,eqLoad:2.0,infil:0.25},
+  residential:{oLoad:300,eqLoad:0.8,infil:0.20},
+  hotel:{oLoad:350,eqLoad:1.2,infil:0.18},
+  warehouse:{oLoad:500,eqLoad:0.5,infil:0.10}
+};
+function fmt(n){return Math.round(n).toLocaleString();}
+function calculate(){
+  const sf=parseFloat(document.getElementById('sf').value)||0;
+  const cz=document.getElementById('cz').value;
+  const bt=document.getElementById('btype').value;
+  const wwr=parseFloat(document.getElementById('wwr').value)/100||0.4;
+  const occ=parseFloat(document.getElementById('occ').value)||0;
+  const lpd=parseFloat(document.getElementById('lpd').value)||0;
+  const cl=CLIMATE[cz]; const bt2=BTYPE[bt];
+  // Wall load: U~0.07, glass U~0.35
+  const wallSF=sf*0.12*(1-wwr);
+  const glassSF=sf*0.12*wwr;
+  const wallCool=wallSF*0.07*cl.delta_cool*cl.cooling;
+  const glassCool=glassSF*0.35*cl.delta_cool*cl.cooling*1.3; // SHGC factor
+  const wallHeat=wallSF*0.07*cl.delta_heat*cl.heating;
+  const glassHeat=glassSF*0.35*cl.delta_heat*cl.heating;
+  // Roof load: U~0.04
+  const roofCool=sf*0.04*cl.delta_cool*cl.cooling;
+  const roofHeat=sf*0.04*cl.delta_heat*cl.heating;
+  // Infiltration
+  const infilCool=sf*cl.delta_cool*0.018*bt2.infil;
+  const infilHeat=sf*cl.delta_heat*0.018*bt2.infil;
+  // Internal — lighting
+  const lightCool=sf*lpd*3.412; // W to BTU/hr
+  const lightHeat=0;
+  // Internal — people
+  const peopleCool=occ*bt2.oLoad;
+  const peopleHeat=0;
+  // Equipment
+  const equipCool=sf*bt2.eqLoad*3.412;
+  const equipHeat=0;
+  // Totals
+  const totalCool=wallCool+glassCool+roofCool+infilCool+lightCool+peopleCool+equipCool;
+  const totalHeat=wallHeat+glassHeat+roofHeat+infilHeat;
+  const tons=totalCool/12000;
+  const mbh=totalHeat/1000;
+  const cfm=tons*400;
+  const sfTon=tons>0?sf/tons:0;
+  document.getElementById('kCoolTons').textContent=tons.toFixed(1)+' T';
+  document.getElementById('kHeatMBH').textContent=mbh.toFixed(0)+' MBH';
+  document.getElementById('kSFperTon').textContent=fmt(sfTon);
+  document.getElementById('kCFM').textContent=fmt(cfm);
+  const rows=[
+    {n:'Walls (conduction)',c:wallCool,h:wallHeat},
+    {n:'Glass / Fenestration',c:glassCool,h:glassHeat},
+    {n:'Roof / Ceiling',c:roofCool,h:roofHeat},
+    {n:'Infiltration',c:infilCool,h:infilHeat},
+    {n:'Lighting (internal gain)',c:lightCool,h:lightHeat},
+    {n:'Occupants (sensible)',c:peopleCool,h:peopleHeat},
+    {n:'Equipment / Plug loads',c:equipCool,h:equipHeat},
+  ];
+  const tb=document.getElementById('loadbody');
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.n}</td><td>${fmt(r.c)}</td><td>${r.h>0?fmt(r.h):'—'}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('fCool').textContent=fmt(totalCool)+' BTU/hr';
+  document.getElementById('fHeat').textContent=fmt(totalHeat)+' BTU/hr';
+  document.getElementById('out').style.display='block';
+}
+calculate();
+</script></body></html>

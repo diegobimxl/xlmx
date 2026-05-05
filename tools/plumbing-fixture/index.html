@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plumbing Fixture Count | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:center;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:center}
+td:first-child{text-align:left;color:#e8e8e8}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:12px;font-weight:600}
+.pass{background:#1a3a1a;color:#4caf50}.fail{background:#3a1a1a;color:#ef5350}
+.note{font-size:11px;color:#666;margin-top:8px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi-val{font-size:20px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Plumbing Fixture Count</h1></div>
+<div class="container">
+<h2>Plumbing Fixture Count</h2>
+<p class="sub">IPC / IBC minimum fixture requirements by occupancy type and occupant load. Separate male/female counts.</p>
+<div class="card">
+<h3>Building Inputs</h3>
+<div class="grid3">
+<div><label>Occupancy Type</label>
+<select id="occ" onchange="calculate()">
+<option value="office">Business (Office)</option>
+<option value="assembly">Assembly (A-2/A-3 Restaurant, Theatre)</option>
+<option value="retail">Mercantile (Retail)</option>
+<option value="school">Educational (School)</option>
+<option value="hotel">Hotel (R-1)</option>
+<option value="industrial">Industrial / Factory</option>
+<option value="healthcare">Healthcare / Institutional</option>
+</select></div>
+<div><label>Total Occupants</label><input type="number" id="totalOcc" value="200" onchange="calculate()"></div>
+<div><label>Male / Female Split</label>
+<select id="split" onchange="calculate()">
+<option value="50">50% / 50% (equal)</option>
+<option value="60">60% / 40%</option>
+<option value="40">40% / 60%</option>
+</select></div>
+</div>
+<div class="grid2" style="margin-top:14px">
+<div><label>Include Accessible (ADA) Fixtures</label>
+<select id="ada" onchange="calculate()">
+<option value="yes">Yes — show ADA minimums</option>
+<option value="no">No — count only</option>
+</select></div>
+<div><label>Code Reference</label>
+<select id="code">
+<option value="ipc">IPC 2021</option>
+<option value="upc">UPC 2021</option>
+</select></div>
+</div>
+</div>
+<div id="out"></div>
+</div>
+<script>
+// Fixtures per N occupants: {water_closet_m, water_closet_f, lavatory, drinking_fountain}
+// Ratios are per occupant count
+const RATIOS={
+  office:{wc_m:1/25,wc_f:1/25,lav:1/40,df:1/100,label:'Business'},
+  assembly:{wc_m:1/75,wc_f:1/40,lav:1/200,df:1/500,label:'Assembly'},
+  retail:{wc_m:1/500,wc_f:1/500,lav:1/750,df:0,label:'Mercantile'},
+  school:{wc_m:1/30,wc_f:1/25,lav:1/50,df:1/100,label:'Educational'},
+  hotel:{wc_m:1/10,wc_f:1/10,lav:1/10,df:0,label:'Residential (Hotel)'},
+  industrial:{wc_m:1/10,wc_f:1/10,lav:1/10,df:1/75,label:'Industrial'},
+  healthcare:{wc_m:1/25,wc_f:1/25,lav:1/10,df:1/100,label:'Healthcare'}
+};
+function calculate(){
+  const occ=document.getElementById('occ').value;
+  const total=parseFloat(document.getElementById('totalOcc').value)||100;
+  const splitM=parseFloat(document.getElementById('split').value)/100;
+  const splitF=1-splitM;
+  const ada=document.getElementById('ada').value==='yes';
+  const r=RATIOS[occ];
+  const male=Math.round(total*splitM);
+  const female=total-male;
+  const wc_m=Math.max(1,Math.ceil(male*r.wc_m));
+  const wc_f=Math.max(1,Math.ceil(female*r.wc_f));
+  const lav=Math.max(1,Math.ceil(total*r.lav));
+  const df=r.df>0?Math.max(1,Math.ceil(total*r.df)):0;
+  const ur_m=Math.min(wc_m, Math.max(0,Math.floor(wc_m/2)));
+  // ADA: at least 1 of each per restroom, typically 5% of fixtures
+  const ada_wc_m=ada?Math.max(1,Math.ceil(wc_m*0.05)):0;
+  const ada_wc_f=ada?Math.max(1,Math.ceil(wc_f*0.05)):0;
+  const ada_lav=ada?Math.max(1,Math.ceil(lav*0.05)):0;
+  const html=`
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-val">${male}M / ${female}F</div><div class="kpi-lbl">Occupant Split</div></div>
+    <div class="kpi"><div class="kpi-val">${wc_m + wc_f}</div><div class="kpi-lbl">Water Closets Total</div></div>
+    <div class="kpi"><div class="kpi-val">${lav}</div><div class="kpi-lbl">Lavatories</div></div>
+    <div class="kpi"><div class="kpi-val">${df>0?df:'N/A'}</div><div class="kpi-lbl">Drinking Fountains</div></div>
+  </div>
+  <div class="card">
+    <h3>Minimum Fixture Schedule — ${r.label}</h3>
+    <table>
+    <thead><tr><th>Fixture</th><th>Men's Required</th><th>Women's Required</th><th>ADA Min</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Water Closets</td><td>${wc_m}</td><td>${wc_f}</td><td>${ada?ada_wc_m+'M / '+ada_wc_f+'F':'—'}</td><td>At least 1 per sex</td></tr>
+      <tr><td>Urinals (Men)</td><td>${ur_m} (substitution)</td><td>—</td><td>—</td><td>May substitute up to 67% of WC</td></tr>
+      <tr><td>Lavatories</td><td colspan="2" style="text-align:center">${lav} total</td><td>${ada?ada_lav:'—'}</td><td>Shared count</td></tr>
+      <tr><td>Drinking Fountain</td><td colspan="2" style="text-align:center">${df>0?df:'Not required'}</td><td>${ada&&df>0?'1 accessible':'—'}</td><td>${df>0?'1 must be bottle filler (IPC 2021)':'See local code'}</td></tr>
+      <tr><td>Service Sink</td><td colspan="2" style="text-align:center">1 per building</td><td>—</td><td>Janitorial use</td></tr>
+    </tbody>
+    </table>
+    <p class="note">IPC Table 403.1 — verify with local amendments and AHJ. Mixed-occupancy buildings: calculate each area separately.</p>
+  </div>`;
+  document.getElementById('out').innerHTML=html;
+}
+calculate();
+</script></body></html>

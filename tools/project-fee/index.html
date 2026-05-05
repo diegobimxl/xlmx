@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Architecture Fee Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.tabs{display:flex;gap:2px;margin-bottom:0}
+.tab{padding:8px 20px;background:#151515;border:1px solid #222;border-radius:5px 5px 0 0;cursor:pointer;font-size:13px;color:#888;border-bottom:none}
+.tab.active{background:#1e1e1e;color:#c8a96e;border-color:#333}
+.panel{display:none}.panel.active{display:block}
+.card{background:#151515;border:1px solid #222;border-radius:0 8px 8px 8px;padding:24px;margin-bottom:20px}
+.card-plain{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3,.card-plain h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:20px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.tot td{color:#c8a96e;font-weight:700;border-top:1px solid #333}
+.note{font-size:11px;color:#666;margin-top:10px}
+.phase-row{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.phase-row label{flex:2;margin:0;font-size:13px;color:#e8e8e8}
+.phase-row input{flex:1;text-align:right}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Architecture Fee Calculator</h1></div>
+<div class="container">
+<h2>Architecture & BIM Fee Calculator</h2>
+<p class="sub">AIA phase breakdown, percent-of-construction or hourly fee calculation. Includes BIM/VDC premium.</p>
+<div class="tabs">
+<div class="tab active" onclick="showTab('pct')">% of Construction Cost</div>
+<div class="tab" onclick="showTab('hourly')">Hourly / Staffing</div>
+</div>
+<div class="panel active" id="tab-pct">
+<div class="card">
+<h3>Project Parameters</h3>
+<div class="grid3">
+<div><label>Estimated Construction Cost ($)</label><input type="number" id="pConst" value="4500000"></div>
+<div><label>Project Type</label>
+<select id="ptype">
+<option value="6.5">Office (6–7%)</option>
+<option value="7.5">Mixed-Use / Residential (7–8%)</option>
+<option value="8.5">Healthcare / Complex (8–9%)</option>
+<option value="9.5">High-End Custom (9–10%)</option>
+<option value="5.5">Warehouse / Industrial (5–6%)</option>
+</select></div>
+<div><label>Base Fee % of Construction</label><input type="number" id="pctFee" value="6.5" step="0.5"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>BIM/VDC Premium (%)</label><input type="number" id="bimPct" value="1.5" step="0.25"></div>
+<div><label>Reimbursables Allowance (%)</label><input type="number" id="reimb" value="2.5" step="0.5"></div>
+<div><label>Contingency (%)</label><input type="number" id="cont" value="5" step="1"></div>
+</div>
+</div>
+<div class="card-plain">
+<h3>Phase Distribution (%)</h3>
+<div id="phases">
+<div class="phase-row"><label>SD — Schematic Design</label><input type="number" id="ph1" value="15" min="0" max="100"> %</div>
+<div class="phase-row"><label>DD — Design Development</label><input type="number" id="ph2" value="20" min="0" max="100"> %</div>
+<div class="phase-row"><label>CD — Construction Documents</label><input type="number" id="ph3" value="35" min="0" max="100"> %</div>
+<div class="phase-row"><label>Bidding / Procurement</label><input type="number" id="ph4" value="5" min="0" max="100"> %</div>
+<div class="phase-row"><label>CA — Construction Administration</label><input type="number" id="ph5" value="25" min="0" max="100"> %</div>
+</div>
+</div>
+<button class="btn" onclick="calcPct()">Calculate Fee</button>
+<div id="pctOut" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="kBaseFee">—</div><div class="kpi-lbl">Base Fee</div></div>
+<div class="kpi"><div class="kpi-val" id="kBimFee">—</div><div class="kpi-lbl">BIM Premium</div></div>
+<div class="kpi"><div class="kpi-val" id="kTotalFee">—</div><div class="kpi-lbl">Total Fee</div></div>
+<div class="kpi"><div class="kpi-val" id="kEffPct">—</div><div class="kpi-lbl">Effective %</div></div>
+</div>
+<div class="card-plain" style="margin-top:20px">
+<h3>Phase Breakdown</h3>
+<table><thead><tr><th>Phase</th><th>%</th><th>Fee</th><th>Cumulative</th></tr></thead>
+<tbody id="phaseBody"></tbody>
+<tfoot><tr class="tot"><td>TOTAL</td><td>100%</td><td id="totFeeCell">—</td><td></td></tr></tfoot>
+</table>
+</div>
+</div>
+</div>
+<div class="panel" id="tab-hourly">
+<div class="card">
+<h3>Staffing Inputs</h3>
+<table><thead><tr><th>Role</th><th>Bill Rate ($/hr)</th><th>Hours/Week</th><th>Duration (weeks)</th><th>Fee</th></tr></thead>
+<tbody id="staffbody">
+<tr><td>Principal in Charge</td><td><input type="number" value="250" class="br" oninput="calcHourly()"></td><td><input type="number" value="4" class="hw" oninput="calcHourly()"></td><td><input type="number" value="52" class="dur" oninput="calcHourly()"></td><td class="fee-cell">—</td></tr>
+<tr><td>Project Architect</td><td><input type="number" value="175" class="br" oninput="calcHourly()"></td><td><input type="number" value="20" class="hw" oninput="calcHourly()"></td><td><input type="number" value="52" class="dur" oninput="calcHourly()"></td><td class="fee-cell">—</td></tr>
+<tr><td>BIM Modeler / Designer</td><td><input type="number" value="120" class="br" oninput="calcHourly()"></td><td><input type="number" value="40" class="hw" oninput="calcHourly()"></td><td><input type="number" value="40" class="dur" oninput="calcHourly()"></td><td class="fee-cell">—</td></tr>
+<tr><td>Project Coordinator</td><td><input type="number" value="95" class="br" oninput="calcHourly()"></td><td><input type="number" value="15" class="hw" oninput="calcHourly()"></td><td><input type="number" value="52" class="dur" oninput="calcHourly()"></td><td class="fee-cell">—</td></tr>
+<tr><td>Admin / Spec Writing</td><td><input type="number" value="85" class="br" oninput="calcHourly()"></td><td><input type="number" value="5" class="hw" oninput="calcHourly()"></td><td><input type="number" value="30" class="dur" oninput="calcHourly()"></td><td class="fee-cell">—</td></tr>
+</tbody>
+<tfoot><tr class="tot"><td>TOTAL</td><td></td><td id="hTotalHrs">—</td><td></td><td id="hTotalFee">—</td></tr></tfoot>
+</table>
+<p class="note">Edit rates and hours directly. Fee = bill rate × hours/week × duration.</p>
+</div>
+</div>
+</div>
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+document.getElementById('ptype').addEventListener('change',function(){
+  document.getElementById('pctFee').value=this.value;
+});
+function fmt(n){return '$'+Math.round(n).toLocaleString();}
+function calcPct(){
+  const cc=parseFloat(document.getElementById('pConst').value)||0;
+  const pct=parseFloat(document.getElementById('pctFee').value)/100||0;
+  const bim=parseFloat(document.getElementById('bimPct').value)/100||0;
+  const reimb=parseFloat(document.getElementById('reimb').value)/100||0;
+  const cont=parseFloat(document.getElementById('cont').value)/100||0;
+  const base=cc*pct;
+  const bimFee=cc*bim;
+  const reimbFee=cc*reimb;
+  const contFee=(base+bimFee)*cont;
+  const total=base+bimFee+reimbFee+contFee;
+  const effPct=((total/cc)*100).toFixed(2);
+  document.getElementById('kBaseFee').textContent=fmt(base);
+  document.getElementById('kBimFee').textContent=fmt(bimFee);
+  document.getElementById('kTotalFee').textContent=fmt(total);
+  document.getElementById('kEffPct').textContent=effPct+'%';
+  const phases=[
+    {n:'SD — Schematic Design',id:'ph1'},
+    {n:'DD — Design Development',id:'ph2'},
+    {n:'CD — Construction Documents',id:'ph3'},
+    {n:'Bidding / Procurement',id:'ph4'},
+    {n:'CA — Construction Administration',id:'ph5'},
+  ];
+  const tb=document.getElementById('phaseBody');
+  tb.innerHTML='';
+  let cum=0;
+  phases.forEach(ph=>{
+    const p=parseFloat(document.getElementById(ph.id).value)/100||0;
+    const f=base*p;
+    cum+=f;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${ph.n}</td><td>${(p*100).toFixed(0)}%</td><td>${fmt(f)}</td><td>${fmt(cum)}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('totFeeCell').textContent=fmt(base);
+  document.getElementById('pctOut').style.display='block';
+}
+function calcHourly(){
+  const rows=document.querySelectorAll('#staffbody tr');
+  let totHrs=0,totFee=0;
+  rows.forEach(r=>{
+    const br=parseFloat(r.querySelector('.br').value)||0;
+    const hw=parseFloat(r.querySelector('.hw').value)||0;
+    const dur=parseFloat(r.querySelector('.dur').value)||0;
+    const fee=br*hw*dur;
+    const hrs=hw*dur;
+    totHrs+=hrs; totFee+=fee;
+    r.querySelector('.fee-cell').textContent=fmt(fee);
+  });
+  document.getElementById('hTotalHrs').textContent=Math.round(totHrs).toLocaleString()+' hrs';
+  document.getElementById('hTotalFee').textContent=fmt(totFee);
+}
+calcPct();
+calcHourly();
+</script></body></html>

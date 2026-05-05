@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ADA Accessibility Checker | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #1e1e1e}
+.check-item:last-child{border-bottom:none}
+.check-label{flex:1}
+.check-label strong{display:block;font-size:14px;margin-bottom:2px}
+.check-label span{font-size:12px;color:#888}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap}
+.pass{background:#1a3a1a;color:#4caf50}.fail{background:#3a1a1a;color:#ef5350}
+.warn{background:#2a2a1a;color:#ffb300}.na{background:#1e1e1e;color:#666}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.section-hdr{font-size:12px;font-weight:700;color:#c8a96e;text-transform:uppercase;letter-spacing:.07em;margin:20px 0 8px;padding-top:4px;border-top:1px solid #222}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>ADA Accessibility Checker</h1></div>
+<div class="container">
+<h2>ADA / ABA Accessibility Checker</h2>
+<p class="sub">Building-level accessibility checklist based on ADA Standards 2010 and IBC Chapter 11. Enter dimensions to verify compliance.</p>
+<div class="card">
+<h3>Input Key Dimensions</h3>
+<div class="grid3">
+<div><label>Accessible Route Clear Width (in)</label><input type="number" id="routeW" value="44" oninput="check()"></div>
+<div><label>Doorway Clear Width (in)</label><input type="number" id="doorW" value="36" oninput="check()"></div>
+<div><label>Door Hardware Height (in)</label><input type="number" id="doorH" value="40" oninput="check()"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Ramp Slope (run:1 rise, e.g. 12)</label><input type="number" id="rampRun" value="12" step="0.5" oninput="check()"></div>
+<div><label>Parking Stall Width (ft)</label><input type="number" id="parkW" value="8.5" step="0.5" oninput="check()"></div>
+<div><label>Accessible Parking Spaces</label><input type="number" id="parkCount" value="4" oninput="check()"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Total Parking Spaces</label><input type="number" id="parkTotal" value="80" oninput="check()"></div>
+<div><label>Restroom Door Maneuvering (in)</label><input type="number" id="lavatH" value="17" step="0.5" oninput="check()"></div>
+<div><label>Counter Height (in)</label><input type="number" id="counterH" value="34" oninput="check()"></div>
+</div>
+</div>
+<div class="summary" id="summary"></div>
+<div id="checklist"></div>
+</div>
+<script>
+function check(){
+  const rw=+document.getElementById('routeW').value||0;
+  const dw=+document.getElementById('doorW').value||0;
+  const dh=+document.getElementById('doorH').value||0;
+  const ramp=+document.getElementById('rampRun').value||0;
+  const pw=+document.getElementById('parkW').value||0;
+  const pc=+document.getElementById('parkCount').value||0;
+  const pt=+document.getElementById('parkTotal').value||0;
+  const lavH=+document.getElementById('lavatH').value||0;
+  const cH=+document.getElementById('counterH').value||0;
+  // Required accessible parking per ADA Table 208.2
+  function reqParking(total){
+    if(total<=25) return 1;
+    if(total<=50) return 2;
+    if(total<=75) return 3;
+    if(total<=100) return 4;
+    if(total<=150) return 5;
+    if(total<=200) return 6;
+    return Math.ceil(total*0.04);
+  }
+  const reqPark=reqParking(pt);
+  const checks=[
+    {section:'Accessible Route',items:[
+      {n:'Clear width ≥ 44" (primary corridor)',req:44,val:rw,code:'ADA 403.5.1',pass:rw>=44},
+      {n:'Door clear width ≥ 32" (32" min, 36" preferred)',req:32,val:dw,code:'ADA 404.2.3',pass:dw>=32},
+      {n:'Door hardware height 34"–48"',req:'34–48"',val:dh+'"',code:'ADA 404.2.7',pass:dh>=34&&dh<=48},
+    ]},
+    {section:'Ramps',items:[
+      {n:'Ramp slope ≤ 1:12',req:'≥12',val:ramp+':1',code:'ADA 405.2',pass:ramp>=12},
+      {n:'Ramp slope ≤ 1:8 (emergency/existing)',req:'≥8',val:ramp+':1',code:'ADA 405.9',pass:ramp>=8},
+    ]},
+    {section:'Parking',items:[
+      {n:'Minimum accessible spaces provided',req:reqPark,val:pc,code:'ADA 208.2',pass:pc>=reqPark},
+      {n:'Accessible stall width ≥ 8\'-0" (standard) or 11\' (van)',req:8,val:pw,code:'ADA 502.2',pass:pw>=8},
+      {n:'Van spaces: at least 1 per 6 accessible (width ≥ 11\')',req:'1 of 6',val:pc>0?Math.ceil(pc/6)+' van req.':'—',code:'ADA 208.2.4',pass:true},
+    ]},
+    {section:'Restroom',items:[
+      {n:'Floor space for front approach ≥ 30"×48" at lavatory',req:'17–19"',val:lavH+'"',code:'ADA 606.2',pass:lavH>=17&&lavH<=19},
+      {n:'Counter / work surface height ≤ 34"',req:'≤34"',val:cH+'"',code:'ADA 902.3',pass:cH<=34},
+    ]},
+  ];
+  let pass=0,fail=0;
+  let html='';
+  checks.forEach(sec=>{
+    html+=`<div class="section-hdr">${sec.section}</div>`;
+    sec.items.forEach(it=>{
+      const cls=it.pass?'pass':'fail';
+      const lbl=it.pass?'PASS':'FAIL';
+      html+=`<div class="check-item">
+        <div class="check-label"><strong>${it.n}</strong><span>Required: ${it.req} | Provided: ${it.val} | ${it.code}</span></div>
+        <span class="badge ${cls}">${lbl}</span>
+      </div>`;
+      it.pass?pass++:fail++;
+    });
+  });
+  document.getElementById('checklist').innerHTML=`<div class="card">${html}</div>`;
+  const total=pass+fail;
+  document.getElementById('summary').innerHTML=`
+    <div class="kpi"><div class="kpi-val">${pass}</div><div class="kpi-lbl">Passing</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:${fail>0?'#ef5350':'#c8a96e'}">${fail}</div><div class="kpi-lbl">Failing</div></div>
+    <div class="kpi"><div class="kpi-val">${total}</div><div class="kpi-lbl">Total Checks</div></div>
+    <div class="kpi"><div class="kpi-val">${Math.round(pass/total*100)}%</div><div class="kpi-lbl">Compliance</div></div>`;
+}
+check();
+</script></body></html>

@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retaining Wall Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:13px;font-weight:600;margin-top:6px}
+.pass{background:#1a3a1a;color:#4caf50}.fail{background:#3a1a1a;color:#ef5350}.warn{background:#2a2a1a;color:#ffb300}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.note{font-size:11px;color:#666;margin-top:10px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Retaining Wall Calculator</h1></div>
+<div class="container">
+<h2>Retaining Wall Calculator</h2>
+<p class="sub">Cantilever retaining wall — active earth pressure (Rankine), sliding, overturning, and bearing capacity checks.</p>
+<div class="card">
+<h3>Wall Geometry</h3>
+<div class="grid3">
+<div><label>Wall Height, H (ft)</label><input type="number" id="H" value="8" step="0.5"></div>
+<div><label>Base Width, B (ft)</label><input type="number" id="B" value="5" step="0.5"></div>
+<div><label>Stem Thickness (in)</label><input type="number" id="stem" value="12"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Footing Thickness (in)</label><input type="number" id="ftg" value="18"></div>
+<div><label>Toe Length (ft)</label><input type="number" id="toe" value="1.5" step="0.5"></div>
+<div><label>Key Depth (ft) — 0 if none</label><input type="number" id="key" value="0" step="0.5"></div>
+</div>
+</div>
+<div class="card">
+<h3>Soil & Surcharge</h3>
+<div class="grid3">
+<div><label>Soil Unit Weight γ (pcf)</label><input type="number" id="gamma" value="115"></div>
+<div><label>Friction Angle φ (°)</label><input type="number" id="phi" value="30"></div>
+<div><label>Surcharge q (psf)</label><input type="number" id="q" value="0"></div>
+</div>
+<div class="grid2" style="margin-top:14px">
+<div><label>Allowable Bearing Pressure (psf)</label><input type="number" id="qa" value="3000"></div>
+<div><label>Concrete Unit Weight (pcf)</label><input type="number" id="gammac" value="150"></div>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Check Stability</button>
+<div id="out" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="kEH">—</div><div class="kpi-lbl">Active Force EH (k/lf)</div></div>
+<div class="kpi"><div class="kpi-val" id="kBearing">—</div><div class="kpi-lbl">Max Bearing (psf)</div></div>
+<div class="kpi"><div class="kpi-val" id="kEccentricity">—</div><div class="kpi-lbl">Eccentricity e (ft)</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+<h3>Stability Checks</h3>
+<table><thead><tr><th>Check</th><th>Demand</th><th>Capacity</th><th>FS</th><th>Required FS</th><th>Status</th></tr></thead>
+<tbody id="checkbody"></tbody></table>
+<p class="note">Simplified Rankine analysis — per linear foot of wall. Factor of safety for sliding typically 1.5; overturning 2.0; bearing 3.0. Engage a licensed Geotechnical Engineer for final design.</p>
+</div>
+</div>
+</div>
+<script>
+function calculate(){
+  const H=parseFloat(document.getElementById('H').value)||8;
+  const B=parseFloat(document.getElementById('B').value)||5;
+  const stemIn=parseFloat(document.getElementById('stem').value)||12;
+  const ftgIn=parseFloat(document.getElementById('ftg').value)||18;
+  const toe=parseFloat(document.getElementById('toe').value)||1.5;
+  const key=parseFloat(document.getElementById('key').value)||0;
+  const gamma=parseFloat(document.getElementById('gamma').value)||115;
+  const phi=parseFloat(document.getElementById('phi').value)||30;
+  const q=parseFloat(document.getElementById('q').value)||0;
+  const qa=parseFloat(document.getElementById('qa').value)||3000;
+  const gammac=parseFloat(document.getElementById('gammac').value)||150;
+  const stemFt=stemIn/12; const ftgFt=ftgIn/12;
+  const Htot=H+ftgFt; // total retained height including footing
+  // Rankine Ka
+  const phiR=phi*Math.PI/180;
+  const Ka=Math.pow((1-Math.sin(phiR))/(1+Math.sin(phiR)),1)*1; // Rankine
+  // Active horizontal force (k/lf)
+  const EH=(0.5*gamma*Ka*Htot*Htot + q*Ka*Htot)/1000;
+  const EHarm=Htot/3 + (q*Ka>0?Htot/2:0); // moment arm
+  // Weights (k/lf)
+  const Wstem=(stemFt*(H)*gammac)/1000;
+  const Wftg=(B*ftgFt*gammac)/1000;
+  const Wsoil=((B-toe-stemFt)*H*gamma)/1000;
+  const Wtotal=Wstem+Wftg+Wsoil;
+  // Moment arms about toe
+  const xStem=toe+stemFt/2;
+  const xFtg=B/2;
+  const xSoil=B-( (B-toe-stemFt)/2 );
+  // Resisting moment
+  const MR=Wstem*xStem + Wftg*xFtg + Wsoil*xSoil;
+  // Overturning moment
+  const MO=EH*EHarm;
+  // Sliding resistance: μ*N, μ=tan(2/3*phi)
+  const mu=Math.tan(2/3*phiR);
+  const FR=mu*Wtotal*1000; // lb/lf
+  const FD=EH*1000; // lb/lf
+  // Eccentricity
+  const xbar=(MR-MO)/Wtotal;
+  const e=B/2-xbar;
+  // Bearing (Meyerhof distribution)
+  const qmax=(Wtotal*1000/B)*(1+6*Math.abs(e)/B);
+  const qmin=(Wtotal*1000/B)*(1-6*Math.abs(e)/B);
+  // FS calculations
+  const FS_OT=MR/MO;
+  const FS_SL=FR/FD;
+  const FS_BR=qa/qmax;
+  const checks=[
+    {n:'Overturning',demand:MO.toFixed(2)+' k·ft/lf',cap:MR.toFixed(2)+' k·ft/lf',fs:FS_OT,req:2.0},
+    {n:'Sliding',demand:FD.toFixed(0)+' lb/lf',cap:FR.toFixed(0)+' lb/lf',fs:FS_SL,req:1.5},
+    {n:'Bearing Capacity',demand:Math.round(qmax)+' psf',cap:qa+' psf',fs:FS_BR,req:3.0},
+    {n:'Kern Check (e ≤ B/6)',demand:'e='+Math.abs(e).toFixed(2)+' ft',cap:'B/6='+( B/6).toFixed(2)+' ft',fs:B/6/Math.abs(e),req:1.0},
+  ];
+  document.getElementById('kEH').textContent=EH.toFixed(2)+' k/lf';
+  document.getElementById('kBearing').textContent=Math.round(qmax)+' psf';
+  document.getElementById('kEccentricity').textContent=Math.abs(e).toFixed(2)+' ft';
+  const tb=document.getElementById('checkbody');
+  tb.innerHTML='';
+  checks.forEach(ch=>{
+    const pass=ch.fs>=ch.req;
+    const cls=ch.fs>=ch.req*1.1?'pass':ch.fs>=ch.req?'warn':'fail';
+    const lbl=pass?'OK':'FAIL';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${ch.n}</td><td>${ch.demand}</td><td>${ch.cap}</td><td>${ch.fs.toFixed(2)}</td><td>${ch.req.toFixed(1)}</td><td><span class="badge ${cls}">${lbl}</span></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('out').style.display='block';
+}
+calculate();
+</script></body></html>

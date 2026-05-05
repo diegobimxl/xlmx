@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Construction Cost Index | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 10px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 10px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.bar-wrap{height:6px;background:#1e1e1e;border-radius:3px;margin-top:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.high{background:#ef5350}.med{background:#ffb300}.low{background:#4caf50}
+tr.selected td{background:#1a2a1a;color:#c8a96e}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Construction Cost Index</h1></div>
+<div class="container">
+<h2>Regional Cost Index Converter</h2>
+<p class="sub">Adjust a known project cost to a different US city using RSMeans location factor indices. Great for benchmarking estimates across markets.</p>
+<div class="card">
+<h3>Cost Adjustment</h3>
+<div class="grid3">
+<div><label>Known Cost ($)</label><input type="number" id="knownCost" value="5000000"></div>
+<div><label>Origin City</label>
+<select id="fromCity">
+<option value="100">National Average (100)</option>
+<option value="96.1">Atlanta, GA</option>
+<option value="108.5">Boston, MA</option>
+<option value="104.2">Charlotte, NC</option>
+<option value="108.8">Chicago, IL</option>
+<option value="92.4">Dallas, TX</option>
+<option value="94.1">Denver, CO</option>
+<option value="104.7">Houston, TX</option>
+<option value="92.3">Jacksonville, FL</option>
+<option value="112.3">Los Angeles, CA</option>
+<option value="94.8">Miami, FL</option>
+<option value="96.2">Minneapolis, MN</option>
+<option value="115.8">New York, NY</option>
+<option value="92.0">Orlando, FL</option>
+<option value="104.6">Philadelphia, PA</option>
+<option value="101.2">Phoenix, AZ</option>
+<option value="115.6">San Francisco, CA</option>
+<option value="105.4">Seattle, WA</option>
+<option value="91.8">Tampa, FL</option>
+<option value="92.7">Austin, TX</option>
+<option value="90.4">San Antonio, TX</option>
+</select></div>
+<div><label>Target City</label>
+<select id="toCity">
+<option value="100">National Average (100)</option>
+<option value="96.1">Atlanta, GA</option>
+<option value="108.5">Boston, MA</option>
+<option value="104.2">Charlotte, NC</option>
+<option value="108.8">Chicago, IL</option>
+<option value="92.4">Dallas, TX</option>
+<option value="94.1">Denver, CO</option>
+<option value="104.7">Houston, TX</option>
+<option value="92.3">Jacksonville, FL</option>
+<option value="112.3" selected>Los Angeles, CA</option>
+<option value="94.8">Miami, FL</option>
+<option value="96.2">Minneapolis, MN</option>
+<option value="115.8">New York, NY</option>
+<option value="92.0">Orlando, FL</option>
+<option value="104.6">Philadelphia, PA</option>
+<option value="101.2">Phoenix, AZ</option>
+<option value="115.6">San Francisco, CA</option>
+<option value="105.4">Seattle, WA</option>
+<option value="91.8">Tampa, FL</option>
+<option value="92.7">Austin, TX</option>
+<option value="90.4">San Antonio, TX</option>
+</select></div>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Convert Cost</button>
+<div class="kpis" id="kpis" style="display:none">
+<div class="kpi"><div class="kpi-val" id="kFrom">—</div><div class="kpi-lbl">Origin Index</div></div>
+<div class="kpi"><div class="kpi-val" id="kTo">—</div><div class="kpi-lbl">Target Index</div></div>
+<div class="kpi"><div class="kpi-val" id="kAdj">—</div><div class="kpi-lbl">Adjusted Cost</div></div>
+</div>
+<div class="card" id="refcard" style="margin-top:20px">
+<h3>All City Indices — Relative to National Average</h3>
+<table>
+<thead><tr><th>City</th><th>Index</th><th>vs. National</th><th>$5M Project</th></tr></thead>
+<tbody id="cityTable"></tbody>
+</table>
+</div>
+</div>
+<script>
+const CITIES=[
+  {n:'San Francisco, CA',i:115.6},{n:'New York, NY',i:115.8},{n:'Los Angeles, CA',i:112.3},
+  {n:'Chicago, IL',i:108.8},{n:'Boston, MA',i:108.5},{n:'Houston, TX',i:104.7},
+  {n:'Philadelphia, PA',i:104.6},{n:'Charlotte, NC',i:104.2},{n:'Seattle, WA',i:105.4},
+  {n:'National Average',i:100},{n:'Phoenix, AZ',i:101.2},{n:'Denver, CO',i:94.1},
+  {n:'Minneapolis, MN',i:96.2},{n:'Atlanta, GA',i:96.1},{n:'Miami, FL',i:94.8},
+  {n:'Dallas, TX',i:92.4},{n:'Jacksonville, FL',i:92.3},{n:'Austin, TX',i:92.7},
+  {n:'Tampa, FL',i:91.8},{n:'Orlando, FL',i:92.0},{n:'San Antonio, TX',i:90.4},
+];
+const sorted=[...CITIES].sort((a,b)=>b.i-a.i);
+function fmt(n){return '$'+Math.round(n).toLocaleString();}
+function calculate(){
+  const known=parseFloat(document.getElementById('knownCost').value)||0;
+  const from=parseFloat(document.getElementById('fromCity').value)||100;
+  const to=parseFloat(document.getElementById('toCity').value)||100;
+  const adj=known*(to/from);
+  document.getElementById('kFrom').textContent=from.toFixed(1);
+  document.getElementById('kTo').textContent=to.toFixed(1);
+  document.getElementById('kAdj').textContent=fmt(adj);
+  document.getElementById('kpis').style.display='grid';
+}
+// render reference table
+(function(){
+  const tb=document.getElementById('cityTable');
+  const ref5=5000000;
+  sorted.forEach(c=>{
+    const delta=c.i-100;
+    const cls=c.i>=108?'high':c.i>=98?'med':'low';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${c.n}</td><td>${c.i.toFixed(1)}</td>
+      <td>${delta>=0?'+':''}${delta.toFixed(1)}%
+        <div class="bar-wrap"><div class="bar-fill ${cls}" style="width:${Math.min(100,(c.i/120*100)).toFixed(0)}%"></div></div>
+      </td>
+      <td>${fmt(ref5*(c.i/100))}</td>`;
+    tb.appendChild(tr);
+  });
+})();
+calculate();
+</script></body></html>

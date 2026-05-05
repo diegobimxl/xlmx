@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit Mix Optimizer | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer}
+.btn:hover{background:#d4b97e}
+.btn-sm{padding:6px 14px;font-size:12px;margin-left:8px}
+.btn-del{background:#2a1a1a;color:#ef5350;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:11px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:20px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 10px;text-align:right;border-bottom:1px solid #2a2a2a;white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc;text-align:right;vertical-align:middle}
+td:first-child{text-align:left}
+td input{padding:5px 7px;font-size:12px}
+.tot-row td{background:#1e1e1e;color:#c8a96e;font-weight:700;border-top:1px solid #333}
+.bar-wrap{height:8px;background:#1e1e1e;border-radius:4px;overflow:hidden;margin-top:4px}
+.bar-fill{height:100%;background:#c8a96e;border-radius:4px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Unit Mix Optimizer</h1></div>
+<div class="container">
+<h2>Residential Unit Mix</h2>
+<p class="sub">Model unit types, rents, SF, and occupancy to compute gross potential rent, NOI estimate, and revenue by unit type.</p>
+<div class="card">
+<h3>Project Settings</h3>
+<div class="grid2">
+<div><label>Vacancy Rate (%)</label><input type="number" id="vac" value="5" min="0" max="50" step="0.5" oninput="recalc()"></div>
+<div><label>OpEx as % of EGI (%)</label><input type="number" id="opex" value="35" min="0" max="80" step="1" oninput="recalc()"></div>
+</div>
+</div>
+<div class="card">
+<h3>Unit Mix <button class="btn btn-sm" onclick="addRow()">+ Unit Type</button></h3>
+<table>
+<thead><tr>
+<th style="text-align:left">Type</th>
+<th>Beds</th>
+<th>Units</th>
+<th>Avg SF</th>
+<th>Rent/mo</th>
+<th>GPR/yr</th>
+<th>% of Revenue</th>
+<th></th>
+</tr></thead>
+<tbody id="tbody"></tbody>
+<tfoot><tr class="tot-row" id="totrow">
+<td>TOTAL</td><td>—</td><td id="tUnits">—</td><td id="tSF">—</td><td>—</td><td id="tGPR">—</td><td>100%</td><td></td>
+</tr></tfoot>
+</table>
+</div>
+<div class="kpis" id="kpis">
+<div class="kpi"><div class="kpi-val" id="kGPR">—</div><div class="kpi-lbl">Gross Potential Rent</div></div>
+<div class="kpi"><div class="kpi-val" id="kEGI">—</div><div class="kpi-lbl">Effective Gross Income</div></div>
+<div class="kpi"><div class="kpi-val" id="kNOI">—</div><div class="kpi-lbl">Estimated NOI</div></div>
+<div class="kpi"><div class="kpi-val" id="kAvgRent">—</div><div class="kpi-lbl">Avg Rent / Unit</div></div>
+</div>
+</div>
+<script>
+const DEFAULT=[
+  {t:'Studio / Efficiency',beds:0,units:20,sf:520,rent:1450},
+  {t:'1 Bed / 1 Bath',beds:1,units:45,sf:760,rent:1750},
+  {t:'2 Bed / 2 Bath',beds:2,units:30,sf:1050,rent:2250},
+  {t:'3 Bed / 2 Bath',beds:3,units:10,sf:1350,rent:2750},
+];
+let rows=[...DEFAULT.map(r=>({...r}))];
+function fmt(n){return '$'+Math.round(n).toLocaleString();}
+function addRow(){
+  rows.push({t:'New Type',beds:1,units:10,sf:800,rent:1600});
+  render();
+}
+function delRow(i){rows.splice(i,1);render();}
+function render(){
+  const vac=parseFloat(document.getElementById('vac').value)/100||0;
+  const opex=parseFloat(document.getElementById('opex').value)/100||0;
+  const tb=document.getElementById('tbody');
+  let totalGPR=0;
+  rows.forEach(r=>{r.gpr=r.units*r.rent*12;totalGPR+=r.gpr;});
+  tb.innerHTML='';
+  rows.forEach((r,i)=>{
+    const pct=totalGPR>0?((r.gpr/totalGPR)*100).toFixed(1):0;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input value="${r.t}" style="min-width:140px" onchange="rows[${i}].t=this.value"></td>
+      <td><input type="number" value="${r.beds}" min="0" max="5" style="width:50px" onchange="rows[${i}].beds=+this.value;render()"></td>
+      <td><input type="number" value="${r.units}" min="1" style="width:60px" onchange="rows[${i}].units=+this.value;render()"></td>
+      <td><input type="number" value="${r.sf}" min="100" style="width:70px" onchange="rows[${i}].sf=+this.value;render()"></td>
+      <td><input type="number" value="${r.rent}" min="0" style="width:80px" onchange="rows[${i}].rent=+this.value;render()"></td>
+      <td>${fmt(r.gpr)}</td>
+      <td>${pct}%<div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div></td>
+      <td><button class="btn-del" onclick="delRow(${i})">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  const totalUnits=rows.reduce((s,r)=>s+r.units,0);
+  const totalSF=rows.reduce((s,r)=>s+(r.sf*r.units),0);
+  const avgSF=totalUnits>0?(totalSF/totalUnits).toFixed(0):0;
+  const egi=totalGPR*(1-vac);
+  const noi=egi*(1-opex);
+  const avgRent=totalUnits>0?(totalGPR/totalUnits/12).toFixed(0):0;
+  document.getElementById('tUnits').textContent=totalUnits;
+  document.getElementById('tSF').textContent=avgSF+' avg';
+  document.getElementById('tGPR').textContent=fmt(totalGPR);
+  document.getElementById('kGPR').textContent=fmt(totalGPR);
+  document.getElementById('kEGI').textContent=fmt(egi);
+  document.getElementById('kNOI').textContent=fmt(noi);
+  document.getElementById('kAvgRent').textContent='$'+parseInt(avgRent).toLocaleString()+'/mo';
+}
+function recalc(){render();}
+render();
+</script></body></html>

@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zoning Setback Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.lot-vis{background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin-top:20px;text-align:center}
+svg text{font-family:system-ui,sans-serif}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600}
+.pass{background:#1a3a1a;color:#4caf50}.fail{background:#3a1a1a;color:#ef5350}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Zoning Setback Calculator</h1></div>
+<div class="container">
+<h2>Zoning Setback & Buildable Area</h2>
+<p class="sub">Compute maximum buildable footprint after applying front, rear, and side setbacks. Checks FAR compliance and building placement.</p>
+<div class="card">
+<h3>Lot Dimensions</h3>
+<div class="grid3">
+<div><label>Lot Width (ft)</label><input type="number" id="lotW" value="100" oninput="calc()"></div>
+<div><label>Lot Depth (ft)</label><input type="number" id="lotD" value="140" oninput="calc()"></div>
+<div><label>Lot Area (auto-calc or override, sf)</label><input type="number" id="lotA" placeholder="auto" oninput="calc()"></div>
+</div>
+</div>
+<div class="card">
+<h3>Required Setbacks (ft)</h3>
+<div class="grid2">
+<div><label>Front Setback</label><input type="number" id="sFront" value="20" oninput="calc()"></div>
+<div><label>Rear Setback</label><input type="number" id="sRear" value="20" oninput="calc()"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Side Setback (each)</label><input type="number" id="sSide" value="5" oninput="calc()"></div>
+<div><label>Max FAR</label><input type="number" id="maxFar" value="2.0" step="0.1" oninput="calc()"></div>
+<div><label>Max Height (stories)</label><input type="number" id="maxH" value="3" min="1" oninput="calc()"></div>
+</div>
+</div>
+<div class="kpis" id="kpis">
+<div class="kpi"><div class="kpi-val" id="kBW">—</div><div class="kpi-lbl">Buildable Width (ft)</div></div>
+<div class="kpi"><div class="kpi-val" id="kBD">—</div><div class="kpi-lbl">Buildable Depth (ft)</div></div>
+<div class="kpi"><div class="kpi-val" id="kBF">—</div><div class="kpi-lbl">Max Footprint (sf)</div></div>
+<div class="kpi"><div class="kpi-val" id="kMaxGFA">—</div><div class="kpi-lbl">Max GFA by FAR (sf)</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+<h3>Area Summary</h3>
+<table>
+<thead><tr><th>Metric</th><th>Value</th><th>% of Lot</th></tr></thead>
+<tbody id="summary"></tbody>
+</table>
+</div>
+<div class="lot-vis">
+<h3 style="font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Lot Diagram</h3>
+<svg id="lotsvg" viewBox="0 0 400 320" width="100%" style="max-width:400px"></svg>
+</div>
+</div>
+<script>
+function calc(){
+  const lw=parseFloat(document.getElementById('lotW').value)||100;
+  const ld=parseFloat(document.getElementById('lotD').value)||140;
+  const la=parseFloat(document.getElementById('lotA').value)||lw*ld;
+  const sf=parseFloat(document.getElementById('sFront').value)||0;
+  const sr=parseFloat(document.getElementById('sRear').value)||0;
+  const ss=parseFloat(document.getElementById('sSide').value)||0;
+  const mf=parseFloat(document.getElementById('maxFar').value)||2;
+  const mh=parseFloat(document.getElementById('maxH').value)||3;
+  const bw=Math.max(0,lw-2*ss);
+  const bd=Math.max(0,ld-sf-sr);
+  const footprint=bw*bd;
+  const maxGFA=la*mf;
+  const maxByStories=footprint*mh;
+  const effGFA=Math.min(maxGFA,maxByStories);
+  document.getElementById('kBW').textContent=bw.toFixed(1)+' ft';
+  document.getElementById('kBD').textContent=bd.toFixed(1)+' ft';
+  document.getElementById('kBF').textContent=Math.round(footprint).toLocaleString()+' sf';
+  document.getElementById('kMaxGFA').textContent=Math.round(effGFA).toLocaleString()+' sf';
+  const items=[
+    {n:'Lot Area',v:Math.round(la),pct:100},
+    {n:'Max Building Footprint',v:Math.round(footprint),pct:la>0?(footprint/la*100).toFixed(1):0},
+    {n:'Max GFA (by FAR)',v:Math.round(maxGFA),pct:la>0?(maxGFA/la*100).toFixed(1):0},
+    {n:'Max GFA (by footprint × stories)',v:Math.round(maxByStories),pct:la>0?(maxByStories/la*100).toFixed(1):0},
+    {n:'Effective Max GFA (lesser)',v:Math.round(effGFA),pct:la>0?(effGFA/la*100).toFixed(1):0},
+    {n:'Open/Yard Area',v:Math.round(la-footprint),pct:la>0?((la-footprint)/la*100).toFixed(1):0},
+  ];
+  const tb=document.getElementById('summary');
+  tb.innerHTML='';
+  items.forEach(it=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${it.n}</td><td>${it.v.toLocaleString()} sf</td><td>${it.pct}%</td>`;
+    tb.appendChild(tr);
+  });
+  // SVG diagram
+  const svgW=400,svgH=320,pad=20;
+  const scaleX=(svgW-pad*2)/lw, scaleY=(svgH-pad*2)/ld;
+  const scale=Math.min(scaleX,scaleY);
+  const offX=(svgW-lw*scale)/2, offY=(svgH-ld*scale)/2;
+  function tx(x){return offX+x*scale;}
+  function ty(y){return offY+y*scale;}
+  const bx=ss, by=sf, bxEnd=lw-ss, byEnd=ld-sr;
+  const svg=document.getElementById('lotsvg');
+  svg.innerHTML=`
+    <rect x="${tx(0)}" y="${ty(0)}" width="${lw*scale}" height="${ld*scale}" fill="#1a2a1a" stroke="#4caf50" stroke-width="1.5"/>
+    <rect x="${tx(bx)}" y="${ty(by)}" width="${bw*scale}" height="${bd*scale}" fill="#c8a96e22" stroke="#c8a96e" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="${tx(lw/2)}" y="${ty(ld/2)}" fill="#c8a96e" font-size="12" text-anchor="middle" dominant-baseline="middle">Buildable Area</text>
+    <text x="${tx(lw/2)}" y="${ty(ld/2)+16}" fill="#888" font-size="10" text-anchor="middle">${Math.round(footprint).toLocaleString()} sf</text>
+    <text x="${tx(lw/2)}" y="${ty(0)-6}" fill="#aaa" font-size="10" text-anchor="middle">FRONT — ${sf}' setback</text>
+    <text x="${tx(lw/2)}" y="${ty(ld)+12}" fill="#aaa" font-size="10" text-anchor="middle">REAR — ${sr}' setback</text>
+    <text x="${tx(0)-4}" y="${ty(ld/2)}" fill="#aaa" font-size="10" text-anchor="end" dominant-baseline="middle" transform="rotate(-90,${tx(0)-4},${ty(ld/2)})">${ss}' side</text>
+    <text x="${tx(lw)+4}" y="${ty(ld/2)}" fill="#aaa" font-size="10" text-anchor="start" dominant-baseline="middle" transform="rotate(90,${tx(lw)+4},${ty(ld/2)})">${ss}' side</text>
+    <text x="${tx(lw/2)}" y="${ty(0)+16}" fill="#666" font-size="10" text-anchor="middle">Lot ${lw}' × ${ld}'</text>`;
+}
+calc();
+</script></body></html>
