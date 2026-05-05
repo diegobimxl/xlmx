@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit Weight Calculator | BIM XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px;opacity:.7}.topbar a:hover{opacity:1}
+.topbar-title{color:#e0e0e0;font-size:15px;font-weight:600}
+.container{max-width:860px;margin:0 auto;padding:40px 24px}
+h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}
+.subtitle{color:#888;font-size:14px;margin-bottom:32px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px;margin-bottom:12px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 20px;font-weight:700;font-size:14px;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-danger{background:#444;color:#e0e0e0}
+.btn-danger:hover{background:#555}
+.result{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:16px;margin-top:16px}
+.result-value{font-size:20px;font-weight:700;color:#c8a96e}
+.result-label{font-size:12px;color:#888;margin-bottom:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1a1a1a;color:#c8a96e;text-align:left;padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #2a2a2a}
+td{padding:8px 10px;border-bottom:1px solid #1e1e1e;vertical-align:top}
+tr:hover td{background:#161616}
+td input,td select{margin-bottom:0;padding:4px 8px;font-size:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.b-open{background:#1a3a1a;color:#4ade80}
+.b-closed{background:#3a1a1a;color:#f87171}
+.b-draft{background:#2a2a1a;color:#fbbf24}
+.b-issued{background:#1a2a3a;color:#60a5fa}
+.tbl-wrap{overflow-x:auto}
+.row-actions{display:flex;gap:6px}
+.empty{color:#555;font-size:13px;padding:20px 0;text-align:center}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}</style>
+</head>
+<body>
+<div class="topbar"><a href="/tools/">← Tools</a><span class="topbar-title">Unit Weight Calculator</span></div>
+<div class="container">
+<h1>Unit Weight Calculator</h1>
+<p class="subtitle">Calculate the weight of construction materials by volume using standard unit weights.</p>
+<div class="card">
+<h2>Material Weight Calculator</h2>
+<div class="grid2">
+  <div><label>Material</label><select id="mat" onchange="updateDens()">
+    <option value="2400">Normal-weight concrete (150 pcf / 2400 kg/m³)</option>
+    <option value="1920">Lightweight concrete (120 pcf / 1920 kg/m³)</option>
+    <option value="7850">Structural steel (490 pcf / 7850 kg/m³)</option>
+    <option value="7200">Cast iron (450 pcf / 7200 kg/m³)</option>
+    <option value="600">Structural timber — Douglas Fir (37 pcf / 600 kg/m³)</option>
+    <option value="480">Structural timber — Southern Pine (30 pcf / 480 kg/m³)</option>
+    <option value="1800">CMU / masonry (112 pcf / 1800 kg/m³)</option>
+    <option value="2700">Brick (168 pcf / 2700 kg/m³)</option>
+    <option value="2500">Normal-weight stone / granite (156 pcf / 2500 kg/m³)</option>
+    <option value="1600">Compacted gravel (100 pcf / 1600 kg/m³)</option>
+    <option value="1800">Compacted soil (112 pcf / 1800 kg/m³)</option>
+    <option value="1000">Water (62.4 pcf / 1000 kg/m³)</option>
+    <option value="custom">Custom density</option>
+  </select></div>
+  <div><label>Density (kg/m³)</label><input id="dens" type="number" value="2400" oninput="calcWeight()"></div>
+</div>
+<div class="grid3">
+  <div><label>Volume</label><input id="vol" type="number" placeholder="0" oninput="calcWeight()"></div>
+  <div><label>Unit</label><select id="volUnit" onchange="calcWeight()">
+    <option value="m3">Cubic Meters (m³)</option>
+    <option value="cy">Cubic Yards (CY)</option>
+    <option value="cf">Cubic Feet (CF)</option>
+    <option value="l">Liters (L)</option>
+  </select></div>
+  <div><label>Output Unit</label><select id="outUnit" onchange="calcWeight()">
+    <option value="kg">Kilograms (kg)</option>
+    <option value="t">Metric Tons (t)</option>
+    <option value="lb">Pounds (lb)</option>
+    <option value="kip">Kips (kip)</option>
+  </select></div>
+</div>
+<div class="result" id="wtResult" style="display:none">
+  <div class="grid2">
+    <div><div class="result-label">Weight</div><div class="result-value" id="wtVal">—</div></div>
+    <div><div class="result-label">Volume in m³</div><div class="result-value" id="volM3">—</div></div>
+  </div>
+</div>
+</div>
+<script>
+document.getElementById('mat').addEventListener('change',function(){
+  if(this.value!=='custom') document.getElementById('dens').value=this.value;
+  calcWeight();
+});
+function updateDens(){
+  var v=document.getElementById('mat').value;
+  if(v!=='custom') document.getElementById('dens').value=v;
+  calcWeight();
+}
+function toM3(v,u){
+  if(u==='cy') return v*0.764555;
+  if(u==='cf') return v*0.0283168;
+  if(u==='l') return v*0.001;
+  return v;
+}
+function calcWeight(){
+  var vol=+document.getElementById('vol').value;
+  var dens=+document.getElementById('dens').value;
+  var vu=document.getElementById('volUnit').value;
+  var ou=document.getElementById('outUnit').value;
+  if(!vol||!dens){document.getElementById('wtResult').style.display='none';return;}
+  var m3=toM3(vol,vu);
+  var kg=m3*dens;
+  var result,unit;
+  if(ou==='kg'){result=kg;unit='kg';}
+  else if(ou==='t'){result=kg/1000;unit='t';}
+  else if(ou==='lb'){result=kg*2.20462;unit='lb';}
+  else{result=kg*2.20462/1000;unit='kip';}
+  document.getElementById('wtVal').textContent=result>=100?Math.round(result).toLocaleString()+' '+unit:result.toFixed(2)+' '+unit;
+  document.getElementById('volM3').textContent=m3.toFixed(4)+' m³';
+  document.getElementById('wtResult').style.display='block';
+}
+</script>
+</div>
+</body>
+</html>

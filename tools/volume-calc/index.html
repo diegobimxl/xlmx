@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volume Calculator | BIM XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px;opacity:.7}.topbar a:hover{opacity:1}
+.topbar-title{color:#e0e0e0;font-size:15px;font-weight:600}
+.container{max-width:860px;margin:0 auto;padding:40px 24px}
+h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}
+.subtitle{color:#888;font-size:14px;margin-bottom:32px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px;margin-bottom:12px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 20px;font-weight:700;font-size:14px;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-danger{background:#444;color:#e0e0e0}
+.btn-danger:hover{background:#555}
+.result{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:16px;margin-top:16px}
+.result-value{font-size:20px;font-weight:700;color:#c8a96e}
+.result-label{font-size:12px;color:#888;margin-bottom:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1a1a1a;color:#c8a96e;text-align:left;padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #2a2a2a}
+td{padding:8px 10px;border-bottom:1px solid #1e1e1e;vertical-align:top}
+tr:hover td{background:#161616}
+td input,td select{margin-bottom:0;padding:4px 8px;font-size:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.b-open{background:#1a3a1a;color:#4ade80}
+.b-closed{background:#3a1a1a;color:#f87171}
+.b-draft{background:#2a2a1a;color:#fbbf24}
+.b-issued{background:#1a2a3a;color:#60a5fa}
+.tbl-wrap{overflow-x:auto}
+.row-actions{display:flex;gap:6px}
+.empty{color:#555;font-size:13px;padding:20px 0;text-align:center}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}</style>
+</head>
+<body>
+<div class="topbar"><a href="/tools/">← Tools</a><span class="topbar-title">Volume Calculator</span></div>
+<div class="container">
+<h1>Volume Calculator</h1>
+<p class="subtitle">Calculate volumes for common construction shapes in both imperial and metric units.</p>
+<div class="card">
+<h2>Rectangular Prism / Slab</h2>
+<div class="grid3">
+  <div><label>Length</label><input id="rl" type="number" placeholder="0" oninput="calcRect()"></div>
+  <div><label>Width</label><input id="rw" type="number" placeholder="0" oninput="calcRect()"></div>
+  <div><label>Depth / Height</label><input id="rd" type="number" placeholder="0" oninput="calcRect()"></div>
+</div>
+<label>Unit</label>
+<select id="rUnit" onchange="calcRect()">
+  <option value="ft">Feet → CY / CF</option><option value="in">Inches → CY / CF</option>
+  <option value="m">Meters → CM / CM³</option><option value="cm">Centimeters → CM</option>
+</select>
+<div class="result" id="rectResult" style="display:none">
+  <div class="grid2">
+    <div><div class="result-label">Volume (cubic yards / m³)</div><div class="result-value" id="rCY">—</div></div>
+    <div><div class="result-label">Volume (cubic feet / liters)</div><div class="result-value" id="rCF">—</div></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h2>Cylinder (Column / Tank / Pier)</h2>
+<div class="grid3">
+  <div><label>Diameter</label><input id="cd" type="number" placeholder="0" oninput="calcCyl()"></div>
+  <div><label>Height / Length</label><input id="ch" type="number" placeholder="0" oninput="calcCyl()"></div>
+  <div><label>Unit</label><select id="cUnit" onchange="calcCyl()"><option value="ft">Feet</option><option value="in">Inches</option><option value="m">Meters</option></select></div>
+</div>
+<div class="result" id="cylResult" style="display:none">
+  <div class="grid2">
+    <div><div class="result-label">Volume (CY / m³)</div><div class="result-value" id="cCY">—</div></div>
+    <div><div class="result-label">Volume (CF / liters)</div><div class="result-value" id="cCF">—</div></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h2>Triangular Prism (Wedge / Ramp)</h2>
+<div class="grid3">
+  <div><label>Base</label><input id="tb" type="number" placeholder="0" oninput="calcTri()"></div>
+  <div><label>Height of Triangle</label><input id="th" type="number" placeholder="0" oninput="calcTri()"></div>
+  <div><label>Length / Depth</label><input id="tl" type="number" placeholder="0" oninput="calcTri()"></div>
+</div>
+<label>Unit</label>
+<select id="tUnit" onchange="calcTri()"><option value="ft">Feet</option><option value="in">Inches</option><option value="m">Meters</option></select>
+<div class="result" id="triResult" style="display:none">
+  <div class="grid2">
+    <div><div class="result-label">Volume (CY / m³)</div><div class="result-value" id="tCY">—</div></div>
+    <div><div class="result-label">Volume (CF / liters)</div><div class="result-value" id="tCF">—</div></div>
+  </div>
+</div>
+</div>
+<script>
+function toM(v,u){return u==='ft'?v*0.3048:u==='in'?v*0.0254:u==='cm'?v*0.01:v;}
+function fmtV(m3,isMetric){
+  if(isMetric) return {big:m3.toFixed(4)+' m³',small:(m3*1000).toFixed(2)+' L'};
+  var cf=m3/0.0283168; var cy=cf/27;
+  return {big:cy.toFixed(4)+' CY',small:cf.toFixed(3)+' CF'};
+}
+function calcRect(){
+  var l=+document.getElementById('rl').value,w=+document.getElementById('rw').value,d=+document.getElementById('rd').value;
+  var u=document.getElementById('rUnit').value;
+  if(!l||!w||!d){document.getElementById('rectResult').style.display='none';return;}
+  var m3=toM(l,u)*toM(w,u)*toM(d,u);
+  var f=fmtV(m3,u==='m'||u==='cm');
+  document.getElementById('rCY').textContent=f.big;document.getElementById('rCF').textContent=f.small;
+  document.getElementById('rectResult').style.display='block';
+}
+function calcCyl(){
+  var d=+document.getElementById('cd').value,h=+document.getElementById('ch').value;
+  var u=document.getElementById('cUnit').value;
+  if(!d||!h){document.getElementById('cylResult').style.display='none';return;}
+  var r=toM(d/2,u),hm=toM(h,u); var m3=Math.PI*r*r*hm;
+  var f=fmtV(m3,u==='m');
+  document.getElementById('cCY').textContent=f.big;document.getElementById('cCF').textContent=f.small;
+  document.getElementById('cylResult').style.display='block';
+}
+function calcTri(){
+  var b=+document.getElementById('tb').value,h=+document.getElementById('th').value,l=+document.getElementById('tl').value;
+  var u=document.getElementById('tUnit').value;
+  if(!b||!h||!l){document.getElementById('triResult').style.display='none';return;}
+  var m3=0.5*toM(b,u)*toM(h,u)*toM(l,u);
+  var f=fmtV(m3,u==='m');
+  document.getElementById('tCY').textContent=f.big;document.getElementById('tCF').textContent=f.small;
+  document.getElementById('triResult').style.display='block';
+}
+</script>
+</div>
+</body>
+</html>
