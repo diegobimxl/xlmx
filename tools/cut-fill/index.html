@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cut & Fill Volume | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.tabs{display:flex;gap:2px;margin-bottom:0}
+.tab{padding:8px 20px;background:#151515;border:1px solid #222;border-radius:5px 5px 0 0;cursor:pointer;font-size:13px;color:#888;border-bottom:none}
+.tab.active{background:#1e1e1e;color:#c8a96e;border-color:#333}
+.panel{display:none}.panel.active{display:block}
+.card{background:#151515;border:1px solid #222;border-radius:0 8px 8px 8px;padding:24px;margin-bottom:20px}
+.card-plain{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3,.card-plain h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:20px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 10px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.tot td{color:#c8a96e;font-weight:700;border-top:1px solid #333}
+.note{font-size:11px;color:#666;margin-top:10px}
+.badge{display:inline-block;padding:3px 12px;border-radius:4px;font-size:13px;font-weight:600}
+.export{background:#1a3a1a;color:#4caf50}.import{background:#3a1a1a;color:#ef5350}.balanced{background:#1a2a3a;color:#42a5f5}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Cut & Fill Volume</h1></div>
+<div class="container">
+<h2>Cut & Fill Volume Calculator</h2>
+<p class="sub">Average End Area method for earthwork volume. Grid method for platform grading. Cost estimate with truck loads.</p>
+<div class="tabs">
+<div class="tab active" onclick="showTab('aea')">Average End Area</div>
+<div class="tab" onclick="showTab('grid')">Grid / Platform</div>
+</div>
+<div class="panel active" id="tab-aea">
+<div class="card">
+<h3>Cross Sections (Average End Area Method)</h3>
+<p style="font-size:12px;color:#888;margin-bottom:14px">Enter station spacing and end areas at each station. Positive area = cut, negative = fill.</p>
+<table>
+<thead><tr><th>Station</th><th>Cut Area (sf)</th><th>Fill Area (sf)</th><th>Distance to Next (ft)</th><th></th></tr></thead>
+<tbody id="aeabody"></tbody>
+</table>
+<button class="btn" style="margin-top:12px;padding:6px 16px;font-size:12px" onclick="addAEARow()">+ Station</button>
+</div>
+<div class="grid3" style="margin-bottom:20px">
+<div class="card-plain"><label>Swell Factor (cut, %)</label><input type="number" id="swell" value="25" min="0" max="60"></div>
+<div class="card-plain"><label>Shrink Factor (fill, %)</label><input type="number" id="shrink" value="15" min="0" max="40"></div>
+<div class="card-plain"><label>Truck Capacity (CY)</label><input type="number" id="truck" value="14" min="1"></div>
+</div>
+<button class="btn" onclick="calcAEA()">Calculate Volume</button>
+<div id="aeaout" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="aCutCY">—</div><div class="kpi-lbl">Cut (CY bank)</div></div>
+<div class="kpi"><div class="kpi-val" id="aFillCY">—</div><div class="kpi-lbl">Fill (CY compacted)</div></div>
+<div class="kpi"><div class="kpi-val" id="aNet">—</div><div class="kpi-lbl">Net Import/Export</div></div>
+<div class="kpi"><div class="kpi-val" id="aTrucks">—</div><div class="kpi-lbl">Truck Loads</div></div>
+</div>
+<div id="aBalance" style="text-align:center;margin-top:16px"></div>
+</div>
+</div>
+<div class="panel" id="tab-grid">
+<div class="card">
+<h3>Platform Grading — Grid Method</h3>
+<div class="grid4">
+<div><label>Grid Width (ft)</label><input type="number" id="gW" value="200"></div>
+<div><label>Grid Length (ft)</label><input type="number" id="gL" value="300"></div>
+<div><label>Cell Size (ft)</label><input type="number" id="gCell" value="50"></div>
+<div><label>Finish Grade (ft elev)</label><input type="number" id="gFinish" value="100.0" step="0.1"></div>
+</div>
+<div style="margin-top:14px;font-size:12px;color:#888">Enter existing elevations at grid corners (comma-separated, row by row):</div>
+<textarea id="gridElev" rows="5" style="width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px;color:#e8e8e8;font-size:12px;margin-top:8px;resize:vertical" placeholder="e.g.: 101.2, 100.8, 99.6&#10;100.4, 100.0, 99.2&#10;99.8, 99.4, 98.8"></textarea>
+</div>
+<button class="btn" onclick="calcGrid()">Calculate</button>
+<div id="gridout" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="gCut">—</div><div class="kpi-lbl">Total Cut (CY)</div></div>
+<div class="kpi"><div class="kpi-val" id="gFill">—</div><div class="kpi-lbl">Total Fill (CY)</div></div>
+<div class="kpi"><div class="kpi-val" id="gNet">—</div><div class="kpi-lbl">Net (CY)</div></div>
+<div class="kpi"><div class="kpi-val" id="gArea">—</div><div class="kpi-lbl">Total Area (sf)</div></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+// AEA
+const aeaRows=[
+  {sta:'0+00',cut:120,fill:0,dist:100},
+  {sta:'1+00',cut:95,fill:0,dist:100},
+  {sta:'2+00',cut:40,fill:20,dist:100},
+  {sta:'3+00',cut:0,fill:85,dist:100},
+  {sta:'4+00',cut:0,fill:110,dist:0},
+];
+function renderAEA(){
+  const tb=document.getElementById('aeabody');
+  tb.innerHTML='';
+  aeaRows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input value="${r.sta}" onchange="aeaRows[${i}].sta=this.value" style="width:80px"></td>
+      <td><input type="number" value="${r.cut}" onchange="aeaRows[${i}].cut=+this.value" style="width:90px"></td>
+      <td><input type="number" value="${r.fill}" onchange="aeaRows[${i}].fill=+this.value" style="width:90px"></td>
+      <td><input type="number" value="${r.dist}" onchange="aeaRows[${i}].dist=+this.value" style="width:90px"></td>
+      <td><button onclick="aeaRows.splice(${i},1);renderAEA()" style="background:#2a1a1a;color:#ef5350;border:none;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function addAEARow(){aeaRows.push({sta:'',cut:0,fill:0,dist:100});renderAEA();}
+function calcAEA(){
+  const swell=1+parseFloat(document.getElementById('swell').value)/100;
+  const shrink=1+parseFloat(document.getElementById('shrink').value)/100;
+  const truck=parseFloat(document.getElementById('truck').value)||14;
+  let cutCF=0,fillCF=0;
+  for(let i=0;i<aeaRows.length-1;i++){
+    const r=aeaRows[i],n=aeaRows[i+1];
+    const d=r.dist;
+    cutCF+=((r.cut+n.cut)/2)*d;
+    fillCF+=((r.fill+n.fill)/2)*d;
+  }
+  const cutCY=cutCF/27;
+  const fillCY=fillCF/27;
+  const exportCY=cutCY*swell;
+  const importCY=fillCY/shrink;
+  const net=exportCY-importCY;
+  document.getElementById('aCutCY').textContent=Math.round(cutCY).toLocaleString()+' CY';
+  document.getElementById('aFillCY').textContent=Math.round(fillCY).toLocaleString()+' CY';
+  document.getElementById('aNet').textContent=(net>=0?'+':'')+Math.round(net).toLocaleString()+' CY';
+  document.getElementById('aTrucks').textContent=Math.ceil(Math.abs(net)/truck).toLocaleString();
+  const cls=net>500?'export':net<-500?'import':'balanced';
+  const lbl=net>500?'EXPORT — excess cut material':net<-500?'IMPORT — borrow required':'NEAR BALANCE';
+  document.getElementById('aBalance').innerHTML=`<span class="badge ${cls}">${lbl}</span>`;
+  document.getElementById('aeaout').style.display='block';
+}
+function calcGrid(){
+  const gW=parseFloat(document.getElementById('gW').value)||200;
+  const gL=parseFloat(document.getElementById('gL').value)||300;
+  const cell=parseFloat(document.getElementById('gCell').value)||50;
+  const finish=parseFloat(document.getElementById('gFinish').value)||100;
+  const raw=document.getElementById('gridElev').value.trim();
+  if(!raw){alert('Enter grid elevations');return;}
+  const elevs=raw.split('\n').map(row=>row.split(',').map(v=>parseFloat(v.trim())));
+  let cutCF=0,fillCF=0;
+  const area=cell*cell;
+  elevs.forEach(row=>{
+    row.forEach(el=>{
+      if(isNaN(el)) return;
+      const d=el-finish;
+      if(d>0) cutCF+=(d*area);
+      else fillCF+=(-d*area);
+    });
+  });
+  const cutCY=cutCF/27;
+  const fillCY=fillCF/27;
+  const net=cutCY-fillCY;
+  document.getElementById('gCut').textContent=Math.round(cutCY).toLocaleString()+' CY';
+  document.getElementById('gFill').textContent=Math.round(fillCY).toLocaleString()+' CY';
+  document.getElementById('gNet').textContent=(net>=0?'+':'')+Math.round(net).toLocaleString()+' CY';
+  document.getElementById('gArea').textContent=Math.round(gW*gL).toLocaleString()+' sf';
+  document.getElementById('gridout').style.display='block';
+}
+renderAEA();
+</script></body></html>

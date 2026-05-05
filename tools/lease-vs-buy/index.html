@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lease vs Buy | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card.lease{border-top:3px solid #42a5f5}
+.card.buy{border-top:3px solid #c8a96e}
+.card h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.card.lease h3{color:#42a5f5}.card.buy h3{color:#c8a96e}
+.card-full{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card-full h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-child{margin-top:0}
+input{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:20px;font-weight:700}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.kpi-lease .kpi-val{color:#42a5f5}.kpi-buy .kpi-val{color:#c8a96e}.kpi-winner .kpi-val{color:#4caf50}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.winner{background:#1a3a1a!important;color:#4caf50!important;font-weight:700}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Lease vs Buy</h1></div>
+<div class="container">
+<h2>Lease vs Buy Analysis</h2>
+<p class="sub">Compare total cost of occupancy over hold period. Accounts for equity build, appreciation, opportunity cost, and tax effects.</p>
+<div class="card-full">
+<h3>Shared Parameters</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+<div><label>Comparison Period (years)</label><input type="number" id="term" value="10" min="1" max="30"></div>
+<div><label>Space Size (sf)</label><input type="number" id="sf" value="5000"></div>
+<div><label>Discount Rate / Opp Cost (%/yr)</label><input type="number" id="disc" value="8" step="0.5"></div>
+</div>
+</div>
+<div class="two-col">
+<div class="card lease">
+<h3>Lease Option</h3>
+<label>Base Rent ($/sf/yr)</label><input type="number" id="lRent" value="38" step="0.5">
+<label>Annual Escalation (%)</label><input type="number" id="lEsc" value="3" step="0.5">
+<label>Operating Expenses ($/sf/yr)</label><input type="number" id="lOpex" value="12" step="0.5">
+<label>TI Allowance ($)</label><input type="number" id="lTI" value="75000">
+<label>Free Rent (months)</label><input type="number" id="lFree" value="3" min="0">
+</div>
+<div class="card buy">
+<h3>Buy / Own Option</h3>
+<label>Purchase Price ($)</label><input type="number" id="bPrice" value="1850000">
+<label>Down Payment (%)</label><input type="number" id="bDP" value="25" step="5">
+<label>Mortgage Rate (%/yr)</label><input type="number" id="bRate" value="6.5" step="0.25">
+<label>Annual Appreciation (%)</label><input type="number" id="bApp" value="3" step="0.5">
+<label>Annual OpEx & Maint (% of value)</label><input type="number" id="bMaint" value="1.5" step="0.25">
+</div>
+</div>
+<button class="btn" onclick="compare()">Compare</button>
+<div id="out" style="display:none">
+<div class="kpis" style="margin-top:20px">
+<div class="kpi kpi-lease"><div class="kpi-val" id="kLease">—</div><div class="kpi-lbl">Lease: Total NPV Cost</div></div>
+<div class="kpi kpi-buy"><div class="kpi-val" id="kBuy">—</div><div class="kpi-lbl">Buy: Net NPV Cost</div></div>
+<div class="kpi kpi-winner"><div class="kpi-val" id="kSave">—</div><div class="kpi-lbl">Winner & Savings</div></div>
+</div>
+<div class="card-full">
+<h3>Year-by-Year Comparison</h3>
+<table><thead><tr><th>Year</th><th>Lease Payment</th><th>Buy: Mortgage + Opex</th><th>Buy: Equity</th><th>Lease NPV (cum)</th><th>Buy NPV (cum)</th></tr></thead>
+<tbody id="compbody"></tbody></table>
+</div>
+</div>
+</div>
+<script>
+function fmt(n){return '$'+Math.round(Math.abs(n)).toLocaleString();}
+function npv(flows,r){return flows.reduce((s,f,i)=>s+f/Math.pow(1+r,i+1),0);}
+function compare(){
+  const term=parseInt(document.getElementById('term').value)||10;
+  const sf=parseFloat(document.getElementById('sf').value)||5000;
+  const disc=parseFloat(document.getElementById('disc').value)/100||0.08;
+  const lRent=parseFloat(document.getElementById('lRent').value)||38;
+  const lEsc=parseFloat(document.getElementById('lEsc').value)/100||0.03;
+  const lOpex=parseFloat(document.getElementById('lOpex').value)||12;
+  const lTI=parseFloat(document.getElementById('lTI').value)||0;
+  const lFree=parseFloat(document.getElementById('lFree').value)||0;
+  const bPrice=parseFloat(document.getElementById('bPrice').value)||1850000;
+  const bDP=parseFloat(document.getElementById('bDP').value)/100||0.25;
+  const bRate=parseFloat(document.getElementById('bRate').value)/100||0.065;
+  const bApp=parseFloat(document.getElementById('bApp').value)/100||0.03;
+  const bMaint=parseFloat(document.getElementById('bMaint').value)/100||0.015;
+  // Mortgage
+  const loan=bPrice*(1-bDP);
+  const down=bPrice*bDP;
+  const n=term*12;
+  const r=bRate/12;
+  const pmt=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  const annPmt=pmt*12;
+  let balance=loan;
+  const leaseFlows=[], buyFlows=[];
+  let leaseNPVcum=0, buyNPVcum=0;
+  const rows=[];
+  for(let y=1;y<=term;y++){
+    // Lease
+    const rent=sf*lRent*Math.pow(1+lEsc,y-1);
+    const opex=sf*lOpex;
+    let leaseAnn=rent+opex;
+    if(y===1){leaseAnn-=(lFree/12)*rent; leaseAnn-=lTI;}
+    leaseFlows.push(leaseAnn);
+    const lPV=leaseAnn/Math.pow(1+disc,y);
+    leaseNPVcum+=lPV;
+    // Buy
+    let equity=0;
+    for(let m=1;m<=12;m++){
+      const interest=balance*r;
+      const principal=pmt-interest;
+      equity+=principal;
+      balance-=principal;
+    }
+    const propVal=bPrice*Math.pow(1+bApp,y);
+    const maint=propVal*bMaint;
+    const buyAnn=annPmt+maint-(y===1?0:0);
+    const equityBuild=equity;
+    const appreciate=propVal-bPrice*Math.pow(1+bApp,y-1);
+    const netBuyCost=buyAnn-(equityBuild+appreciate);
+    buyFlows.push(netBuyCost);
+    const bPV=netBuyCost/Math.pow(1+disc,y);
+    buyNPVcum+=bPV;
+    rows.push({y,lease:leaseAnn,buy:annPmt+maint,equity:Math.round(equityBuild+appreciate),lCum:leaseNPVcum,bCum:buyNPVcum});
+  }
+  const totalLeaseNPV=leaseNPVcum;
+  const totalBuyNPV=buyNPVcum+down/Math.pow(1+disc,0);
+  const winner=totalLeaseNPV<totalBuyNPV?'LEASE':'BUY';
+  const save=Math.abs(totalLeaseNPV-totalBuyNPV);
+  document.getElementById('kLease').textContent=fmt(totalLeaseNPV);
+  document.getElementById('kBuy').textContent=fmt(totalBuyNPV);
+  document.getElementById('kSave').textContent=winner+': saves '+fmt(save);
+  const tb=document.getElementById('compbody');
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const lWin=r.lCum<r.bCum;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>Year ${r.y}</td>
+      <td class="${lWin?'winner':''}">${fmt(r.lease)}</td>
+      <td class="${!lWin?'winner':''}">${fmt(r.buy)}</td>
+      <td>${fmt(r.equity)}</td>
+      <td>${fmt(r.lCum)}</td>
+      <td>${fmt(r.bCum)}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('out').style.display='block';
+}
+compare();
+</script></body></html>

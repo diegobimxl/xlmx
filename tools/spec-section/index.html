@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html lang=en>
+<head>
+<meta charset=UTF-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>CSI MasterFormat Reference | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.topbar{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:1100px;margin:0 auto;padding:32px 24px}
+.subtitle{color:#888;font-size:14px;margin-bottom:24px}
+.controls{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center}
+.controls input{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 14px;border-radius:6px;font-size:14px;width:280px}
+.controls input:focus{outline:none;border-color:#c8a96e}
+.controls select{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 14px;border-radius:6px;font-size:14px;cursor:pointer}
+.count{color:#888;font-size:13px;margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;transition:border-color .2s}
+.card:hover{border-color:#c8a96e}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.div-num{background:#c8a96e;color:#0d0d0d;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.div-name{font-size:14px;font-weight:600;color:#fff}
+.sections{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.sec{display:flex;gap:8px;align-items:baseline}
+.sec-num{color:#c8a96e;font-size:12px;font-weight:600;min-width:80px;font-family:monospace}
+.sec-name{color:#ccc;font-size:13px}
+.sec-note{color:#666;font-size:11px;margin-top:2px;margin-left:88px}
+.no-results{text-align:center;color:#555;padding:60px 0;font-size:15px}
+</style>
+</head>
+<body>
+<div class=topbar><a href="/tools/">&larr; Tools</a><h1>CSI MasterFormat Reference</h1></div>
+<div class=container>
+<p class=subtitle>CSI MasterFormat 2016 Div 00-33. Search by section number, name, or keyword.</p>
+<div class=controls>
+<input type=text id=search placeholder="e.g. concrete, NFPA, waterproofing..." oninput=render()>
+<select id=filter onchange=render()>
+<option value="">All Divisions</option>
+<option value=procurement>Div 00-01 Procurement</option>
+<option value=shell>Div 03-07 Shell</option>
+<option value=interiors>Div 08-14 Interiors</option>
+<option value=mep>Div 21-28 MEP</option>
+<option value=civil>Div 31-33 Civil</option>
+</select>
+<span class=count id=count></span>
+</div>
+<div class=grid id=grid></div>
+</div>
+<script>
+const DIVS=[﻿{n:"00",t:"Procurement & Contracting",g:"procurement",s:[
+{c:"00 10 00",n:"Solicitation",note:"Invitations, RFP/RFQ"},
+{c:"00 21 00",n:"Instructions to Bidders"},
+{c:"00 31 00",n:"Available Project Information",note:"Geotech, surveys, existing conditions"},
+{c:"00 41 00",n:"Bid Forms"},
+{c:"00 52 00",n:"Agreement Forms",note:"AIA A101/A102/A103"},
+{c:"00 72 00",n:"General Conditions",note:"AIA A201"},
+{c:"00 73 00",n:"Supplementary Conditions"},
+]},
+{n:"01",t:"General Requirements",g:"procurement",s:[
+{c:"01 10 00",n:"Summary",note:"Work covered, sequence, owner-furnished"},
+{c:"01 20 00",n:"Price and Payment Procedures",note:"Schedule of values"},
+{c:"01 25 00",n:"Substitution Procedures"},
+{c:"01 30 00",n:"Administrative Requirements",note:"Submittals, RFIs, meetings"},
+{c:"01 32 00",n:"Construction Progress Documentation",note:"CPM schedule, S-curve"},
+{c:"01 33 00",n:"Submittal Procedures"},
+{c:"01 40 00",n:"Quality Requirements",note:"Inspections, mock-ups, testing"},
+{c:"01 50 00",n:"Temporary Facilities and Controls"},
+{c:"01 78 00",n:"Closeout Submittals",note:"As-builts, warranties, record drawings"},
+{c:"01 81 13",n:"Sustainable Design Requirements",note:"LEED documentation"},
+]},
+{n:"03",t:"Concrete",g:"shell",s:[
+{c:"03 10 00",n:"Concrete Forming and Accessories"},
+{c:"03 20 00",n:"Concrete Reinforcing",note:"Rebar ASTM A615, WWF"},
+{c:"03 30 00",n:"Cast-in-Place Concrete",note:"ACI 301, mix per ACI 211"},
+{c:"03 35 00",n:"Concrete Finishing",note:"Flatwork FF/FL tolerances"},
+{c:"03 38 00",n:"Post-Tensioned Concrete"},
+{c:"03 40 00",n:"Precast Concrete",note:"PCI standards"},
+{c:"03 45 00",n:"Architectural Precast Concrete"},
+{c:"03 60 00",n:"Grouting"},
+]},
+{n:"04",t:"Masonry",g:"shell",s:[
+{c:"04 20 00",n:"Unit Masonry",note:"CMU, brick, ASTM C90/C216"},
+{c:"04 22 00",n:"Concrete Unit Masonry"},
+{c:"04 43 00",n:"Stone Masonry"},
+]},
+{n:"05",t:"Metals",g:"shell",s:[
+{c:"05 10 00",n:"Structural Metal Framing",note:"AISC 360, AISC 341 seismic"},
+{c:"05 20 00",n:"Metal Joists",note:"SJI standards"},
+{c:"05 30 00",n:"Metal Decking",note:"SDI, composite deck"},
+{c:"05 40 00",n:"Cold-Formed Metal Framing",note:"AISI S100"},
+{c:"05 51 00",n:"Metal Stairs"},
+{c:"05 52 00",n:"Metal Railings",note:"IBC 1015, ADA grab bars"},
+]},
+{n:"06",t:"Wood, Plastics, Composites",g:"shell",s:[
+{c:"06 10 00",n:"Rough Carpentry",note:"Framing lumber, AWC NDS"},
+{c:"06 13 00",n:"Heavy Timber Construction"},
+{c:"06 16 00",n:"Sheathing",note:"OSB/plywood, APA rated"},
+{c:"06 17 00",n:"Shop-Fabricated Structural Wood",note:"Glulam, LVL, PSL"},
+{c:"06 40 00",n:"Architectural Woodwork",note:"AWI Quality Standards"},
+{c:"06 41 00",n:"Architectural Wood Casework"},
+]},
+{n:"07",t:"Thermal & Moisture Protection",g:"shell",s:[
+{c:"07 13 00",n:"Sheet Waterproofing",note:"HDPE, PVC, TPO membranes"},
+{c:"07 14 00",n:"Fluid-Applied Waterproofing"},
+{c:"07 21 00",n:"Thermal Insulation",note:"ASHRAE 90.1 compliance"},
+{c:"07 24 00",n:"EIFS",note:"Exterior Insulation Finish Systems"},
+{c:"07 25 00",n:"Weather Barriers",note:"WRB, housewrap"},
+{c:"07 50 00",n:"Membrane Roofing",note:"TPO, EPDM, PVC - NRCA"},
+{c:"07 60 00",n:"Flashing and Sheet Metal",note:"SMACNA standards"},
+{c:"07 84 00",n:"Firestopping",note:"UL listed assemblies"},
+{c:"07 90 00",n:"Joint Protection",note:"Sealants ASTM C920"},
+]},
+{n:"08",t:"Openings",g:"interiors",s:[
+{c:"08 11 00",n:"Metal Doors and Frames",note:"SDI standards"},
+{c:"08 14 00",n:"Wood Doors",note:"AWI/WI standards"},
+{c:"08 33 00",n:"Coiling Doors and Grilles"},
+{c:"08 41 00",n:"Entrances and Storefronts",note:"Aluminum framing systems"},
+{c:"08 44 00",n:"Curtain Wall and Glazed Assemblies",note:"AAMA 501, ASTM E283"},
+{c:"08 51 00",n:"Metal Windows"},
+{c:"08 71 00",n:"Door Hardware",note:"BHMA, ANSI A156 series"},
+{c:"08 80 00",n:"Glazing",note:"ASTM C1036, tempered, laminated"},
+{c:"08 90 00",n:"Louvers and Vents"},
+]},
+{n:"09",t:"Finishes",g:"interiors",s:[
+{c:"09 21 00",n:"Gypsum Board Assemblies",note:"UL fire-rated assemblies, GA-216"},
+{c:"09 30 00",n:"Tiling",note:"ANSI A108/A118, TCNA handbook"},
+{c:"09 51 00",n:"Acoustical Ceilings",note:"NRC, CAC ratings"},
+{c:"09 64 00",n:"Wood Flooring"},
+{c:"09 65 00",n:"Resilient Flooring",note:"LVT, VCT, sheet vinyl"},
+{c:"09 68 00",n:"Carpeting",note:"CRI standards"},
+{c:"09 90 00",n:"Paints and Coatings",note:"MPI standards, VOC limits"},
+]},
+{n:"10",t:"Specialties",g:"interiors",s:[
+{c:"10 14 00",n:"Signage",note:"ADA wayfinding, directories"},
+{c:"10 22 00",n:"Partitions",note:"Operable, demountable"},
+{c:"10 28 00",n:"Toilet and Bath Accessories"},
+{c:"10 44 00",n:"Fire Protection Specialties",note:"Extinguishers, cabinets"},
+]},
+{n:"14",t:"Conveying Equipment",g:"interiors",s:[
+{c:"14 21 00",n:"Electric Traction Elevators",note:"ASME A17.1, IBC 3001"},
+{c:"14 24 00",n:"Hydraulic Elevators"},
+{c:"14 31 00",n:"Escalators"},
+{c:"14 40 00",n:"Lifts",note:"Wheelchair, dumbwaiter"},
+]},﻿{n:"21",t:"Fire Suppression",g:"mep",s:[
+{c:"21 10 00",n:"Water-Based Fire-Suppression",note:"NFPA 13/13R/13D"},
+{c:"21 12 00",n:"Standpipes",note:"NFPA 14"},
+{c:"21 13 00",n:"Wet-Pipe Sprinkler Systems"},
+{c:"21 22 00",n:"Clean-Agent Systems",note:"NFPA 2001"},
+{c:"21 30 00",n:"Fire Pumps",note:"NFPA 20"},
+]},
+{n:"22",t:"Plumbing",g:"mep",s:[
+{c:"22 11 00",n:"Facility Water Distribution",note:"Domestic hot/cold, backflow prev."},
+{c:"22 13 00",n:"Facility Sanitary Sewerage",note:"DWV sizing"},
+{c:"22 30 00",n:"Plumbing Equipment",note:"Water heaters, storage tanks"},
+{c:"22 40 00",n:"Plumbing Fixtures",note:"IPC Table 403.1 minimums"},
+{c:"22 47 00",n:"Drinking Fountains and Water Coolers"},
+]},
+{n:"23",t:"HVAC",g:"mep",s:[
+{c:"23 07 00",n:"HVAC Insulation",note:"ASHRAE 90.1 Table 6-1"},
+{c:"23 09 00",n:"Instrumentation & Control for HVAC",note:"DDC, BAS/BMS"},
+{c:"23 30 00",n:"HVAC Air Distribution",note:"SMACNA Duct Construction"},
+{c:"23 34 00",n:"HVAC Fans"},
+{c:"23 36 00",n:"Air Terminal Units",note:"VAV boxes, fan coil units"},
+{c:"23 40 00",n:"HVAC Air Cleaning",note:"Filters, MERV ratings"},
+{c:"23 50 00",n:"Central Heating Equipment",note:"Boilers, heat exchangers"},
+{c:"23 60 00",n:"Central Cooling Equipment",note:"Chillers, cooling towers"},
+{c:"23 70 00",n:"Central HVAC Equipment",note:"AHUs, RTUs, heat pumps"},
+{c:"23 81 00",n:"Decentralized Unitary HVAC",note:"Packaged terminal, VRF"},
+]},
+{n:"26",t:"Electrical",g:"mep",s:[
+{c:"26 05 19",n:"Low-Voltage Conductors",note:"NEC Article 310"},
+{c:"26 05 26",n:"Grounding and Bonding",note:"NEC Article 250"},
+{c:"26 05 33",n:"Raceway and Boxes",note:"EMT, RMC, wireway"},
+{c:"26 24 00",n:"Switchboards and Switchgear",note:"NEMA standards"},
+{c:"26 27 00",n:"Low-Voltage Distribution",note:"Panelboards, load centers"},
+{c:"26 32 00",n:"Packaged Generator Assemblies"},
+{c:"26 36 00",n:"Transfer Switches"},
+{c:"26 43 00",n:"Surge Protection Devices"},
+{c:"26 51 00",n:"Interior Lighting",note:"LED, ASHRAE 90.1 LPD"},
+{c:"26 56 00",n:"Exterior Lighting"},
+]},
+{n:"27",t:"Communications",g:"mep",s:[
+{c:"27 10 00",n:"Structured Cabling",note:"TIA-568, Cat6/6A/fiber"},
+{c:"27 20 00",n:"Data Communications",note:"Network, IDF/MDF"},
+{c:"27 40 00",n:"Audio-Video Communications",note:"AV systems, projection"},
+]},
+{n:"28",t:"Electronic Safety & Security",g:"mep",s:[
+{c:"28 13 00",n:"Access Control",note:"Card readers, biometrics"},
+{c:"28 16 00",n:"Intrusion Detection",note:"Motion sensors, alarm panels"},
+{c:"28 20 00",n:"Electronic Surveillance",note:"CCTV/IP cameras, NVR"},
+{c:"28 31 00",n:"Fire Detection and Alarm",note:"NFPA 72, addressable systems"},
+]},
+{n:"31",t:"Earthwork",g:"civil",s:[
+{c:"31 10 00",n:"Site Clearing"},
+{c:"31 20 00",n:"Earth Moving",note:"Cut/fill, compaction, ASTM D698"},
+{c:"31 22 00",n:"Grading"},
+{c:"31 23 00",n:"Excavation and Fill"},
+{c:"31 25 00",n:"Erosion and Sedimentation Controls",note:"SWPPP, NPDES"},
+{c:"31 40 00",n:"Shoring and Underpinning",note:"Soldier piles, tiebacks"},
+{c:"31 60 00",n:"Special Foundations",note:"Piles, piers, caissons"},
+]},
+{n:"32",t:"Exterior Improvements",g:"civil",s:[
+{c:"32 12 00",n:"Flexible Paving",note:"Asphalt, HMA"},
+{c:"32 13 00",n:"Rigid Paving",note:"PCC pavement, jointing"},
+{c:"32 14 00",n:"Unit Paving",note:"Pavers, brick, permeable"},
+{c:"32 17 00",n:"Paving Specialties",note:"Parking bumpers, striping"},
+{c:"32 31 00",n:"Fences and Gates"},
+{c:"32 32 00",n:"Retaining Walls"},
+{c:"32 71 00",n:"Irrigation",note:"Drip, spray, smart controllers"},
+{c:"32 93 00",n:"Plants",note:"Planting soil, trees, shrubs"},
+]},
+{n:"33",t:"Utilities",g:"civil",s:[
+{c:"33 11 00",n:"Water Utility Distribution Piping",note:"AWWA standards"},
+{c:"33 30 00",n:"Sanitary Sewerage Utilities",note:"Gravity sewer, lift stations"},
+{c:"33 40 00",n:"Storm Drainage Utilities",note:"Inlets, detention, infiltration"},
+{c:"33 70 00",n:"Electrical Utilities",note:"Ductbank, manholes, transformers"},
+{c:"33 80 00",n:"Communications Utilities",note:"Conduit, pull boxes, fiber"},
+]},
+];
+function render(){
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  const f=document.getElementById('filter').value;
+  let src=DIVS;
+  if(f)src=DIVS.filter(d=>d.g===f);
+  if(q){src=src.map(d=>{
+    if(d.t.toLowerCase().includes(q)||d.n.includes(q))return d;
+    const ms=d.s.filter(s=>s.c.toLowerCase().includes(q)||s.n.toLowerCase().includes(q)||(s.note&&s.note.toLowerCase().includes(q)));
+    if(ms.length)return Object.assign({},d,{s:ms});
+    return null;
+  }).filter(Boolean);}
+  document.getElementById('count').textContent=src.length+' division'+(src.length!==1?'s':'')+' shown';
+  const g=document.getElementById('grid');
+  if(!src.length){g.innerHTML='<p class=no-results>No sections match.</p>';return;}
+  g.innerHTML=src.map(d=>'<div class=card><div class=card-header><span class=div-num>DIV '+d.n+'</span><span class=div-name>'+d.t+'</span></div><div class=sections>'+d.s.map(s=>'<div><div class=sec><span class=sec-num>'+s.c+'</span><span class=sec-name>'+s.n+'</span></div>'+(s.note?'<div class=sec-note>'+s.note+'</div>':'')+'</div>').join('')+'</div></div>').join('');
+}
+render();
+</script></body></html>

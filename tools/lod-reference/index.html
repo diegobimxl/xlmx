@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIM LOD Reference | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:1000px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;background:#151515;border:1px solid #333;border-radius:4px;cursor:pointer;font-size:12px;color:#888}
+.filter-btn.active{background:#c8a96e22;border-color:#c8a96e;color:#c8a96e}
+.search{padding:8px 14px;background:#1e1e1e;border:1px solid #333;border-radius:4px;color:#e8e8e8;font-size:13px;width:240px}
+.search:focus{outline:none;border-color:#c8a96e}
+.lod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.lod-card{background:#151515;border:1px solid #222;border-radius:8px;padding:20px;transition:border-color .2s}
+.lod-card:hover{border-color:#333}
+.lod-badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:10px}
+.lod100{background:#1a2a3a;color:#42a5f5}
+.lod200{background:#1a3a2a;color:#4caf50}
+.lod300{background:#2a2a1a;color:#ffb300}
+.lod350{background:#2a1a2a;color:#ba68c8}
+.lod400{background:#3a2a1a;color:#ff9800}
+.lod500{background:#3a1a1a;color:#ef5350}
+.lod-card h4{font-size:14px;font-weight:600;margin-bottom:6px}
+.lod-card .elem{font-size:12px;color:#aaa;margin-bottom:3px}
+.lod-card .use{font-size:11px;color:#666;margin-top:8px;border-top:1px solid #1e1e1e;padding-top:8px}
+.disc-list{list-style:none;margin-top:6px}
+.disc-list li{font-size:11px;color:#888;padding:2px 0}
+.disc-list li::before{content:'• ';color:#c8a96e}
+.phase-chip{display:inline-block;padding:2px 7px;background:#1e1e1e;border-radius:3px;font-size:10px;color:#888;margin-right:4px;margin-top:4px}
+.section-hdr{font-size:13px;font-weight:700;color:#c8a96e;text-transform:uppercase;letter-spacing:.07em;margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid #1e1e1e}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>BIM LOD Reference</h1></div>
+<div class="container">
+<h2>BIM Level of Development (LOD) Reference</h2>
+<p class="sub">AIA G202 / BIMForum LOD Specification quick-reference. Filter by discipline or LOD level.</p>
+<div class="filters">
+<input class="search" placeholder="Search elements..." id="search" oninput="filter()">
+<button class="filter-btn active" onclick="filterLOD('all',this)">All LODs</button>
+<button class="filter-btn" onclick="filterLOD('100',this)">LOD 100</button>
+<button class="filter-btn" onclick="filterLOD('200',this)">LOD 200</button>
+<button class="filter-btn" onclick="filterLOD('300',this)">LOD 300</button>
+<button class="filter-btn" onclick="filterLOD('350',this)">LOD 350</button>
+<button class="filter-btn" onclick="filterLOD('400',this)">LOD 400</button>
+<button class="filter-btn" onclick="filterLOD('500',this)">LOD 500</button>
+</div>
+<div id="content"></div>
+</div>
+<script>
+const LODS=[
+  {lod:'100',label:'LOD 100 — Conceptual',phase:'Pre-Design / Schematic',
+   desc:'Massing model. Conceptual representation. Not geometry — symbolic or generic.',
+   use:'Area/volume/orientation studies, early energy analysis, programming.',
+   items:[
+     {disc:'Architecture',elem:'Building massing, gross floor areas, orientation',info:'2D or 3D mass, no detail'},
+     {disc:'Structural',elem:'No structural elements — conceptual framing notion',info:'Placeholder only'},
+     {disc:'MEP',elem:'No systems — load estimates only',info:'Based on area/sq.ft. factors'},
+     {disc:'Site/Civil',elem:'Site boundary, topography (simplified)',info:'Contour-level accuracy'},
+   ]},
+  {lod:'200',label:'LOD 200 — Approximate Geometry',phase:'Schematic Design (SD)',
+   desc:'Generic elements with approximate quantities, size, shape, location, orientation.',
+   use:'Design coordination, system routing feasibility, early cost budgeting (±20%).',
+   items:[
+     {disc:'Architecture',elem:'Walls (generic), slabs, roofs (type not specified)',info:'Thickness ± correct; no finish detail'},
+     {disc:'Structural',elem:'Framing grid, column/beam approx sizes, slab thickness',info:'Material not confirmed; size range only'},
+     {disc:'MEP',elem:'Major equipment locations, primary routing corridors',info:'System types defined; no sizes or connections'},
+     {disc:'Site/Civil',elem:'Grading concept, major drainage, paving areas',info:'No final grades or details'},
+   ]},
+  {lod:'300',label:'LOD 300 — Precise Geometry',phase:'Design Development (DD) / CD',
+   desc:'Specific assemblies. Quantity, size, shape, location, and orientation accurate. Suitable for coordination.',
+   use:'Clash detection, bid-set deliverables, code review, spec writing.',
+   items:[
+     {disc:'Architecture',elem:'Walls w/ layers, door/window schedules, room finishes',info:'Specific materials and assemblies defined'},
+     {disc:'Structural',elem:'Specific member sizes, connection types (generic), embeds',info:'Engineer-stamped, basis-of-design'},
+     {disc:'MEP',elem:'System layouts, duct/pipe sizes, equipment schedules',info:'Coordinated with structure; no fabrication detail'},
+     {disc:'Site/Civil',elem:'Finished grades, paving types, utility rough routing',info:'Permit-ready accuracy'},
+   ]},
+  {lod:'350',label:'LOD 350 — Coordination',phase:'CD / Pre-Construction',
+   desc:'Elements include interfaces with other building systems. Sufficient for trade coordination.',
+   use:'Trade coordination, prefab planning, GC BIM coordination models.',
+   items:[
+     {disc:'Architecture',elem:'Penetrations, blocking, backing, coordination dims',info:'Coordination-ready; interface details shown'},
+     {disc:'Structural',elem:'Connection details, embed plates, shear studs, sleeves',info:'Specific connection types; shop-drawing eligible'},
+     {disc:'MEP',elem:'Hangers, supports, access panels, equipment pads',info:'Trade-level routing with supports'},
+     {disc:'Site/Civil',elem:'Utility connections, invert elevations, catch basins',info:'Constructable drawings level'},
+   ]},
+  {lod:'400',label:'LOD 400 — Fabrication',phase:'Construction',
+   desc:'Fabrication-ready. Elements modeled for assembly and fabrication — size, shape, location, orientation, quantity all construction-precise.',
+   use:'Shop drawings, prefab, modular construction, CNC fab.',
+   items:[
+     {disc:'Architecture',elem:'Custom millwork, curtain wall panels, prefab components',info:'Shop-drawing level — vendor-supplied'},
+     {disc:'Structural',elem:'Steel: all bolts, welds, holes, camber; concrete: rebar layout',info:'IFC/TEKLA export for fabrication'},
+     {disc:'MEP',elem:'Spools, fittings, penetration sleeves, equipment submittals',info:'Used for fabrication and pre-assembly'},
+     {disc:'Site/Civil',elem:'Precast elements, utility structures fully detailed',info:'Fabrication-ready'},
+   ]},
+  {lod:'500',label:'LOD 500 — As-Built / Record',phase:'Post-Construction',
+   desc:'Verified in-place. As-built conditions field-verified.',
+   use:'Facilities management, CMMS integration, commissioning, owner handover (BIM for FM).',
+   items:[
+     {disc:'Architecture',elem:'Verified as-built dims, finish records, door hardware schedules',info:'Field-verified; COBie export ready'},
+     {disc:'Structural',elem:'Verified sizes, actual connection hardware, deviations noted',info:'Inspection records attached'},
+     {disc:'MEP',elem:'Equipment serial numbers, tag IDs, O&M docs linked',info:'CMMS-ready; COBie Equipment/Component'},
+     {disc:'Site/Civil',elem:'As-built utility inverts, survey-verified grades',info:'GIS integration ready'},
+   ]},
+];
+let activeLOD='all';
+function filterLOD(lod,btn){
+  activeLOD=lod;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function filter(){render();}
+function render(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const container=document.getElementById('content');
+  container.innerHTML='';
+  LODS.filter(l=>activeLOD==='all'||l.lod===activeLOD).forEach(l=>{
+    const section=document.createElement('div');
+    section.innerHTML=`<div class="section-hdr">${l.label} <span style="font-size:11px;font-weight:400;color:#888"> — ${l.phase}</span></div>
+      <p style="font-size:12px;color:#aaa;margin-bottom:12px">${l.desc}</p>
+      <p style="font-size:11px;color:#666;margin-bottom:16px"><strong style="color:#888">Use for:</strong> ${l.use}</p>`;
+    const grid=document.createElement('div');
+    grid.className='lod-grid';
+    l.items.filter(it=>!q||it.disc.toLowerCase().includes(q)||it.elem.toLowerCase().includes(q)||it.info.toLowerCase().includes(q)).forEach(it=>{
+      const card=document.createElement('div');
+      card.className='lod-card';
+      card.innerHTML=`<span class="lod-badge lod${l.lod}">LOD ${l.lod}</span>
+        <span class="phase-chip">${it.disc}</span>
+        <h4>${it.elem}</h4>
+        <div class="elem">${it.info}</div>`;
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+}
+render();
+</script></body></html>

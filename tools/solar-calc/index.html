@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar PV Sizing | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.note{font-size:11px;color:#666;margin-top:10px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Solar PV Sizing</h1></div>
+<div class="container">
+<h2>Solar PV System Sizing</h2>
+<p class="sub">Panel count, array area, annual generation, and simple payback. Schematic-level sizing for rooftop or ground-mount PV.</p>
+<div class="card">
+<h3>Energy Demand</h3>
+<div class="grid3">
+<div><label>Monthly Energy Use (kWh)</label><input type="number" id="monthly" value="8500"></div>
+<div><label>% of Load to Offset (%)</label><input type="number" id="offset" value="80" min="10" max="100"></div>
+<div><label>Utility Rate ($/kWh)</label><input type="number" id="rate" value="0.14" step="0.01"></div>
+</div>
+</div>
+<div class="card">
+<h3>Location & System</h3>
+<div class="grid3">
+<div><label>Peak Sun Hours (hrs/day)</label>
+<select id="psh">
+<option value="3.5">Northeast US — 3.5 hrs</option>
+<option value="4.0">Midwest US — 4.0 hrs</option>
+<option value="4.5" selected>South/Southeast — 4.5 hrs</option>
+<option value="5.0">Southwest US — 5.0 hrs</option>
+<option value="5.5">Desert Southwest — 5.5 hrs</option>
+<option value="4.8">Pacific Northwest — 4.8 hrs (summer)</option>
+<option value="5.2">Northern Mexico — 5.2 hrs</option>
+<option value="5.8">Central Mexico — 5.8 hrs</option>
+</select></div>
+<div><label>Panel Wattage (W)</label>
+<select id="panW">
+<option value="380">380 W (standard)</option>
+<option value="400" selected>400 W (common)</option>
+<option value="450">450 W (high-eff)</option>
+<option value="500">500 W (premium)</option>
+<option value="600">600 W (bifacial/large)</option>
+</select></div>
+<div><label>System Efficiency (%)</label><input type="number" id="sysEff" value="80" min="50" max="95" step="1"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Panel Dimension (approx sf)</label><input type="number" id="panSF" value="22" step="0.5"></div>
+<div><label>System Cost ($/W installed)</label><input type="number" id="costW" value="2.80" step="0.10"></div>
+<div><label>Tax Credit / Incentive (%)</label><input type="number" id="itc" value="30" min="0" max="60"></div>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Size System</button>
+<div id="out" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="kPanels">—</div><div class="kpi-lbl">Panels Required</div></div>
+<div class="kpi"><div class="kpi-val" id="kDCkW">—</div><div class="kpi-lbl">DC System Size (kW)</div></div>
+<div class="kpi"><div class="kpi-val" id="kArea">—</div><div class="kpi-lbl">Array Area (sf)</div></div>
+<div class="kpi"><div class="kpi-val" id="kPayback">—</div><div class="kpi-lbl">Simple Payback (yrs)</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+<h3>Financial Summary</h3>
+<table><thead><tr><th>Item</th><th>Value</th></tr></thead>
+<tbody id="fintable"></tbody></table>
+<p class="note">30% federal ITC (US) assumed if applicable. Verify SEIA/DSIRE incentives for your jurisdiction. Net metering policies vary by utility.</p>
+</div>
+</div>
+</div>
+<script>
+function fmt(n){return '$'+Math.round(n).toLocaleString();}
+function calculate(){
+  const monthly=parseFloat(document.getElementById('monthly').value)||0;
+  const offset=parseFloat(document.getElementById('offset').value)/100||0.8;
+  const rate=parseFloat(document.getElementById('rate').value)||0.14;
+  const psh=parseFloat(document.getElementById('psh').value)||4.5;
+  const panW=parseFloat(document.getElementById('panW').value)||400;
+  const sysEff=parseFloat(document.getElementById('sysEff').value)/100||0.80;
+  const panSF=parseFloat(document.getElementById('panSF').value)||22;
+  const costW=parseFloat(document.getElementById('costW').value)||2.80;
+  const itc=parseFloat(document.getElementById('itc').value)/100||0.30;
+  const annualKWH=monthly*12*offset;
+  const dcKW=annualKWH/(psh*365*sysEff);
+  const panels=Math.ceil(dcKW*1000/panW);
+  const actualDC=panels*panW/1000;
+  const area=panels*panSF;
+  const annualGen=actualDC*psh*365*sysEff;
+  const annualSavings=annualGen*rate;
+  const grossCost=actualDC*1000*costW;
+  const netCost=grossCost*(1-itc);
+  const payback=netCost/annualSavings;
+  const co2=annualGen*0.386; // lbs CO2 avoided (US avg grid)
+  document.getElementById('kPanels').textContent=panels;
+  document.getElementById('kDCkW').textContent=actualDC.toFixed(1)+' kW';
+  document.getElementById('kArea').textContent=Math.round(area).toLocaleString()+' sf';
+  document.getElementById('kPayback').textContent=payback.toFixed(1)+' yrs';
+  const rows=[
+    ['Annual Energy Generation',Math.round(annualGen).toLocaleString()+' kWh'],
+    ['Load Offset',Math.round(annualKWH).toLocaleString()+' kWh ('+Math.round(offset*100)+'%)'],
+    ['Annual Utility Savings',fmt(annualSavings)],
+    ['Gross System Cost',fmt(grossCost)],
+    ['Federal/Incentive Credit ('+Math.round(itc*100)+'%)','-'+fmt(grossCost*itc)],
+    ['Net System Cost',fmt(netCost)],
+    ['Simple Payback',payback.toFixed(1)+' years'],
+    ['25-yr Net Savings (no escalation)',fmt(annualSavings*25-netCost)],
+    ['CO₂ Avoided / year',Math.round(co2/2000).toFixed(1)+' tons'],
+  ];
+  const tb=document.getElementById('fintable');
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r[0]}</td><td>${r[1]}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('out').style.display='block';
+}
+calculate();
+</script></body></html>

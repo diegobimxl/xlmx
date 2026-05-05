@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elevator Calculation | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:820px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:20px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600}
+.good{background:#1a3a1a;color:#4caf50}.warn{background:#2a2a1a;color:#ffb300}.poor{background:#3a1a1a;color:#ef5350}
+.note{font-size:11px;color:#666;margin-top:10px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Elevator Calculation</h1></div>
+<div class="container">
+<h2>Elevator Count & Waiting Time</h2>
+<p class="sub">Schematic-phase elevator count by building type, population, and floor count. ASME A17.1 / ANSI references. Waiting interval and handling capacity.</p>
+<div class="card">
+<h3>Building Data</h3>
+<div class="grid3">
+<div><label>Building Use</label>
+<select id="buse">
+<option value="office">Office</option>
+<option value="residential">Residential (Multi-family)</option>
+<option value="hotel">Hotel / Hospitality</option>
+<option value="hospital">Hospital / Healthcare</option>
+<option value="retail">Retail / Mixed-Use</option>
+</select></div>
+<div><label>Number of Floors (above grade)</label><input type="number" id="floors" value="12" min="2" max="80"></div>
+<div><label>Total Occupancy (persons)</label><input type="number" id="occ" value="800"></div>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div><label>Floor-to-Floor Height (ft)</label><input type="number" id="fth" value="12" step="0.5"></div>
+<div><label>Elevator Speed (fpm)</label>
+<select id="speed">
+<option value="150">150 fpm (low-rise, 2-4 fl)</option>
+<option value="350" selected>350 fpm (mid-rise, 4-12 fl)</option>
+<option value="500">500 fpm (mid-high, 12-20 fl)</option>
+<option value="800">800 fpm (high-rise, 20-40 fl)</option>
+<option value="1200">1200 fpm (super high-rise)</option>
+</select></div>
+<div><label>Car Capacity (persons)</label><input type="number" id="cap" value="13" min="4" max="20"></div>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Calculate</button>
+<div id="out" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="kCount">—</div><div class="kpi-lbl">Elevators Required</div></div>
+<div class="kpi"><div class="kpi-val" id="kWT">—</div><div class="kpi-lbl">Avg Wait Time (sec)</div></div>
+<div class="kpi"><div class="kpi-val" id="kHC">—</div><div class="kpi-lbl">Handling Capacity %</div></div>
+<div class="kpi"><div class="kpi-val" id="kRTT">—</div><div class="kpi-lbl">Round Trip Time (sec)</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+<h3>Service Metrics</h3>
+<table><thead><tr><th>Metric</th><th>Value</th><th>Standard</th><th>Assessment</th></tr></thead>
+<tbody id="metrics"></tbody></table>
+<p class="note">Calculation based on CIBSE Guide D / Barney-Dos Santos method. Average interval = RTT / number of cars. Handling capacity = % of occupants served in 5-min peak. Standards: office ≤30 sec wait, HC ≥12%.</p>
+</div>
+</div>
+</div>
+<script>
+function calculate(){
+  const use=document.getElementById('buse').value;
+  const floors=parseInt(document.getElementById('floors').value)||12;
+  const occ=parseFloat(document.getElementById('occ').value)||800;
+  const fth=parseFloat(document.getElementById('fth').value)||12;
+  const speed=parseFloat(document.getElementById('speed').value)||350;
+  const cap=parseFloat(document.getElementById('cap').value)||13;
+  // Round trip time (seconds) — simplified Barney method
+  const travelHeight=floors*fth;
+  const travelTime=(travelHeight/speed)*60*2; // up and down
+  const avgStops=Math.ceil(floors*0.65);
+  const doorTime=avgStops*5; // 5 sec per stop (door open/close)
+  const loadTime=cap*0.8*1.2; // avg passengers × boarding time
+  const rtt=travelTime+doorTime+loadTime;
+  // Interval = RTT / cars; try to hit interval target
+  const targetInterval={office:30,residential:50,hotel:40,hospital:30,retail:35};
+  const tgt=targetInterval[use]||30;
+  const carsNeeded=Math.ceil(rtt/tgt);
+  const interval=rtt/carsNeeded;
+  // Handling capacity: passengers served in 5 min / total pop
+  const hc=((carsNeeded*(300/rtt)*cap*0.8)/occ*100);
+  const wtStds={office:{wt:30,hc:12},residential:{wt:60,hc:8},hotel:{wt:40,hc:10},hospital:{wt:30,hc:12},retail:{wt:45,hc:10}};
+  const std=wtStds[use];
+  document.getElementById('kCount').textContent=carsNeeded;
+  document.getElementById('kWT').textContent=Math.round(interval)+' sec';
+  document.getElementById('kHC').textContent=hc.toFixed(1)+'%';
+  document.getElementById('kRTT').textContent=Math.round(rtt)+' sec';
+  const checks=[
+    {n:'Average Wait Interval',val:Math.round(interval)+'s',std:std.wt+'s',pass:interval<=std.wt},
+    {n:'Handling Capacity (5-min peak)',val:hc.toFixed(1)+'%',std:std.hc+'%',pass:hc>=std.hc},
+    {n:'Car Capacity Adequacy',val:cap+' persons',std:'Min 8 persons',pass:cap>=8},
+    {n:'Number of Cars',val:carsNeeded,std:'≥ 1',pass:carsNeeded>=1},
+  ];
+  const tb=document.getElementById('metrics');
+  tb.innerHTML='';
+  checks.forEach(ch=>{
+    const cls=ch.pass?'good':'poor';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${ch.n}</td><td>${ch.val}</td><td>${ch.std}</td><td><span class="badge ${cls}">${ch.pass?'OK':'Review'}</span></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('out').style.display='block';
+}
+calculate();
+</script></body></html>

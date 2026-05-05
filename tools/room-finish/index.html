@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Room Finish Schedule | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:1100px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer}
+.btn:hover{background:#d4b97e}
+.btn-sec{background:#1e1e1e;color:#c8a96e;border:1px solid #333}
+.btn-sec:hover{background:#2a2a2a}
+input,select{background:#1e1e1e;border:1px solid #333;border-radius:4px;padding:6px 8px;color:#e8e8e8;font-size:12px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+th{background:#1a1a1a;color:#aaa;font-weight:600;padding:7px 10px;text-align:left;border-bottom:1px solid #2a2a2a;white-space:nowrap}
+td{padding:5px 8px;border-bottom:1px solid #1a1a1a;vertical-align:middle}
+td input,td select{width:100%;border-color:#1e1e1e}
+td input:focus,td select:focus{outline:none;border-color:#c8a96e}
+.del-btn{background:#2a1a1a;color:#ef5350;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px}
+.count{font-size:12px;color:#888}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Room Finish Schedule</h1></div>
+<div class="container">
+<h2>Room Finish Schedule</h2>
+<p class="sub">Live room finish schedule generator. Add rooms, assign finishes, and export. Print from browser for submittal sets.</p>
+<div class="card">
+<div class="toolbar">
+<button class="btn" onclick="addRow()">+ Add Room</button>
+<button class="btn btn-sec" onclick="addTemplate()">+ Office Template</button>
+<button class="btn btn-sec" onclick="window.print()">Print / Export</button>
+<span class="count" id="roomCount">0 rooms</span>
+</div>
+<div class="tbl-wrap">
+<table>
+<thead><tr>
+<th>Rm #</th><th>Room Name</th><th>Floor (Lvl)</th>
+<th>FL — Floor Finish</th><th>FL Base</th>
+<th>WL — Wall Finish</th><th>WL Paint</th>
+<th>CL — Ceiling</th><th>CL Ht</th>
+<th>Remarks</th><th></th>
+</tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<style>
+@media print{
+  .topbar,.toolbar,.del-btn{display:none!important}
+  body{background:#fff;color:#000}
+  .card{border:none;padding:0}
+  table{font-size:10px}
+  th{background:#ddd!important;color:#000!important}
+  td{border:1px solid #ccc}
+}
+</style>
+<script>
+const FLOORS=['CPT-1','CPT-2','CT-1','CT-2','VCT-1','PT Conc','WD-1','Stone-1','Terrazzo','ESD Tile'];
+const BASES=['RB-1 (4" Rubber)','RB-2 (6" Rubber)','TB-1 (4" Tile)','WB-1 (Wood)','None'];
+const WALLS=['GWB (P-1)','GWB (P-2)','CT-W (Tile)','ACT Panel','Fabric WP','Glazing','Exposed CMU','None'];
+const CEILINGS=['ACT-2x4','ACT-2x2','GWB Susp.','Exposed (Open)','Gypsum Plank','Metal Pan','Plaster'];
+let rooms=[
+  {n:'101',name:'Entry Lobby',lvl:'L1',fl:'Stone-1',fb:'TB-1 (4" Tile)',wl:'GWB (P-2)',wp:'P-2 (White)',cl:'ACT-2x4',ch:"10'-0\"",rem:'Monumental flooring'},
+  {n:'102',name:'Reception',lvl:'L1',fl:'CPT-1',fb:'RB-1 (4" Rubber)',wl:'GWB (P-1)',wp:'P-1 (Warm Gray)',cl:'GWB Susp.',ch:"9'-6\"",rem:''},
+  {n:'103',name:'Open Office',lvl:'L1',fl:'CPT-2',fb:'RB-1 (4" Rubber)',wl:'GWB (P-1)',wp:'P-1 (Warm Gray)',cl:'ACT-2x2',ch:"9'-0\"",rem:'Raised floor system'},
+  {n:'104',name:'Conference Rm',lvl:'L1',fl:'CPT-1',fb:'WB-1 (Wood)',wl:'GWB (P-2)',wp:'P-3 (Accent)',cl:'GWB Susp.',ch:"9'-6\"",rem:'AV-ready'},
+  {n:'105',name:'Break Room',lvl:'L1',fl:'CT-2',fb:'TB-1 (4" Tile)',wl:'CT-W (Tile)',wp:'',cl:'ACT-2x4',ch:"9'-0\"",rem:'Tile to 48"H'},
+];
+function render(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  rooms.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const optFL=FLOORS.map(f=>`<option ${f===r.fl?'selected':''}>${f}</option>`).join('');
+    const optFB=BASES.map(f=>`<option ${f===r.fb?'selected':''}>${f}</option>`).join('');
+    const optWL=WALLS.map(f=>`<option ${f===r.wl?'selected':''}>${f}</option>`).join('');
+    const optCL=CEILINGS.map(f=>`<option ${f===r.cl?'selected':''}>${f}</option>`).join('');
+    tr.innerHTML=`
+      <td><input value="${r.n}" onchange="rooms[${i}].n=this.value" style="width:55px"></td>
+      <td><input value="${r.name}" onchange="rooms[${i}].name=this.value" style="width:140px"></td>
+      <td><input value="${r.lvl}" onchange="rooms[${i}].lvl=this.value" style="width:40px"></td>
+      <td><select onchange="rooms[${i}].fl=this.value">${optFL}</select></td>
+      <td><select onchange="rooms[${i}].fb=this.value">${optFB}</select></td>
+      <td><select onchange="rooms[${i}].wl=this.value">${optWL}</select></td>
+      <td><input value="${r.wp}" onchange="rooms[${i}].wp=this.value" style="width:120px" placeholder="Paint color/code"></td>
+      <td><select onchange="rooms[${i}].cl=this.value">${optCL}</select></td>
+      <td><input value="${r.ch}" onchange="rooms[${i}].ch=this.value" style="width:65px"></td>
+      <td><input value="${r.rem}" onchange="rooms[${i}].rem=this.value" style="width:150px" placeholder="Notes"></td>
+      <td><button class="del-btn" onclick="rooms.splice(${i},1);render()">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('roomCount').textContent=rooms.length+' rooms';
+}
+function addRow(){
+  rooms.push({n:(rooms.length+101).toString(),name:'New Room',lvl:'L1',fl:'CPT-1',fb:'RB-1 (4" Rubber)',wl:'GWB (P-1)',wp:'',cl:'ACT-2x4',ch:"9'-0\"",rem:''});
+  render();
+}
+function addTemplate(){
+  const tpl=[
+    {n:'201',name:'Private Office',lvl:'L2',fl:'CPT-2',fb:'RB-1 (4" Rubber)',wl:'GWB (P-1)',wp:'P-1',cl:'ACT-2x2',ch:"9'-0\"",rem:''},
+    {n:'202',name:'Restroom (Mens)',lvl:'L2',fl:'CT-1',fb:'TB-1 (4" Tile)',wl:'CT-W (Tile)',wp:'',cl:'GWB Susp.',ch:"9'-0\"",rem:'Tile floor to wainscot'},
+    {n:'203',name:'Electrical Room',lvl:'L2',fl:'PT Conc',fb:'None',wl:'GWB (P-1)',wp:'',cl:'Exposed (Open)',ch:"Struct",rem:'Painted slab'},
+  ];
+  rooms.push(...tpl);
+  render();
+}
+render();
+</script></body></html>
