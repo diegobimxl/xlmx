@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -117,6 +117,8 @@ var TOOLS=[
   {n:'Schedule of Values',d:'Track contract line items, % complete, work done, stored materials, and balance to finish.',c:'Project Management',u:'/tools/schedule-of-values/',s:'live'},
   {n:'Punch List',d:'Track construction deficiencies and closeout items. Filter by status, trade, and location.',c:'Project Management',u:'/tools/punch-list/',s:'live'},
   {n:'Change Order Log',d:'Log all change orders with status, cost and schedule impact, and running contract total.',c:'Project Management',u:'/tools/change-order-log/',s:'live'},
+  {n:'Material Takeoff',d:'QTO with unit costs, waste factor, and category summary.',c:'Project Management',u:'/tools/material-takeoff/',s:'live'},
+  {n:'Draw Schedule',d:'Construction loan draw tracker by CSI division with retainage.',c:'Project Management',u:'/tools/draw-schedule/',s:'live'},
   {n:'Daily Construction Report',d:'Standardized daily site report with crew, materials, weather, and next-day plan. Print-ready.',c:'Project Management',u:'/tools/daily-report/',s:'live'},
   {n:'Project Budget Tracker',d:'Compare budget vs actual vs EAC by cost category. Track variance and contingency burn.',c:'Project Management',u:'/tools/budget-tracker/',s:'live'},
   {n:'Punch List Manager',d:'Manage closeout punch items by area, trade, assignee, and completion status.',c:'Project Management',s:'soon'},
@@ -134,6 +136,9 @@ var TOOLS=[
   {n:'Occupancy Load Calculator',d:'Calculate occupant loads per IBC based on use type and floor area.',c:'Architecture & Design',s:'soon'},
   {n:'Parking Ratio Calculator',d:'Determine required parking count by use type, area, and jurisdiction ratio.',c:'Architecture & Design',s:'soon'},
   {n:'Seller Net Sheet',d:'Estimate seller net proceeds after commissions, closing costs, mortgage payoff, and taxes.',c:'Real Estate & Development',u:'/tools/net-sheet/',s:'live'},
+  {n:'Dev Proforma',d:'Full development proforma: cost stack, GDV, margin, yield on cost.',c:'Real Estate & Development',u:'/tools/dev-proforma/',s:'live'},
+  {n:'Waterfall Model',d:'LP/GP investment waterfall: pref return, catch-up, and promote split.',c:'Real Estate & Development',u:'/tools/waterfall-model/',s:'live'},
+  {n:'Occupancy Cost',d:'Total lease cost: base rent, OpEx, utilities, parking, TI amortized.',c:'Real Estate & Development',u:'/tools/occupancy-cost/',s:'live'},
   {n:'Development Density Calculator',d:'Units per acre, SF density, FAR, or minimum land area required for a development program.',c:'Real Estate & Development',u:'/tools/density-calc/',s:'live'},
   {n:'Depreciation Calculator',d:'Straight-line, declining balance, and SYD depreciation schedules for real estate assets.',c:'Real Estate & Development',u:'/tools/depreciation-calc/',s:'live'},
   {n:'Loan Amortization',d:'Full amortization schedule with monthly payment, principal, interest split, and payoff date.',c:'Real Estate & Development',u:'/tools/amortization/',s:'live'},
@@ -167,6 +172,8 @@ var TOOLS=[
   {n:'Loan-to-Value Calculator',d:'Calculate LTV ratio, max loan amount, and required equity for any property value.',c:'Real Estate & Development',u:'/tools/ltv-calc/',s:'live'},
   {n:'ROI Calculator',d:'Calculate total ROI, annualized ROI, CAGR, and equity multiple for any investment.',c:'Real Estate & Development',u:'/tools/roi-calculator/',s:'live'},
   {n:'DSCR Calculator',d:'Debt Service Coverage Ratio: verify a property can service its debt from NOI.',c:'Real Estate & Development',u:'/tools/dscr-calc/',s:'live'},
+  {n:'Break-Even Analysis',d:'Units and revenue break-even with price sensitivity table.',c:'Calculators',u:'/tools/break-even/',s:'live'},
+  {n:'Concrete Mix',d:'Volume, bags, and ACI 211 mix design proportions by element type.',c:'Calculators',u:'/tools/concrete-mix/',s:'live'},
   {n:'IRR Calculator',d:'Internal Rate of Return with NPV, MOIC, and multi-year cash flow entry.',c:'Real Estate & Development',u:'/tools/irr-calc/',s:'live'},
   {n:'FAR Calculator',d:'Floor Area Ratio: calculate FAR, max buildable area by zoning, or min lot size.',c:'Real Estate & Development',u:'/tools/far-calc/',s:'live'},
   {n:'Parking Ratio Calculator',d:'Required parking spaces by use type, ratio, and building area with surplus/deficit.',c:'Real Estate & Development',u:'/tools/parking-calc/',s:'live'},
@@ -240,7 +247,6 @@ var TOOLS=[
   {n:'Percentage Calculator',d:'Quick percentage, change, and markup/margin calculations.',c:'Calculators',s:'live',u:'/tools/percentage-calc/'},
   {n:'Area & Perimeter Calculator',d:'Calculate area and perimeter for rectangles, circles, triangles, and L-shapes.',c:'Calculators',s:'live',u:'/tools/area-calc/'},
   {n:'Volume Calculator',d:'Calculate volumes for common geometric shapes used in construction.',c:'Calculators',u:'/tools/volume-calc/',s:'live'},
-  {n:'Concrete Mix Estimator',d:'Estimate cement, sand, aggregate, and water quantities for any pour by volume and mix design.',c:'Calculators',u:'/tools/concrete-mix/',s:'live'},
   {n:'Unit Weight Calculator',d:'Calculate the weight of construction materials by volume using standard unit weights.',c:'Calculators',u:'/tools/unit-weight-calc/',s:'live'},
   {n:'Drywall Calculator',d:'Estimate sheets, joint compound, tape, and screws for walls and ceilings.',c:'Calculators',u:'/tools/drywall-calc/',s:'live'},
   {n:'Paint Calculator',d:'Estimate gallons needed by surface area, coats, coverage rate, and waste factor.',c:'Calculators',u:'/tools/paint-calc/',s:'live'},
@@ -248,6 +254,9 @@ var TOOLS=[
   {n:'Construction Cost Estimator',d:'Parametric hard cost estimate by building type, market, and stories. US benchmarks.',c:'Calculators',u:'/tools/construction-cost/',s:'live'},
   {n:'Simple Beam Calculator',d:'Reactions, maximum moment, and midspan deflection for UDL and point-loaded simply supported beams.',c:'Calculators',u:'/tools/beam-calc/',s:'live'},
   {n:'Wind Load Reference',d:'Simplified ASCE 7 wind pressure: velocity pressure, wall forces, and overturning moment.',c:'Calculators',u:'/tools/wind-load/',s:'live'},
+  {n:'Pipe Sizing',d:'Hazen-Williams pipe sizing: diameter by flow, or head loss by size.',c:'MEP',u:'/tools/pipe-sizing/',s:'live'},
+  {n:'Duct Sizing',d:'HVAC duct sizing via equal friction method. Round and rectangular equivalent.',c:'MEP',u:'/tools/duct-sizing/',s:'live'},
+  {n:'LPD Calculator',d:'Lighting power density vs ASHRAE 90.1 allowance. Space-by-space.',c:'MEP',u:'/tools/lpd-calc/',s:'live'},
   {n:'Column Load Takedown',d:'Cumulative axial load on a column by floor with dead/live separation and factored Pu.',c:'Calculators',u:'/tools/column-load/',s:'live'},
   {n:'Slope & Grade Calculator',d:'Convert between slope percentage, ratio, degrees, and rise/run.',c:'Calculators',s:'live',u:'/tools/slope-calc/'},
   {n:'Aspect Ratio Calculator',d:'Calculate and lock aspect ratios for drawings, images, and scaled plans.',c:'Calculators',s:'soon'},
