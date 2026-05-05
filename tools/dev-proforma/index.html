@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Development Proforma | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.col2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:32px;font-weight:700;text-align:center;padding:8px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.green{color:#52c87a}.red{color:#e05252}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.kpi-lbl{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase}.kpi-val{font-size:17px;font-weight:700;color:#c8a96e}
+.divider{border-top:1px solid #2a2a2a;margin:8px 0}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Development Proforma</h1></div>
+<div class="container">
+<p class="desc">Simplified real estate development proforma: cost stack, revenue, profit margin, ROC, and project IRR estimate.</p>
+<div class="col2">
+<div>
+<div class="section">
+<h2>Land &amp; Hard Costs</h2>
+<div class="field"><label>Land Cost ($)</label><input type="number" id="land" placeholder="2000000"></div>
+<div class="field"><label>Hard Construction Cost ($)</label><input type="number" id="hard" placeholder="8000000"></div>
+<div class="field"><label>Contingency (%)</label><input type="number" id="cont" value="10" min="0" max="30"></div>
+</div>
+<div class="section">
+<h2>Soft Costs &amp; Financing</h2>
+<div class="field"><label>Soft Costs (%)</label><input type="number" id="soft" value="15" min="0" max="40"></div>
+<div class="field"><label>Financing / Interest Reserve (%)</label><input type="number" id="fin" value="5" min="0" max="20"></div>
+<div class="field"><label>Developer Fee (%)</label><input type="number" id="devfee" value="4" min="0" max="10"></div>
+</div>
+<div class="section">
+<h2>Revenue</h2>
+<div class="field"><label>Gross Sale / GDV ($)</label><input type="number" id="gdv" placeholder="15000000"></div>
+<div class="field"><label>Selling Costs / Broker (%)</label><input type="number" id="sell" value="3" min="0"></div>
+<div class="field"><label>Stabilized NOI (if hold, annual $)</label><input type="number" id="noi" placeholder="0"></div>
+<div class="field"><label>Exit Cap Rate (if hold, %)</label><input type="number" id="cap" value="5.5" step="0.25"></div>
+<button class="btn" onclick="calc()">Run Proforma</button>
+</div>
+</div>
+<div>
+<div class="kpi-grid">
+<div class="kpi"><div class="kpi-lbl">Total Cost</div><div class="kpi-val" id="k-cost">&#8212;</div></div>
+<div class="kpi"><div class="kpi-lbl">Net Revenue</div><div class="kpi-val" id="k-rev">&#8212;</div></div>
+<div class="kpi"><div class="kpi-lbl">Profit</div><div class="kpi-val" id="k-profit">&#8212;</div></div>
+<div class="kpi"><div class="kpi-lbl">Yield on Cost</div><div class="kpi-val" id="k-yoc">&#8212;</div></div>
+</div>
+<div class="section">
+<h2>Cost Stack</h2>
+<div class="result-row"><span class="result-label">Land</span><span class="result-val" id="r-land">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Hard Construction</span><span class="result-val" id="r-hard">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Contingency</span><span class="result-val" id="r-cont">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Soft Costs</span><span class="result-val" id="r-soft">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Financing / Interest</span><span class="result-val" id="r-fin">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Developer Fee</span><span class="result-val" id="r-devfee">&#8212;</span></div>
+<div class="result-row"><span class="result-label" style="font-weight:600">Total Cost</span><span class="result-val gold" id="r-total">&#8212;</span></div>
+<div class="divider"></div>
+<div class="result-row"><span class="result-label">GDV / Sale Price</span><span class="result-val" id="r-gdv">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Selling Costs</span><span class="result-val" id="r-sell">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Net Revenue</span><span class="result-val" id="r-netrev">&#8212;</span></div>
+<div class="divider"></div>
+<div class="result-row"><span class="result-label">Profit / Developer Gain</span><span class="result-val" id="r-profit">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Profit Margin (%)</span><span class="result-val" id="r-margin">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Return on Cost (ROC)</span><span class="result-val" id="r-roc">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Value (cap rate method)</span><span class="result-val" id="r-capval">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Spread to Replacement Cost</span><span class="result-val" id="r-spread">&#8212;</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function fm(n){return(n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString("en-US")}
+function fp(n){return n.toFixed(2)+"%"}
+function calc(){
+var land=parseFloat(document.getElementById("land").value)||0;
+var hard=parseFloat(document.getElementById("hard").value)||0;
+var cont=parseFloat(document.getElementById("cont").value)||0;
+var soft=parseFloat(document.getElementById("soft").value)||0;
+var fin=parseFloat(document.getElementById("fin").value)||0;
+var devfee=parseFloat(document.getElementById("devfee").value)||0;
+var gdv=parseFloat(document.getElementById("gdv").value)||0;
+var sell=parseFloat(document.getElementById("sell").value)||0;
+var noi=parseFloat(document.getElementById("noi").value)||0;
+var cap=parseFloat(document.getElementById("cap").value)||0;
+var contAmt=hard*cont/100;
+var hardBase=land+hard+contAmt;
+var softAmt=hardBase*soft/100;
+var finAmt=hardBase*fin/100;
+var feeAmt=hardBase*devfee/100;
+var totalCost=hardBase+softAmt+finAmt+feeAmt;
+var sellAmt=gdv*sell/100;
+var netRev=gdv-sellAmt;
+var profit=netRev-totalCost;
+var margin=gdv>0?profit/gdv*100:0;
+var roc=totalCost>0?profit/totalCost*100:0;
+var capVal=cap>0?noi/(cap/100):0;
+var spread=capVal>0&&noi>0?(capVal-totalCost)/totalCost*100:null;
+document.getElementById("k-cost").textContent=fm(totalCost);
+document.getElementById("k-rev").textContent=fm(netRev);
+document.getElementById("k-profit").textContent=fm(profit);
+document.getElementById("k-profit").parentElement.querySelector(".kpi-val").className="kpi-val "+(profit>=0?"green":"red");
+document.getElementById("k-yoc").textContent=noi>0&&totalCost>0?fp(noi/totalCost*100):"N/A";
+document.getElementById("r-land").textContent=fm(land);document.getElementById("r-hard").textContent=fm(hard);
+document.getElementById("r-cont").textContent=fm(contAmt);document.getElementById("r-soft").textContent=fm(softAmt);
+document.getElementById("r-fin").textContent=fm(finAmt);document.getElementById("r-devfee").textContent=fm(feeAmt);
+document.getElementById("r-total").textContent=fm(totalCost);document.getElementById("r-gdv").textContent=fm(gdv);
+document.getElementById("r-sell").textContent="-"+fm(sellAmt);document.getElementById("r-netrev").textContent=fm(netRev);
+document.getElementById("r-profit").textContent=fm(profit);document.getElementById("r-profit").className="result-val "+(profit>=0?"green":"red");
+document.getElementById("r-margin").textContent=fp(margin);document.getElementById("r-roc").textContent=fp(roc);
+document.getElementById("r-capval").textContent=capVal>0?fm(capVal):"Enter NOI + cap rate";
+document.getElementById("r-spread").textContent=spread!==null?fp(spread)+" above cost":"N/A";
+}
+</script></body></html>

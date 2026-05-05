@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lighting Power Density | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.results{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:18px;text-align:center}
+.kpi-val{font-size:26px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600;margin-top:10px}
+.pass{background:#1a3a1a;color:#4caf50}.fail{background:#3a1a1a;color:#ef5350}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:left;border-bottom:1px solid #2a2a2a}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc}
+tr:hover td{background:#1a1a1a}
+.highlight td{color:#c8a96e;font-weight:600}
+.row-add{display:flex;gap:10px;align-items:flex-end;margin-top:12px}
+.row-add input{flex:1}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Lighting Power Density Calculator</h1></div>
+<div class="container">
+<h2>LPD Calculator</h2>
+<p class="sub">ASHRAE 90.1 Whole-Building & Space-by-Space method. Verify compliance against code allowances.</p>
+<div class="card">
+<h3>Building / Space Inputs</h3>
+<div class="grid2">
+<div><label>Building Type (Whole-Building)</label>
+<select id="btype" onchange="setAllowance()">
+<option value="0.82">Office — 0.82 W/sf</option>
+<option value="1.05">Retail — 1.05 W/sf</option>
+<option value="0.71">Warehouse — 0.71 W/sf</option>
+<option value="0.87">School/University — 0.87 W/sf</option>
+<option value="0.75">Healthcare (Hospital) — 0.75 W/sf</option>
+<option value="0.98">Hotel/Motel — 0.98 W/sf</option>
+<option value="1.10">Restaurant — 1.10 W/sf</option>
+<option value="0.90">Mixed-Use — 0.90 W/sf</option>
+<option value="custom">Custom Allowance</option>
+</select></div>
+<div><label>ASHRAE 90.1 Allowance (W/sf)</label><input type="number" id="allowance" value="0.82" step="0.01" min="0.1"></div>
+</div>
+</div>
+<div class="card">
+<h3>Space-by-Space Entry</h3>
+<table id="spacetbl">
+<thead><tr><th>Space Name</th><th>Area (sf)</th><th>Watts Installed</th><th>LPD (W/sf)</th><th></th></tr></thead>
+<tbody id="spacebody"></tbody>
+</table>
+<div class="row-add">
+<input type="text" id="sname" placeholder="Space name" style="flex:2">
+<input type="number" id="sarea" placeholder="Area (sf)" min="1">
+<input type="number" id="swatts" placeholder="Watts" min="1">
+<button class="btn" onclick="addSpace()">Add</button>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Calculate Compliance</button>
+<div class="results" id="results" style="display:none">
+<div class="kpi"><div class="kpi-val" id="rTotalSF">—</div><div class="kpi-lbl">Total Area (sf)</div></div>
+<div class="kpi"><div class="kpi-val" id="rTotalW">—</div><div class="kpi-lbl">Total Watts</div></div>
+<div class="kpi"><div class="kpi-val" id="rActualLPD">—</div><div class="kpi-lbl">Actual LPD (W/sf)</div></div>
+</div>
+<div id="verdict" style="text-align:center;margin-top:16px"></div>
+<div class="card" id="refcard" style="margin-top:20px">
+<h3>ASHRAE 90.1-2019 Quick Reference</h3>
+<table><thead><tr><th>Space Type</th><th>Allowance (W/sf)</th></tr></thead>
+<tbody>
+<tr><td>Office — Open Plan</td><td>0.61</td></tr>
+<tr><td>Office — Enclosed</td><td>0.74</td></tr>
+<tr><td>Corridor</td><td>0.41</td></tr>
+<tr><td>Lobby</td><td>0.84</td></tr>
+<tr><td>Conference Room</td><td>1.23</td></tr>
+<tr><td>Classroom</td><td>0.71</td></tr>
+<tr><td>Break Room / Kitchen</td><td>0.65</td></tr>
+<tr><td>Restroom</td><td>0.63</td></tr>
+<tr><td>Parking Garage</td><td>0.15</td></tr>
+<tr><td>Stairwell</td><td>0.49</td></tr>
+</tbody></table>
+</div>
+</div>
+<script>
+const spaces=[];
+function setAllowance(){
+  const v=document.getElementById('btype').value;
+  if(v!=='custom') document.getElementById('allowance').value=v;
+}
+function addSpace(){
+  const n=document.getElementById('sname').value.trim();
+  const a=parseFloat(document.getElementById('sarea').value);
+  const w=parseFloat(document.getElementById('swatts').value);
+  if(!n||!a||!w) return alert('Fill all space fields');
+  spaces.push({n,a,w});
+  renderTable();
+  document.getElementById('sname').value='';
+  document.getElementById('sarea').value='';
+  document.getElementById('swatts').value='';
+}
+function removeSpace(i){spaces.splice(i,1);renderTable();}
+function renderTable(){
+  const tb=document.getElementById('spacebody');
+  tb.innerHTML='';
+  spaces.forEach((s,i)=>{
+    const lpd=(s.w/s.a).toFixed(3);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${s.n}</td><td>${s.a.toLocaleString()}</td><td>${s.w.toLocaleString()}</td><td>${lpd}</td><td><button onclick="removeSpace(${i})" style="background:#2a1a1a;color:#ef5350;border:none;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function calculate(){
+  if(!spaces.length){
+    // demo data
+    spaces.push({n:'Open Office',a:4200,w:2940});
+    spaces.push({n:'Conference',a:600,w:738});
+    spaces.push({n:'Lobby',a:400,w:336});
+    spaces.push({n:'Break Room',a:300,w:195});
+    renderTable();
+  }
+  const totalSF=spaces.reduce((s,x)=>s+x.a,0);
+  const totalW=spaces.reduce((s,x)=>s+x.w,0);
+  const actualLPD=totalW/totalSF;
+  const allowance=parseFloat(document.getElementById('allowance').value);
+  document.getElementById('rTotalSF').textContent=totalSF.toLocaleString();
+  document.getElementById('rTotalW').textContent=totalW.toLocaleString()+' W';
+  document.getElementById('rActualLPD').textContent=actualLPD.toFixed(3)+' W/sf';
+  document.getElementById('results').style.display='grid';
+  const pct=((actualLPD/allowance)*100).toFixed(1);
+  const pass=actualLPD<=allowance;
+  document.getElementById('verdict').innerHTML=`<span class="badge ${pass?'pass':'fail'}">${pass?'COMPLIANT':'NON-COMPLIANT'} — ${pct}% of allowance (${allowance} W/sf)</span>`;
+}
+// preload one space row for demo visibility
+spaces.push({n:'Open Office',a:4200,w:2940});
+renderTable();
+</script></body></html>

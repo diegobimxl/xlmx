@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Investment Waterfall | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:13px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px 20px}
+h2{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{color:#888;font-size:13px;margin-bottom:28px}
+.card{background:#151515;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:20px}
+.card h3{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px}
+input,select{width:100%;background:#1e1e1e;border:1px solid #333;border-radius:5px;padding:8px 10px;color:#e8e8e8;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:5px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{background:#d4b97e}
+.tier{border-left:3px solid #c8a96e;padding-left:14px;margin-bottom:14px}
+.tier-title{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:8px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+th{background:#1e1e1e;color:#aaa;font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
+th:first-child{text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #1e1e1e;color:#ccc;text-align:right}
+td:first-child{text-align:left;color:#e8e8e8}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#c8a96e}
+.kpi-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.note{font-size:11px;color:#666;margin-top:8px}
+.bar-wrap{height:12px;background:#1e1e1e;border-radius:6px;margin-top:6px;overflow:hidden}
+.bar-fill{height:100%;background:#c8a96e;border-radius:6px;transition:width .4s}
+</style></head><body>
+<div class="topbar"><a href="/tools/">← Tools</a><h1>Investment Waterfall Model</h1></div>
+<div class="container">
+<h2>Investment Waterfall</h2>
+<p class="sub">Two-tier promote waterfall. LP return of capital → preferred return → catch-up → residual split. Typical US private real estate structure.</p>
+<div class="card">
+<h3>Capital Structure</h3>
+<div class="grid4">
+<div><label>LP Equity Contribution ($)</label><input type="number" id="lpEq" value="4000000"></div>
+<div><label>GP Equity Contribution ($)</label><input type="number" id="gpEq" value="200000"></div>
+<div><label>Hold Period (years)</label><input type="number" id="hold" value="5" min="1" max="30"></div>
+<div><label>Total Distributions ($)</label><input type="number" id="dist" value="7500000"></div>
+</div>
+</div>
+<div class="card">
+<h3>Waterfall Tiers</h3>
+<div class="tier">
+<div class="tier-title">Tier 1 — Preferred Return</div>
+<div class="grid3">
+<div><label>LP Preferred Return (%/yr)</label><input type="number" id="pref" value="8" step="0.1"></div>
+<div><label>LP / GP Split (Tier 1 residual)</label><input type="number" id="t1lp" value="80" min="1" max="99"> <span style="font-size:11px;color:#666">% LP (remainder GP)</span></div>
+</div>
+</div>
+<div class="tier">
+<div class="tier-title">Tier 2 — GP Catch-Up then Promote</div>
+<div class="grid3">
+<div><label>Hurdle Rate IRR (%)</label><input type="number" id="hurdle" value="12" step="0.1"></div>
+<div><label>GP Catch-Up (%)</label><input type="number" id="catchup" value="100" min="0" max="100"> <span style="font-size:11px;color:#666">% to GP until even</span></div>
+<div><label>LP / GP Split (Tier 2+)</label><input type="number" id="t2lp" value="70" min="1" max="99"> <span style="font-size:11px;color:#666">% LP (remainder GP)</span></div>
+</div>
+</div>
+</div>
+<button class="btn" onclick="calculate()">Run Waterfall</button>
+<div id="out" style="display:none">
+<div class="kpis">
+<div class="kpi"><div class="kpi-val" id="rLPTotal">—</div><div class="kpi-lbl">LP Total Return</div></div>
+<div class="kpi"><div class="kpi-val" id="rGPTotal">—</div><div class="kpi-lbl">GP Total Return</div></div>
+<div class="kpi"><div class="kpi-val" id="rLPMOIC">—</div><div class="kpi-lbl">LP MOIC</div></div>
+<div class="kpi"><div class="kpi-val" id="rGPMOIC">—</div><div class="kpi-lbl">GP MOIC</div></div>
+</div>
+<div class="card" style="margin-top:20px">
+<h3>Waterfall Allocation Detail</h3>
+<table id="wftable">
+<thead><tr><th>Tier</th><th>Pool Available</th><th>LP Receives</th><th>GP Receives</th><th>Remaining</th></tr></thead>
+<tbody id="wfbody"></tbody>
+</table>
+<p class="note">Simplified model: pref accrues simple interest on LP equity; catch-up allocates residual pro-rata to GP until GP pref achieved; remainder splits at Tier 2 ratio.</p>
+</div>
+</div>
+</div>
+<script>
+function $$(id){return parseFloat(document.getElementById(id).value)||0;}
+function fmt(n){return '$'+Math.round(n).toLocaleString();}
+function pct(n,t){return t>0?((n/t)*100).toFixed(1)+'%':'0%';}
+function calculate(){
+  const lpEq=$$('lpEq'), gpEq=$$('gpEq'), hold=$$('hold'), dist=$$('dist');
+  const pref=$$('pref')/100, t1lp=$$('t1lp')/100, hurdle=$$('hurdle')/100;
+  const cu=$$('catchup')/100, t2lp=$$('t2lp')/100;
+  const totalEq=lpEq+gpEq;
+  let pool=dist;
+  const rows=[];
+  let lpTotal=0, gpTotal=0;
+  // Tier 0: return of capital
+  const rocLP=Math.min(pool, lpEq);
+  pool-=rocLP; lpTotal+=rocLP;
+  const rocGP=Math.min(pool, gpEq);
+  pool-=rocGP; gpTotal+=rocGP;
+  rows.push({label:'Return of Capital',avail:dist,lp:rocLP,gp:rocGP,rem:pool});
+  // Tier 1: LP preferred return (simple)
+  const prefAmt=lpEq*pref*hold;
+  const t1=Math.min(pool,prefAmt);
+  const t1lpAmt=t1; const t1gpAmt=0;
+  pool-=t1; lpTotal+=t1lpAmt; gpTotal+=t1gpAmt;
+  rows.push({label:`LP Pref Return (${(pref*100).toFixed(1)}%/yr × ${hold}yr)`,avail:pool+t1,lp:t1lpAmt,gp:t1gpAmt,rem:pool});
+  // Tier 1 residual split (pre-hurdle excess)
+  // GP catch-up: GP gets distributions until GP has received same pref%
+  const gpPrefTarget=gpEq*pref*hold;
+  const cuAmt=Math.min(pool, gpPrefTarget);
+  const cuGP=cuAmt*cu; const cuLP=cuAmt*(1-cu);
+  pool-=cuAmt; lpTotal+=cuLP; gpTotal+=cuGP;
+  rows.push({label:`GP Catch-Up (${(cu*100).toFixed(0)}% to GP)`,avail:pool+cuAmt,lp:cuLP,gp:cuGP,rem:pool});
+  // Remaining: split at Tier 2 ratio
+  const resLP=pool*t2lp; const resGP=pool*(1-t2lp);
+  lpTotal+=resLP; gpTotal+=resGP;
+  rows.push({label:`Residual Split (${(t2lp*100).toFixed(0)}% LP / ${((1-t2lp)*100).toFixed(0)}% GP)`,avail:pool,lp:resLP,gp:resGP,rem:0});
+  // output
+  document.getElementById('rLPTotal').textContent=fmt(lpTotal);
+  document.getElementById('rGPTotal').textContent=fmt(gpTotal);
+  document.getElementById('rLPMOIC').textContent=(lpTotal/lpEq).toFixed(2)+'x';
+  document.getElementById('rGPMOIC').textContent=(gpTotal/gpEq).toFixed(2)+'x';
+  const tb=document.getElementById('wfbody');
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.label}</td><td>${fmt(r.avail)}</td><td>${fmt(r.lp)}</td><td>${fmt(r.gp)}</td><td>${fmt(r.rem)}</td>`;
+    tb.appendChild(tr);
+  });
+  const totR=document.createElement('tr');
+  totR.style.fontWeight='600';totR.style.color='#c8a96e';
+  totR.innerHTML=`<td>TOTAL</td><td>${fmt(dist)}</td><td>${fmt(lpTotal)}</td><td>${fmt(gpTotal)}</td><td>$0</td>`;
+  tb.appendChild(totR);
+  document.getElementById('out').style.display='block';
+}
+calculate();
+</script></body></html>

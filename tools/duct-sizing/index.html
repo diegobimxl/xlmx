@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duct Sizing Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:750px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:36px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.green{color:#52c87a}.red{color:#e05252}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+th{text-align:left;padding:5px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #141414;color:#aaa}
+.note{font-size:11px;color:#555;margin-top:10px;line-height:1.5}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Duct Sizing Calculator</h1></div>
+<div class="container">
+<p class="desc">Equal friction method for rectangular and round duct sizing. Supply, return, and exhaust air systems.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Airflow &amp; Design Criteria</h2>
+<div class="field"><label>Airflow Q (CFM)</label><input type="number" id="cfm" placeholder="1200" min="0"></div>
+<div class="field"><label>Design Friction Rate (in. w.g. / 100 ft)</label>
+<select id="fr"><option value="0.06">0.06 — Low (quiet systems)</option><option value="0.08" selected>0.08 — Standard</option><option value="0.10">0.10 — Moderate</option><option value="0.15">0.15 — High velocity</option></select></div>
+<div class="field"><label>Duct System Type</label>
+<select id="dtype"><option value="supply">Supply Air</option><option value="return">Return Air</option><option value="exhaust">Exhaust</option></select></div>
+<div class="field"><label>Preferred Width W (in) — rectangular</label><input type="number" id="width" placeholder="12" min="4" step="2"></div>
+<button class="btn" onclick="calc()">Calculate</button>
+</div>
+<div class="section">
+<h2>Design Guidelines</h2>
+<table>
+<tr><th>System</th><th>Max Vel (fpm)</th></tr>
+<tr><td>Main supply</td><td>1000&#8211;1500</td></tr>
+<tr><td>Branch supply</td><td>600&#8211;900</td></tr>
+<tr><td>Return main</td><td>600&#8211;900</td></tr>
+<tr><td>Return branch</td><td>400&#8211;600</td></tr>
+<tr><td>Exhaust</td><td>400&#8211;700</td></tr>
+<tr><td>Outside air</td><td>300&#8211;500</td></tr>
+</table>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Round Duct Diameter</div>
+<div class="big" id="r-round">&#8212;</div>
+<div class="result-row"><span class="result-label">Velocity</span><span class="result-val" id="r-vel">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Friction Loss / 100 ft</span><span class="result-val gold" id="r-fr">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Round Duct Area</span><span class="result-val" id="r-area">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Rectangular (preferred W)</span><span class="result-val" id="r-rect">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Rect. Equivalent Diameter</span><span class="result-val" id="r-de">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Rect. Velocity</span><span class="result-val" id="r-rv">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Perimeter (insulation est.)</span><span class="result-val" id="r-perim">&#8212;</span></div>
+</div>
+<p class="note">Equal friction sizing assumes standard air at 70&#176;F, sea level. Add 15&#8211;20% for fittings (ASHRAE std allowance).</p>
+</div>
+</div>
+</div>
+<script>
+function calc(){
+var Q=parseFloat(document.getElementById("cfm").value)||0;
+var fr=parseFloat(document.getElementById("fr").value)||0.08;
+var W=parseFloat(document.getElementById("width").value)||12;
+if(!Q){alert("Enter airflow CFM.");return;}
+// Round duct diameter from equal friction: D=4.973*(Q^0.4524 / fr^0.2)
+var D=4.973*Math.pow(Q,0.4524)/Math.pow(fr,0.2);
+D=Math.round(D/2)*2;if(D<4)D=4;
+var Ain=Math.PI*Math.pow(D/2,2);
+var vel=Q/(Ain/144);
+var frActual=0.109*Math.pow(Q/60,1.82)/(Math.pow(D/12,4.86));
+// Rectangular: Deq = 1.3*(a*b)^0.625 / (a+b)^0.25
+// Given W, solve for H: iterate or use area
+var rectArea=Ain;
+var H=Math.round(rectArea/W/2)*2;if(H<4)H=4;
+var de=1.3*Math.pow(W*H,0.625)/Math.pow(W+H,0.25);
+var rectVel=Q/((W*H)/144);
+var perim=2*(W+H);
+document.getElementById("r-round").textContent=D+'"';
+var vc=vel<400?"red":(vel>1500?"red":"green");
+document.getElementById("r-vel").textContent=vel.toFixed(0)+" fpm";document.getElementById("r-vel").className="result-val "+vc;
+document.getElementById("r-fr").textContent=frActual.toFixed(4)+'" w.g./100ft';
+document.getElementById("r-area").textContent=Ain.toFixed(1)+' in²';
+document.getElementById("r-rect").textContent=W+'" x '+H+'"';
+document.getElementById("r-de").textContent=de.toFixed(1)+'" eq. diam.';
+document.getElementById("r-rv").textContent=rectVel.toFixed(0)+" fpm";
+document.getElementById("r-perim").textContent=perim+'" perimeter';
+}
+</script></body></html>

@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Material Takeoff | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:7px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer}
+.btn-ghost:hover{border-color:#c8a96e;color:#c8a96e}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.card-label{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase}.card-val{font-size:18px;font-weight:700;color:#c8a96e}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:7px 8px;border-bottom:1px solid #141414}.num{text-align:right}
+.del-btn{background:transparent;border:none;color:#555;cursor:pointer;font-size:13px;padding:2px 6px}
+.del-btn:hover{color:#e05252}
+.gold{color:#c8a96e;font-weight:600}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
+.cat-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;background:#1e1e2a;color:#888}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Material Takeoff</h1></div>
+<div class="container">
+<p class="desc">Quantity takeoff list with unit costs, waste factor, and total cost by category.</p>
+<div class="summary-grid">
+<div class="card"><div class="card-label">Total Items</div><div class="card-val" id="s-items">0</div></div>
+<div class="card"><div class="card-label">Total Quantity Cost</div><div class="card-val" id="s-mat">$0</div></div>
+<div class="card"><div class="card-label">Total with Waste</div><div class="card-val gold" id="s-total">$0</div></div>
+</div>
+<div class="section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:13px;font-weight:600">Items</span>
+<button class="btn-ghost" onclick="addRow()">+ Add Item</button>
+</div>
+<div id="farea"></div>
+<table>
+<thead><tr><th>Description</th><th>Category</th><th class="num">Qty</th><th>Unit</th><th class="num">Unit Cost</th><th class="num">Waste%</th><th class="num">Total</th><th></th></tr></thead>
+<tbody id="tbody"><tr><td colspan="8" style="text-align:center;color:#555;padding:16px">No items. Click + Add Item.</td></tr></tbody>
+<tfoot id="tfoot"></tfoot>
+</table>
+</div>
+</div>
+<script>
+var items=[],ctr=0;
+function fm(n){return"$"+Math.round(n).toLocaleString("en-US")}
+function fmd(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function addRow(){
+ctr++;var id=ctr;
+var d=document.createElement("div");d.className="form-grid";d.id="fr"+id;
+d.innerHTML='<div><label>Description</label><input type="text" id="fd'+id+'" placeholder="e.g. Rebar #4"></div>'
++'<div><label>Category</label><select id="fc'+id+'"><option>Concrete</option><option>Steel</option><option>Masonry</option><option>Wood</option><option>Finishes</option><option>MEP</option><option>Civil</option><option>Other</option></select></div>'
++'<div><label>Quantity</label><input type="number" id="fq'+id+'" placeholder="100" min="0" step="0.01"></div>'
++'<div><label>Unit</label><input type="text" id="fu'+id+'" placeholder="LF"></div>'
++'<div><label>Unit Cost ($)</label><input type="number" id="fp'+id+'" placeholder="2.50" min="0" step="0.01"></div>'
++'<div><label>Waste %</label><input type="number" id="fw'+id+'" value="5" min="0" max="50"></div>'
++'<div style="display:flex;align-items:flex-end"><button class="btn" onclick="saveRow('+id+')">Add</button></div>';
+document.getElementById("farea").appendChild(d);
+}
+function saveRow(id){
+var desc=document.getElementById("fd"+id).value.trim()||"Item";
+var cat=document.getElementById("fc"+id).value;
+var qty=parseFloat(document.getElementById("fq"+id).value)||0;
+var unit=document.getElementById("fu"+id).value||"EA";
+var price=parseFloat(document.getElementById("fp"+id).value)||0;
+var waste=parseFloat(document.getElementById("fw"+id).value)||0;
+items.push({id:id,desc:desc,cat:cat,qty:qty,unit:unit,price:price,waste:waste});
+document.getElementById("fr"+id).remove();render();
+}
+function delItem(id){items=items.filter(function(i){return i.id!==id});render()}
+function render(){
+var tb=document.getElementById("tbody");
+if(!items.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:#555;padding:16px">No items.</td></tr>';
+document.getElementById("s-items").textContent="0";document.getElementById("s-mat").textContent="$0";document.getElementById("s-total").textContent="$0";document.getElementById("tfoot").innerHTML="";return;}
+var totMat=0,totWaste=0;
+tb.innerHTML=items.map(function(item){
+var mat=item.qty*item.price,total=mat*(1+item.waste/100);
+totMat+=mat;totWaste+=total;
+return'<tr><td>'+item.desc+'</td><td><span class="cat-badge">'+item.cat+'</span></td>'
++'<td class="num">'+item.qty.toLocaleString()+'</td><td>'+item.unit+'</td>'
++'<td class="num">'+fmd(item.price)+'</td><td class="num">'+item.waste+'%</td>'
++'<td class="num gold">'+fm(total)+'</td>'
++'<td><button class="del-btn" onclick="delItem('+item.id+')">X</button></td></tr>';
+}).join("");
+document.getElementById("tfoot").innerHTML='<tr style="border-top:2px solid #333"><td colspan="6" style="font-weight:600">TOTAL</td><td class="num gold" style="font-weight:600">'+fm(totWaste)+'</td><td></td></tr>';
+document.getElementById("s-items").textContent=items.length;
+document.getElementById("s-mat").textContent=fm(totMat);
+document.getElementById("s-total").textContent=fm(totWaste);
+}
+</script></body></html>
