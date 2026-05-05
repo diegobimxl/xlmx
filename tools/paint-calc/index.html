@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paint Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:44px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.note{font-size:11px;color:#555;margin-top:10px;line-height:1.5}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Paint Calculator</h1></div>
+<div class="container">
+<p class="desc">Estimate gallons needed for walls, ceilings, and trim. Accounts for coats, coverage, and waste.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Surfaces</h2>
+<div class="field"><label>Wall Area (SF)</label><input type="number" id="wall" placeholder="800" min="0"></div>
+<div class="field"><label>Ceiling Area (SF)</label><input type="number" id="ceil" placeholder="200" min="0"></div>
+<div class="field"><label>Trim Length (LF)</label><input type="number" id="trim" placeholder="60" min="0"></div>
+<div class="field"><label>Deduct Openings (SF)</label><input type="number" id="open" placeholder="80" min="0"></div>
+<h2 style="margin-top:4px">Options</h2>
+<div class="field"><label>Coats</label><select id="coats"><option value="1">1 coat</option><option value="2" selected>2 coats</option><option value="3">3 coats</option></select></div>
+<div class="field"><label>Coverage (SF/gal)</label><input type="number" id="cov" value="350" min="100"></div>
+<div class="field"><label>Waste / Touch-up (%)</label><input type="number" id="waste" value="10" min="0" max="30"></div>
+<button class="btn" onclick="calc()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Total Gallons</div>
+<div class="big" id="total">&#8212;</div>
+<div class="result-row"><span class="result-label">Net Paintable Area</span><span class="result-val" id="r-net">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Walls</span><span class="result-val" id="r-wall">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Ceiling</span><span class="result-val" id="r-ceil">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Trim (1 qt / 50 LF)</span><span class="result-val" id="r-trim">&#8212;</span></div>
+<div class="result-row"><span class="result-label">5-gal buckets</span><span class="result-val gold" id="r-5gal">&#8212;</span></div>
+<div class="result-row"><span class="result-label">1-gal cans</span><span class="result-val" id="r-1gal">&#8212;</span></div>
+</div>
+<p class="note">Standard coverage: 350 SF/gal. Rough texture or dark colors reduce coverage ~15-20%.</p>
+</div>
+</div>
+</div>
+<script>
+function calc(){
+var wall=parseFloat(document.getElementById("wall").value)||0;
+var ceil=parseFloat(document.getElementById("ceil").value)||0;
+var trim=parseFloat(document.getElementById("trim").value)||0;
+var open=parseFloat(document.getElementById("open").value)||0;
+var coats=parseFloat(document.getElementById("coats").value)||2;
+var cov=parseFloat(document.getElementById("cov").value)||350;
+var waste=parseFloat(document.getElementById("waste").value)||10;
+var nw=Math.max(0,wall-open);
+var wg=nw*coats/cov*(1+waste/100);
+var cg=ceil*coats/cov*(1+waste/100);
+var tg=trim/50/4;
+var total=wg+cg+tg;
+document.getElementById("total").textContent=total.toFixed(1)+" gal";
+document.getElementById("r-net").textContent=(nw+ceil).toFixed(0)+" SF";
+document.getElementById("r-wall").textContent=wg.toFixed(1)+" gal";
+document.getElementById("r-ceil").textContent=cg.toFixed(1)+" gal";
+document.getElementById("r-trim").textContent=tg.toFixed(1)+" gal";
+document.getElementById("r-5gal").textContent=Math.ceil(total/5)+" buckets";
+document.getElementById("r-1gal").textContent=Math.ceil(total)+" cans";
+}
+</script></body></html>

@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drywall Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.btn-sm{background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer;width:100%;margin-bottom:10px}
+.btn-sm:hover{border-color:#c8a96e;color:#c8a96e}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:44px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.note{font-size:11px;color:#555;margin-top:10px;line-height:1.5}
+.op-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Drywall Calculator</h1></div>
+<div class="container">
+<p class="desc">Estimate sheets, joint compound, tape, and screws for walls and ceilings.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Dimensions</h2>
+<div class="field"><label>Wall Perimeter (LF)</label><input type="number" id="wl" placeholder="80" min="0"></div>
+<div class="field"><label>Wall Height (ft)</label><input type="number" id="wh" placeholder="9" min="0" step="0.5"></div>
+<div class="field"><label>Ceiling Area (SF)</label><input type="number" id="ca" placeholder="200" min="0"></div>
+<h2 style="margin-top:4px">Openings (deduct)</h2>
+<div id="ops"></div>
+<button class="btn-sm" onclick="addOp()">+ Add Opening</button>
+<h2 style="margin-top:4px">Options</h2>
+<div class="field"><label>Sheet Size</label><select id="ss"><option value="32">4x8 (32 SF)</option><option value="48">4x12 (48 SF)</option></select></div>
+<div class="field"><label>Waste Factor (%)</label><input type="number" id="waste" value="10" min="0" max="50"></div>
+<button class="btn" onclick="calc()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Sheets Needed</div>
+<div class="big" id="sheets">&#8212;</div>
+<div class="result-row"><span class="result-label">Gross Wall Area</span><span class="result-val" id="r-gross">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Opening Deductions</span><span class="result-val" id="r-open">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Net Area + Waste</span><span class="result-val gold" id="r-net">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Joint Compound (5-gal)</span><span class="result-val" id="r-mud">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Tape (500 ft rolls)</span><span class="result-val" id="r-tape">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Screws (1,000-ct boxes)</span><span class="result-val" id="r-screws">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Corner Bead (LF)</label><span class="result-val" id="r-corner">&#8212;</span></div>
+</div>
+<p class="note">Rules: 1 bucket mud/100SF, 1 roll tape/300SF, 1 screw/8SF avg.</p>
+</div>
+</div>
+</div>
+<script>
+var oc=0,ops=[];
+function addOp(){
+oc++;var id=oc;
+var d=document.createElement("div");d.className="op-row";d.id="op"+id;
+d.innerHTML='<div><label>Width (ft)</label><input type="number" id="ow'+id+'" placeholder="3" step="0.5" min="0"></div>'
++'<div><label>Height (ft)</label><input type="number" id="oh'+id+'" placeholder="7" step="0.5" min="0"></div>'
++'<div style="display:flex;align-items:flex-end"><button onclick="rmOp('+id+')" style="background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:12px">X</button></div>';
+ops.push(id);document.getElementById("ops").appendChild(d);
+}
+function rmOp(id){document.getElementById("op"+id).remove();ops=ops.filter(function(i){return i!==id})}
+function calc(){
+var wl=parseFloat(document.getElementById("wl").value)||0;
+var wh=parseFloat(document.getElementById("wh").value)||0;
+var ca=parseFloat(document.getElementById("ca").value)||0;
+var ss=parseFloat(document.getElementById("ss").value)||32;
+var waste=parseFloat(document.getElementById("waste").value)||10;
+var gw=wl*wh,oa=0;
+ops.forEach(function(id){
+var w=parseFloat(document.getElementById("ow"+id).value)||0;
+var h=parseFloat(document.getElementById("oh"+id).value)||0;
+oa+=w*h;
+});
+var net=Math.max(0,gw-oa),total=(net+ca)*(1+waste/100);
+var sheets=Math.ceil(total/ss),mud=Math.ceil(total/100),tape=Math.ceil(total/300),screws=Math.max(1,Math.ceil(total/8/1000)),corner=Math.ceil(wl*0.1);
+document.getElementById("sheets").textContent=sheets;
+document.getElementById("r-gross").textContent=gw.toFixed(0)+" SF walls + "+ca.toFixed(0)+" SF ceiling";
+document.getElementById("r-open").textContent="-"+oa.toFixed(0)+" SF";
+document.getElementById("r-net").textContent=total.toFixed(0)+" SF";
+document.getElementById("r-mud").textContent=mud+" buckets";
+document.getElementById("r-tape").textContent=tape+" rolls";
+document.getElementById("r-screws").textContent=screws+" boxes";
+document.getElementById("r-corner").textContent=corner+" LF";
+}
+</script></body></html>

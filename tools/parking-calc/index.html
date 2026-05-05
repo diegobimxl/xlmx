@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parking Ratio Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:44px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}.red{color:#e05252}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+th{text-align:left;padding:5px 8px;color:#888;border-bottom:1px solid #222;font-weight:500;text-transform:uppercase;font-size:10px}
+td{padding:5px 8px;border-bottom:1px solid #141414;color:#aaa}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Parking Ratio Calculator</h1></div>
+<div class="container">
+<p class="desc">Calculate required parking spaces by building area and use type, or check surplus/deficit against existing spaces.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Inputs</h2>
+<div class="field"><label>Building Use</label>
+<select id="use" onchange="prefill()">
+<option value="0">Custom</option>
+<option value="4">Office (4/1,000)</option>
+<option value="5">Medical Office (5/1,000)</option>
+<option value="4.5">Retail (4.5/1,000)</option>
+<option value="10">Restaurant (10/1,000)</option>
+<option value="1.5">Industrial (1.5/1,000)</option>
+<option value="2">Multifamily (2/unit)</option>
+<option value="1.2">Hotel (1.2/room)</option>
+</select></div>
+<div class="field"><label>Building Area (SF) or Units</label><input type="number" id="area" placeholder="25000" min="0"></div>
+<div class="field"><label>Parking Ratio (spaces per 1,000 SF)</label><input type="number" id="ratio" placeholder="4" min="0" step="0.1"></div>
+<div class="field"><label>Existing Spaces</label><input type="number" id="exist" placeholder="0" min="0"></div>
+<button class="btn" onclick="calc()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Required Spaces</div>
+<div class="big" id="req">&#8212;</div>
+<div class="result-row"><span class="result-label">Ratio Used</span><span class="result-val" id="r-ratio">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Required</span><span class="result-val gold" id="r-req">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Existing</span><span class="result-val" id="r-exist">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Surplus / Deficit</span><span class="result-val" id="r-delta">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Area per Space</span><span class="result-val" id="r-aps">&#8212;</span></div>
+</div>
+<div class="section" style="margin-top:0">
+<h2>Benchmarks</h2>
+<table>
+<tr><th>Use</th><th>Typical</th></tr>
+<tr><td>Office</td><td>3.5&#8211;5 / 1k</td></tr>
+<tr><td>Medical</td><td>4&#8211;6 / 1k</td></tr>
+<tr><td>Retail</td><td>4&#8211;5 / 1k</td></tr>
+<tr><td>Restaurant</td><td>8&#8211;12 / 1k</td></tr>
+<tr><td>Industrial</td><td>1&#8211;2 / 1k</td></tr>
+<tr><td>Multifamily</td><td>1.5&#8211;2.5 / unit</td></tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<script>
+function prefill(){var v=document.getElementById("use").value;if(v!=="0")document.getElementById("ratio").value=v}
+function calc(){
+var area=parseFloat(document.getElementById("area").value)||0;
+var ratio=parseFloat(document.getElementById("ratio").value)||0;
+var exist=parseFloat(document.getElementById("exist").value)||0;
+if(!area||!ratio){alert("Enter area and ratio.");return;}
+var req=Math.ceil(area/1000*ratio),delta=exist-req;
+document.getElementById("req").textContent=req;
+document.getElementById("r-ratio").textContent=ratio+" / 1,000 SF";
+document.getElementById("r-req").textContent=req+" spaces";
+document.getElementById("r-exist").textContent=exist+" spaces";
+document.getElementById("r-delta").textContent=(delta>=0?"+":"")+delta+" spaces";
+document.getElementById("r-delta").className="result-val "+(delta>=0?"":"red");
+document.getElementById("r-aps").textContent=Math.round(area/req)+" SF / space";
+}
+</script></body></html>

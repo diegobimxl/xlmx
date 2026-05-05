@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Schedule of Values | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:1000px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid #333;color:#888;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer}
+.btn-ghost:hover{border-color:#c8a96e;color:#c8a96e}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:14px}
+.card-label{font-size:11px;color:#888;margin-bottom:6px}.card-val{font-size:20px;font-weight:700;color:#c8a96e}
+.pbar{background:#1a1a1a;border-radius:4px;height:6px;margin-top:6px}.pfill{background:#c8a96e;border-radius:4px;height:6px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:7px 8px;border-bottom:1px solid #141414}
+.num{text-align:right}.gold{color:#c8a96e;font-weight:600}.green{color:#52c87a}.red{color:#e05252}
+.del-btn{background:transparent;border:none;color:#555;cursor:pointer;font-size:13px;padding:2px 6px}
+.del-btn:hover{color:#e05252}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto auto;gap:8px;margin-bottom:8px;align-items:end}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Schedule of Values</h1></div>
+<div class="container">
+<p class="desc">Track contract line items, completed work, stored materials, and balance to finish.</p>
+<div class="summary-grid">
+<div class="card"><div class="card-label">Contract Value</div><div class="card-val" id="sc">$0.00</div></div>
+<div class="card"><div class="card-label">Completed</div><div class="card-val green" id="se">$0.00</div></div>
+<div class="card"><div class="card-label">Balance</div><div class="card-val gold" id="sb">$0.00</div></div>
+<div class="card"><div class="card-label">% Complete</div><div class="card-val" id="sp">0%</div><div class="pbar"><div class="pfill" id="spb" style="width:0%"></div></div></div>
+</div>
+<div class="section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:13px;font-weight:600">Line Items</span>
+<button class="btn-ghost" onclick="addRow()">+ Add Item</button>
+</div>
+<div id="farea"></div>
+<table style="margin-top:16px">
+<thead><tr><th>#</th><th>Description</th><th class="num">Sched. Value</th><th class="num">Work Done</th><th class="num">Materials</th><th class="num">Total Earned</th><th class="num">Balance</th><th class="num">%</th><th></th></tr></thead>
+<tbody id="tbody"><tr><td colspan="9" style="text-align:center;color:#555;padding:16px">No items. Click + Add Item.</td></tr></tbody>
+<tfoot id="tfoot"></tfoot>
+</table>
+</div>
+</div>
+<script>
+var items=[],ctr=0;
+function f(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function pct(n,d){return d===0?0:Math.min(100,Math.round(n/d*100))}
+function addRow(){
+ctr++;var id=ctr;
+var div=document.createElement("div");div.className="form-grid";div.id="r"+id;
+div.innerHTML='<div><label>Description</label><input type="text" id="d'+id+'" placeholder="e.g. Foundations"></div>'
++'<div><label>Scheduled ($)</label><input type="number" id="s'+id+'" placeholder="0" min="0"></div>'
++'<div><label>Work Done ($)</label><input type="number" id="w'+id+'" placeholder="0" min="0"></div>'
++'<div><label>Materials ($)</label><input type="number" id="m'+id+'" placeholder="0" min="0"></div>'
++'<div style="display:flex;align-items:flex-end"><button class="btn" onclick="saveRow('+id+')">Add</button></div>'
++'<div style="display:flex;align-items:flex-end"><button class="btn-ghost" onclick="document.getElementById(\'r'+id+'\').remove()">X</button></div>';
+document.getElementById("farea").appendChild(div);
+}
+function saveRow(id){
+var desc=document.getElementById("d"+id).value.trim()||"Item";
+var s=parseFloat(document.getElementById("s"+id).value)||0;
+var w=parseFloat(document.getElementById("w"+id).value)||0;
+var m=parseFloat(document.getElementById("m"+id).value)||0;
+items.push({id:id,desc:desc,s:s,w:w,m:m});
+document.getElementById("r"+id).remove();render();
+}
+function delItem(id){items=items.filter(function(i){return i.id!==id});render()}
+function render(){
+var tb=document.getElementById("tbody");
+if(!items.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:#555;padding:16px">No items. Click + Add Item.</td></tr>';
+document.getElementById("sc").textContent="$0.00";document.getElementById("se").textContent="$0.00";
+document.getElementById("sb").textContent="$0.00";document.getElementById("sp").textContent="0%";
+document.getElementById("spb").style.width="0%";document.getElementById("tfoot").innerHTML="";return;}
+var ts=0,te=0;
+tb.innerHTML=items.map(function(item,i){
+var e=item.w+item.m,b=item.s-e,p=pct(e,item.s);ts+=item.s;te+=e;
+return'<tr><td style="color:#555">'+(i+1)+'</td><td>'+item.desc+'</td><td class="num">'+f(item.s)+'</td><td class="num">'+f(item.w)+'</td><td class="num">'+f(item.m)+'</td><td class="num gold">'+f(e)+'</td><td class="num '+(b<0?"red":"")+'">'+f(b)+'</td><td class="num">'+p+'%</td><td><button class="del-btn" onclick="delItem('+item.id+')">X</button></td></tr>';
+}).join("");
+var tb2=ts-te,p2=pct(te,ts);
+document.getElementById("tfoot").innerHTML='<tr style="border-top:2px solid #333"><td></td><td style="font-weight:600">TOTAL</td><td class="num gold">'+f(ts)+'</td><td class="num"></td><td class="num"></td><td class="num green" style="font-weight:600">'+f(te)+'</td><td class="num '+(tb2<0?"red":"gold")+'" style="font-weight:600">'+f(tb2)+'</td><td class="num" style="font-weight:600">'+p2+'%</td><td></td></tr>';
+document.getElementById("sc").textContent=f(ts);document.getElementById("se").textContent=f(te);
+document.getElementById("sb").textContent=f(tb2);document.getElementById("sp").textContent=p2+"%";
+document.getElementById("spb").style.width=p2+"%";
+}
+</script></body></html>

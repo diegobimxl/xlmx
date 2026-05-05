@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Construction Cost Estimator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:800px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:32px;font-weight:700;color:#c8a96e;text-align:center;padding:8px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid #141414;color:#aaa}.num{text-align:right}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Construction Cost Estimator</h1></div>
+<div class="container">
+<p class="desc">Parametric hard cost estimate by building type and quality. US market benchmarks. Use for feasibility only — not for budgeting.</p>
+<div class="grid">
+<div>
+<div class="section">
+<h2>Parameters</h2>
+<div class="field"><label>Building Type</label>
+<select id="type">
+<option value="350">Office — Class A ($350/SF)</option>
+<option value="220">Office — Class B ($220/SF)</option>
+<option value="120">Retail / Strip Mall ($120/SF)</option>
+<option value="200">Restaurant TI ($200/SF)</option>
+<option value="90">Industrial / Warehouse ($90/SF)</option>
+<option value="180">Multifamily — Wood Frame ($180/SF)</option>
+<option value="300">Multifamily — Concrete ($300/SF)</option>
+<option value="220">Hotel — Select Service ($220/SF)</option>
+<option value="350">Hotel — Full Service ($350/SF)</option>
+<option value="350">Medical Office ($350/SF)</option>
+<option value="60">Parking Structure ($60/SF)</option>
+</select></div>
+<div class="field"><label>Custom $/SF (leave 0 to use type default)</label><input type="number" id="custom" placeholder="0" min="0"></div>
+<div class="field"><label>Gross Area (SF)</label><input type="number" id="area" placeholder="25000"></div>
+<div class="field"><label>Stories</label><input type="number" id="stories" value="3" min="1" max="50"></div>
+<div class="field"><label>Market</label>
+<select id="mkt">
+<option value="1.0">National Average</option>
+<option value="1.25">NY / SF Bay Area</option>
+<option value="1.15">LA / Seattle / Boston</option>
+<option value="1.05">Chicago / DC / Denver</option>
+<option value="0.95">Dallas / Atlanta / Phoenix</option>
+<option value="0.85">Secondary / Sun Belt</option>
+</select></div>
+<div class="field"><label>Contingency (%)</label><input type="number" id="cont" value="10" min="0" max="30"></div>
+<button class="btn" onclick="calc()">Estimate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl">Total Hard Cost</div>
+<div class="big" id="total">&#8212;</div>
+<div class="result-row"><span class="result-label">Base Cost/SF</span><span class="result-val" id="r-psf">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Adj. Cost/SF (market + stories)</span><span class="result-val gold" id="r-adjpsf">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Base Construction</span><span class="result-val" id="r-base">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Contingency</span><span class="result-val" id="r-cont">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Soft Costs (est. 25%)</span><span class="result-val" id="r-soft">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Total Project Cost</span><span class="result-val gold" id="r-project">&#8212;</span></div>
+</div>
+</div>
+</div>
+<div class="section">
+<h2>Base Cost Reference — National Avg 2024</h2>
+<table>
+<tr><th>Building Type</th><th class="num">Low $/SF</th><th class="num">Mid $/SF</th><th class="num">High $/SF</th></tr>
+<tr><td>Office Class A</td><td class="num">$250</td><td class="num">$350</td><td class="num">$500+</td></tr>
+<tr><td>Office Class B</td><td class="num">$150</td><td class="num">$220</td><td class="num">$300</td></tr>
+<tr><td>Multifamily Wood</td><td class="num">$130</td><td class="num">$180</td><td class="num">$250</td></tr>
+<tr><td>Multifamily Concrete</td><td class="num">$220</td><td class="num">$300</td><td class="num">$400</td></tr>
+<tr><td>Industrial / Warehouse</td><td class="num">$60</td><td class="num">$90</td><td class="num">$140</td></tr>
+<tr><td>Retail</td><td class="num">$80</td><td class="num">$120</td><td class="num">$180</td></tr>
+<tr><td>Medical Office</td><td class="num">$250</td><td class="num">$350</td><td class="num">$500</td></tr>
+<tr><td>Parking Structure</td><td class="num">$40</td><td class="num">$60</td><td class="num">$80</td></tr>
+</table>
+</div>
+</div>
+<script>
+function fm(n){return"$"+Math.round(n).toLocaleString("en-US")}
+function calc(){
+var basePSF=parseFloat(document.getElementById("custom").value)||parseFloat(document.getElementById("type").value)||180;
+var area=parseFloat(document.getElementById("area").value)||0;
+var stories=parseFloat(document.getElementById("stories").value)||1;
+var mkt=parseFloat(document.getElementById("mkt").value)||1;
+var cont=parseFloat(document.getElementById("cont").value)||10;
+if(!area){alert("Enter area.");return;}
+var sm=stories<=3?1:(stories<=6?1.08:(stories<=12?1.15:1.25));
+var adjPSF=basePSF*sm*mkt;
+var base=area*adjPSF;
+var contAmt=base*cont/100;
+var hard=base+contAmt;
+var soft=hard*0.25;
+var project=hard+soft;
+document.getElementById("total").textContent=fm(hard);
+document.getElementById("r-psf").textContent="$"+basePSF.toFixed(0)+"/SF";
+document.getElementById("r-adjpsf").textContent="$"+adjPSF.toFixed(0)+"/SF";
+document.getElementById("r-base").textContent=fm(base);
+document.getElementById("r-cont").textContent=fm(contAmt);
+document.getElementById("r-soft").textContent=fm(soft);
+document.getElementById("r-project").textContent=fm(project);
+}
+</script></body></html>

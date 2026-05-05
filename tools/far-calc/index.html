@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAR Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.container{max-width:700px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid #2a2a2a;background:#111;color:#888}
+.tab.active{background:#c8a96e;color:#000;border-color:#c8a96e;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
+.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+input{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
+.big{font-size:44px;font-weight:700;color:#c8a96e;text-align:center;padding:10px 0}
+.big-lbl{font-size:11px;color:#888;text-align:center}
+.gold{color:#c8a96e}
+.bar{background:#1a1a1a;border-radius:6px;height:12px;margin:8px 0}
+.bar-fill{background:#c8a96e;border-radius:6px;height:12px;transition:width .4s;max-width:100%}
+</style></head>
+<body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>FAR Calculator</h1></div>
+<div class="container">
+<p class="desc">Floor Area Ratio: calculate FAR, maximum buildable area by zoning, or minimum required lot.</p>
+<div class="tabs">
+<div class="tab active" onclick="showTab(0,this)">Calculate FAR</div>
+<div class="tab" onclick="showTab(1,this)">Max Buildable</div>
+<div class="tab" onclick="showTab(2,this)">Min Lot Size</div>
+</div>
+<div class="grid">
+<div>
+<div class="section" id="tab0">
+<h2>Calculate FAR</h2>
+<div class="field"><label>Total Floor Area (SF)</label><input type="number" id="t0f" placeholder="25000"></div>
+<div class="field"><label>Lot Area (SF)</label><input type="number" id="t0l" placeholder="10000"></div>
+<button class="btn" onclick="calcFAR()">Calculate</button>
+</div>
+<div class="section" id="tab1" style="display:none">
+<h2>Max Buildable Area</h2>
+<div class="field"><label>Lot Area (SF)</label><input type="number" id="t1l" placeholder="10000"></div>
+<div class="field"><label>Allowed FAR</label><input type="number" id="t1f" placeholder="2.5" step="0.1"></div>
+<button class="btn" onclick="calcMax()">Calculate</button>
+</div>
+<div class="section" id="tab2" style="display:none">
+<h2>Minimum Lot Size</h2>
+<div class="field"><label>Desired Floor Area (SF)</label><input type="number" id="t2f" placeholder="25000"></div>
+<div class="field"><label>Allowed FAR</label><input type="number" id="t2r" placeholder="2.5" step="0.1"></div>
+<button class="btn" onclick="calcLot()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="section">
+<div class="big-lbl" id="res-lbl">FAR</div>
+<div class="big" id="res-big">&#8212;</div>
+<div id="bar-wrap" style="display:none">
+<div style="font-size:11px;color:#888;margin-bottom:4px">% of max allowed FAR</div>
+<div class="bar"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+</div>
+<div class="result-row"><span class="result-label">Result</span><span class="result-val gold" id="r-main">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Lot Area</span><span class="result-val" id="r-lot">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Total Floor Area</span><span class="result-val" id="r-floor">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Avg Floor Plate (4 stories)</span><span class="result-val" id="r-plate">&#8212;</span></div>
+<div class="result-row"><span class="result-label">Lot Acres</span><span class="result-val" id="r-ac">&#8212;</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function showTab(n,el){
+[0,1,2].forEach(function(i){document.getElementById("tab"+i).style.display=i===n?"":"none"});
+document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});el.classList.add("active");
+}
+function loc(n){return n.toLocaleString("en-US")}
+function setRes(far,lot,floor,maxFAR){
+document.getElementById("r-lot").textContent=loc(Math.round(lot))+" SF";
+document.getElementById("r-floor").textContent=loc(Math.round(floor))+" SF";
+document.getElementById("r-plate").textContent=loc(Math.round(floor/4))+" SF";
+document.getElementById("r-ac").textContent=(lot/43560).toFixed(3)+" ac";
+if(maxFAR){var pct=Math.min(100,far/maxFAR*100);document.getElementById("bar-wrap").style.display="";document.getElementById("bar-fill").style.width=pct+"%";}
+else document.getElementById("bar-wrap").style.display="none";
+}
+function calcFAR(){
+var f=parseFloat(document.getElementById("t0f").value)||0,l=parseFloat(document.getElementById("t0l").value)||0;
+if(!f||!l){alert("Enter values.");return;}
+var far=f/l;
+document.getElementById("res-lbl").textContent="FAR";document.getElementById("res-big").textContent=far.toFixed(2);
+document.getElementById("r-main").textContent=far.toFixed(2)+" FAR";setRes(far,l,f,null);
+}
+function calcMax(){
+var l=parseFloat(document.getElementById("t1l").value)||0,far=parseFloat(document.getElementById("t1f").value)||0;
+if(!l||!far){alert("Enter values.");return;}
+var max=l*far;
+document.getElementById("res-lbl").textContent="Max Floor Area";document.getElementById("res-big").textContent=loc(Math.round(max))+" SF";
+document.getElementById("r-main").textContent=loc(Math.round(max))+" SF";setRes(far,l,max,far);
+}
+function calcLot(){
+var f=parseFloat(document.getElementById("t2f").value)||0,far=parseFloat(document.getElementById("t2r").value)||0;
+if(!f||!far){alert("Enter values.");return;}
+var lot=f/far;
+document.getElementById("res-lbl").textContent="Min Lot";document.getElementById("res-big").textContent=loc(Math.round(lot))+" SF";
+document.getElementById("r-main").textContent=loc(Math.round(lot))+" SF";setRes(far,lot,f,far);
+}
+</script></body></html>
