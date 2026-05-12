@@ -1,354 +1,539 @@
-﻿<!DOCTYPE html><html lang="en" id="root"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>XLMX Tool Library — BIM XL</title><style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>XLMX — Utility Library</title>
+<style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f7f7f7;color:#111;line-height:1.6}
-a{color:#111;text-decoration:none}
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e5e5e5;background:#fff;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
-.logo{font-size:22px;font-weight:800;letter-spacing:2px}
-.logo span{font-weight:300;font-size:12px;margin-left:8px;color:#666}
-.header-right{display:flex;align-items:center;gap:16px}
-nav a{font-size:12px;color:#666;margin-left:14px}
-nav a:hover{color:#111}
-.lang-toggle{display:flex;border:1px solid #e5e5e5;border-radius:4px;overflow:hidden}
-.lang-btn{padding:5px 12px;font-size:11px;font-weight:700;background:#fff;border:none;cursor:pointer;color:#aaa;letter-spacing:.5px;transition:all .15s}
-.lang-btn.active{background:#111;color:#fff}
-.intro{max-width:900px;margin:40px auto 0;padding:0 32px 36px;border-bottom:1px solid #e5e5e5}
-.intro-label{font-size:10px;font-weight:700;letter-spacing:2px;color:#16a34a;text-transform:uppercase;margin-bottom:10px}
-.intro h1{font-size:24px;font-weight:800;letter-spacing:.3px;margin-bottom:12px;line-height:1.25}
-.intro h1 em{font-style:normal;color:#16a34a}
-.intro-desc{font-size:13px;color:#555;max-width:580px;line-height:1.75;margin-bottom:16px}
-.intro-cta{display:inline-block;padding:9px 22px;background:#111;color:#fff;border-radius:4px;font-size:12px;font-weight:600;letter-spacing:.5px}
-.intro-cta:hover{background:#333;color:#fff}
-.library{max-width:900px;margin:0 auto;padding:32px}
-.lib-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
-.lib-title{font-size:13px;font-weight:700;color:#111}
-.lib-count{font-size:11px;color:#888}
-.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#16a34a;background:none;border:none;cursor:pointer;padding:0;font-weight:600}
-.back-btn:hover{text-decoration:underline}
-.search-wrap{max-width:900px;margin:0 auto;padding:0 32px 24px}
-.search-input{width:100%;padding:10px 14px;border:1px solid #e5e5e5;border-radius:4px;font-size:13px;background:#fff;outline:none;color:#111}
-.search-input:focus{border-color:#999}
-.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:720px){.cat-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:400px){.cat-grid{grid-template-columns:1fr}}
-.cat-card{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:22px 16px 18px;cursor:pointer;transition:all .2s;text-align:center}
-.cat-card:hover,.cat-card.active{border-color:#111;box-shadow:0 2px 10px rgba(0,0,0,.07);transform:translateY(-1px)}
-.cat-card.active{background:#111}
-.cat-card.active .cat-name{color:#fff}
-.cat-card.active .cat-count{color:#888}
-.cat-card.active svg path,.cat-card.active svg rect,.cat-card.active svg circle,.cat-card.active svg polygon,.cat-card.active svg polyline,.cat-card.active svg line{stroke:#fff!important}
-.cat-icon{width:36px;height:36px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
-.cat-icon svg{width:28px;height:28px}
-.cat-name{font-size:12px;font-weight:700;margin-bottom:3px;color:#111}
-.cat-count{font-size:10px;color:#aaa}
-.cat-all{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:600;color:#555;background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:10px 0;cursor:pointer;margin-bottom:14px;transition:all .2s;grid-column:1/-1}
-.cat-all:hover,.cat-all.active{border-color:#111;color:#111}
-.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:600px){.tool-grid{grid-template-columns:1fr}}
-.tool-card{background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;transition:box-shadow .15s,border-color .15s;color:#111}
-.tool-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:#ccc}
-.tool-body{flex:1}
-.tool-body h3{font-size:13px;font-weight:600;margin-bottom:3px}
-.tool-body p{font-size:11px;color:#777;line-height:1.5;margin:0}
-.tool-tag{font-size:9px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:5px}
-.tool-arrow{font-size:14px;color:#ddd;margin-left:10px;flex-shrink:0;padding-top:2px}
-.cat-group{margin-bottom:36px}
-.cat-group-title{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e9e9e9}
-.no-results{text-align:center;padding:40px;color:#aaa;font-size:13px}
-.svc{max-width:900px;margin:0 auto;padding:32px;border-top:1px solid #e5e5e5;background:#fff;margin-top:0}
-.svc h2{font-size:13px;font-weight:700;margin-bottom:6px}
-.svc-sub{font-size:12px;color:#666;margin-bottom:20px;max-width:500px}
-.svc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-@media(max-width:600px){.svc-grid{grid-template-columns:1fr}}
-.svc-card{border:1px solid #e5e5e5;border-radius:6px;padding:20px;background:#fafafa}
-.svc-card h3{font-size:12px;font-weight:700;margin-bottom:4px}
-.svc-price{font-size:20px;font-weight:800;margin:8px 0 6px}
-.svc-detail{font-size:11px;color:#777;line-height:1.6;margin-bottom:10px}
-.svc-tag{font-size:10px;font-weight:700;color:#fff;background:#111;padding:3px 10px;border-radius:3px;display:inline-block}
-.svc-tag-hi{background:#c2410c}
-.cta-bar{max-width:900px;margin:0 auto;padding:24px 32px;text-align:center}
-.cta-btn{display:inline-block;padding:12px 32px;background:#111;color:#fff;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:.5px}
-.cta-btn:hover{background:#333;color:#fff}
-.foot{background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:12px 32px;font-size:12px;position:fixed;bottom:0;left:0;right:0}
-.foot a{color:#111;background:#fff;padding:5px 14px;border-radius:3px;font-size:11px;font-weight:700}
-.spacer{height:60px}
-</style><style>
-.nav{display:flex;align-items:center;justify-content:space-between;width:100%}
-.nav-right{display:flex;gap:4px}
-.intro-inner{max-width:700px}
-.intro-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:#16a34a;text-transform:uppercase;margin-bottom:10px}
-.intro h1{font-size:26px;font-weight:800;margin-bottom:12px;line-height:1.25}
-.intro p{font-size:13px;color:#555;max-width:560px;line-height:1.75;margin-bottom:20px}
-.stats{display:flex;gap:24px;flex-wrap:wrap}
-.stat{display:flex;flex-direction:column}
-.stat-n{font-size:20px;font-weight:800}
-.stat-l{font-size:11px;color:#888}
-.lib-inner{max-width:900px;margin:0 auto;padding:0 32px}
-.lib-header{margin-bottom:20px}
-.tools-wrap{margin-top:24px;padding-bottom:80px}
-.services{max-width:900px;margin:0 auto;padding:32px;border-top:1px solid #e5e5e5;margin-top:0}
-.svc-inner{max-width:100%}
-.svc-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:#c2410c;text-transform:uppercase;margin-bottom:8px}
-.services h2{font-size:18px;font-weight:800;margin-bottom:8px}
-.services p{font-size:13px;color:#555;max-width:560px;line-height:1.75;margin-bottom:24px}
-.svc-name{font-size:12px;font-weight:700;margin-bottom:4px}
-.svc-desc{font-size:11px;color:#777;line-height:1.6}
-.svc-featured{border-color:#111;background:#f9f9f9}
-.foot-inner{display:flex;justify-content:space-between;align-items:center;width:100%}
-.tool-name{display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:#111}
-.tool-name:hover{color:#16a34a}
-.tool-desc{font-size:11px;color:#777;line-height:1.5}
-</style></head><body>
-<header><div class="nav"><a href="/" class="logo">XL<span>MX</span></a><div class="nav-right"><button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button><button class="lang-btn" id="btn-es" onclick="setLang('es')">ES</button></div></div></header>
-<section class="intro"><div class="intro-inner"><div class="intro-badge" data-en="XLMX by BIM XL &mdash; Technology Library" data-es="XLMX por BIM XL &mdash; Biblioteca de Tecnolog&iacute;a">XLMX by BIM XL &mdash; Technology Library</div><h1 data-en="A working library of tools. Built in production. Free to use." data-es="Una biblioteca operativa de herramientas. Construidas en producci&oacute;n. De uso libre.">A working library of tools. Built in production. Free to use.</h1><p data-en="Every tool here was built because we needed it. AEC, business, productivity, and more &mdash; curated and expanding toward 1,000." data-es="Cada herramienta aqu&iacute; fue construida porque la necesit&aacute;bamos. AEC, negocios, productividad y m&aacute;s &mdash; curada y en expansi&oacute;n hacia 1,000.">Every tool here was built because we needed it. AEC, business, productivity, and more &mdash; curated and expanding toward 1,000.</p><div class="stats"><div class="stat"><span class="stat-n">130+</span><span class="stat-l" data-en="Tools" data-es="Herramientas">Tools</span></div><div class="stat"><span class="stat-n">8</span><span class="stat-l" data-en="Categories" data-es="Categor&iacute;as">Categories</span></div><div class="stat"><span class="stat-n">&#x2192;1K</span><span class="stat-l" data-en="Goal by June" data-es="Meta en Junio">Goal by June</span></div><div class="stat"><span class="stat-n">Free</span><span class="stat-l" data-en="All tools" data-es="Todas las herramientas">All tools</span></div></div></div></section><section class="library" id="library"><div class="lib-inner"><div class="lib-header"><input class="search-input" id="search" type="text" placeholder="Search tools..." oninput="filterTools()"></div><div class="cat-grid" id="cat-grid"></div><div class="tools-wrap" id="tools-wrap" style="display:none"><div class="cat-group-title" id="cat-label"></div><div class="tool-grid" id="tool-grid"></div></div></div></section>
-<section class="services" id="services"><div class="svc-inner"><div class="svc-badge" data-en="Custom Deployment" data-es="Despliegue Personalizado">Custom Deployment</div><h2 data-en="Need this built for your firm?" data-es="&iquest;Necesitas esto construido para tu empresa?">Need this built for your firm?</h2><p data-en="We take tools from this library and deploy them inside your workflow &mdash; branded, integrated, and production-ready in 48 hours." data-es="Tomamos herramientas de esta biblioteca y las desplegamos dentro de tu flujo de trabajo &mdash; con tu marca, integradas, y listas en 48 horas.">We take tools from this library and deploy them inside your workflow &mdash; branded, integrated, and production-ready in 48 hours.</p><div class="svc-grid"><div class="svc-card"><div class="svc-name" data-en="Single Tool" data-es="Herramienta Individual">Single Tool</div><div class="svc-price">$500</div><div class="svc-desc" data-en="One tool, your brand, your domain, deployed." data-es="Una herramienta, tu marca, tu dominio, desplegada.">One tool, your brand, your domain, deployed.</div></div><div class="svc-card"><div class="svc-name" data-en="Tool Bundle" data-es="Paquete de Herramientas">Tool Bundle</div><div class="svc-price">$1,800</div><div class="svc-desc" data-en="Up to 5 tools, custom integration, onboarding." data-es="Hasta 5 herramientas, integraci&oacute;n personalizada, onboarding.">Up to 5 tools, custom integration, onboarding.</div></div><div class="svc-card svc-featured"><div class="svc-name" data-en="Full Library" data-es="Biblioteca Completa">Full Library</div><div class="svc-price">$4,500</div><div class="svc-desc" data-en="Your firm gets the full suite &mdash; hosted, branded, maintained." data-es="Tu empresa obtiene la suite completa &mdash; alojada, con tu marca, mantenida.">Your firm gets the full suite &mdash; hosted, branded, maintained.</div></div></div><a href="mailto:diego@bimxl.com" class="cta-btn" data-en="Talk to us" data-es="Hablemos">Talk to us</a></div></section>
-<footer class="foot"><div class="foot-inner"><span data-en="XLMX by BIM XL &mdash; Technology Systems" data-es="XLMX por BIM XL &mdash; Sistemas de Tecnolog&iacute;a">XLMX by BIM XL &mdash; Technology Systems</span><a href="mailto:diego@bimxl.com">diego@bimxl.com</a></div></footer><script>
-var CATS=[
-{id:'bim',en:'BIM & VDC',es:'BIM y CVD',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 4L32 12V24L18 32L4 24V12L18 4Z" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 4V32M4 12L18 20L32 12" stroke="#111" stroke-width="1.5"/></svg>'},
-{id:'arch',en:'Architecture',es:'Arquitectura',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="22" width="28" height="10" rx="1" stroke="#111" stroke-width="1.5"/><path d="M8 22V16M28 22V16M18 22V10M12 16H24" stroke="#111" stroke-width="1.5" stroke-linecap="round"/><path d="M8 16L18 8L28 16" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/></svg>'},
-{id:'const',en:'Construction',es:'Construcción',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 30L14 14L22 22L28 10L32 14" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="28" width="28" height="2" rx="1" fill="#111"/><circle cx="28" cy="10" r="3" stroke="#111" stroke-width="1.5"/></svg>'},
-{id:'pm',en:'Project Management',es:'Gestión de Proyectos',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="6" width="28" height="24" rx="2" stroke="#111" stroke-width="1.5"/><path d="M4 12H32" stroke="#111" stroke-width="1.5"/><path d="M10 18H20M10 22H16" stroke="#111" stroke-width="1.5" stroke-linecap="round"/><circle cx="26" cy="20" r="4" stroke="#111" stroke-width="1.5"/><path d="M24 20L25.5 21.5L28 18.5" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
-{id:'re',en:'Real Estate',es:'Bienes Raíces',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 32V16L18 6L30 16V32" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/><rect x="13" y="22" width="10" height="10" stroke="#111" stroke-width="1.5"/><path d="M4 32H32" stroke="#111" stroke-width="1.5" stroke-linecap="round"/></svg>'},
-{id:'biz',en:'Business',es:'Negocios',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="14" width="28" height="18" rx="2" stroke="#111" stroke-width="1.5"/><path d="M12 14V10C12 8.34315 13.3431 7 15 7H21C22.6569 7 24 8.34315 24 10V14" stroke="#111" stroke-width="1.5"/><path d="M4 22H32" stroke="#111" stroke-width="1.5"/><rect x="15" y="19" width="6" height="6" rx="1" stroke="#111" stroke-width="1.5"/></svg>'},
-{id:'prod',en:'Productivity',es:'Productividad',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 4L10 20H18L16 32L26 16H18L20 4Z" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/></svg>'},
-{id:'leisure',en:'Leisure',es:'Ocio',icon:'<svg class="cat-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="13" stroke="#111" stroke-width="1.5"/><path d="M14 14L22 18L14 22V14Z" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/></svg>'}
-];
+:root{--bg:#080c10;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--gold:#c8a96e;--green:#4ade80;--red:#f87171;--tx:#e2e8f0;--mu:#64748b;--mono:'Courier New',monospace}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh;padding-bottom:145px;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(200,169,110,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,.035) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+#powerBar{position:fixed;top:0;left:0;right:0;z-index:2000;height:3px;background:rgba(200,169,110,.1)}
+#powerFill{height:100%;width:0%;background:linear-gradient(90deg,#9a6020,var(--gold),#f0d060);transition:width .7s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px rgba(200,169,110,.7)}
+nav{position:sticky;top:3px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 32px;background:rgba(8,12,16,.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
+.logo{font-size:17px;font-weight:800;letter-spacing:3px;color:var(--gold);text-transform:uppercase;display:flex;align-items:baseline;gap:8px}
+.logo em{font-style:normal;color:var(--mu);font-weight:300;font-size:12px;letter-spacing:1px}
+.nav-right{display:flex;align-items:center;gap:12px}
+.cmd-btn{display:flex;align-items:center;gap:7px;background:var(--sf);border:1px solid var(--bd);color:var(--mu);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--mono);transition:all .2s}
+.cmd-btn:hover{border-color:var(--gold);color:var(--gold)}
+.cmd-btn kbd{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:10px}
+.pro-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu);cursor:pointer}
+.pro-wrap.on .pro-lbl{color:var(--gold)}
+.toggle{width:36px;height:20px;background:rgba(255,255,255,.1);border-radius:10px;position:relative;transition:background .3s;border:1px solid var(--bd);flex-shrink:0}
+.toggle.on{background:linear-gradient(90deg,#9a6020,var(--gold));border-color:var(--gold)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .3s}
+.toggle.on::after{left:19px}
+.hero{padding:52px 32px 32px;position:relative;z-index:1}
+.hero h1{font-size:clamp(28px,4vw,50px);font-weight:800;line-height:1.15;max-width:660px;letter-spacing:-.5px}
+.hero h1 .acc{color:var(--gold)}
+.hero>p{color:var(--mu);margin-top:14px;font-size:15px;line-height:1.65;max-width:520px}
+.hstats{display:flex;gap:32px;margin-top:24px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;gap:3px}
+.sn{font-size:26px;font-weight:700;color:var(--gold);font-family:var(--mono)}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mu)}
+.hbtns{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.btn-rand{background:linear-gradient(135deg,rgba(200,169,110,.18),rgba(200,169,110,.05));border:1px solid rgba(200,169,110,.35);color:var(--gold);padding:10px 22px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:.3px;transition:all .25s;font-family:inherit}
+.btn-rand:hover{box-shadow:0 0 24px rgba(200,169,110,.25);background:linear-gradient(135deg,rgba(200,169,110,.26),rgba(200,169,110,.1))}
+.dash{display:grid;grid-template-columns:1fr 1fr 270px;gap:16px;padding:0 32px 28px;position:relative;z-index:1}
+@media(max-width:900px){.dash{grid-template-columns:1fr}}
+.widget{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:18px 20px}
+.wt{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mu);font-family:var(--mono);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.wdot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite;flex-shrink:0}
+.wi{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;cursor:pointer;transition:color .2s}
+.wi:last-child{border:none}.wi:hover{color:var(--gold)}
+.wtag{font-size:9px;padding:2px 6px;border-radius:3px;font-family:var(--mono);letter-spacing:.5px;border:1px solid}
+.tnew{background:rgba(74,222,128,.1);color:var(--green);border-color:rgba(74,222,128,.2)}
+.thot{background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.25)}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px;font-family:var(--mono)}
+.srow:last-child{border:none}
+.sname{display:flex;align-items:center;gap:7px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite}
+.slat{color:var(--mu);font-size:10px}
+.sw{padding:0 32px 20px;position:relative;z-index:1}
+.si{position:relative}
+.sic{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--mu);pointer-events:none;font-size:16px}
+#searchInput{width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:13px 20px 13px 46px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+#searchInput:focus{border-color:rgba(200,169,110,.45);box-shadow:0 0 0 3px rgba(200,169,110,.07)}
+#searchInput::placeholder{color:var(--mu)}
+#catNav{display:flex;flex-wrap:wrap;gap:8px;padding:0 32px 24px;position:relative;z-index:1}
+.cpill{padding:5px 13px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--bd);background:var(--sf);color:var(--mu);transition:all .18s;white-space:nowrap;font-family:var(--mono)}
+.cpill:hover,.cpill.active{background:rgba(200,169,110,.12);border-color:rgba(200,169,110,.4);color:var(--gold)}
+#toolGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;padding:0 32px;position:relative;z-index:1}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s;will-change:transform;display:flex;flex-direction:column}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.06),transparent 60%);opacity:0;transition:opacity .25s;pointer-events:none}
+.card:hover{border-color:rgba(200,169,110,.4);box-shadow:0 4px 24px rgba(0,0,0,.35),0 0 16px rgba(200,169,110,.09)}
+.card:hover::before{opacity:1}
+.card.pro-glow{border-color:rgba(200,169,110,.55);box-shadow:0 0 24px rgba(200,169,110,.16),inset 0 0 24px rgba(200,169,110,.03)}
+.probadge{position:absolute;top:12px;right:12px;font-size:9px;font-family:var(--mono);color:var(--gold);background:rgba(200,169,110,.15);padding:2px 7px;border-radius:3px;border:1px solid rgba(200,169,110,.4);letter-spacing:1px;display:none}
+.card.pro-glow .probadge{display:block}
+.ccat{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--mu);font-family:var(--mono);margin-bottom:7px}
+.ctitle{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:6px;line-height:1.3}
+.cdesc{font-size:11px;color:var(--mu);line-height:1.55;flex:1;margin-bottom:10px}
+.ccode{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 10px;font-family:var(--mono);font-size:10px;color:#86efac;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s}
+.card:hover .ccode{opacity:1}
+.cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.slive{font-size:10px;font-family:var(--mono);color:var(--green);display:flex;align-items:center;gap:4px}
+.slive::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green);animation:pulse 2s infinite}
+.ssoon{font-size:10px;font-family:var(--mono);color:var(--mu)}
+.qrun{font-size:11px;padding:4px 11px;border-radius:5px;border:1px solid rgba(200,169,110,.35);color:var(--gold);background:rgba(200,169,110,.08);cursor:pointer;opacity:0;transition:opacity .15s;text-decoration:none;display:inline-block}
+.card:hover .qrun{opacity:1}
+.soon-card{opacity:.4;cursor:default;pointer-events:none}
+.slbl{grid-column:1/-1;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mu);font-family:var(--mono);padding:10px 0 6px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:2px}
+.empty{grid-column:1/-1;text-align:center;padding:60px;color:var(--mu);font-family:var(--mono)}
+.empty .eb{font-size:14px;color:var(--tx);margin-bottom:8px}
+#consoleWrap{position:fixed;bottom:0;left:0;right:0;z-index:800;background:rgba(4,6,10,.96);border-top:1px solid rgba(200,169,110,.25);backdrop-filter:blur(10px)}
+#cbar{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;user-select:none}
+.cleft{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--mu)}
+.cdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green)}
+.cdot.blink{animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.cright{font-family:var(--mono);font-size:10px;color:var(--mu)}
+#cbody{height:80px;overflow-y:auto;padding:6px 16px;font-family:var(--mono);font-size:10.5px;line-height:1.8}
+#cbody::-webkit-scrollbar{width:3px}
+#cbody::-webkit-scrollbar-thumb{background:rgba(200,169,110,.25);border-radius:2px}
+.ll{display:flex;gap:8px}
+.lts{color:#334155;min-width:88px;flex-shrink:0}
+.lsys{color:#818cf8}.lok{color:var(--green)}.lwarn{color:#fbbf24}.lerr{color:var(--red)}.ldat{color:#cbd5e1}
+#cmdOverlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);justify-content:center;align-items:flex-start;padding-top:18vh}
+#cmdOverlay.open{display:flex}
+#cmdBox{background:#0f172a;border:1px solid rgba(200,169,110,.35);border-radius:14px;width:min(580px,90vw);max-height:70vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 60px rgba(0,0,0,.6),0 0 40px rgba(200,169,110,.08)}
+#cmdInput{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);padding:16px 20px;font-size:15px;color:var(--tx);font-family:inherit;outline:none}
+#cmdInput::placeholder{color:var(--mu)}
+#cmdResults{overflow-y:auto;flex:1}
+.cmi{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;cursor:pointer;transition:background .1s}
+.cmi.sel,.cmi:hover{background:rgba(200,169,110,.1)}
+.cmn{font-size:13px;color:var(--tx)}
+.cmc{font-size:10px;color:var(--mu);font-family:var(--mono);margin-top:1px}
+.cma{color:var(--mu);font-size:11px}
+.cmf{padding:9px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:16px;font-size:10px;color:var(--mu);font-family:var(--mono)}
+.cmk{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ca{animation:fadeIn .3s ease both}
+</style>
+</head>
+<body>
+<div id="powerBar"><div id="powerFill"></div></div>
+<nav>
+  <div class="logo">XLMX<em>Utility Library</em></div>
+  <div class="nav-right">
+    <button class="cmd-btn" onclick="openCmd()">Search <kbd>Ctrl+K</kbd></button>
+    <div class="pro-wrap" id="proWrap" onclick="togglePro()">
+      <div class="toggle" id="proToggle"></div>
+      <span class="pro-lbl">PRO</span>
+    </div>
+  </div>
+</nav>
+<div class="hero">
+  <h1>The <span class="acc">Engineer's</span><br>Utility Library</h1>
+  <p>113 live tools. AEC, real estate, finance. No account, no install. Just open and run.</p>
+  <div class="hstats">
+    <div class="stat"><div class="sn" id="liveCount">113</div><div class="sl">Live Tools</div></div>
+    <div class="stat"><div class="sn">50</div><div class="sl">Categories</div></div>
+    <div class="stat"><div class="sn" id="proCount">12</div><div class="sl">Pro Tools</div></div>
+  </div>
+  <div class="hbtns">
+    <button class="btn-rand" onclick="goRandom()">&#9889; I'm Feeling Productive</button>
+  </div>
+</div>
+<div class="dash">
+  <div class="widget">
+    <div class="wt"><span class="wdot"></span>Recently Added</div>
+    <div id="recentList"></div>
+  </div>
+  <div class="widget">
+    <div class="wt"><span class="wdot"></span>Most Visited</div>
+    <div id="hotList"></div>
+  </div>
+  <div class="widget">
+    <div class="wt">&#9671; System Status</div>
+    <div id="statusList"></div>
+  </div>
+</div>
+<div class="sw">
+  <div class="si">
+    <span class="sic">&#128269;</span>
+    <input id="searchInput" placeholder="Search 113 tools...  or press Ctrl+K" oninput="doSearch(this.value)" autocomplete="off">
+  </div>
+</div>
+<div id="catNav"></div>
+<div id="toolGrid"></div>
+<div id="consoleWrap">
+  <div id="cbar" onclick="toggleConsole()">
+    <div class="cleft"><span class="cdot blink"></span>xlmx_sys &mdash; Script Console</div>
+    <span class="cright" id="ctoggle">&#9660; minimize</span>
+  </div>
+  <div id="cbody"></div>
+</div>
+<div id="cmdOverlay" onclick="closeCmd(event)">
+  <div id="cmdBox">
+    <input id="cmdInput" placeholder="Jump to any tool..." oninput="cmdSearch(this.value)" autocomplete="off">
+    <div id="cmdResults"></div>
+    <div class="cmf">
+      <span><span class="cmk">&#8593;&#8595;</span> navigate</span>
+      <span><span class="cmk">Enter</span> open</span>
+      <span><span class="cmk">Esc</span> close</span>
+    </div>
+  </div>
+</div>
+<script>
 var TOOLS=[
-{id:'bim-audit',href:'tools/bim-audit.html',cat:'bim',en:'BIM Model Audit',es:'Auditoría de Modelo BIM',den:'Systematic review of model quality and standards compliance.',des:'Revisión sistemática de calidad del modelo y cumplimiento de estándares.'},
-{id:'bim-naming',href:'tools/bim-naming.html',cat:'bim',en:'BIM Naming Convention',es:'Convención de Nombres BIM',den:'Generate and validate file and element naming per ISO 19650.',des:'Genera y valida nombres de archivos y elementos según ISO 19650.'},
-{id:'clash-log',href:'tools/clash-log.html',cat:'bim',en:'Clash Detection Log',es:'Registro de Deteción de Choques',den:'Log and track model clashes through resolution.',des:'Registra y rastrea choques del modelo hasta su resolución.'},
-{id:'clash-matrix',href:'tools/clash-matrix.html',cat:'bim',en:'Clash Matrix',es:'Matriz de Choques',den:'Define discipline-to-discipline clash test responsibilities.',des:'Define responsabilidades de pruebas de choques entre disciplinas.'},
-{id:'ifc-ref',href:'tools/ifc-ref.html',cat:'bim',en:'IFC Reference',es:'Referencia IFC',den:'Quick lookup for IFC entity types and property sets.',des:'Consulta rápida de tipos de entidades IFC y conjuntos de propiedades.'},
-{id:'lod-checker',href:'tools/lod-checker.html',cat:'bim',en:'LOD Checker',es:'Verificador de LOD',den:'Verify Level of Development against project requirements.',des:'Verifica el Nivel de Desarrollo contra los requisitos del proyecto.'},
-{id:'lod-ref',href:'tools/lod-ref.html',cat:'bim',en:'LOD Reference',es:'Referencia de LOD',den:'Visual LOD 100-500 reference guide with element examples.',des:'Guía visual de referencia LOD 100-500 con ejemplos por elemento.'},
-{id:'mep-coord',href:'tools/mep-coord.html',cat:'bim',en:'MEP Coordination',es:'Coordinación MEP',den:'Coordinate mechanical, electrical, and plumbing routing.',des:'Coordina el ruteo de sistemas mecánicos, eléctricos e hidrosanitarios.'},
-{id:'revit-inspector',href:'tools/revit-inspector.html',cat:'bim',en:'Revit Inspector',es:'Inspector de Revit',den:'Audit Revit model health: warnings, links, and file size.',des:'Audita la salud del modelo Revit: advertencias, vínculos y tamaño.'},
-{id:'room-data',href:'tools/room-data.html',cat:'bim',en:'Room Data Sheet',es:'Hoja de Datos de Espacio',den:'Generate room data sheets from model parameters.',des:'Genera hojas de datos de espacios a partir de parámetros del modelo.'},
-{id:'spec-writer',href:'tools/spec-writer.html',cat:'bim',en:'Spec Writer',es:'Escritor de Especificaciones',den:'Drafting tool for technical specifications aligned to CSI.',des:'Herramienta de redacción de especificaciones técnicas alineadas al CSI.'},
-{id:'acoustic-calc',href:'tools/acoustic-calc.html',cat:'arch',en:'Acoustic Calculator',es:'Calculadora Acústica',den:'Calculate reverberation time and acoustic performance.',des:'Calcula el tiempo de reverberación y el desempeño acústico.'},
-{id:'ada-checker',href:'tools/ada-checker.html',cat:'arch',en:'ADA Compliance Checker',es:'Verificador de Accesibilidad',den:'Check spaces and paths for ADA / accessibility compliance.',des:'Verifica espacios y circulaciones para cumplimiento de accesibilidad.'},
-{id:'area-calc',href:'tools/area-calc.html',cat:'arch',en:'Area Calculator',es:'Calculadora de Áreas',den:'Compute net, gross, and rentable areas from dimensions.',des:'Calcula áreas netas, brutas y rentables a partir de dimensiones.'},
-{id:'area-takeoff',href:'tools/area-takeoff.html',cat:'arch',en:'Area Takeoff',es:'Cuantificación de Áreas',den:'Extract and summarize area quantities from drawings.',des:'Extrae y resume cantidades de área de planos.'},
-{id:'code-ref',href:'tools/code-ref.html',cat:'arch',en:'Building Code Reference',es:'Referencia de Normas',den:'Quick reference for IBC, NFPA, and local code requirements.',des:'Referencia rápida de normativas IBC, NFPA y locales.'},
-{id:'daylighting',href:'tools/daylighting.html',cat:'arch',en:'Daylighting Analysis',es:'Análisis de Iluminación Natural',den:'Estimate daylight factor and solar exposure by orientation.',des:'Estima factor de luz natural y exposición solar por orientación.'},
-{id:'door-sched',href:'tools/door-sched.html',cat:'arch',en:'Door Schedule',es:'Cuadro de Puertas',den:'Generate and manage door hardware and finish schedules.',des:'Genera y gestiona cuadros de herrajes y acabados de puertas.'},
-{id:'egress-calc',href:'tools/egress-calc.html',cat:'arch',en:'Egress Calculator',es:'Calculadora de Salidas',den:'Calculate occupancy loads and required egress widths.',des:'Calcula cargas de ocupación y anchos de salidas requeridos.'},
-{id:'elevator-calc',href:'tools/elevator-calc.html',cat:'arch',en:'Elevator Calculator',es:'Calculadora de Elevadores',den:'Size elevators based on building population and traffic.',des:'Dimensiona elevadores según población del edificio y tráfico.'},
-{id:'facade-ratio',href:'tools/facade-ratio.html',cat:'arch',en:'Facade Ratio',es:'Razón de Fachada',den:'Calculate window-to-wall ratio and glazing percentages.',des:'Calcula la proporción de ventana-muro y porcentajes de acristalamiento.'},
-{id:'far-calc',href:'tools/far-calc.html',cat:'arch',en:'FAR Calculator',es:'Calculadora de COS/CUS',den:'Compute floor area ratio against allowable zoning limits.',des:'Calcula el coeficiente de ocupación y utilización del suelo.'},
-{id:'fire-egress',href:'tools/fire-egress.html',cat:'arch',en:'Fire Egress Planner',es:'Planeador de Salidas de Emergencia',den:'Plan fire exit routes and validate travel distances.',des:'Planea rutas de evacuación y valida distancias de recorrido.'},
-{id:'hvac-sizing',href:'tools/hvac-sizing.html',cat:'arch',en:'HVAC Sizing',es:'Dimensionamiento HVAC',den:'Quick HVAC load estimate by zone area and occupancy.',des:'Estimación rápida de carga HVAC por zona y ocupación.'},
-{id:'lighting-calc',href:'tools/lighting-calc.html',cat:'arch',en:'Lighting Calculator',es:'Calculadora de Iluminación',den:'Calculate lux levels and fixture counts per space.',des:'Calcula niveles de lux y cantidad de luminarias por espacio.'},
-{id:'lot-coverage',href:'tools/lot-coverage.html',cat:'arch',en:'Lot Coverage',es:'Ocupación de Lote',den:'Calculate building footprint as percentage of lot area.',des:'Calcula la huella del edificio como porcentaje del área del lote.'},
-{id:'noise-budget',href:'tools/noise-budget.html',cat:'arch',en:'Noise Budget',es:'Presupuesto de Ruido',den:'Estimate noise transmission loss through wall assemblies.',des:'Estima la pérdida de transmisión de ruido a través de muros.'},
-{id:'parking-calc',href:'tools/parking-calc.html',cat:'arch',en:'Parking Calculator',es:'Calculadora de Estacionamiento',den:'Determine parking requirements by use type and jurisdiction.',des:'Determina requerimientos de cajones por uso y jurisdicción.'},
-{id:'program-calc',href:'tools/program-calc.html',cat:'arch',en:'Program Calculator',es:'Calculadora de Programa',den:'Build and balance architectural space programs.',des:'Construye y balancea programas arquitectónicos de áreas.'},
-{id:'stacking',href:'tools/stacking.html',cat:'arch',en:'Stacking Diagram',es:'Diagrama de Apilamiento',den:'Visualize floor-by-floor space allocation vertically.',des:'Visualiza la asignación de espacios piso a piso verticalmente.'},
-{id:'sun-path',href:'tools/sun-path.html',cat:'arch',en:'Sun Path Diagram',es:'Diagrama de Trayectoria Solar',den:'Plot sun angles and shadows by location and date.',des:'Traza ángulos solares y sombras por ubicación y fecha.'},
-{id:'unit-mix',href:'tools/unit-mix.html',cat:'arch',en:'Unit Mix Optimizer',es:'Optimizador de Mix de Unidades',den:'Optimize residential unit mix for maximum marketability.',des:'Optimiza el mix de unidades residenciales para mayor comercialización.'},
-{id:'wall-assembly',href:'tools/wall-assembly.html',cat:'arch',en:'Wall Assembly',es:'Composición de Muros',den:'Build and document wall assembly layers with U-values.',des:'Construye y documenta capas de muros con valores U.'},
-{id:'waterproofing',href:'tools/waterproofing.html',cat:'arch',en:'Waterproofing Planner',es:'Planeador de Impermeabilización',den:'Plan waterproofing systems by zone and exposure level.',des:'Planea sistemas de impermeabilización por zona y nivel de exposición.'},
-{id:'window-schedule',href:'tools/window-schedule.html',cat:'arch',en:'Window Schedule',es:'Cuadro de Ventanas',den:'Generate window schedules with dimensions and glazing specs.',des:'Genera cuadros de ventanas con dimensiones y especificaciones de vidrio.'}
-];var TOOLS2=[
-{id:'cable-tray',href:'tools/cable-tray.html',cat:'const',en:'Cable Tray Sizer',es:'Dimensionador de Charolas',den:'Size electrical cable trays based on conductor fill.',des:'Dimensiona charolas eléctricas según llenado de conductores.'},
-{id:'carbon-calc',href:'tools/carbon-calc.html',cat:'const',en:'Carbon Calculator',es:'Calculadora de Carbono',den:'Estimate embodied carbon in structural and envelope materials.',des:'Estima el carbono embebido en materiales estructurales y envolventes.'},
-{id:'commissioning',href:'tools/commissioning.html',cat:'const',en:'Commissioning Checklist',es:'Lista de Puesta en Marcha',den:'Systematic commissioning log for building systems.',des:'Registro sistemático de puesta en marcha para sistemas del edificio.'},
-{id:'concrete-log',href:'tools/concrete-log.html',cat:'const',en:'Concrete Pour Log',es:'Registro de Colados',den:'Track concrete pours with mix design and QC data.',des:'Rastrea colados de concreto con diseño de mezcla y datos de calidad.'},
-{id:'concrete-mix',href:'tools/concrete-mix.html',cat:'const',en:'Concrete Mix Design',es:'Diseño de Mezcla de Concreto',den:'Calculate concrete mix proportions by target strength.',des:'Calcula proporciones de mezcla de concreto por resistencia objetivo.'},
-{id:'cost-estimator',href:'tools/cost-estimator.html',cat:'const',en:'Cost Estimator',es:'Estimador de Costos',den:'Parametric cost estimate by building type and area.',des:'Estimado de costos paramétrico por tipo de edificio y área.'},
-{id:'daily-report',href:'tools/daily-report.html',cat:'const',en:'Daily Site Report',es:'Reporte Diario de Obra',den:'Structured daily progress report for site supervisors.',des:'Reporte de avance diario estructurado para supervisores de obra.'},
-{id:'material-takeoff',href:'tools/material-takeoff.html',cat:'const',en:'Material Takeoff',es:'Cuantificación de Materiales',den:'Quantify materials from drawing dimensions.',des:'Cuantifica materiales a partir de dimensiones de planos.'},
-{id:'mep-load',href:'tools/mep-load.html',cat:'const',en:'MEP Load Calculator',es:'Calculadora de Cargas MEP',den:'Calculate electrical, mechanical, and plumbing loads.',des:'Calcula cargas eléctricas, mecánicas e hidrosanitarias.'},
-{id:'permit-log',href:'tools/permit-log.html',cat:'const',en:'Permit Log',es:'Registro de Permisos',den:'Track permit applications, approvals, and expiry dates.',des:'Rastrea solicitudes, aprobaciones y vencimientos de permisos.'},
-{id:'photo-log',href:'tools/photo-log.html',cat:'const',en:'Photo Log',es:'Registro Fotográfico',den:'Organized site photo log with date, location, and notes.',des:'Registro fotográfico de obra organizado con fecha, ubicación y notas.'},
-{id:'pipe-sizing',href:'tools/pipe-sizing.html',cat:'const',en:'Pipe Sizing',es:'Dimensionamiento de Tuberías',den:'Size plumbing pipes by flow rate and friction loss.',des:'Dimensiona tuberías por gasto y pérdida por fricción.'},
-{id:'rebar-calc',href:'tools/rebar-calc.html',cat:'const',en:'Rebar Calculator',es:'Calculadora de Acero',den:'Calculate rebar quantities for slabs, beams, and columns.',des:'Calcula cantidades de acero para losas, trabes y columnas.'},
-{id:'site-grading',href:'tools/site-grading.html',cat:'const',en:'Site Grading',es:'Nivelación de Terreno',den:'Calculate cut and fill volumes for site earthwork.',des:'Calcula volúmenes de corte y relleno para terracerías.'},
-{id:'site-safety',href:'tools/site-safety.html',cat:'const',en:'Site Safety Checklist',es:'Lista de Seguridad en Obra',den:'OSHA-aligned daily safety inspection checklist.',des:'Lista de inspección de seguridad diaria alineada a normativas.'},
-{id:'steel-beam',href:'tools/steel-beam.html',cat:'const',en:'Steel Beam Selector',es:'Selector de Perfiles de Acero',den:'Select steel beam profiles by span and load conditions.',des:'Selecciona perfiles de acero por claro y condiciones de carga.'},
-{id:'bid-compare',href:'tools/bid-compare.html',cat:'pm',en:'Bid Comparison',es:'Comparativa de Propuestas',den:'Compare contractor bids side by side on key criteria.',des:'Compara propuestas de contratistas lado a lado en criterios clave.'},
-{id:'budget-tracker',href:'tools/budget-tracker.html',cat:'pm',en:'Budget Tracker',es:'Control Presupuestal',den:'Track project budget vs. actual spend by category.',des:'Controla presupuesto del proyecto vs. gasto real por categoría.'},
-{id:'change-order',href:'tools/change-order.html',cat:'pm',en:'Change Order Manager',es:'Gestor de Órdenes de Cambio',den:'Log, price, and approve project change orders.',des:'Registra, valora y aprueba órdenes de cambio del proyecto.'},
-{id:'co-tracker',href:'tools/co-tracker.html',cat:'pm',en:'CO Tracker',es:'Rastreador de OC',den:'Track change order status and cumulative cost impact.',des:'Rastrea el estado de órdenes de cambio e impacto acumulado en costos.'},
-{id:'contact-dir',href:'tools/contact-dir.html',cat:'pm',en:'Contact Directory',es:'Directorio de Contactos',den:'Centralized project contact directory with roles.',des:'Directorio centralizado de contactos del proyecto con roles.'},
-{id:'contract-countdown',href:'tools/contract-countdown.html',cat:'pm',en:'Contract Countdown',es:'Cuenta Regresiva de Contrato',den:'Countdown timer to contract milestones and deadlines.',des:'Temporizador de cuenta regresiva a hitos y vencimientos de contrato.'},
-{id:'contract-tracker',href:'tools/contract-tracker.html',cat:'pm',en:'Contract Tracker',es:'Rastreador de Contratos',den:'Monitor contract execution status and key dates.',des:'Monitorea el estado de ejecución de contratos y fechas clave.'},
-{id:'fee-calc',href:'tools/fee-calc.html',cat:'pm',en:'Fee Calculator',es:'Calculadora de Honorarios',den:'Calculate professional fees by service phase and scope.',des:'Calcula honorarios profesionales por fase de servicio y alcance.'},
-{id:'gantt-lite',href:'tools/gantt-lite.html',cat:'pm',en:'Gantt Lite',es:'Gantt Simplificado',den:'Lightweight browser-based Gantt chart builder.',des:'Constructor de carta Gantt ligero basado en el navegador.'},
-{id:'leed-points',href:'tools/leed-points.html',cat:'pm',en:'LEED Points Tracker',es:'Rastreador de Puntos LEED',den:'Track LEED credit eligibility and point totals.',des:'Rastrea elegibilidad de créditos LEED y totales de puntos.'},
-{id:'meeting-minutes',href:'tools/meeting-minutes.html',cat:'pm',en:'Meeting Minutes',es:'Minuta de Reunión',den:'Structured meeting minutes with action items and owners.',des:'Minuta de reunión estructurada con acciones y responsables.'},
-{id:'pdf-notes',href:'tools/pdf-notes.html',cat:'pm',en:'PDF Notes',es:'Notas en PDF',den:'Annotate and mark up PDF drawings in the browser.',des:'Anota y marca planos PDF directamente en el navegador.'},
-{id:'project-close',href:'tools/project-close.html',cat:'pm',en:'Project Closeout',es:'Cierre de Proyecto',den:'Structured checklist for complete project closeout.',des:'Lista estructurada para el cierre completo de un proyecto.'},
-{id:'project-dash',href:'tools/project-dash.html',cat:'pm',en:'Project Dashboard',es:'Panel de Proyecto',den:'One-page project health snapshot for stakeholders.',des:'Resumen de salud del proyecto en una página para interesados.'},
-{id:'punch-list',href:'tools/punch-list.html',cat:'pm',en:'Punch List',es:'Lista de Pendientes',den:'Track and close construction punch list items.',des:'Rastrea y cierra puntos de la lista de pendientes de obra.'},
-{id:'rfi-tracker',href:'tools/rfi-tracker.html',cat:'pm',en:'RFI Tracker',es:'Rastreador de RFI',den:'Log, assign, and track requests for information.',des:'Registra, asigna y rastrea solicitudes de información.'},
-{id:'risk-register',href:'tools/risk-register.html',cat:'pm',en:'Risk Register',es:'Registro de Riesgos',den:'Identify, assess, and mitigate project risks.',des:'Identifica, evalúa y mitiga riesgos del proyecto.'},
-{id:'schedule-gantt',href:'tools/schedule-gantt.html',cat:'pm',en:'Schedule Gantt',es:'Programa de Obra',den:'Detailed construction schedule with dependencies.',des:'Programa de obra detallado con dependencias entre actividades.'},
-{id:'schedule-of-values',href:'tools/schedule-of-values.html',cat:'pm',en:'Schedule of Values',es:'Explosión de Costos',den:'Create and manage project schedule of values for billing.',des:'Crea y gestiona la explosión de costos del proyecto para facturación.'},
-{id:'scope-writer',href:'tools/scope-writer.html',cat:'pm',en:'Scope Writer',es:'Redactor de Alcance',den:'Draft clear project scope statements and deliverables.',des:'Redacta declaraciones de alcance y entregables del proyecto.'},
-{id:'submittal-log',href:'tools/submittal-log.html',cat:'pm',en:'Submittal Log',es:'Registro de Submittals',den:'Track submittals through review and approval cycles.',des:'Rastrea submittals a través de ciclos de revisión y aprobación.'},
-{id:'subcon-eval',href:'tools/subcon-eval.html',cat:'pm',en:'Subcontractor Evaluation',es:'Evaluación de Subcontratistas',den:'Score and compare subcontractors on key criteria.',des:'Evalúa y compara subcontratistas en criterios clave.'},
-{id:'takeoff-calc',href:'tools/takeoff-calc.html',cat:'pm',en:'Takeoff Calculator',es:'Calculadora de Cuantificación',den:'Calculate quantities from linear, area, and volume inputs.',des:'Calcula cantidades de insumos lineales, de área y volumen.'},
-{id:'team-capacity',href:'tools/team-capacity.html',cat:'pm',en:'Team Capacity Planner',es:'Planeador de Capacidad del Equipo',den:'Map team availability and workload across projects.',des:'Mapea disponibilidad y carga de trabajo del equipo en proyectos.'},
-{id:'warranty-log',href:'tools/warranty-log.html',cat:'pm',en:'Warranty Log',es:'Registro de Garantías',den:'Track equipment and material warranties with expiry alerts.',des:'Rastrea garantías de equipos y materiales con alertas de vencimiento.'}
+  // â”€â”€ BIM & VDC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'LOD Checker',d:'Validate Level of Development compliance across phases. Reference matrix + project gap report.',c:'BIM & VDC',u:'/lod-checker',s:'live'},
+  {n:'Clash Matrix',d:'Track coordination clashes between 8 disciplines. Click-to-edit grid, sorted log, CSV/JSON export.',c:'BIM & VDC',u:'/clash-matrix',s:'live'},
+  {n:'BIM Execution Plan Checklist',d:'Interactive checklist verifying your BEP covers all ISO 19650 required elements.',c:'BIM & VDC',u:'/tools/bep-checklist/',s:'live'},
+  {n:'Model Health Scorecard',d:'Score your Revit model on naming, worksets, linked files, and coordination readiness.',c:'BIM & VDC',s:'soon'},
+  {n:'ISO 19650 Compliance Checklist',d:'Interactive checklist for information management compliance across project stages.',c:'BIM & VDC',s:'soon'},
+  {n:'Coordination Issue Log',d:'Track RFIs and coordination issues with assignee, priority, and resolution date.',c:'BIM & VDC',s:'soon'},
+  {n:'Transmittal Generator',d:'Create formal document transmittals with revision tracking and distribution lists.',c:'BIM & VDC',s:'soon'},
+  {n:'BIM Role & Responsibility Matrix',d:'Define and assign BIM tasks across team members by discipline and project phase.',c:'BIM & VDC',s:'soon'},
+  {n:'LOD Hour Estimator',d:'Estimate modeling hours by LOD level and element count for fee proposals.',c:'BIM & VDC',s:'soon'},
+  {n:'ISO 19650 File Namer',d:'Generate compliant container naming strings for any project using the ISO 19650 convention.',c:'BIM & VDC',s:'soon'},
+  {n:'4D Sequencing Planner',d:'Map model elements to construction sequence phases for 4D BIM planning.',c:'BIM & VDC',s:'soon'},
+  {n:'VDC Scope Matrix',d:'Define VDC deliverables by phase, use case, and responsible party.',c:'BIM & VDC',s:'soon'},
+  {n:'Workset Naming Generator',d:'Generate standardized Revit workset names by discipline and use case.',c:'BIM & VDC',s:'soon'},
+  {n:'Model Element Counter',d:'Log element counts by category to track model growth and scope changes.',c:'BIM & VDC',s:'soon'},
+  {n:'Federated Model Tracker',d:'Track linked model versions, dates, and responsible parties in a federated BIM workflow.',c:'BIM & VDC',s:'soon'},
+
+  // â”€â”€ Project Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Project Dashboard',d:'Executive one-pager with KPI strip, milestones, risks, action items, and print-to-PDF.',c:'Project Management',u:'/project-dash',s:'live'},
+  {n:'RACI Matrix Builder',d:'Define roles and responsibilities across tasks with a clean RACI grid and export.',c:'Project Management',s:'soon'},
+  {n:'Risk Register',d:'Log, score, and track project risks with probability Ã— impact matrix.',c:'Project Management',s:'soon'},
+  {n:'Meeting Minutes Generator',d:'Structured meeting minutes with attendees, decisions, and auto-formatted action items.',c:'Project Management',s:'soon'},
+  {n:'RFI Log',d:'Log Requests for Information with status, due dates, days open, and response tracking.',c:'Project Management',u:'/tools/rfi-log/',s:'live'},
+  {n:'Submittal Log',d:'Track submittals by spec section, required date, reviewer, and return status.',c:'Project Management',u:'/tools/submittal-log/',s:'live'},
+  {n:'Sheet Index Builder',d:'Build and sort a drawing sheet index by number, discipline, and status.',c:'Project Management',u:'/tools/sheet-index/',s:'live'},
+  {n:'Revision Log',d:'Track drawing and document revisions with delta descriptions, authors, and issue dates.',c:'Project Management',u:'/tools/revision-log/',s:'live'},
+  {n:'Schedule of Values',d:'Track contract line items, % complete, work done, stored materials, and balance to finish.',c:'Project Management',u:'/tools/schedule-of-values/',s:'live'},
+  {n:'Punch List',d:'Track construction deficiencies and closeout items. Filter by status, trade, and location.',c:'Project Management',u:'/tools/punch-list/',s:'live'},
+  {n:'Change Order Log',d:'Log all change orders with status, cost and schedule impact, and running contract total.',c:'Project Management',u:'/tools/change-order-log/',s:'live'},
+  {n:'Material Takeoff',d:'QTO with unit costs, waste factor, and category summary.',c:'Project Management',u:'/tools/material-takeoff/',s:'live'},
+  {n:'Draw Schedule',d:'Construction loan draw tracker by CSI division with retainage.',c:'Project Management',u:'/tools/draw-schedule/',s:'live'},
+  {n:'Daily Construction Report',d:'Standardized daily site report with crew, materials, weather, and next-day plan. Print-ready.',c:'Project Management',u:'/tools/daily-report/',s:'live'},
+  {n:'Project Budget Tracker',d:'Compare budget vs actual vs EAC by cost category. Track variance and contingency burn.',c:'Project Management',u:'/tools/budget-tracker/',s:'live'},
+  {n:'Punch List Manager',d:'Manage closeout punch items by area, trade, assignee, and completion status.',c:'Project Management',s:'soon'},
+  {n:'Change Order Log',d:'Track PCOs, CCOs, and approved COs with running cost and schedule impact.',c:'Project Management',s:'soon'},
+  {n:'Project Fee Tracker',d:'Monitor fee consumption by phase against contracted amount with burn rate.',c:'Project Management',s:'soon'},
+  {n:'Issue Tracker',d:'General project issue log with priority, owner, and resolution workflow.',c:'Project Management',s:'soon'},
+  {n:'Project Closeout Checklist',d:'Phase-by-phase closeout checklist with owner assignments and sign-off.',c:'Project Management',s:'soon'},
+  {n:'Document Control Log',d:'Track drawing revisions, issue dates, and distribution in a single log.',c:'Project Management',s:'soon'},
+  {n:'Milestone Gantt Builder',d:'Visual milestone timeline with phase bars and dependency markers.',c:'Project Management',s:'soon'},
+  {n:'Weekly Status Report Generator',d:'Generate a structured project status report from key metrics and notes.',c:'Project Management',s:'soon'},
+  {n:'Budget vs Actual Tracker',d:'Track budget, commitments, and actual costs by cost code with variance.',c:'Project Management',s:'soon'},
+
+  // â”€â”€ Architecture & Design â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Room Area Calculator',d:'Calculate net, gross, and efficiency ratios for any building program list.',c:'Architecture & Design',s:'soon'},
+  {n:'Occupancy Load Calculator',d:'Calculate occupant loads per IBC based on use type and floor area.',c:'Architecture & Design',s:'soon'},
+  {n:'Parking Ratio Calculator',d:'Determine required parking count by use type, area, and jurisdiction ratio.',c:'Architecture & Design',s:'soon'},
+  {n:'Seller Net Sheet',d:'Estimate seller net proceeds after commissions, closing costs, mortgage payoff, and taxes.',c:'Real Estate & Development',u:'/tools/net-sheet/',s:'live'},
+  {n:'Dev Proforma',d:'Full development proforma: cost stack, GDV, margin, yield on cost.',c:'Real Estate & Development',u:'/tools/dev-proforma/',s:'live'},
+  {n:'Waterfall Model',d:'LP/GP investment waterfall: pref return, catch-up, and promote split.',c:'Real Estate & Development',u:'/tools/waterfall-model/',s:'live'},
+  {n:'Occupancy Cost',d:'Total lease cost: base rent, OpEx, utilities, parking, TI amortized.',c:'Real Estate & Development',u:'/tools/occupancy-cost/',s:'live'},
+  {n:'Development Density Calculator',d:'Units per acre, SF density, FAR, or minimum land area required for a development program.',c:'Real Estate & Development',u:'/tools/density-calc/',s:'live'},
+  {n:'Depreciation Calculator',d:'Straight-line, declining balance, and SYD depreciation schedules for real estate assets.',c:'Real Estate & Development',u:'/tools/depreciation-calc/',s:'live'},
+  {n:'Loan Amortization',d:'Full amortization schedule with monthly payment, principal, interest split, and payoff date.',c:'Real Estate & Development',u:'/tools/amortization/',s:'live'},
+  {n:'FAR & Density Calculator',d:'Calculate Floor Area Ratio and allowable buildout for any site.',c:'Architecture & Design',s:'soon'},
+  {n:'Setback Compliance Checker',d:'Verify front, rear, and side setback compliance against zoning requirements.',c:'Architecture & Design',s:'soon'},
+  {n:'Stair Calculator',d:'Calculate riser and tread dimensions for code-compliant stair design.',c:'Architecture & Design',s:'soon'},
+  {n:'Ramp Slope Checker',d:'Verify ADA and IBC ramp slope, landing, and handrail requirements.',c:'Architecture & Design',s:'soon'},
+  {n:'Program Area Planner',d:'Build a space program with categories, quantities, unit areas, and totals.',c:'Architecture & Design',s:'soon'},
+  {n:'CSI Spec Section Finder',d:'Find MasterFormat spec sections by keyword, number, or trade.',c:'Architecture & Design',s:'soon'},
+  {n:'Building Area Calculator',d:'Sum gross, rentable, and usable areas with BOMA efficiency metrics.',c:'Architecture & Design',s:'soon'},
+  {n:'Exterior Wall Area Calculator',d:'Calculate exterior facade area by elevation with deductions for openings.',c:'Architecture & Design',s:'soon'},
+  {n:'Ceiling Height Optimizer',d:'Compare structural depth options against floor-to-floor height constraints.',c:'Architecture & Design',s:'soon'},
+  {n:'Accessibility Compliance Checklist',d:'ADA/IBC checklist fong',s:'soon'},
+  {n:'Excavation Volume Calculator',d:'Calculate cut and fill volumes for site excavation by shape and depth.',c:'Construction & Engineering',s:'soon'},
+  {n:'Compaction Factor Tool',d:'Apply swell and compaction factors to raw earthwork quantities.',c:'Construction & Engineering',s:'soon'},
+  {n:'Cost per SF Benchmarker',d:'Compare project cost/SF against construction type and region benchmarks.',c:'Construction & Engineering',s:'soon'},
+  {n:'Roof Area Calculator',d:'Calculate roof surface area by pitch and plan dimensions for material takeoff.',c:'Construction & Engineering',s:'soon'},
+  {n:'Drywall Estimator',d:'Estimate drywall sheets, joint compound, and screws by room dimensions.',c:'Construction & Engineering',s:'soon'},
+  {n:'Paint Coverage Calculator',d:'Estimate paint gallons by surface area, coat count, and spread rate.',c:'Construction & Engineering',s:'soon'},
+  {n:'Tile & Flooring Estimator',d:'Calculate tile or flooring quantities with waste factor by room.',c:'Construction & Engineering',s:'soon'},
+  {n:'Lumber Takeoff Calculator',d:'Estimate dimensional lumber quantities for framing by wall length and spacing.',c:'Construction & Engineering',s:'soon'},
+  {n:'Footing Size Calculator',d:'Size spread footings from column load, soil bearing capacity, and safety factor.',c:'Construction & Engineering',s:'soon'},
+  {n:'Construction Schedule Compressor',d:'Identify critical path and fast-tracking opportunities in a phase schedule.',c:'Construction & Engineering',s:'soon'},
+  {n:'Bid Leveling Sheet',d:'Compare subcontractor bids side-by-side with apples-to-apples leveling.',c:'Construction & Engineering',s:'soon'},
+
+  // â”€â”€ Real Estate & Development â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Cap Rate Calculator',d:'Calculate capitalization rate from Net Operating Income and asset value.',c:'Real Estate & Development',s:'live',u:'/tools/cap-rate-calc/'},
+  {n:'ROI Calculator',d:'Calculate return on investment for development, acquisition, or renovation.',c:'Real Estate & Development',s:'soon'},
+  {n:'IRR Estimator',d:'Estimate Internal Rate of Return for multi-year real estate cash flows.',c:'Real Estate & Development',s:'soon'},
+  {n:'Cash-on-Cash Calculator',d:'Calculate annual cash-on-cash return from equity invested and cash flow.',c:'Real Estate & Development',u:'/tools/cash-on-cash/',s:'live'},
+  {n:'Loan-to-Value Calculator',d:'Calculate LTV ratio, max loan amount, and required equity for any property value.',c:'Real Estate & Development',u:'/tools/ltv-calc/',s:'live'},
+  {n:'ROI Calculator',d:'Calculate total ROI, annualized ROI, CAGR, and equity multiple for any investment.',c:'Real Estate & Development',u:'/tools/roi-calculator/',s:'live'},
+  {n:'DSCR Calculator',d:'Debt Service Coverage Ratio: verify a property can service its debt from NOI.',c:'Real Estate & Development',u:'/tools/dscr-calc/',s:'live'},
+  {n:'Break-Even Analysis',d:'Units and revenue break-even with price sensitivity table.',c:'Calculators',u:'/tools/break-even/',s:'live'},
+  {n:'Concrete Mix',d:'Volume, bags, and ACI 211 mix design proportions by element type.',c:'Calculators',u:'/tools/concrete-mix/',s:'live'},
+  {n:'IRR Calculator',d:'Internal Rate of Return with NPV, MOIC, and multi-year cash flow entry.',c:'Real Estate & Development',u:'/tools/irr-calc/',s:'live'},
+  {n:'FAR Calculator',d:'Floor Area Ratio: calculate FAR, max buildable area by zoning, or min lot size.',c:'Real Estate & Development',u:'/tools/far-calc/',s:'live'},
+  {n:'Parking Ratio Calculator',d:'Required parking spaces by use type, ratio, and building area with surplus/deficit.',c:'Real Estate & Development',u:'/tools/parking-calc/',s:'live'},
+  {n:'Seller Net Sheet',d:'Estimate seller net proceeds after commissions, closing costs, mortgage payoff, and taxes.',c:'Real Estate & Development',u:'/tools/net-sheet/',s:'live'},
+  {n:'Development Density Calculator',d:'Units per acre, SF density, FAR, or minimum land area required for a development program.',c:'Real Estate & Development',u:'/tools/density-calc/',s:'live'},
+  {n:'Depreciation Calculator',d:'Straight-line, declining balance, and SYD depreciation schedules for real estate assets.',c:'Real Estate & Development',u:'/tools/depreciation-calc/',s:'live'},
+  {n:'Loan Amortization',d:'Full amortization schedule with monthly payment, principal, interest split, and payoff date.',c:'Real Estate & Development',u:'/tools/amortization/',s:'live'},
+  {n:'Debt Service Calculator',d:'Calculate loan payments, total interest, and amortization for any loan.',c:'Real Estate & Development',s:'soon'},
+  {n:'Simple Pro Forma Builder',d:'Development pro forma with acquisition, hard costs, soft costs, and returns.',c:'Real Estate & Development',s:'soon'},
+  {n:'GRM Calculator',d:'Gross Rent Multiplier quick valuation from annual rent and price.',c:'Real Estate & Development',s:'soon'},
+  {n:'Break-Even Occupancy Calculator',d:'Find the occupancy rate needed to break even on operating expenses.',c:'Real Estate & Development',s:'soon'},
+  {n:'Development Fee Estimator',d:'Estimate development management fees as % of hard and soft costs by phase.',c:'Real Estate & Development',s:'soon'},
+  {n:'Hurdle Rate Checker',d:'Test if a deal clears your minimum IRR and equity multiple threshold.',c:'Real Estate & Development',s:'soon'},
+  {n:'Promote & Waterfall Calculator',d:'Model GP/LP promote distributions across equity waterfall tiers.',c:'Real Estate & Development',s:'soon'},
+  {n:'Rent Roll Builder',d:'Build a property rent roll with tenants, SF, rent/SF, and expiration dates.',c:'Real Estate & Development',s:'soon'},
+  {n:'NOI Builder',d:'Calculate Net Operating Income from revenues and operating expenses.',c:'Real Estate & Development',s:'soon'},
+  {n:'Vacancy Impact Calculator',d:'Model the revenue impact of vacancy changes on NOI and cap rate value.',c:'Real Estate & Development',s:'soon'},
+  {n:'Land Residual Calculator',d:'Back into land value from stabilized NOI, cap rate, and development costs.',c:'Real Estate & Development',s:'soon'},
+
+  // â”€â”€ MEP Engineering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'HVAC Tonnage Estimator',d:'Quick HVAC cooling load estimate by area, use type, and climate zone.',c:'MEP Engineering',s:'soon'},
+  {n:'Plumbing Fixture Counter',d:'Calculate minimum fixture counts per IPC by occupancy type and load.',c:'MEP Engineering',s:'soon'},
+  {n:'Electrical Load Calculator',d:'Estimate connected and demand load for a building by use and area.',c:'MEP Engineering',s:'soon'},
+  {n:'Duct Size Reference',d:'Quick duct sizing by CFM with equal friction method and velocity check.',c:'MEP Engineering',s:'soon'},
+  {n:'Water Heater Sizing Tool',d:'Size domestic hot water heaters by occupancy, peak demand, and recovery.',c:'MEP Engineering',s:'soon'},
+  {n:'Lighting Power Density Checker',d:'Compare installed LPD against ASHRAE 90.1 allowances by space type.',c:'MEP Engineering',s:'soon'},
+  {n:'Pipe Sizing Reference',d:'Quick reference for water pipe sizing by fixture unit count and pressure.',c:'MEP Engineering',s:'soon'},
+  {n:'Generator Sizing Estimator',d:'Estimate standby generator kW requirements by critical load list.',c:'MEP Engineering',s:'soon'},
+  {n:'Fire Sprinkler Density Checker',d:'Verify sprinkler density against NFPA 13 hazard classification requirements.',c:'MEP Engineering',s:'soon'},
+  {n:'Grease Interceptor Sizing',d:'Size grease interceptors for commercial kitchen applications per PDI standards.',c:'MEP Engineering',s:'soon'},
+
+  // â”€â”€ Sustainability & Code â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Energy Use Intensity Benchmarker',d:'Compare building EUI against CBECS benchmarks by building type and climate.',c:'Sustainability & Code',s:'soon'},
+  {n:'LEED Credit Tracker',d:'Track LEED credit pursuit and point totals across all categories with status.',c:'Sustainability & Code',s:'soon'},
+  {n:'Window-to-Wall Ratio Calculator',d:'Calculate WWR by facade orientation and compare against energy code limits.',c:'Sustainability & Code',s:'soon'},
+  {n:'Carbon Footprint Estimator',d:'Rough embodied carbon estimate for structural systems by material and volume.',c:'Sustainability & Code',s:'soon'},
+  {n:'Rainwater Harvesting Calculator',d:'Estimate rainwater collection potential by roof area and annual rainfall.',c:'Sustainability & Code',s:'soon'},
+  {n:'Solar Panel Area Estimator',d:'Estimate roof area needed for target solar offset by location and load.',c:'Sustainability & Code',s:'soon'},
+  {n:'Building Code Occupancy Finder',d:'Look up IBC occupancy classifications and use group requirements by building type.',c:'Sustainability & Code',s:'soon'},
+
+  // â”€â”€ Contracts & Legal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Scope of Work Generator',d:'Draft a professional Scope of Work from project description and deliverables.',c:'Contracts & Legal',s:'soon'},
+  {n:'AIA Fee Proposal Builder',d:'Structure a professional fee proposal with phases, scope, and exclusions.',c:'Contracts & Legal',s:'soon'},
+  {n:'Contract Terms Checklist',d:'Checklist of critical contract terms to review before signing any AEC agreement.',c:'Contracts & Legal',s:'soon'},
+  {n:'Retainage Calculator',d:'Calculate retainage holdback and release milestones on any construction contract.',c:'Contracts & Legal',s:'soon'},
+  {n:'Delay & Liquidated Damages Calculator',d:'Calculate potential LD exposure from schedule delays on a fixed-fee contract.',c:'Contracts & Legal',s:'soon'},
+  {n:'Lien Waiver Tracker',d:'Track conditional and unconditional lien waivers by subcontractor and pay app.',c:'Contracts & Legal',s:'soon'},
+  {n:'Pay App Review Checklist',d:'Structured checklist for reviewing contractor payment applications for completeness.',c:'Contracts & Legal',s:'soon'},
+
+  // â”€â”€ General Productivity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Imperial / Metric Converter',d:'Convert lengths, areas, volumes, and weights between imperial and metric units.',c:'General Productivity',s:'live',u:'/tools/unit-converter/'},
+  {n:'Working Days Calculator',d:'Calculate working days between dates, excluding weekends and holidays.',c:'General Productivity',s:'soon'},
+  {n:'Project Email Subject Generator',d:'Generate professional project email subjects with the BIMXL acronym-prefix format.',c:'General Productivity',s:'soon'},
+  {n:'Meeting Agenda Builder',d:'Build a timed meeting agenda with topics, presenters, and duration blocks.',c:'General Productivity',s:'soon'},
+  {n:'Action Item Tracker',d:'Simple persistent action item list with owner, due date, and status.',c:'General Productivity',s:'soon'},
+  {n:'Project Contact Directory',d:'Maintain a project-specific contact list with role, phone, and email.',c:'General Productivity',st for reviewing contractor payment applications for completeness.',c:'Contracts & Legal',s:'soon'},
+
+  // â”€â”€ General Productivity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Imperial / Metric Converter',d:'Convert lengths, areas, volumes, and weights between imperial and metric units.',c:'General Productivity',s:'live',u:'/tools/unit-converter/'},
+  {n:'Working Days Calculator',d:'Calculate working days between dates, excluding weekends and holidays.',c:'General Productivity',s:'soon'},
+  {n:'Project Email Subject Generator',d:'Generate professional project email subjects with the BIMXL acronym-prefix format.',c:'General Productivity',s:'soon'},
+  {n:'Meeting Agenda Builder',d:'Build a timed meeting agenda with topics, presenters, and duration blocks.',c:'General Productivity',s:'soon'},
+  {n:'Action Item Tracker',d:'Simple persistent action item list with owner, due date, and status.',c:'General Productivity',s:'soon'},
+  {n:'Project Contact Directory',d:'Maintain a project-specific contact list with role, phone, and email.',c:'General Productivity',s:'soon'},
+  {n:'Lesson Learned Log',d:'Capture project lessons learned by phase with category and recommendation.',c:'General Productivity',s:'soon'},
+  {n:'Project Acronym Dictionary',d:'Build and share a project-specific glossary of acronyms and defined terms.',c:'General Productivity',s:'soon'},
+  {n:'Decision Log',d:'Record key project decisions with date, rationale, and approver.',c:'General Productivity',s:'soon'},
+  {n:'Assumption Log',d:'Track project assumptions with validation status and owner.',c:'General Productivity',s:'soon'},
+
+  // â”€â”€ Calculators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  {n:'Percentage Calculator',d:'Quick percentage, change, and markup/margin calculations.',c:'Calculators',s:'live',u:'/tools/percentage-calc/'},
+  {n:'Area & Perimeter Calculator',d:'Calculate area and perimeter for rectangles, circles, triangles, and L-shapes.',c:'Calculators',s:'live',u:'/tools/area-calc/'},
+  {n:'Volume Calculator',d:'Calculate volumes for common geometric shapes used in construction.',c:'Calculators',u:'/tools/volume-calc/',s:'live'},
+  {n:'Unit Weight Calculator',d:'Calculate the weight of construction materials by volume using standard unit weights.',c:'Calculators',u:'/tools/unit-weight-calc/',s:'live'},
+  {n:'Drywall Calculator',d:'Estimate sheets, joint compound, tape, and screws for walls and ceilings.',c:'Calculators',u:'/tools/drywall-calc/',s:'live'},
+  {n:'Paint Calculator',d:'Estimate gallons needed by surface area, coats, coverage rate, and waste factor.',c:'Calculators',u:'/tools/paint-calc/',s:'live'},
+  {n:'Stair Calculator',d:'Riser height, tread depth, stringer length, and IBC/IRC code compliance check.',c:'Calculators',u:'/tools/stair-calc/',s:'live'},
+  {n:'Construction Cost Estimator',d:'Parametric hard cost estimate by building type, market, and stories. US benchmarks.',c:'Calculators',u:'/tools/construction-cost/',s:'live'},
+  {n:'Simple Beam Calculator',d:'Reactions, maximum moment, and midspan deflection for UDL and point-loaded simply supported beams.',c:'Calculators',u:'/tools/beam-calc/',s:'live'},
+  {n:'Wind Load Reference',d:'Simplified ASCE 7 wind pressure: velocity pressure, wall forces, and overturning moment.',c:'Calculators',u:'/tools/wind-load/',s:'live'},
+  {n:'Pipe Sizing',d:'Hazen-Williams pipe sizing: diameter by flow, or head loss by size.',c:'MEP',u:'/tools/pipe-sizing/',s:'live'},
+  {n:'Duct Sizing',d:'HVAC duct sizing via equal friction method. Round and rectangular equivalent.',c:'MEP',u:'/tools/duct-sizing/',s:'live'},
+  {n:'LPD Calculator',d:'Lighting power density vs ASHRAE 90.1 allowance. Space-by-space.',c:'MEP',u:'/tools/lpd-calc/',s:'live'},
+  {n:'Column Load Takedown',d:'Cumulative axial load on a column by floor with dead/live separation and factored Pu.',c:'Calculators',u:'/tools/column-load/',s:'live'},
+  {n:'HVAC Load Estimator',d:'Simplified Manual J cooling and heating load by building type and climate.',c:'MEP',u:'/tools/hvac-load/',s:'live'},
+  {n:'Plumbing Fixture Count',d:'IPC/IBC minimum fixture count by occupancy and male/female split.',c:'MEP',u:'/tools/plumbing-fixture/',s:'live'},
+  {n:'Retaining Wall Check',d:'Rankine active pressure, sliding, overturning, and bearing capacity FS.',c:'Structural',u:'/tools/retaining-wall/',s:'live'},
+  {n:'ADA Checker',d:'ADA/ABA accessibility compliance checklist with pass/fail by dimension.',c:'Code Compliance',u:'/tools/accessibility-check/',s:'live'},
+  {n:'Egress Width Calculator',d:'IBC egress width, required exits, and travel distance by occupancy.',c:'Code Compliance',u:'/tools/egress-calc/',s:'live'},
+  {n:'Architecture Fee Calculator',d:'AIA phase fee breakdown by % of construction or hourly staffing.',c:'Project Management',u:'/tools/project-fee/',s:'live'},
+  {n:'Cost Index Converter',d:'Adjust construction cost between US cities using RSMeans location factors.',c:'Calculators',u:'/tools/cost-index/',s:'live'},
+  {n:'Unit Mix Optimizer',d:'Residential unit type rents, GPR, EGI, and NOI with occupancy factors.',c:'Real Estate & Development',u:'/tools/unit-mix/',s:'live'},
+  {n:'Floor Plate Efficiency',d:'Gross/rentable/usable SF breakdown, load factor, and density benchmarks.',c:'BIM & VDC',u:'/tools/floor-plate/',s:'live'},
+  {n:'Zoning Setback',d:'Buildable footprint after front, rear, and side setbacks. FAR check and lot diagram.',c:'Real Estate & Development',u:'/tools/zoning-setback/',s:'live'},{n:'Solar PV Sizing',d:'Panel count, array area, payback, CO2 avoided',c:'Sustainability',u:'/tools/solar-calc/',s:'live'},{n:'Cut & Fill Volume',d:'Average End Area and grid methods, swell/shrink, truck loads',c:'Civil/Site',u:'/tools/cut-fill/',s:'live'},{n:'S-Curve Cash Flow',d:'Monthly S-curve projection with PV/AC variance and financing cost',c:'Finance',u:'/tools/cash-flow-scurve/',s:'live'},{n:'Lease vs. Buy NPV',d:'NPV comparison with year-by-year table and equity build',c:'Finance',u:'/tools/lease-vs-buy/',s:'live'},{n:'LOD Reference Cards',d:'BIM LOD 100-500 filterable reference per AIA G202/BIMForum',c:'BIM',u:'/tools/lod-reference/',s:'live'},{n:'Embodied Carbon A1-A3',d:'EC3/WBLCA GWP estimator with editable material quantities',c:'Sustainability',u:'/tools/embodied-carbon/',s:'live'},{n:'Acoustics STC/NRC',d:'STC assembly table, NRC finishes, room-to-room privacy calculator',c:'MEP',u:'/tools/acoustics-stc/',s:'live'},{n:'Elevator Wait Time',d:'CIBSE/Barney elevator count, RTT, handling capacity',c:'MEP',u:'/tools/elevator-calc/',s:'live'},{n:'Room Finish Schedule',d:'Printable room finish schedule with floor/wall/ceiling dropdowns',c:'Documentation',u:'/tools/room-finish/',s:'live'},{n:'CSI MasterFormat Ref',d:'Searchable CSI Div 00-33 section reference with code notes',c:'Documentation',u:'/tools/spec-section/',s:'live'},{n:'Wind Load (ASCE 7)',d:'MWFRS wind pressure by exposure category, Kz, and GCpi',c:'Structural',u:'/tools/wind-load/',s:'live'},{n:'Seismic Design SDC',d:'Sds/Sd1 and Seismic Design Category per ASCE 7-22',c:'Structural',u:'/tools/seismic-sds/',s:'live'},{n:'Parking Ratio',d:'ITE-based parking count by use type, stall area, and total land',c:'Civil/Site',u:'/tools/parking-ratio/',s:'live'},{n:'Daylight Factor',d:'WFR, daylight factor, illuminance, LEED v4 daylighting check',c:'Sustainability',u:'/tools/daylight-factor/',s:'live'},{n:'Punch List',d:'Printable project punch list with status, responsibility, and CSV export',c:'Documentation',u:'/tools/punch-list/',s:'live'},{n:'IRR / NPV Calculator',d:'Annual cash flow IRR, NPV, equity multiple, and payback period',c:'Finance',u:'/tools/irr-calc/',s:'live'},{n:'HVAC Equipment Schedule',d:'Editable HVAC equipment schedule with totals and CSV export',c:'MEP',u:'/tools/hvac-equipment-schedule/',s:'live'},{n:'Tenant Improvement Budget',d:'TI cost estimate by use type, finish level, and shell condition',c:'Finance',u:'/tools/tenant-improvement/',s:'live'},{n:'Massing Study',d:'GFA, FAR, coverage, and buildable footprint with lot diagram',c:'Architecture',u:'/tools/massing-study/',s:'live'},{n:'Construction Timeline',d:'Gantt-style phase timeline with today marker and print export',c:'Documentation',u:'/tools/construction-timeline/',s:'live'},{n:'Steel Beam Check',d:'AISC 360 LRFD flexure, shear, and deflection for W-shapes',c:'Structural',u:'/tools/steel-beam/',s:'live'},{n:'Refrigerant GWP Reference',d:'ASHRAE 34 classification, GWP, phase-down status, charge calculator',c:'MEP',u:'/tools/hvac-refrigerant/',s:'live'},{n:'Site Drainage (Rational)',d:'Rational method peak flow, Manning pipe sizing, velocity check',c:'Civil/Site',u:'/tools/site-drainage/',s:'live'},{n:'BIM Clash Matrix',d:'Discipline-pair clash tracker with severity levels and CSV export',c:'BIM',u:'/tools/bim-clash-matrix/',s:'live'},{n:'Cost Escalation',d:'Construction cost escalation by annual rate and project type factor',c:'Finance',u:'/tools/cost-escalation/',s:'live'},{n:'Net Effective Rent',d:'NER simple and NPV method with concession breakdown',c:'Finance',u:'/tools/net-effective-rent/',s:'live'},{n:'LEED v4 Credits',d:'BD+C credit estimator with slider controls and certification level',c:'Sustainability',u:'/tools/leed-credits/',s:'live'},{n:'ADA Ramp Compliance',d:'Slope, width, landing, handrail, and edge protection checks',c:'Architecture',u:'/tools/accessibility-ramp/',s:'live'},{n:'ASCE 7 Load Combinations',d:'LRFD strength design load combinations with governing result',c:'Structural',u:'/tools/structural-loads/',s:'live'},{n:'Contract Milestones',d:'Payment milestone tracker with status, progress bar, and CSV export',c:'Documentation',u:'/tools/contract-milestone/',s:'live'},
+  {n:'Slope & Grade Calculator',d:'Convert between slope percentage, ratio, degrees, and rise/run.',c:'Calculators',s:'live',u:'/tools/slope-calc/'},
+  {n:'Wood Beam Check',d:'NDS 2018 sawn/LVL/glulam bending, shear & deflection check',c:'Structural',s:'live',u:'/tools/wood-beam/'},
+  {n:'HVAC Psychrometrics',d:'DB+RH, DB+WB, or DB+DP: enthalpy, humidity ratio, wet bulb, grains',c:'MEP',s:'live',u:'/tools/hvac-psych/'},
+  {n:'Stormwater BMP',d:'Detention basin, bioretention cell & infiltration trench sizing',c:'Civil',s:'live',u:'/tools/stormwater-bmp/'},
+  {n:'Column Load Takedown',d:'Tributary area axial loads with live load reduction per ASCE 7-22',c:'Structural',s:'live',u:'/tools/column-load/'},
+  {n:'Dev Schedule',d:'Real estate phase Gantt from pre-dev through stabilization',c:'Real Estate',s:'live',u:'/tools/dev-schedule/'},
+  {n:'Fee Proposal',d:'AEC fee proposal with phase breakdown and exportable proposal text',c:'Business',s:'live',u:'/tools/fee-proposal/'},
+  {n:'Floor Vibration',d:'AISC DG11 simplified walking excitation check with occupancy limits',c:'Structural',s:'live',u:'/tools/floor-vibration/'},
+  {n:'Solar Shading',d:'Horizontal overhang depth to shade glazing by season and latitude',c:'Architecture',s:'live',u:'/tools/solar-shading/'},
+  {n:'BIM Model Checker',d:'ISO 19650 model health checklist: CDE, naming, LOD, clash, handover',c:'BIM',s:'live',u:'/tools/bim-model-checker/'},
+  {n:'ROI Sensitivity',d:'2-variable sensitivity matrix and tornado chart for IRR and equity multiple',c:'Real Estate',s:'live',u:'/tools/roi-sensitivity/'},{n:'Pipe Sizing',d:'Hazen-Williams pressure drop and pipe sizing for water supply systems.',c:'MEP Engineering',s:'live',u:'/tools/pipe-sizing/'},{n:'Concrete Mix Design',d:'ACI 211.1 absolute volume method for proportioning concrete mixes.',c:'Structural',s:'live',u:'/tools/concrete-mix/'},{n:'HVAC Duct Sizing',d:'Equal friction method for round and rectangular duct sizing per ASHRAE.',c:'MEP Engineering',s:'live',u:'/tools/hvac-duct-sizing/'},{n:'Retaining Wall Check',d:'Rankine earth pressure with sliding, overturning, and bearing checks.',c:'Structural',s:'live',u:'/tools/retaining-wall/'},{n:'Development Pro Forma',d:'Full real estate development pro forma with NOI, IRR, equity multiple, and promote.',c:'Real Estate',s:'live',u:'/tools/pro-forma/'},{n:'Bid Comparison Matrix',d:'Side-by-side CSI scope bid tabulation with low-bid highlighting and CSV export.',c:'Construction',s:'live',u:'/tools/bid-comparison/'},{n:'Zoning Compliance Check',d:'FAR, lot coverage, setbacks, height, parking, and density compliance checker.',c:'Real Estate',s:'live',u:'/tools/zoning-calc/'},{n:'Water Heater Sizing',d:'Domestic hot water demand and storage sizing per IPC and ASHRAE.',c:'MEP Engineering',s:'live',u:'/tools/water-heater/'},{n:'Fire Flow Calculator',d:'NFPA 1 / IFC Appendix B fire flow demand by construction type and occupancy.',c:'Construction',s:'live',u:'/tools/fire-flow/'},{n:'Carbon Budget Tool',d:'Embodied and operational carbon accounting with RIBA 2030 / LEED Zero targets.',c:'Sustainability',s:'live',u:'/tools/co2-budget/'},
+  {n:'CADXL Viewer',d:'Client-side CAD viewer. Load DXF / KML files, inspect layers, measure distances, and edit geometry — no server, no upload.',c:'BIM / CAD',s:'live',u:'/tools/cadxl/'},
+  {n:'Aspect Ratio Calculator',d:'Calculate and lock aspect ratios for drawings, images, and scaled plans.',c:'Calculators',s:'soon'},
+  {n:'Scale Converter',d:'Convert real dimensions to drawing scale and back for any scale ratio.',c:'Calculators',s:'soon'},
+  {n:'Compound Interest Calculator',d:'Calculate compound growth for investment returns and loan balances.',c:'Calculators',s:'soon'},
+  {n:'Inflation Adjuster',d:'Adjust historical construction costs to current dollars using CPI data.',c:'Calculators',s:'soon'},
+  {n:'Markup vs Margin Calculator',d:'Convert between markup percentage and margin percentage for pricing.',c:'Calculators',s:'soon'},
+  {n:'Unit Price Normalizer',d:'Normalize costs from different units (SF, SY, LF, CY) to compare bids.',c:'Calculators',s:'soon'}
 ];
-TOOLS=TOOLS.concat(TOOLS2);var T3=[
-{id:'cap-rate',href:'tools/cap-rate.html',cat:'re',en:'Cap Rate Calculator',es:'Calculadora de Cap Rate',den:'Calculate capitalization rate for income-producing properties.',des:'Calcula la tasa de capitalización para propiedades.'},
-{id:'proforma',href:'tools/proforma.html',cat:'re',en:'Pro Forma Builder',es:'Constructor de Pro Forma',den:'Build real estate development pro forma with returns.',des:'Construye pro forma de desarrollo inmobiliario con retornos.'},
-{id:'rent-roll',href:'tools/rent-roll.html',cat:'re',en:'Rent Roll',es:'Rol de Rentas',den:'Manage tenant rent roll with lease dates and terms.',des:'Gestiona el rol de rentas con fechas de arrendamiento.'},
-{id:'rentavcompra',href:'tools/rentavcompra.html',cat:'re',en:'Rent vs Buy',es:'Renta vs Compra',den:'Compare renting vs buying a property over time.',des:'Compara arrendar vs comprar una propiedad en el tiempo.'},
-{id:'roi-calculator',href:'tools/roi-calculator.html',cat:'re',en:'ROI Calculator',es:'Calculadora de ROI',den:'Calculate return on investment for real estate acquisitions.',des:'Calcula el retorno sobre inversión en adquisiciones inmobiliarias.'},
-{id:'manufacturing-map',href:'tools/manufacturing-map.html',cat:'re',en:'Manufacturing Megacluster Map',es:'Mapa de Megacluster Industrial',den:'Interactive map of North American OEM assemblers and Tier 1/2 suppliers across the US and Mexico.',des:'Mapa interactivo de OEMs y proveedores Tier 1/2 en México y Estados Unidos.'},
-{id:'auditor',href:'tools/auditor.html',cat:'biz',en:'Business Auditor',es:'Auditor de Negocio',den:'Quick financial health audit for small businesses.',des:'Auditoria rápida de salud financiera para pequeños negocios.'},
-{id:'break-even',href:'tools/break-even.html',cat:'biz',en:'Break-Even Calculator',es:'Punto de Equilibrio',den:'Find the revenue point where costs and income balance.',des:'Encuentra el punto donde costos e ingresos se equilibran.'},
-{id:'business-name-gen',href:'tools/business-name-gen.html',cat:'biz',en:'Business Name Generator',es:'Generador de Nombres',den:'Generate brand-aligned business name ideas.',des:'Genera ideas de nombres de empresa alineados con la marca.'},
-{id:'cold-email-builder',href:'tools/cold-email-builder.html',cat:'biz',en:'Cold Email Builder',es:'Email en Frio',den:'Build structured cold outreach emails that convert.',des:'Construye emails de prospeccion en frio que convierten.'},
-{id:'email-subject-tester',href:'tools/email-subject-tester.html',cat:'biz',en:'Email Subject Tester',es:'Probador de Asuntos',den:'Score email subject lines for open rate potential.',des:'Evalua lineas de asunto por potencial de apertura.'},
-{id:'freelance-rate',href:'tools/freelance-rate.html',cat:'biz',en:'Freelance Rate Calculator',es:'Tarifa Freelance',den:'Calculate your minimum viable hourly or project rate.',des:'Calcula tu tarifa minima viable por hora o proyecto.'},
-{id:'invoice-generator',href:'tools/invoice-generator.html',cat:'biz',en:'Invoice Generator',es:'Generador de Facturas',den:'Create professional invoices in seconds, export to PDF.',des:'Crea facturas profesionales en segundos, exporta a PDF.'},
-{id:'invoice-maker',href:'tools/invoice-maker.html',cat:'biz',en:'Invoice Maker',es:'Creador de Recibos',den:'Simple invoice maker for quick client billing.',des:'Creador simple de recibos para facturacion rapida.'},
-{id:'meeting-cost',href:'tools/meeting-cost.html',cat:'biz',en:'Meeting Cost Calculator',es:'Costo de Reunion',den:'Calculate the real cost of a meeting by attendee salaries.',des:'Calcula el costo real de una reunion por salarios.'},
-{id:'menu',href:'tools/menu.html',cat:'biz',en:'Digital Menu Builder',es:'Menu Digital',den:'Build a clean digital menu for restaurants or events.',des:'Construye un menu digital limpio para restaurantes o eventos.'},
-{id:'password-audit',href:'tools/password-audit.html',cat:'biz',en:'Password Audit',es:'Auditoria de Contraseñas',den:'Audit password strength and generate secure alternatives.',des:'Audita la fortaleza de contraseñas y genera alternativas seguras.'},
-{id:'proposal-fee-estimator',href:'tools/proposal-fee-estimator.html',cat:'biz',en:'Proposal Fee Estimator',es:'Estimador de Honorarios',den:'Estimate professional service fees for project proposals.',des:'Estima honorarios de servicios profesionales para propuestas.'},
-{id:'saas-pricing',href:'tools/saas-pricing.html',cat:'biz',en:'SaaS Pricing Builder',es:'Precios SaaS',den:'Model tiered SaaS pricing plans with revenue projections.',des:'Modela planes de precios SaaS con proyecciones de ingresos.'},
-{id:'salary-negotiation',href:'tools/salary-negotiation.html',cat:'biz',en:'Salary Negotiation',es:'Negociacion de Salario',den:'Script and strategy tool for salary negotiation.',des:'Herramienta de guion y estrategia para negociar salario.'},
-{id:'social-caption',href:'tools/social-caption.html',cat:'biz',en:'Social Caption Writer',es:'Redactor de Captions',den:'Write on-brand social media captions for multiple platforms.',des:'Redacta captions para redes sociales alineados con la marca.'},
-{id:'subscription-graveyard',href:'tools/subscription-graveyard.html',cat:'biz',en:'Subscription Graveyard',es:'Cementerio de Suscripciones',den:'Log and audit recurring subscriptions to find waste.',des:'Registra y audita suscripciones recurrentes para encontrar desperdicios.'},
-{id:'vending',href:'tools/vending.html',cat:'biz',en:'Vending ROI',es:'ROI de Vending',den:'Calculate ROI and payback period for vending machines.',des:'Calcula ROI y periodo de recuperacion para maquinas expendedoras.'},
-{id:'whatsapp',href:'tools/whatsapp.html',cat:'biz',en:'WhatsApp Templates',es:'Plantillas WhatsApp',den:'Build and test WhatsApp Business message templates.',des:'Construye y prueba plantillas de mensajes para WhatsApp Business.'}
-];
-TOOLS=TOOLS.concat(T3);var T4=[
-{id:'ai-prompt-builder',href:'tools/ai-prompt-builder.html',cat:'prod',en:'AI Prompt Builder',es:'Constructor de Prompts IA',den:'Structure effective prompts for AI tools and LLMs.',des:'Estructura prompts efectivos para herramientas de IA.'},
-{id:'color-palette',href:'tools/color-palette.html',cat:'prod',en:'Color Palette Generator',es:'Paletas de Color',den:'Generate harmonious color palettes from a base color.',des:'Genera paletas de colores armoniosas a partir de un color base.'},
-{id:'compare-anything',href:'tools/compare-anything.html',cat:'prod',en:'Compare Anything',es:'Compara Todo',den:'Side-by-side comparison table for any two options.',des:'Tabla de comparacion lado a lado para cualquier opcion.'},
-{id:'contextual-clipboard',href:'tools/contextual-clipboard.html',cat:'prod',en:'Contextual Clipboard',es:'Portapapeles Contextual',den:'Save and recall text snippets by context or project.',des:'Guarda y recupera fragmentos de texto por contexto o proyecto.'},
-{id:'currency-convert',href:'tools/currency-convert.html',cat:'prod',en:'Currency Converter',es:'Convertidor de Divisas',den:'Convert between currencies with live or reference rates.',des:'Convierte entre divisas con tasas en vivo o de referencia.'},
-{id:'deep-work',href:'tools/deep-work.html',cat:'prod',en:'Deep Work Timer',es:'Temporizador de Enfoque',den:'Pomodoro-style focus timer with session logging.',des:'Temporizador de enfoque estilo Pomodoro con registro de sesiones.'},
-{id:'do-later',href:'tools/do-later.html',cat:'prod',en:'Do Later',es:'Para Despues',den:'Capture and triage tasks for later without losing focus.',des:'Captura y prioriza tareas para despues sin perder el foco.'},
-{id:'font-pairing',href:'tools/font-pairing.html',cat:'prod',en:'Font Pairing',es:'Combinacion de Fuentes',den:'Preview and export Google Font pairings for projects.',des:'Previsualiza y exporta combinaciones de Google Fonts.'},
-{id:'ghost-login',href:'tools/ghost-login.html',cat:'prod',en:'Ghost Login',es:'Login Fantasma',den:'Secure one-time access link generator for client portals.',des:'Generador de enlaces de acceso unico para portales de cliente.'},
-{id:'grasshopper-ref',href:'tools/grasshopper-ref.html',cat:'prod',en:'Grasshopper Reference',es:'Referencia Grasshopper',den:'Component reference and pattern library for Grasshopper.',des:'Referencia de componentes y biblioteca de patrones para Grasshopper.'},
-{id:'human-check',href:'tools/human-check.html',cat:'prod',en:'Human Check',es:'Revision Humana',den:'Checklist to verify AI-generated content before sending.',des:'Lista para verificar contenido generado por IA antes de enviar.'},
-{id:'image-resizer',href:'tools/image-resizer.html',cat:'prod',en:'Image Resizer',es:'Redimensionador',den:'Resize and optimize images for web or print in-browser.',des:'Redimensiona y optimiza imagenes para web o impresion.'},
-{id:'lens-calc',href:'tools/lens-calc.html',cat:'prod',en:'Lens Calculator',es:'Calculadora de Lente',den:'Calculate field of view and depth of field for cameras.',des:'Calcula campo de vision y profundidad de campo para camaras.'},
-{id:'mood-board',href:'tools/mood-board.html',cat:'prod',en:'Mood Board',es:'Tablero de Concepto',den:'Drag-and-drop visual mood board builder in the browser.',des:'Constructor de tablero de concepto visual en el navegador.'},
-{id:'photo-metadata',href:'tools/photo-metadata.html',cat:'prod',en:'Photo Metadata Viewer',es:'Visor de Metadatos',den:'Extract and display EXIF metadata from photos.',des:'Extrae y muestra metadatos EXIF de fotografias.'},
-{id:'portfolio-planner',href:'tools/portfolio-planner.html',cat:'prod',en:'Portfolio Planner',es:'Planeador de Portafolio',den:'Plan and structure your professional portfolio content.',des:'Planea y estructura el contenido de tu portafolio profesional.'},
-{id:'qr-generator',href:'tools/qr-generator.html',cat:'prod',en:'QR Generator',es:'Generador de QR',den:'Generate QR codes for URLs, text, or contact cards.',des:'Genera codigos QR para URLs, texto o tarjetas de contacto.'},
-{id:'reading-list',href:'tools/reading-list.html',cat:'prod',en:'Reading List',es:'Lista de Lectura',den:'Organize and track your professional reading queue.',des:'Organiza y rastrea tu cola de lectura profesional.'},
-{id:'receipt-scraper',href:'tools/receipt-scraper.html',cat:'prod',en:'Receipt Scraper',es:'Escaner de Recibos',den:'Extract line items and totals from receipt images.',des:'Extrae conceptos y totales de imagenes de recibos.'},
-{id:'render-settings',href:'tools/render-settings.html',cat:'prod',en:'Render Settings',es:'Configuraciones de Render',den:'Reference guide for optimal render settings by software.',des:'Guia de configuraciones optimas de render por software.'},
-{id:'rhino-shortcuts',href:'tools/rhino-shortcuts.html',cat:'prod',en:'Rhino Shortcuts',es:'Atajos de Rhino',den:'Complete Rhino 3D keyboard shortcut reference.',des:'Referencia completa de atajos de teclado para Rhino 3D.'},
-{id:'screenshot-redactor',href:'tools/screenshot-redactor.html',cat:'prod',en:'Screenshot Redactor',es:'Redactor de Capturas',den:'Blur or black out sensitive areas in screenshots.',des:'Difumina u oscurece areas sensibles en capturas de pantalla.'},
-{id:'sketchup-tips',href:'tools/sketchup-tips.html',cat:'prod',en:'SketchUp Tips',es:'Tips de SketchUp',den:'Curated workflow tips and shortcuts for SketchUp.',des:'Tips y atajos de flujo de trabajo para SketchUp.'},
-{id:'tab-janitor',href:'tools/tab-janitor.html',cat:'prod',en:'Tab Janitor',es:'Limpiador de Pestanas',den:'Audit and organize browser tabs before they multiply.',des:'Audita y organiza pestanas del navegador antes de que se multipliquen.'},
-{id:'time-tracker',href:'tools/time-tracker.html',cat:'prod',en:'Time Tracker',es:'Rastreador de Tiempo',den:'Log billable hours by project and client.',des:'Registra horas facturables por proyecto y cliente.'},
-{id:'tos-flagger',href:'tools/tos-flagger.html',cat:'prod',en:'Terms Flagger',es:'Marcador de Terminos',den:'Highlight risky clauses in terms of service documents.',des:'Resalta clausulas de riesgo en terminos de servicio.'},
-{id:'travel-planner',href:'tools/travel-planner.html',cat:'prod',en:'Travel Planner',es:'Planeador de Viaje',den:'Plan trips with itinerary, budget, and packing list.',des:'Planea viajes con itinerario, presupuesto y lista de empaque.'},
-{id:'unit-converter',href:'tools/unit-converter.html',cat:'prod',en:'Unit Converter',es:'Convertidor de Unidades',den:'Convert between metric, imperial, and project-specific units.',des:'Convierte entre unidades metricas, imperiales y de proyecto.'}
-];
-TOOLS=TOOLS.concat(T4);var T5=[
-{id:'brutalist-tetris',href:'games/brutalist-tetris.html',cat:'leisure',en:'Brutalist Tetris',es:'Tetris Brutalista',den:'Tetris with brutalist architecture aesthetics.',des:'Tetris con estetica de arquitectura brutalista.'},
-{id:'zoning-puzzle',href:'games/zoning-puzzle.html',cat:'leisure',en:'Zoning Puzzle',es:'Puzzle de Zonificacion',den:'Place land uses to maximize a site development potential.',des:'Coloca usos de suelo para maximizar el potencial del sitio.'},
-{id:'path-of-least-resistance',href:'games/path-of-least-resistance.html',cat:'leisure',en:'Path of Least Resistance',es:'Ruta de Menor Resistencia',den:'Navigate structure through the building code maze.',des:'Navega la estructura a traves del laberinto de normas.'},
-{id:'floor-plan-optimizer',href:'games/floor-plan-optimizer.html',cat:'leisure',en:'Floor Plan Optimizer',es:'Optimizador de Planta',den:'Arrange rooms to achieve the optimal floor plan score.',des:'Acomoda espacios para lograr la puntuacion optima de planta.'},
-{id:'bridge-builder',href:'games/bridge-builder.html',cat:'leisure',en:'Bridge Builder',es:'Constructor de Puentes',den:'Classic structural engineering bridge building challenge.',des:'Clasico desafio de ingenieria estructural para construir puentes.'},
-{id:'passive-house',href:'games/passive-house.html',cat:'leisure',en:'Passive House',es:'Casa Pasiva',den:'Design a passive house to meet energy performance targets.',des:'Diseña una casa pasiva para cumplir objetivos de energia.'},
-{id:'zen-garden',href:'games/zen-garden.html',cat:'leisure',en:'Zen Garden',es:'Jardin Zen',den:'Meditative landscape design in a digital sand garden.',des:'Diseño de paisaje meditativo en un jardin de arena digital.'},
-{id:'modular-colony',href:'games/modular-colony.html',cat:'leisure',en:'Modular Colony',es:'Colonia Modular',den:'Build a modular settlement under resource constraints.',des:'Construye un asentamiento modular bajo restricciones de recursos.'},
-{id:'structural-integrity',href:'games/structural-integrity.html',cat:'leisure',en:'Structural Integrity',es:'Integridad Estructural',den:'Test structural systems against simulated load conditions.',des:'Prueba sistemas estructurales contra condiciones de carga simuladas.'},
-{id:'bolsa-mx',href:'games/bolsa-mx.html',cat:'leisure',en:'Bolsa MX',es:'Bolsa MX',den:'Simulated Mexican stock market trading game.',des:'Juego de simulacion de trading en la bolsa mexicana.'},
-{id:'ninos',href:'tools/ninos.html',cat:'leisure',en:'Kids Corner',es:'Rincon de Ninos',den:'Fun interactive tools and activities for kids.',des:'Herramientas interactivas divertidas para ninos.'},
-{id:'parras',href:'tools/parras.html',cat:'leisure',en:'Parras',es:'Parras',den:'Explore Parras de la Fuente through interactive guides.',des:'Explora Parras de la Fuente a traves de guias interactivas.'},
-{id:'cuentos',href:'tools/cuentos.html',cat:'leisure',en:'Story Generator',es:'Generador de Cuentos',den:'Generate illustrated stories for children.',des:'Genera cuentos ilustrados para ninos.'},
-{id:'propinas',href:'tools/propinas.html',cat:'leisure',en:'Tip Calculator',es:'Calculadora de Propinas',den:'Calculate tips and split bills at restaurants.',des:'Calcula propinas y divide cuentas en restaurantes.'},
-{id:'nombres',href:'tools/nombres.html',cat:'leisure',en:'Name Generator',es:'Generador de Nombres',den:'Generate creative names for projects, pets, or characters.',des:'Genera nombres creativos para proyectos, mascotas o personajes.'},
-{id:'solar',href:'tools/solar.html',cat:'leisure',en:'Solar System Explorer',es:'Explorador Solar',den:'Interactive guide to our solar system.',des:'Guia interactiva de nuestro sistema solar.'},
-{id:'reglamento',href:'tools/reglamento.html',cat:'leisure',en:'Building Reglamento',es:'Reglamento de Construccion',den:'Mexican construction regulation quick reference.',des:'Referencia rapida del reglamento de construccion mexicano.'},
-{id:'tinybuilding',href:'tools/tinybuilding.html',cat:'leisure',en:'Tiny Building',es:'Edificio Minusculo',den:'Design micro-architecture within extreme constraints.',des:'Diseña micro-arquitectura bajo restricciones extremas.'}
-];
-TOOLS=TOOLS.concat(T5);var activeCat=null;
-var activeLang='en';
-function getHref(t){
-var ov={'ninos':'Tool_ninos/','parras':'Tool_parras/','cuentos':'Tool_cuentos/','propinas':'Tool_propinas/','nombres':'Tool_nombres/','solar':'Tool_solar/','reglamento':'Tool_reglamento/Archive/','rentavcompra':'Tool_rentavcompra/','manufacturing-map':'manufacturing-map/'};
-if(ov[t.id])return ov[t.id];
-if(t.href&&t.href.indexOf('games/')===0)return t.href;
-return t.id+'/';
-}function renderCategories(){
-var g=document.getElementById('cat-grid');
-if(!g)return;
-g.innerHTML='';
-CATS.forEach(function(c){
-var count=TOOLS.filter(function(t){return t.cat===c.id;}).length;
-var div=document.createElement('div');
-div.className='cat-card'+(activeCat===c.id?' active':'');
-div.setAttribute('data-cat',c.id);
-div.innerHTML=c.icon+'<div class="cat-name" data-en="'+c.en+'" data-es="'+c.es+'">'+( activeLang==='es'?c.es:c.en )+'</div><div class="cat-count">'+count+' tools</div>';
-div.onclick=function(){selectCat(c.id);};
-g.appendChild(div);
-});
+
+var PRO_SET=new Set(['ROI Sensitivity','Development Pro Forma','BIM Model Checker','Waterfall Model','Construction Cost Estimator','Steel Beam Check','HVAC Load Estimator','Carbon Budget Tool','IRR / NPV Calculator','Seismic Design SDC','Embodied Carbon A1-A3','S-Curve Cash Flow']);
+var LIVE=TOOLS.filter(function(t){return t.s==='live';});
+var ALL_CATS=[...new Set(TOOLS.filter(function(t){return t.s==='live';}).map(function(t){return t.c;}))].sort();
+var curCat='All',curQ='',proMode=false,cOpen=true,cmdSel=0,cmdList=[],explored=new Set();
+
+function updatePower(){
+  var pct=Math.min(100,Math.round(explored.size/10*100));
+  document.getElementById('powerFill').style.width=pct+'%';
+  if(pct>=100) clog('ok','power','ACHIEVEMENT_UNLOCKED: Explorer_Badge activated');
 }
-function selectCat(catId){
-if(activeCat===catId){activeCat=null;document.getElementById('tools-wrap').style.display='none';renderCategories();return;}
-activeCat=catId;
-renderCategories();
-renderTools();
+function renderCats(){
+  var nav=document.getElementById('catNav');
+  var cats=['All'].concat(ALL_CATS);
+  nav.innerHTML=cats.map(function(c){
+    var cnt=c==='All'?LIVE.length:LIVE.filter(function(t){return t.c===c;}).length;
+    if(!cnt)return '';
+    return '<div class="cpill'+(c===curCat?' active':'')+'" onclick="setCat('+JSON.stringify(c)+')">'+c+'<span style="opacity:.45;margin-left:5px">'+cnt+'</span></div>';
+  }).join('');
 }
-function renderTools(){
-var wrap=document.getElementById('tools-wrap');
-var grid=document.getElementById('tool-grid');
-var label=document.getElementById('cat-label');
-if(!wrap||!grid)return;
-var search=document.getElementById('search').value.toLowerCase();
-var cat=CATS.find(function(c){return c.id===activeCat;});
-if(cat&&label){label.setAttribute('data-en',cat.en);label.setAttribute('data-es',cat.es);label.textContent=activeLang==='es'?cat.es:cat.en;}
-var list=TOOLS.filter(function(t){
-var inCat=!activeCat||t.cat===activeCat;
-var inSearch=!search||(t.en+t.es+t.den+t.des).toLowerCase().indexOf(search)>-1;
-return inCat&&inSearch;
-});
-list.sort(function(a,b){return (activeLang==='es'?a.es:a.en).localeCompare(activeLang==='es'?b.es:b.en);});
-grid.innerHTML='';
-list.forEach(function(t){
-var div=document.createElement('div');
-div.className='tool-card';
-div.innerHTML='<a class="tool-name" href="'+getHref(t)+'" data-en="'+t.en+'" data-es="'+t.es+'">'+( activeLang==='es'?t.es:t.en )+'</a><div class="tool-desc" data-en="'+t.den+'" data-es="'+t.des+'">'+( activeLang==='es'?t.des:t.den )+'</div>';
-grid.appendChild(div);
-});
-wrap.style.display=list.length?'block':'none';
+function setCat(cat){
+  curCat=cat;renderCats();renderGrid();
+  clog('sys','filter','Category: '+cat.replace(/\s/g,'_')+'_Loaded');
+  explored.add(cat);updatePower();
 }
-function filterTools(){
-if(!activeCat){
-var search=document.getElementById('search').value.toLowerCase();
-if(search){activeCat=null;var wrap=document.getElementById('tools-wrap');var grid=document.getElementById('tool-grid');var label=document.getElementById('cat-label');if(label){label.textContent=activeLang==='es'?'Resultados':'Results';}
-var list=TOOLS.filter(function(t){return(t.en+t.es+t.den+t.des).toLowerCase().indexOf(search)>-1;});
-list.sort(function(a,b){return(activeLang==='es'?a.es:a.en).localeCompare(activeLang==='es'?b.es:b.en);});
-grid.innerHTML='';
-list.forEach(function(t){var div=document.createElement('div');div.className='tool-card';div.innerHTML='<a class="tool-name" href="'+getHref(t)+'" data-en="'+t.en+'" data-es="'+t.es+'">'+( activeLang==='es'?t.es:t.en )+'</a><div class="tool-desc" data-en="'+t.den+'" data-es="'+t.des+'">'+( activeLang==='es'?t.des:t.den )+'</div>';grid.appendChild(div);});
-wrap.style.display=list.length?'block':'none';renderCategories();}
-else{document.getElementById('tools-wrap').style.display='none';renderCategories();}
-}else{renderTools();}
+function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,'-');}
+function makeCard(t,i,soon){
+  var isPro=PRO_SET.has(t.n);
+  var cls='card ca'+(soon?' soon-card':'')+(isPro&&proMode?' pro-glow':'');
+  var dly=(i%20*0.03)+'s';
+  var code='xlmx.'+slug(t.n).replace(/-/g,'_')+'()';
+  var lnk=t.u||'#';
+  var foot=soon?'<span class="ssoon">coming soon</span>':
+    '<span class="slive">live</span><a class="qrun" href="'+lnk+'" target="_blank" onclick="trackOpen(event,'+JSON.stringify(t.n)+')">Run &#8599;</a>';
+  return '<div class="'+cls+'" style="animation-delay:'+dly+'" data-url="'+lnk+'">'
+    +'<span class="probadge">PRO</span>'
+    +'<div class="ccat">'+t.c+'</div>'
+    +'<div class="ctitle">'+t.n+'</div>'
+    +'<div class="cdesc">'+t.d+'</div>'
+    +'<div class="ccode">import xlmx as xt &nbsp;|&nbsp; xt.'+code+'</div>'
+    +'<div class="cfoot">'+foot+'</div>'
+    +'</div>';
 }
-function setLang(lang){
-activeLang=lang;
-document.querySelectorAll('[data-en]').forEach(function(el){
-var val=el.getAttribute('data-'+lang);
-if(val)el.textContent=val;
-});
-document.querySelectorAll('.lang-btn').forEach(function(btn){
-btn.classList.toggle('active',btn.id==='btn-'+lang);
-});
-document.getElementById('root').lang=lang;
-if(activeCat)renderTools();
-renderCategories();
-try{localStorage.setItem('xlmx-lang',lang);}catch(e){}
+function renderGrid(){
+  var grid=document.getElementById('toolGrid');
+  var tools=TOOLS.filter(function(t){
+    var mc=curCat==='All'||t.c===curCat;
+    var mq=!curQ||t.n.toLowerCase().includes(curQ)||t.d.toLowerCase().includes(curQ)||t.c.toLowerCase().includes(curQ);
+    return mc&&mq;
+  });
+  if(!tools.length){grid.innerHTML='<div class="empty"><div class="eb">No tools found</div><p>Try a different search or category.</p></div>';return;}
+  var live=tools.filter(function(t){return t.s==='live';});
+  var soon=tools.filter(function(t){return t.s!=='live';});
+  var html=live.map(function(t,i){return makeCard(t,i,false);}).join('');
+  if(soon.length){html+='<div class="slbl">Coming Soon &mdash; '+soon.length+' in development</div>';html+=soon.map(function(t,i){return makeCard(t,live.length+i,true);}).join('');}
+  grid.innerHTML=html;
+  grid.querySelectorAll('.card:not(.soon-card)').forEach(addTilt);
 }
-document.addEventListener('DOMContentLoaded',function(){
-var saved;try{saved=localStorage.getItem('xlmx-lang');}catch(e){}
-activeLang=saved||'en';
-renderCategories();
-setLang(activeLang);
+function trackOpen(e,name){clog('ok','nav','Tool_Launched: '+name.replace(/\s/g,'_'));}
+function addTilt(card){
+  card.addEventListener('mousemove',function(e){
+    var r=card.getBoundingClientRect();
+    var x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform='perspective(600px) rotateY('+(x*8)+'deg) rotateX('+(-y*8)+'deg) scale(1.015)';
+  });
+  card.addEventListener('mouseleave',function(){card.style.transform='';});
+}
+function togglePro(){
+  proMode=!proMode;
+  document.getElementById('proToggle').classList.toggle('on',proMode);
+  document.getElementById('proWrap').classList.toggle('on',proMode);
+  renderGrid();
+  clog(proMode?'warn':'sys','pro',proMode?'PRO_MODE_ENABLED: premium_tools_highlighted':'PRO_MODE_DISABLED');
+}
+function doSearch(q){curQ=q.toLowerCase();renderGrid();if(q)clog('sys','search','Query: "'+q+'" processed');}
+function goRandom(){
+  var t=LIVE[Math.floor(Math.random()*LIVE.length)];
+  clog('ok','rand','Random_Tool: '+t.n.replace(/\s/g,'_'));
+  if(t.u)setTimeout(function(){window.open(t.u,'_blank');},350);
+}
+function openCmd(){
+  document.getElementById('cmdOverlay').classList.add('open');
+  cmdList=LIVE.slice(0,12);cmdSel=0;renderCmd();
+  setTimeout(function(){document.getElementById('cmdInput').focus();},50);
+  clog('sys','cmd','CommandPalette_Open');
+}
+function closeCmd(e){
+  if(e&&e.target!==document.getElementById('cmdOverlay'))return;
+  document.getElementById('cmdOverlay').classList.remove('open');
+  document.getElementById('cmdInput').value='';
+}
+function cmdSearch(q){
+  cmdList=q?LIVE.filter(function(t){return t.n.toLowerCase().includes(q.toLowerCase())||t.c.toLowerCase().includes(q.toLowerCase());}).slice(0,12):LIVE.slice(0,12);
+  cmdSel=0;renderCmd();
+}
+function renderCmd(){
+  document.getElementById('cmdResults').innerHTML=cmdList.map(function(t,i){
+    return '<div class="cmi'+(i===cmdSel?' sel':'')+'" onclick="goCmdItem('+i+')">'
+      +'<div><div class="cmn">'+t.n+'</div><div class="cmc">'+t.c+'</div></div>'
+      +'<span class="cma">&#8599;</span></div>';
+  }).join('');
+}
+function goCmdItem(i){
+  var t=cmdList[i];if(t&&t.u){clog('ok','cmd','Jump: '+t.n);window.open(t.u,'_blank');}
+  closeCmd({target:document.getElementById('cmdOverlay')});
+}
+document.addEventListener('keydown',function(e){
+  var ov=document.getElementById('cmdOverlay');
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openCmd();return;}
+  if(!ov.classList.contains('open'))return;
+  if(e.key==='Escape'){closeCmd({target:ov});return;}
+  if(e.key==='ArrowDown'){e.preventDefault();cmdSel=Math.min(cmdSel+1,cmdList.length-1);renderCmd();}
+  if(e.key==='ArrowUp'){e.preventDefault();cmdSel=Math.max(cmdSel-1,0);renderCmd();}
+  if(e.key==='Enter'){goCmdItem(cmdSel);}
 });
-</script>
+function clog(type,ns,msg){
+  var b=document.getElementById('cbody');if(!b)return;
+  var d=new Date(),ts=d.toTimeString().slice(0,8)+'.'+String(d.getMilliseconds()).padStart(3,'0');
+  var ln=document.createElement('div');ln.className='ll';
+  ln.innerHTML='<span class="lts">'+ts+'</span><span class="l'+type+'">['+ns+']</span>&nbsp;<span class="ldat">'+msg+'</span>';
+  b.appendChild(ln);b.scrollTop=b.scrollHeight;
+}
+function toggleConsole(){
+  cOpen=!cOpen;
+  document.getElementById('cbody').style.display=cOpen?'':'none';
+  document.getElementById('ctoggle').innerHTML=cOpen?'&#9660; minimize':'&#9650; expand';
+}
+var ALOGS=[['sys','db','TOOLS_INDEX synced — 113 records loaded'],['sys','cache','CDN_HIT: tools/index.html → 11ms'],['ok','auth','Anonymous_session active — no PII stored'],['sys','perf','FCP: 0.4s | LCP: 0.7s | CLS: 0.001'],['ok','build','Build_hash: a3f91b2 — production'],['sys','worker','ServiceWorker active — offline cache warm'],['ok','search','Search_index ready — 113 entries indexed'],['sys','tel','Telemetry disabled — privacy mode on'],['sys','cors','CORS policy: same-origin enforcement active'],['ok','wasm','WASM module idle — standing by'],['sys','mem','Heap_usage: 11.2MB — nominal'],['warn','net','Latency delta: +14ms — resolving'],['ok','cdn','Edge_node: Dallas-TX — 7ms ping'],['sys','gc','GC cycle complete — 0.8ms'],['ok','idx','Full_text_index rebuilt in 3ms']];
+var ali=0;
+function autoLog(){
+  var e=ALOGS[ali%ALOGS.length];clog(e[0],e[1],e[2]);ali++;
+  setTimeout(autoLog,2000+Math.random()*3500);
+}
+var STATUS=[{n:'Tools Engine'},{n:'Search API'},{n:'CDN Edge'},{n:'Build Pipeline'},{n:'Auth Layer'}];
+function renderStatus(){
+  document.getElementById('statusList').innerHTML=STATUS.map(function(s){
+    var ms=Math.floor(Math.random()*14+3);
+    return '<div class="srow"><div class="sname"><span class="sdot"></span>'+s.n+'</div><span class="slat">'+ms+'ms</span></div>';
+  }).join('');
+}
+var HOT=[{n:'ROI Sensitivity',u:'/tools/roi-sensitivity/'},{n:'BIM Model Checker',u:'/tools/bim-model-checker/'},{n:'Dev Pro Forma',u:'/tools/pro-forma/'},{n:'Concrete Mix Design',u:'/tools/concrete-mix/'},{n:'Fire Flow Calculator',u:'/tools/fire-flow/'}];
+function renderWidgets(){
+  var recent=LIVE.slice(-5).reverse();
+  document.getElementById('recentList').innerHTML=recent.map(function(t){
+    return '<div class="wi" onclick="window.open(''+t.u+'','_blank')"><span>'+t.n+'</span><span class="wtag tnew">NEW</span></div>';
+  }).join('');
+  document.getElementById('hotList').innerHTML=HOT.map(function(t){
+    return '<div class="wi" onclick="window.open(''+t.u+'','_blank')"><span>'+t.n+'</span><span class="wtag thot">HOT</span></div>';
+  }).join('');
+}
+renderCats();renderGrid();renderWidgets();renderStatus();setInterval(renderStatus,5000);
+clog('ok','sys','XLMX_v2.0 initialized — '+LIVE.length+' live tools');
+clog('sys','idx','Taxonomy: AEC + 6 wings registered — 50 categories planned');
+clog('sys','pro','PRO_MODE standby — toggle to highlight premium tools');
+setTimeout(autoLog,2500);
+<\/script>
 </body>
 </html>
