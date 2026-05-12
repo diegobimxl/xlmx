@@ -16,34 +16,26 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,'S
 .tbtn{height:100%;padding:0 13px;background:transparent;border:none;border-right:1px solid var(--bd);color:var(--mu);cursor:pointer;font-size:11px;font-family:var(--mono);transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .tbtn:hover{background:rgba(200,169,110,.08);color:var(--tx)}
 .tbtn.active{background:rgba(200,169,110,.12);color:var(--gold);border-bottom:2px solid var(--gold)}
-.tbtn.up{color:var(--gold)}
-.tbtn.up:hover{background:rgba(200,169,110,.15)}
+.tbtn.gold{color:var(--gold)}
+.tbtn.gold:hover{background:rgba(200,169,110,.15)}
 .tb-right{margin-left:auto;display:flex;align-items:center;height:100%}
 #statusMsg{padding:0 14px;font-size:10.5px;font-family:var(--mono);color:var(--mu);max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #main{display:flex;flex:1;overflow:hidden}
-#sidebar{width:230px;background:rgba(4,6,10,.95);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .2s}
-#sidebar.off{width:0;border:none;overflow:hidden}
+#sidebar{width:220px;background:rgba(4,6,10,.95);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .2s}
+#sidebar.off{width:0;border:none}
 .sb-sec{border-bottom:1px solid var(--bd)}
-.sb-hd{padding:8px 12px;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mu);font-family:var(--mono);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.sb-hd:hover{color:var(--tx)}
+.sb-hd{padding:8px 12px;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mu);font-family:var(--mono);display:flex;align-items:center;justify-content:space-between}
 .sb-bd{overflow-y:auto;max-height:200px}
 .sb-bd::-webkit-scrollbar{width:3px}
 .sb-bd::-webkit-scrollbar-thumb{background:rgba(200,169,110,.2);border-radius:2px}
-.lrow{display:flex;align-items:center;gap:7px;padding:6px 12px;font-size:10.5px;cursor:pointer;transition:background .15s}
+.lrow{display:flex;align-items:center;gap:7px;padding:6px 12px;font-size:10.5px;cursor:pointer;transition:background .15s;user-select:none}
 .lrow:hover{background:var(--s1)}.lrow.off{opacity:.35}
 .ldot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
 .lnm{flex:1;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
 .lcn{font-size:9px;color:var(--mu);font-family:var(--mono)}
-.erow{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:10px;cursor:pointer;transition:background .15s;font-family:var(--mono)}
-.erow:hover{background:var(--s1)}.erow.sel{background:rgba(200,169,110,.1);color:var(--gold)}
-.etag{font-size:8px;padding:1px 5px;border-radius:2px;background:rgba(255,255,255,.08);color:var(--mu);flex-shrink:0}
 #vp{flex:1;position:relative;overflow:hidden;background:#020408}
-canvas{display:block;width:100%;height:100%}
-#mPanel{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(8,12,16,.94);border:1px solid rgba(200,169,110,.3);border-radius:8px;padding:9px 18px;font-family:var(--mono);font-size:11px;display:none;color:var(--tx);backdrop-filter:blur(8px);text-align:center;pointer-events:none}
-#mPanel .dv{font-size:22px;font-weight:700;color:var(--gold);margin-top:3px}
-#cbar{position:absolute;bottom:0;left:0;right:0;height:24px;background:rgba(4,6,10,.9);border-top:1px solid var(--bd);display:flex;align-items:center;padding:0 12px;gap:20px;font-family:var(--mono);font-size:10px;color:var(--mu);pointer-events:none}
-#cbar span b{color:var(--tx)}
-#drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(8,12,16,.94);z-index:50;cursor:pointer}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
+#drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(8,12,16,.96);z-index:50;cursor:pointer}
 #drop .di{font-size:44px;opacity:.35}
 #drop h2{font-size:17px;font-weight:700;color:var(--tx)}
 #drop p{font-size:12px;color:var(--mu);text-align:center;line-height:1.7}
@@ -51,433 +43,643 @@ canvas{display:block;width:100%;height:100%}
 .ubtn:hover{box-shadow:0 0 20px rgba(200,169,110,.2)}
 .ftags{display:flex;gap:7px}
 .ft{padding:2px 9px;border-radius:3px;font-size:10px;font-family:var(--mono);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--mu)}
-#spin{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(8,12,16,.85);z-index:60}
+#spin{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(8,12,16,.88);z-index:60}
 .sk{width:34px;height:34px;border:3px solid rgba(200,169,110,.2);border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-#skmsg{font-family:var(--mono);font-size:11px;color:var(--mu)}
+#skmsg{font-family:var(--mono);font-size:12px;color:var(--tx)}
+#skbar-wrap{width:280px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+#skbar{height:100%;width:0%;background:linear-gradient(90deg,#c8a96e,#e8c87e);border-radius:2px;transition:width .35s ease}
+#skdetail{font-family:var(--mono);font-size:10px;color:var(--mu)}
+#cbar{position:absolute;bottom:0;left:0;right:0;height:24px;background:rgba(4,6,10,.9);border-top:1px solid var(--bd);display:flex;align-items:center;padding:0 12px;gap:20px;font-family:var(--mono);font-size:10px;color:var(--mu);pointer-events:none;z-index:10}
+#cbar span b{color:var(--tx)}
+#modeChip{position:absolute;bottom:28px;right:12px;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.2);color:var(--gold);pointer-events:none}
 #ntf{position:absolute;top:54px;right:14px;background:rgba(8,12,16,.95);border:1px solid var(--bd);border-radius:7px;padding:9px 14px;font-size:11px;font-family:var(--mono);display:none;z-index:150;max-width:320px;line-height:1.5;backdrop-filter:blur(8px)}
 #ntf.ok{border-color:rgba(74,222,128,.35);color:var(--green)}
 #ntf.err{border-color:rgba(248,113,113,.35);color:var(--red)}
 #ntf.warn{border-color:rgba(200,169,110,.35);color:var(--gold)}
-#modeChip{position:absolute;bottom:28px;right:12px;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.2);color:var(--gold);pointer-events:none;transition:all .2s}
+#dwgModal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);align-items:center;justify-content:center}
 </style>
 </head>
-<body><div id="dwgModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);align-items:center;justify-content:center;"><div style="background:#0f1419;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:32px;max-width:480px;width:90%;font-family:inherit;"><div style="font-size:18px;font-weight:700;color:#e2e8f0;margin-bottom:12px;">DWG not supported client-side</div><div style="font-size:13px;color:#8892a4;line-height:1.6;margin-bottom:20px;">DWG is a proprietary binary format. CADXL cannot parse it directly in the browser.<br><br>Options:<br>1. Export as <strong style=\"color:#c8a96e\">.dxf</strong> from AutoCAD, BricsCAD, or FreeCAD — then upload the .dxf file.<br>2. Use free online converters: <strong style=\"color:#c8a96e\">cloudconvert.com</strong> or <strong style=\"color:#c8a96e\">convertio.co</strong><br>3. In FreeCAD: File → Export → DXF R14</div><button onclick="document.getElementById('dwgModal').style.display='none'" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.4);color:#c8a96e;padding:9px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Got it</button></div></div>
+<body>
+<div id="dwgModal">
+  <div style="background:#0f1419;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:32px;max-width:480px;width:90%;">
+    <div style="font-size:18px;font-weight:700;color:#e2e8f0;margin-bottom:12px;">DWG not supported</div>
+    <div style="font-size:13px;color:#8892a4;line-height:1.6;margin-bottom:20px;">DWG is a proprietary binary format that cannot be parsed in-browser.<br><br>Options:<br>1. Export as <strong style="color:#c8a96e">.dxf</strong> from AutoCAD, BricsCAD, or FreeCAD<br>2. Convert free online: <strong style="color:#c8a96e">cloudconvert.com</strong> or <strong style="color:#c8a96e">convertio.co</strong><br>3. FreeCAD: File &rarr; Export &rarr; DXF R14</div>
+    <button onclick="document.getElementById('dwgModal').style.display='none'" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.4);color:#c8a96e;padding:9px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Got it</button>
+  </div>
+</div>
+
 <div id="topbar">
   <a class="back" href="/tools/">&larr; Tools</a>
   <div class="logo">CADXL<em>CAD Viewer</em></div>
-  <button class="tbtn up" onclick="document.getElementById('fi').click()">&#8679; Open File</button><button class="tbtn" onclick="newDrawing()">&#43; New Drawing</button>
-  <input type="file" id="fi" accept=".dxf,.kml,.dwg" style="display:none" onchange="openFile(event)">
-  <button class="tbtn active" id="bOrbit" onclick="setMode('orbit')">&#8635; Orbit</button>
+  <button class="tbtn gold" id="btnOpen" onclick="document.getElementById('fi').click()">&#8679; Open File</button>
+  <input type="file" id="fi" accept=".dxf,.kml,.dwg" style="display:none">
+  <button class="tbtn" id="btnNew" onclick="newDrawing()">&#43; New</button>
+  <button class="tbtn active" id="bOrbit" onclick="setMode('pan')">&#8635; Pan</button>
   <button class="tbtn" id="bMeasure" onclick="setMode('measure')">&#9122; Measure</button>
-  <button class="tbtn" id="bEdit" onclick="setMode('edit')">&#8596; Edit</button>
-  <button class="tbtn" onclick="resetCam()">&#8689; Reset</button>
+  <button class="tbtn" onclick="resetView()">&#8689; Fit</button>
   <button class="tbtn" onclick="toggleSB()">&#9776;</button>
   <div class="tb-right"><div id="statusMsg">Ready &mdash; open a DXF or KML file</div></div>
 </div>
+
 <div id="main">
   <div id="sidebar">
     <div class="sb-sec">
-      <div class="sb-hd">LAYERS &nbsp;<span id="lcount">0</span></div>
+      <div class="sb-hd">LAYERS <span id="lcount">0</span></div>
       <div class="sb-bd" id="lbody"></div>
     </div>
     <div class="sb-sec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-      <div class="sb-hd">ENTITIES &nbsp;<span id="ecount">0</span></div>
+      <div class="sb-hd">ENTITIES <span id="ecount">0</span></div>
       <div class="sb-bd" id="ebody" style="max-height:none;flex:1"></div>
     </div>
   </div>
   <div id="vp">
     <canvas id="cv"></canvas>
-    <div id="drop" onclick="document.getElementById('fi').click()">
+    <div id="drop">
       <div class="di">&#128196;</div>
       <h2>Open a CAD File</h2>
-      <p>DXF and KML are parsed in-browser.<br>DWG: export to DXF from your CAD software first.</p>
-      <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choose File</button>
+      <p>DXF and KML are parsed in-browser &mdash; no upload, no server.<br>DWG: export to DXF from your CAD app first.</p>
+      <button class="ubtn" id="dropBtn">Choose File</button>
       <div class="ftags"><span class="ft">DXF</span><span class="ft">KML</span><span class="ft">DWG*</span></div>
     </div>
-    <div id="spin" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(8,12,16,.88);z-index:60;"><div class="sk"></div><div id="skmsg" style="font-family:var(--mono);font-size:12px;color:var(--tx);">Loading...</div><div style="width:280px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;"><div id="skbar" style="height:100%;width:0%;background:linear-gradient(90deg,#c8a96e,#e8c87e);border-radius:2px;transition:width .35s ease;"></div></div><div id="skdetail" style="font-family:var(--mono);font-size:10px;color:var(--mu);">Initializing...</div></div>
-    <div id="mPanel"><div>&#9122; Distance</div><div class="dv" id="dv">&mdash;</div><div style="font-size:9px;color:var(--mu);margin-top:2px">drawing units</div></div>
+    <div id="spin">
+      <div class="sk"></div>
+      <div id="skmsg">Loading...</div>
+      <div id="skbar-wrap"><div id="skbar"></div></div>
+      <div id="skdetail">Please wait...</div>
+    </div>
+    <div id="mPanel" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(8,12,16,.94);border:1px solid rgba(200,169,110,.3);border-radius:8px;padding:9px 18px;font-family:var(--mono);font-size:11px;display:none;color:var(--tx);backdrop-filter:blur(8px);text-align:center;pointer-events:none">
+      <div>&#9122; Distance</div>
+      <div style="font-size:22px;font-weight:700;color:var(--gold);margin-top:3px" id="dv">&mdash;</div>
+      <div style="font-size:9px;color:var(--mu);margin-top:2px">drawing units</div>
+    </div>
     <div id="cbar">
       <span>X:&nbsp;<b id="cx">0.00</b></span>
       <span>Y:&nbsp;<b id="cy">0.00</b></span>
-      <span>Z:&nbsp;<b id="cz">0.00</b></span>
+      <span>Zoom:&nbsp;<b id="czoom">1.00x</b></span>
+      <span id="entcount" style="margin-left:auto"></span>
     </div>
-    <div id="modeChip">ORBIT</div>
+    <div id="modeChip">PAN</div>
     <div id="ntf"></div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+
 <script>
-// ── Three.js setup ────────────────────────────────────────────────────────────
-const cv=document.getElementById('cv'), vp=document.getElementById('vp');
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x020408);
-const cam=new THREE.PerspectiveCamera(45,1,0.001,1e8);
-cam.position.set(0,-200,300);
-const rend=new THREE.WebGLRenderer({canvas:cv,antialias:true});
-rend.setPixelRatio(Math.min(devicePixelRatio,2));
-const orbit=new THREE.OrbitControls(cam,rend.domElement);
-orbit.enableDamping=true; orbit.dampingFactor=0.08; orbit.screenSpacePanning=true;
-const tCtrl=new THREE.TransformControls(cam,rend.domElement);
-tCtrl.addEventListener('dragging-changed',e=>orbit.enabled=!e.value);
-scene.add(tCtrl);
-const grid=new THREE.GridHelper(2000,40,0x1a2030,0x0f1520);
-grid.rotation.x=Math.PI/2; scene.add(grid);
-scene.add(new THREE.AxesHelper(50));
-scene.add(new THREE.AmbientLight(0xffffff,.6));
-const dl=new THREE.DirectionalLight(0xffffff,.8); dl.position.set(100,100,200); scene.add(dl);
-function resize(){const w=vp.clientWidth,h=vp.clientHeight;rend.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix();}
-new ResizeObserver(resize).observe(vp); resize();
-(function loop(){requestAnimationFrame(loop);orbit.update();rend.render(scene,cam);})();
+// ── Canvas 2D setup (zero dependencies) ───────────────────────────────────────
+var cv = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+var vp = document.getElementById('vp');
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let mode='orbit', eMeshes=[], lMap={}, selObj=null, mPts=[], mLine=null;
-const RAY=new THREE.Raycaster(); RAY.params.Line.threshold=1.5;
-const mpGeo=new THREE.PlaneGeometry(1e7,1e7);
-const mpMat=new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide});
-const mPlane=new THREE.Mesh(mpGeo,mpMat); mPlane.name='__mp'; scene.add(mPlane);
+// View state
+var tx = 0, ty = 0, scale = 1;
+var isDragging = false, dragStartX, dragStartY, dragTX, dragTY;
 
-// ── DXF parser (client-side) ──────────────────────────────────────────────────
-// DXF is group-code / value pairs on alternating lines
-function parseDXF(txt){
-  const lines=txt.split(/\r?\n/);
-  const entities=[]; let i=0, inEnt=false;
-  const ACI={1:'#ff0000',2:'#ffff00',3:'#00ff00',4:'#00ffff',5:'#0066ff',6:'#ff00ff',7:'#c8c8c8',256:'#c8a96e'};
-  function col(c){return ACI[c]||'#c8a96e';}
+// Data
+var entities = [];
+var layerMap = {};
+var mode = 'pan';
+var mPts = [];
 
-  while(i<lines.length-1){
-    const code=parseInt(lines[i].trim()), val=lines[i+1].trim();
-    if(code===0&&val==='SECTION'){
-      if(lines[i+3]&&lines[i+3].trim()==='ENTITIES') inEnt=true;
-      i+=2; continue;
+// ── Resize ────────────────────────────────────────────────────────────────────
+function resize() {
+  cv.width = vp.clientWidth;
+  cv.height = vp.clientHeight - 24; // minus cbar
+  render();
+}
+new ResizeObserver(resize).observe(vp);
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+function render() {
+  var W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#020408';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  drawGrid(W, H);
+
+  // Entities
+  ctx.save();
+  ctx.translate(tx, ty);
+  ctx.scale(scale, scale);
+
+  entities.forEach(function(ent) {
+    if (!ent.visible) return;
+    var pts = ent.pts;
+    if (!pts || pts.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = ent.color || '#c8a96e';
+    ctx.lineWidth = 1 / scale;
+    ctx.moveTo(pts[0][0], -pts[0][1]);
+    for (var i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i][0], -pts[i][1]);
     }
-    if(code===0&&val==='ENDSEC'){inEnt=false; i+=2; continue;}
+    ctx.stroke();
+  });
 
-    if(inEnt&&code===0&&(val==='LINE'||val==='CIRCLE'||val==='ARC'||val==='LWPOLYLINE'||val==='SPLINE')){
-      const ent={type:val,layer:'0',color:'#c8a96e',pts:[]};
-      i+=2;
-      if(val==='LWPOLYLINE'){
-        let cx=null,cy=null,elev=0,closed=false;
-        while(i<lines.length-1){
-          const c=parseInt(lines[i].trim()),v=lines[i+1].trim();
-          if(c===0)break;
-          if(c===8)ent.layer=v;
-          if(c===62)ent.color=col(parseInt(v));
-          if(c===38)elev=parseFloat(v);
-          if(c===70)closed=(parseInt(v)&1)===1;
-          if(c===10)cx=parseFloat(v);
-          if(c===20){cy=parseFloat(v); if(cx!=null){ent.pts.push([cx,cy,elev]);cx=null;}}
-          i+=2;
+  // Measure points & line
+  if (mPts.length > 0) {
+    mPts.forEach(function(p) {
+      ctx.beginPath();
+      ctx.arc(p[0], -p[1], 4 / scale, 0, Math.PI * 2);
+      ctx.fillStyle = '#f0d060';
+      ctx.fill();
+    });
+    if (mPts.length === 2) {
+      ctx.beginPath();
+      ctx.strokeStyle = '#f0d060';
+      ctx.setLineDash([6 / scale, 4 / scale]);
+      ctx.lineWidth = 1.5 / scale;
+      ctx.moveTo(mPts[0][0], -mPts[0][1]);
+      ctx.lineTo(mPts[1][0], -mPts[1][1]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  ctx.restore();
+  document.getElementById('czoom').textContent = scale.toFixed(2) + 'x';
+}
+
+function drawGrid(W, H) {
+  var minStep = 20; // px minimum spacing
+  var worldStep = 1;
+  while (worldStep * scale < minStep) worldStep *= 10;
+  while (worldStep * scale > minStep * 10) worldStep /= 10;
+
+  var startX = Math.floor(-tx / scale / worldStep) * worldStep;
+  var startY = Math.floor(-ty / scale / worldStep) * worldStep;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+
+  for (var wx = startX; wx * scale + tx < W; wx += worldStep) {
+    var px = wx * scale + tx;
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, cv.height); ctx.stroke();
+  }
+  for (var wy = startY; wy * scale + ty < cv.height; wy += worldStep) {
+    var py = wy * scale + ty;
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  var ox = tx, oy = ty;
+  ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, cv.height); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(W, oy); ctx.stroke();
+}
+
+// ── Pan & Zoom ────────────────────────────────────────────────────────────────
+cv.addEventListener('mousedown', function(e) {
+  if (mode === 'pan') {
+    isDragging = true;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    dragTX = tx; dragTY = ty;
+    cv.style.cursor = 'grabbing';
+  } else if (mode === 'measure') {
+    var p = screenToWorld(e.clientX - cv.getBoundingClientRect().left, e.clientY - cv.getBoundingClientRect().top);
+    mPts.push(p);
+    if (mPts.length === 2) {
+      var dx = mPts[1][0] - mPts[0][0];
+      var dy = mPts[1][1] - mPts[0][1];
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      document.getElementById('dv').textContent = dist.toFixed(3);
+      setStatus('Distance: ' + dist.toFixed(3) + ' units');
+      render();
+      setTimeout(function() { mPts = []; render(); }, 3000);
+    } else {
+      document.getElementById('dv').textContent = '...';
+      render();
+    }
+  }
+});
+
+cv.addEventListener('mousemove', function(e) {
+  if (isDragging) {
+    tx = dragTX + (e.clientX - dragStartX);
+    ty = dragTY + (e.clientY - dragStartY);
+    render();
+  }
+  var r = cv.getBoundingClientRect();
+  var p = screenToWorld(e.clientX - r.left, e.clientY - r.top);
+  document.getElementById('cx').textContent = p[0].toFixed(2);
+  document.getElementById('cy').textContent = p[1].toFixed(2);
+});
+
+cv.addEventListener('mouseup', function() {
+  isDragging = false;
+  cv.style.cursor = mode === 'pan' ? 'grab' : 'crosshair';
+});
+
+cv.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  var r = cv.getBoundingClientRect();
+  var mx = e.clientX - r.left;
+  var my = e.clientY - r.top;
+  var factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  tx = mx - (mx - tx) * factor;
+  ty = my - (my - ty) * factor;
+  scale *= factor;
+  scale = Math.max(1e-6, Math.min(1e6, scale));
+  render();
+}, { passive: false });
+
+// Touch support
+var lastTouchDist = null;
+cv.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
+    dragTX = tx; dragTY = ty;
+  } else if (e.touches.length === 2) {
+    isDragging = false;
+    lastTouchDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+  }
+}, { passive: true });
+
+cv.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    tx = dragTX + (e.touches[0].clientX - dragStartX);
+    ty = dragTY + (e.touches[0].clientY - dragStartY);
+    render();
+  } else if (e.touches.length === 2 && lastTouchDist) {
+    var d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+    var factor = d / lastTouchDist;
+    var mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - cv.getBoundingClientRect().left;
+    var my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - cv.getBoundingClientRect().top;
+    tx = mx - (mx - tx) * factor;
+    ty = my - (my - ty) * factor;
+    scale *= factor;
+    lastTouchDist = d;
+    render();
+  }
+}, { passive: false });
+
+cv.addEventListener('touchend', function() { isDragging = false; lastTouchDist = null; });
+
+function screenToWorld(px, py) {
+  return [(px - tx) / scale, -((py - ty) / scale)];
+}
+
+// ── Drag-drop ─────────────────────────────────────────────────────────────────
+vp.addEventListener('dragover', function(e) { e.preventDefault(); vp.style.outline = '2px dashed var(--gold)'; });
+vp.addEventListener('dragleave', function() { vp.style.outline = ''; });
+vp.addEventListener('drop', function(e) {
+  e.preventDefault(); vp.style.outline = '';
+  var f = e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+
+// ── File input ────────────────────────────────────────────────────────────────
+document.getElementById('fi').addEventListener('change', function(e) {
+  var f = e.target.files[0];
+  if (f) loadFile(f);
+  e.target.value = '';
+});
+
+document.getElementById('dropBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('fi').click();
+});
+
+document.getElementById('drop').addEventListener('click', function() {
+  document.getElementById('fi').click();
+});
+
+document.getElementById('btnOpen').addEventListener('click', function() {
+  document.getElementById('fi').click();
+});
+
+function loadFile(file) {
+  var ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'dwg') {
+    document.getElementById('dwgModal').style.display = 'flex';
+    return;
+  }
+  showSpin('Reading ' + file.name + '...', 'Loading file...');
+  var reader = new FileReader();
+  reader.onprogress = function(e) {
+    if (e.lengthComputable) setProgress(Math.round(e.loaded / e.total * 25), 'Reading...');
+  };
+  reader.onload = function(e) {
+    setProgress(35, 'Parsing geometry...');
+    var txt = e.target.result;
+    setTimeout(function() {
+      try {
+        var ents = ext === 'kml' ? parseKML(txt) : parseDXF(txt);
+        if (!ents.length) {
+          notify('warn', 'No geometry found. File needs LINE, CIRCLE, ARC, or LWPOLYLINE entities.');
+          hideSpin();
+          return;
         }
-        if(closed&&ent.pts.length>1)ent.pts.push(ent.pts[0]);
+        setProgress(75, 'Building scene (' + ents.length + ' entities)...');
+        setTimeout(function() {
+          loadEnts(ents, file.name);
+          setProgress(100, 'Done');
+          setTimeout(hideSpin, 400);
+          notify('ok', file.name + ' — ' + ents.length + ' entities');
+        }, 20);
+      } catch (err) {
+        hideSpin();
+        notify('err', 'Parse error: ' + err.message);
+      }
+    }, 20);
+  };
+  reader.onerror = function() { hideSpin(); notify('err', 'Failed to read file'); };
+  reader.readAsText(file);
+}
+
+// ── DXF parser ────────────────────────────────────────────────────────────────
+function parseDXF(txt) {
+  var lines = txt.split(/\r?\n/);
+  var ents = [];
+  var i = 0;
+  var inEnt = false;
+  var ACI = { 1:'#ff0000',2:'#ffff00',3:'#00ff00',4:'#00ffff',5:'#0066ff',6:'#ff00ff',7:'#c8c8c8',256:'#c8a96e' };
+  function col(c) { return ACI[c] || '#c8a96e'; }
+
+  while (i < lines.length - 1) {
+    var code = parseInt(lines[i].trim());
+    var val = lines[i + 1] ? lines[i + 1].trim() : '';
+
+    if (code === 0 && val === 'SECTION') {
+      if (lines[i + 3] && lines[i + 3].trim() === 'ENTITIES') inEnt = true;
+      i += 2; continue;
+    }
+    if (code === 0 && val === 'ENDSEC') { inEnt = false; i += 2; continue; }
+
+    if (inEnt && code === 0 && (val === 'LINE' || val === 'CIRCLE' || val === 'ARC' || val === 'LWPOLYLINE' || val === 'SPLINE' || val === 'POINT')) {
+      var ent = { type: val, layer: '0', color: '#c8a96e', pts: [] };
+      i += 2;
+
+      if (val === 'LWPOLYLINE') {
+        var cx = null, cy = null, elev = 0, closed = false;
+        while (i < lines.length - 1) {
+          var c = parseInt(lines[i].trim()), v = lines[i + 1] ? lines[i + 1].trim() : '';
+          if (c === 0) break;
+          if (c === 8) ent.layer = v;
+          if (c === 62) ent.color = col(parseInt(v));
+          if (c === 38) elev = parseFloat(v) || 0;
+          if (c === 70) closed = (parseInt(v) & 1) === 1;
+          if (c === 10) cx = parseFloat(v);
+          if (c === 20) { cy = parseFloat(v); if (cx !== null) { ent.pts.push([cx, cy, elev]); cx = null; } }
+          i += 2;
+        }
+        if (closed && ent.pts.length > 1) ent.pts.push(ent.pts[0]);
       } else {
-        const d={};
-        while(i<lines.length-1){
-          const c=parseInt(lines[i].trim()),v=lines[i+1].trim();
-          if(c===0)break;
-          if(c===8)ent.layer=v;
-          if(c===62)ent.color=col(parseInt(v));
-          d[c]=parseFloat(v)||v;
-          i+=2;
+        var d = {};
+        while (i < lines.length - 1) {
+          var c2 = parseInt(lines[i].trim()), v2 = lines[i + 1] ? lines[i + 1].trim() : '';
+          if (c2 === 0) break;
+          if (c2 === 8) ent.layer = v2;
+          if (c2 === 62) ent.color = col(parseInt(v2));
+          d[c2] = parseFloat(v2) || v2;
+          i += 2;
         }
-        if(val==='LINE'){ent.pts=[[d[10]||0,d[20]||0,d[30]||0],[d[11]||0,d[21]||0,d[31]||0]];}
-        else if(val==='CIRCLE'){
-          const cx=d[10]||0,cy=d[20]||0,cz=d[30]||0,r=d[40]||1;
-          for(let k=0;k<=64;k++){const a=2*Math.PI*k/64; ent.pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a),cz]);}
-        }
-        else if(val==='ARC'){
-          const cx=d[10]||0,cy=d[20]||0,cz=d[30]||0,r=d[40]||1;
-          let sa=((d[50]||0)*Math.PI/180), ea=((d[51]||360)*Math.PI/180);
-          if(ea<sa)ea+=2*Math.PI;
-          const steps=48, step=(ea-sa)/steps;
-          for(let k=0;k<=steps;k++){const a=sa+k*step; ent.pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a),cz]);}
-        }
-        else if(val==='SPLINE'){
-          // Store raw control points as approximation
-          const xs=[],ys=[],zs=[];
-          const keys=Object.keys(d);
-          keys.forEach(k=>{const c=parseInt(k); if(c===10)xs.push(d[k]); if(c===20)ys.push(d[k]); if(c===30)zs.push(d[k]);});
-          for(let k=0;k<xs.length;k++)ent.pts.push([xs[k]||0,ys[k]||0,zs[k]||0]);
+        if (val === 'LINE') {
+          ent.pts = [[d[10]||0, d[20]||0], [d[11]||0, d[21]||0]];
+        } else if (val === 'POINT') {
+          var px = d[10]||0, py = d[20]||0, r0 = 1;
+          var pp = [];
+          for (var k = 0; k <= 16; k++) { var a0 = 2*Math.PI*k/16; pp.push([px+r0*Math.cos(a0), py+r0*Math.sin(a0)]); }
+          ent.pts = pp;
+        } else if (val === 'CIRCLE') {
+          var cx0 = d[10]||0, cy0 = d[20]||0, r1 = d[40]||1;
+          for (var k1 = 0; k1 <= 64; k1++) { var a1 = 2*Math.PI*k1/64; ent.pts.push([cx0+r1*Math.cos(a1), cy0+r1*Math.sin(a1)]); }
+        } else if (val === 'ARC') {
+          var cx1 = d[10]||0, cy1 = d[20]||0, r2 = d[40]||1;
+          var sa = (d[50]||0) * Math.PI/180;
+          var ea = (d[51]||360) * Math.PI/180;
+          if (ea < sa) ea += 2*Math.PI;
+          var steps = 48;
+          for (var k2 = 0; k2 <= steps; k2++) { var a2 = sa + (ea-sa)*k2/steps; ent.pts.push([cx1+r2*Math.cos(a2), cy1+r2*Math.sin(a2)]); }
+        } else if (val === 'SPLINE') {
+          var xs = [], ys = [];
+          Object.keys(d).forEach(function(kk) {
+            var cc = parseInt(kk);
+            if (cc === 10) xs.push(d[kk]);
+            if (cc === 20) ys.push(d[kk]);
+          });
+          for (var k3 = 0; k3 < xs.length; k3++) ent.pts.push([xs[k3]||0, ys[k3]||0]);
         }
       }
-      if(ent.pts.length>=2)entities.push(ent);
+      if (ent.pts.length >= 2) ents.push(ent);
       continue;
     }
-    i+=2;
+    i += 2;
   }
-  return entities;
+  return ents;
 }
 
 // ── KML parser ────────────────────────────────────────────────────────────────
-function parseKML(txt){
-  const parser=new DOMParser();
-  const doc=parser.parseFromString(txt,'text/xml');
-  const ents=[]; let id=0;
-  doc.querySelectorAll('Placemark').forEach(pm=>{
-    pm.querySelectorAll('LineString').forEach(ls=>{
-      const co=ls.querySelector('coordinates');
-      if(!co)return;
-      const pts=co.textContent.trim().split(/\s+/).map(t=>{
-        const p=t.split(','); return [parseFloat(p[0])||0,parseFloat(p[1])||0,parseFloat(p[2])||0];
+function parseKML(txt) {
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(txt, 'text/xml');
+  var ents = [];
+  doc.querySelectorAll('Placemark').forEach(function(pm) {
+    pm.querySelectorAll('LineString').forEach(function(ls) {
+      var co = ls.querySelector('coordinates');
+      if (!co) return;
+      var pts = co.textContent.trim().split(/\s+/).map(function(t) {
+        var p = t.split(','); return [parseFloat(p[0])||0, parseFloat(p[1])||0];
       });
-      if(pts.length>=2) ents.push({type:'LINE',layer:'KML',color:'#4ade80',pts});
-    });
-    pm.querySelectorAll('Point').forEach(pt=>{
-      const co=pt.querySelector('coordinates');
-      if(!co)return;
-      const p=co.textContent.trim().split(',');
-      const x=parseFloat(p[0]),y=parseFloat(p[1]),z=parseFloat(p[2])||0;
-      const r=0.00005;
-      const pts=[]; for(let k=0;k<=32;k++){const a=2*Math.PI*k/32; pts.push([x+r*Math.cos(a),y+r*Math.sin(a),z]);}
-      ents.push({type:'POINT',layer:'KML',color:'#f87171',pts});
+      if (pts.length >= 2) ents.push({ type:'LINE', layer:'KML', color:'#4ade80', pts: pts });
     });
   });
   return ents;
 }
 
-// ── Scene render ──────────────────────────────────────────────────────────────
-const LCOLS=['#c8a96e','#60a5fa','#4ade80','#f87171','#a78bfa','#fb923c','#38bdf8','#f472b6','#fbbf24','#34d399'];
+// ── Load entities ─────────────────────────────────────────────────────────────
+var LCOLS = ['#c8a96e','#60a5fa','#4ade80','#f87171','#a78bfa','#fb923c','#38bdf8','#f472b6','#fbbf24','#34d399'];
 
-function clearScene(){
-  eMeshes.forEach(e=>scene.remove(e.obj));
-  eMeshes=[]; lMap={}; clearMeasure(); tCtrl.detach(); selObj=null;
-  document.getElementById('lbody').innerHTML='';
-  document.getElementById('ebody').innerHTML='';
-  document.getElementById('lcount').textContent='0';
-  document.getElementById('ecount').textContent='0';
-}
+function loadEnts(ents, filename) {
+  layerMap = {};
+  entities = [];
 
-function loadEnts(ents,filename){
-  clearScene();
-  // Build layer map
-  const layers=[...new Set(ents.map(e=>e.layer))];
-  layers.forEach((l,i)=>{lMap[l]={vis:true,col:LCOLS[i%LCOLS.length],cnt:0};});
-  // Override with entity colors where specified
-  let minX=1e9,minY=1e9,minZ=1e9,maxX=-1e9,maxY=-1e9,maxZ=-1e9;
+  var layers = [];
+  ents.forEach(function(e) { if (layers.indexOf(e.layer) < 0) layers.push(e.layer); });
+  layers.forEach(function(l, i) { layerMap[l] = { vis: true, col: LCOLS[i % LCOLS.length], cnt: 0 }; });
 
-  ents.forEach((ent,id)=>{
-    const li=lMap[ent.layer]||(lMap[ent.layer]={vis:true,col:'#c8a96e',cnt:0});
+  var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  ents.forEach(function(ent) {
+    var li = layerMap[ent.layer];
     li.cnt++;
-    const hexCol=ent.color||li.col;
-    const geo=new THREE.BufferGeometry();
-    const verts=new Float32Array(ent.pts.flatMap(p=>[p[0]||0,p[1]||0,p[2]||0]));
-    geo.setAttribute('position',new THREE.BufferAttribute(verts,3));
-    const mat=new THREE.LineBasicMaterial({color:new THREE.Color(hexCol)});
-    const line=new THREE.Line(geo,mat);
-    line.userData={id,type:ent.type,layer:ent.layer,col:hexCol};
-    scene.add(line);
-    eMeshes.push({id,layer:ent.layer,type:ent.type,col:hexCol,obj:line});
-    ent.pts.forEach(p=>{
-      if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0];
-      if(p[1]<minY)minY=p[1]; if(p[1]>maxY)maxY=p[1];
-      if(p[2]<minZ)minZ=p[2]; if(p[2]>maxZ)maxZ=p[2];
+    var e2 = { type: ent.type, layer: ent.layer, color: ent.color || li.col, pts: ent.pts, visible: true };
+    entities.push(e2);
+    ent.pts.forEach(function(p) {
+      if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+      if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
     });
   });
 
-  // Fit camera
-  const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
-  const span=Math.max(maxX-minX,maxY-minY,maxZ-minZ)||100;
-  mPlane.position.set(cx,cy,cz);
-  orbit.target.set(cx,cy,cz);
-  cam.position.set(cx,cy-span*.7,cz+span*.9);
-  cam.near=span*.0001; cam.far=span*200;
-  cam.updateProjectionMatrix(); orbit.update();
+  document.getElementById('drop').style.display = 'none';
+  document.getElementById('lcount').textContent = layers.length;
+  document.getElementById('ecount').textContent = ents.length;
+  document.getElementById('entcount').textContent = ents.length + ' entities';
+  setStatus(filename + ' — ' + ents.length + ' entities / ' + layers.length + ' layers');
 
-  // Grid scale
-  grid.scale.setScalar(span/1000);
-
-  renderLayers(); renderEntList(ents);
-  document.getElementById('lcount').textContent=layers.length;
-  document.getElementById('ecount').textContent=ents.length;
-  document.getElementById('drop').style.display='none';
-  setStatus(filename+' — '+ents.length+' entities / '+layers.length+' layers');
-}
-
-function renderLayers(){
-  document.getElementById('lbody').innerHTML=Object.entries(lMap).map(([n,i])=>
-    `<div class="lrow ${i.vis?'':'off'}" onclick="toggleLayer('${n}')">
-      <div class="ldot" style="background:${i.col}"></div>
-      <span class="lnm">${n}</span>
-      <span class="lcn">${i.cnt}</span>
-      <span style="margin-left:auto;font-size:11px">${i.vis?'&#128065;':'&#10005;'}</span>
-    </div>`
-  ).join('');
-}
-
-function toggleLayer(n){
-  const i=lMap[n]; if(!i)return;
-  i.vis=!i.vis;
-  eMeshes.filter(e=>e.layer===n).forEach(e=>e.obj.visible=i.vis);
   renderLayers();
+  renderEntList(ents);
+
+  // Fit to view
+  var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  var span = Math.max(maxX - minX, maxY - minY) || 100;
+  var padding = 0.85;
+  scale = Math.min(cv.width, cv.height) * padding / span;
+  tx = cv.width / 2 - cx * scale;
+  ty = cv.height / 2 + cy * scale; // flip Y
+  render();
 }
 
-function renderEntList(ents){
-  const b=document.getElementById('ebody');
-  b.innerHTML=ents.slice(0,600).map((e,id)=>
-    `<div class="erow" id="er${id}" onclick="selById(${id})">
-      <span class="etag">${e.type}</span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.layer}</span>
-    </div>`
-  ).join('');
-  if(ents.length>600) b.innerHTML+=`<div style="padding:7px 12px;font-size:9px;color:var(--mu);font-family:var(--mono)">+${ents.length-600} more</div>`;
+function renderLayers() {
+  document.getElementById('lbody').innerHTML = Object.keys(layerMap).map(function(n) {
+    var info = layerMap[n];
+    return '<div class="lrow' + (info.vis ? '' : ' off') + '" onclick="toggleLayer(\'' + n + '\')">' +
+      '<div class="ldot" style="background:' + info.col + '"></div>' +
+      '<span class="lnm">' + n + '</span>' +
+      '<span class="lcn">' + info.cnt + '</span>' +
+      '<span style="margin-left:auto;font-size:11px">' + (info.vis ? '&#128065;' : '&#10005;') + '</span>' +
+      '</div>';
+  }).join('');
 }
 
-function selById(id){
-  const em=eMeshes.find(e=>e.id===id); if(!em)return;
-  document.querySelectorAll('.erow.sel').forEach(r=>r.classList.remove('sel'));
-  const row=document.getElementById('er'+id);
-  if(row){row.classList.add('sel');row.scrollIntoView({block:'nearest'});}
-  if(mode==='edit'){tCtrl.attach(em.obj);selObj=em.obj;}
-  setStatus('Selected: '+em.type+' — layer: '+em.layer);
+function toggleLayer(n) {
+  var info = layerMap[n]; if (!info) return;
+  info.vis = !info.vis;
+  entities.forEach(function(e) { if (e.layer === n) e.visible = info.vis; });
+  renderLayers();
+  render();
 }
 
-// ── File open ─────────────────────────────────────────────────────────────────
-function openFile(evt){
-  const file=evt.target.files[0]; if(!file)return;
-  const ext=file.name.split('.').pop().toLowerCase();
-  if(ext==='dwg'){var m=document.getElementById('dwgModal');m.style.display='flex';evt.target.value='';return;}
-  showSpin('Reading '+file.name+'...','Loading file into memory');
-  const reader=new FileReader();
-  reader.onprogress=e=>{
-    if(e.lengthComputable)setProgress(Math.round(e.loaded/e.total*25),'Reading file...');
-  };
-  reader.onload=e=>{
-    try{
-      setProgress(30,'Parsing geometry...');
-      const txt=e.target.result;
-      setTimeout(()=>{
-        try{
-          const ents=ext==='kml'?parseKML(txt):parseDXF(txt);
-          if(!ents.length){notify('warn','No geometry found. Check file has LINE, CIRCLE, ARC, or LWPOLYLINE entities.');hideSpin();return;}
-          setProgress(70,'Building 3D scene ('+ents.length+' entities)...');
-          setTimeout(()=>{
-            loadEnts(ents,file.name);
-            setProgress(100,'Done');
-            setTimeout(hideSpin,400);
-            notify('ok',file.name+' — '+ents.length+' entities loaded');
-          },30);
-        }catch(err){hideSpin();notify('err','Parse error: '+err.message);setStatus('Error parsing file');}
-      },20);
-    }catch(err){hideSpin();notify('err','Read error: '+err.message);}
-  };
-  reader.readAsText(file); evt.target.value='';
+function renderEntList(ents) {
+  var b = document.getElementById('ebody');
+  var slice = ents.slice(0, 500);
+  b.innerHTML = slice.map(function(e, id) {
+    return '<div class="lrow" onclick="highlightEnt(' + id + ')" style="gap:6px">' +
+      '<span style="font-size:8px;padding:1px 5px;border-radius:2px;background:rgba(255,255,255,.08);color:var(--mu);font-family:var(--mono)">' + e.type + '</span>' +
+      '<span style="flex:1;font-family:var(--mono);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e.layer + '</span>' +
+      '</div>';
+  }).join('');
+  if (ents.length > 500) b.innerHTML += '<div style="padding:7px 12px;font-size:9px;color:var(--mu);font-family:var(--mono)">+' + (ents.length - 500) + ' more</div>';
 }
 
-// Drag-drop
-vp.addEventListener('dragover',e=>{e.preventDefault();vp.style.outline='2px dashed var(--gold)';});
-vp.addEventListener('dragleave',()=>vp.style.outline='');
-vp.addEventListener('drop',e=>{
-  e.preventDefault(); vp.style.outline='';
-  const f=e.dataTransfer.files[0]; if(!f)return;
-  const fi=document.getElementById('fi');
-  const dt=new DataTransfer(); dt.items.add(f); fi.files=dt.files;
-  openFile({target:fi});
-});
+function highlightEnt(id) {
+  var e = entities[id]; if (!e) return;
+  var old = entities[id].color;
+  entities[id].color = '#ffffff';
+  render();
+  setTimeout(function() { entities[id].color = old; render(); }, 800);
+  setStatus('Entity ' + id + ': ' + e.type + ' on layer ' + e.layer);
+}
 
 // ── Mode ──────────────────────────────────────────────────────────────────────
-function setMode(m){
-  mode=m;
-  ['Orbit','Measure','Edit'].forEach(id=>document.getElementById('b'+id).classList.toggle('active',id.toLowerCase()===m));
-  orbit.enabled=(m==='orbit');
-  document.getElementById('modeChip').textContent=m.toUpperCase();
-  if(m!=='measure')clearMeasure();
-  if(m!=='edit'){tCtrl.detach();selObj=null;document.querySelectorAll('.erow.sel').forEach(r=>r.classList.remove('sel'));}
-  document.getElementById('mPanel').style.display=m==='measure'?'block':'none';
-  setStatus(m==='measure'?'Click two points to measure distance':m==='edit'?'Click an entity then drag the gizmo (T/R/S keys)':'Orbit — scroll zoom, right-drag pan');
+function setMode(m) {
+  mode = m;
+  document.getElementById('bOrbit').classList.toggle('active', m === 'pan');
+  document.getElementById('bMeasure').classList.toggle('active', m === 'measure');
+  document.getElementById('modeChip').textContent = m.toUpperCase();
+  cv.style.cursor = m === 'pan' ? 'grab' : 'crosshair';
+  if (m !== 'measure') { mPts = []; document.getElementById('dv').textContent = '—'; }
+  document.getElementById('mPanel').style.display = m === 'measure' ? 'block' : 'none';
+  setStatus(m === 'measure' ? 'Click two points to measure' : 'Pan — scroll to zoom, drag to pan');
 }
 
-// ── Click handlers ────────────────────────────────────────────────────────────
-cv.addEventListener('click',e=>{
-  if(mode==='orbit')return;
-  const r=cv.getBoundingClientRect();
-  const ndc=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
-  RAY.setFromCamera(ndc,cam);
-  if(mode==='measure'){
-    const h=RAY.intersectObject(mPlane); if(!h.length)return;
-    const pt=h[0].point.clone();
-    const sg=new THREE.SphereGeometry(.8,8,8);
-    const sph=new THREE.Mesh(sg,new THREE.MeshBasicMaterial({color:0xf0d060}));
-    sph.position.copy(pt); scene.add(sph); mPts.push({w:pt,s:sph});
-    if(mPts.length===2){
-      const d=mPts[0].w.distanceTo(mPts[1].w);
-      if(mLine)scene.remove(mLine);
-      const lg=new THREE.BufferGeometry().setFromPoints([mPts[0].w,mPts[1].w]);
-      mLine=new THREE.Line(lg,new THREE.LineBasicMaterial({color:0xf0d060}));
-      scene.add(mLine);
-      document.getElementById('dv').textContent=d.toFixed(3);
-      setStatus('Distance: '+d.toFixed(3)+' drawing units');
-      mPts=[];
-    } else {
-      document.getElementById('dv').textContent='...';
-    }
-    return;
-  }
-  if(mode==='edit'){
-    const h=RAY.intersectObjects(eMeshes.map(e=>e.obj),false);
-    if(h.length){const em=eMeshes.find(e=>e.obj===h[0].object);if(em)selById(em.id);}
-    else{tCtrl.detach();selObj=null;document.querySelectorAll('.erow.sel').forEach(r=>r.classList.remove('sel'));}
-  }
-});
+function resetView() {
+  if (entities.length === 0) { tx = cv.width/2; ty = cv.height/2; scale = 1; render(); return; }
+  var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  entities.forEach(function(e) {
+    e.pts.forEach(function(p) {
+      if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+      if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+    });
+  });
+  var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  var span = Math.max(maxX - minX, maxY - minY) || 100;
+  scale = Math.min(cv.width, cv.height) * 0.85 / span;
+  tx = cv.width / 2 - cx * scale;
+  ty = cv.height / 2 + cy * scale;
+  render();
+}
 
-cv.addEventListener('mousemove',e=>{
-  const r=cv.getBoundingClientRect();
-  const ndc=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
-  RAY.setFromCamera(ndc,cam);
-  const h=RAY.intersectObject(mPlane);
-  if(h.length){const p=h[0].point;document.getElementById('cx').textContent=p.x.toFixed(2);document.getElementById('cy').textContent=p.y.toFixed(2);document.getElementById('cz').textContent=p.z.toFixed(2);}
-});
+function newDrawing() {
+  entities = []; layerMap = []; mPts = [];
+  document.getElementById('lbody').innerHTML = '';
+  document.getElementById('ebody').innerHTML = '';
+  document.getElementById('lcount').textContent = '0';
+  document.getElementById('ecount').textContent = '0';
+  document.getElementById('entcount').textContent = '';
+  document.getElementById('drop').style.display = 'flex';
+  tx = 0; ty = 0; scale = 1;
+  render();
+  setStatus('New drawing — open a DXF or KML file');
+  notify('ok', 'Canvas cleared');
+}
 
-function clearMeasure(){mPts.forEach(mp=>scene.remove(mp.s));mPts=[];if(mLine){scene.remove(mLine);mLine=null;}document.getElementById('dv').textContent='&mdash;';}
-
-// ── Keyboard ──────────────────────────────────────────────────────────────────
-document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT')return;
-  if(e.key==='o'||e.key==='O')setMode('orbit');
-  if(e.key==='m'||e.key==='M')setMode('measure');
-  if(e.key==='e'||e.key==='E')setMode('edit');
-  if(e.key==='r'&&mode==='edit')tCtrl.setMode('rotate');
-  if(e.key==='t'&&mode==='edit')tCtrl.setMode('translate');
-  if(e.key==='s'&&mode==='edit')tCtrl.setMode('scale');
-  if(e.key==='Escape'){clearMeasure();tCtrl.detach();document.querySelectorAll('.erow.sel').forEach(r=>r.classList.remove('sel'));}
-});
+function toggleSB() {
+  document.getElementById('sidebar').classList.toggle('off');
+  setTimeout(resize, 250);
+}
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
-function resetCam(){orbit.reset();}
-function toggleSB(){document.getElementById('sidebar').classList.toggle('off');setTimeout(resize,250);}
-function setStatus(m){document.getElementById('statusMsg').textContent=m;}
-function showSpin(m,d){document.getElementById('skmsg').textContent=m||'Processing...';document.getElementById('skdetail').textContent=d||'Please wait...';document.getElementById('skbar').style.width='0%';document.getElementById('spin').style.display='flex';}
-function hideSpin(){document.getElementById('spin').style.display='none';}
-function setProgress(pct,detail){document.getElementById('skbar').style.width=pct+'%';if(detail)document.getElementById('skdetail').textContent=detail;}
-function newDrawing(){clearScene();document.getElementById('drop').style.display='flex';setStatus('New drawing — open a DXF or KML file');notify('ok','Canvas cleared — ready for new file');}
-let ntTimer;
-function notify(t,msg){const el=document.getElementById('ntf');el.textContent=msg;el.className=t;el.style.display='block';clearTimeout(ntTimer);ntTimer=setTimeout(()=>el.style.display='none',t==='err'?9000:4500);}
+function setStatus(m) { document.getElementById('statusMsg').textContent = m; }
+function showSpin(m, d) {
+  document.getElementById('skmsg').textContent = m || 'Processing...';
+  document.getElementById('skdetail').textContent = d || 'Please wait...';
+  document.getElementById('skbar').style.width = '0%';
+  document.getElementById('spin').style.display = 'flex';
+}
+function hideSpin() { document.getElementById('spin').style.display = 'none'; }
+function setProgress(pct, detail) {
+  document.getElementById('skbar').style.width = pct + '%';
+  if (detail) document.getElementById('skdetail').textContent = detail;
+}
 
-// ── Demo geometry (loads on first view) ──────────────────────────────────────
-(function demo(){
-  const ents=[];
-  // Floor plan outline
-  [[0,0],[60,0],[60,40],[0,40],[0,0]].reduce((a,b,i,arr)=>{
-    if(i>0)ents.push({type:'LINE',layer:'WALLS',color:'#c8a96e',pts:[arr[i-1].concat(0),b.concat(0)]});
+var ntTimer;
+function notify(t, msg) {
+  var el = document.getElementById('ntf');
+  el.textContent = msg; el.className = t; el.style.display = 'block';
+  clearTimeout(ntTimer);
+  ntTimer = setTimeout(function() { el.style.display = 'none'; }, t === 'err' ? 9000 : 4500);
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'p' || e.key === 'P') setMode('pan');
+  if (e.key === 'm' || e.key === 'M') setMode('measure');
+  if (e.key === 'f' || e.key === 'F') resetView();
+  if (e.key === 'Escape') { mPts = []; document.getElementById('dv').textContent = '—'; render(); }
+});
+
+// ── Demo floor plan ───────────────────────────────────────────────────────────
+(function demo() {
+  var ents = [];
+  var walls = [[0,0],[60,0],[60,40],[0,40],[0,0]];
+  for (var i = 1; i < walls.length; i++) {
+    ents.push({ type:'LINE', layer:'WALLS', color:'#c8a96e', pts:[walls[i-1], walls[i]] });
+  }
+  ents.push({ type:'LINE', layer:'WALLS', color:'#c8a96e', pts:[[30,0],[30,40]] });
+  ents.push({ type:'LINE', layer:'WALLS', color:'#c8a96e', pts:[[0,20],[30,20]] });
+
+  [[5,5],[5,35],[55,5],[55,35],[30,20]].forEach(function(xy) {
+    var cx = xy[0], cy = xy[1], r = 2, pp = [];
+    for (var k = 0; k <= 32; k++) { var a = 2*Math.PI*k/32; pp.push([cx+r*Math.cos(a), cy+r*Math.sin(a)]); }
+    ents.push({ type:'CIRCLE', layer:'COLUMNS', color:'#60a5fa', pts: pp });
   });
-  // Interior walls
-  ents.push({type:'LINE',layer:'WALLS',color:'#c8a96e',pts:[[30,0,0],[30,40,0]]});
-  ents.push({type:'LINE',layer:'WALLS',color:'#c8a96e',pts:[[0,20,0],[30,20,0]]});
-  // Columns
-  [[5,5],[5,35],[55,5],[55,35],[30,20]].forEach(([x,y])=>{
-    const r=2, pts=[];
-    for(let k=0;k<=32;k++){const a=2*Math.PI*k/32;pts.push([x+r*Math.cos(a),y+r*Math.sin(a),0]);}
-    ents.push({type:'CIRCLE',layer:'COLUMNS',color:'#60a5fa',pts});
+
+  [[0,15],[0,25],[30,10]].forEach(function(xy) {
+    var px = xy[0], py = xy[1], pp2 = [];
+    for (var k2 = 0; k2 <= 12; k2++) { var a2 = k2/12*Math.PI/2; pp2.push([px+8*Math.cos(a2), py+8*Math.sin(a2)]); }
+    ents.push({ type:'ARC', layer:'DOORS', color:'#4ade80', pts: pp2 });
+    ents.push({ type:'LINE', layer:'DOORS', color:'#4ade80', pts:[[px,py],[px+8,py]] });
   });
-  // Door arcs
-  [[0,15],[0,25],[30,10]].forEach(([x,y])=>{
-    const pts=[]; for(let k=0;k<=12;k++){const a=k/12*Math.PI/2;pts.push([x+8*Math.cos(a),y+8*Math.sin(a),0]);}
-    ents.push({type:'ARC',layer:'DOORS',color:'#4ade80',pts});
-    ents.push({type:'LINE',layer:'DOORS',color:'#4ade80',pts:[[x,y,0],[x+8,y,0]]});
-  });
-  loadEnts(ents,'demo_floor_plan.dxf');
+
+  loadEnts(ents, 'demo_floor_plan.dxf');
   setStatus('Demo floor plan — drop a real DXF file to replace');
 })();
-<\/script>
-</body></html>
+</script>
+</body>
+</html>
