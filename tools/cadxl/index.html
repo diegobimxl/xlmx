@@ -66,7 +66,7 @@ canvas{display:block;width:100%;height:100%}
 <div id="topbar">
   <a class="back" href="/tools/">&larr; Tools</a>
   <div class="logo">CADXL<em>CAD Viewer</em></div>
-  <button class="tbtn up" onclick="document.getElementById('fi').click()">&#8679; Open File</button>
+  <button class="tbtn up" onclick="document.getElementById('fi').click()">&#8679; Open File</button><button class="tbtn" onclick="newDrawing()">&#43; New Drawing</button>
   <input type="file" id="fi" accept=".dxf,.kml,.dwg" style="display:none" onchange="openFile(event)">
   <button class="tbtn active" id="bOrbit" onclick="setMode('orbit')">&#8635; Orbit</button>
   <button class="tbtn" id="bMeasure" onclick="setMode('measure')">&#9122; Measure</button>
@@ -95,7 +95,7 @@ canvas{display:block;width:100%;height:100%}
       <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choose File</button>
       <div class="ftags"><span class="ft">DXF</span><span class="ft">KML</span><span class="ft">DWG*</span></div>
     </div>
-    <div id="spin"><div class="sk"></div><div id="skmsg">Parsing file...</div></div>
+    <div id="spin" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(8,12,16,.88);z-index:60;"><div class="sk"></div><div id="skmsg" style="font-family:var(--mono);font-size:12px;color:var(--tx);">Loading...</div><div style="width:280px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;"><div id="skbar" style="height:100%;width:0%;background:linear-gradient(90deg,#c8a96e,#e8c87e);border-radius:2px;transition:width .35s ease;"></div></div><div id="skdetail" style="font-family:var(--mono);font-size:10px;color:var(--mu);">Initializing...</div></div>
     <div id="mPanel"><div>&#9122; Distance</div><div class="dv" id="dv">&mdash;</div><div style="font-size:9px;color:var(--mu);margin-top:2px">drawing units</div></div>
     <div id="cbar">
       <span>X:&nbsp;<b id="cx">0.00</b></span>
@@ -106,7 +106,7 @@ canvas{display:block;width:100%;height:100%}
     <div id="ntf"></div>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
 <script>
@@ -338,17 +338,29 @@ function openFile(evt){
   const file=evt.target.files[0]; if(!file)return;
   const ext=file.name.split('.').pop().toLowerCase();
   if(ext==='dwg'){var m=document.getElementById('dwgModal');m.style.display='flex';evt.target.value='';return;}
-  showSpin('Parsing '+file.name+'...');
+  showSpin('Reading '+file.name+'...','Loading file into memory');
   const reader=new FileReader();
+  reader.onprogress=e=>{
+    if(e.lengthComputable)setProgress(Math.round(e.loaded/e.total*25),'Reading file...');
+  };
   reader.onload=e=>{
     try{
+      setProgress(30,'Parsing geometry...');
       const txt=e.target.result;
-      const ents=ext==='kml'?parseKML(txt):parseDXF(txt);
-      if(!ents.length){notify('warn','No geometry found in file. Check it contains LINE, CIRCLE, ARC, or LWPOLYLINE entities.');hideSpin();return;}
-      loadEnts(ents,file.name);
-      hideSpin();
-      notify('ok',file.name+' — '+ents.length+' entities loaded');
-    }catch(err){hideSpin();notify('err','Parse error: '+err.message);setStatus('Error parsing file');}
+      setTimeout(()=>{
+        try{
+          const ents=ext==='kml'?parseKML(txt):parseDXF(txt);
+          if(!ents.length){notify('warn','No geometry found. Check file has LINE, CIRCLE, ARC, or LWPOLYLINE entities.');hideSpin();return;}
+          setProgress(70,'Building 3D scene ('+ents.length+' entities)...');
+          setTimeout(()=>{
+            loadEnts(ents,file.name);
+            setProgress(100,'Done');
+            setTimeout(hideSpin,400);
+            notify('ok',file.name+' — '+ents.length+' entities loaded');
+          },30);
+        }catch(err){hideSpin();notify('err','Parse error: '+err.message);setStatus('Error parsing file');}
+      },20);
+    }catch(err){hideSpin();notify('err','Read error: '+err.message);}
   };
   reader.readAsText(file); evt.target.value='';
 }
@@ -435,8 +447,10 @@ document.addEventListener('keydown',e=>{
 function resetCam(){orbit.reset();}
 function toggleSB(){document.getElementById('sidebar').classList.toggle('off');setTimeout(resize,250);}
 function setStatus(m){document.getElementById('statusMsg').textContent=m;}
-function showSpin(m){document.getElementById('skmsg').textContent=m||'Processing...';document.getElementById('spin').style.display='flex';}
+function showSpin(m,d){document.getElementById('skmsg').textContent=m||'Processing...';document.getElementById('skdetail').textContent=d||'Please wait...';document.getElementById('skbar').style.width='0%';document.getElementById('spin').style.display='flex';}
 function hideSpin(){document.getElementById('spin').style.display='none';}
+function setProgress(pct,detail){document.getElementById('skbar').style.width=pct+'%';if(detail)document.getElementById('skdetail').textContent=detail;}
+function newDrawing(){clearScene();document.getElementById('drop').style.display='flex';setStatus('New drawing — open a DXF or KML file');notify('ok','Canvas cleared — ready for new file');}
 let ntTimer;
 function notify(t,msg){const el=document.getElementById('ntf');el.textContent=msg;el.className=t;el.style.display='block';clearTimeout(ntTimer);ntTimer=setTimeout(()=>el.style.display='none',t==='err'?9000:4500);}
 
