@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stormwater BMP Sizing | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#b8996e}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-val{color:#c8a96e;font-weight:600;font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tab{background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:7px 14px;font-size:12px;cursor:pointer;color:#aaa}
+.tab.active{background:#c8a96e;color:#0d0d0d;border-color:#c8a96e;font-weight:600}
+.panel{display:none}.panel.active{display:block}
+.ref{font-size:11px;color:#555;margin-top:8px;font-style:italic}
+.warn{background:#1a1500;border:1px solid #3a3000;border-radius:4px;padding:10px;font-size:12px;color:#c8a96e;margin-top:12px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>Stormwater BMP Sizing</h1></div>
+<div class="container">
+<p class="subtitle">Detention basin, bioretention cell, and infiltration trench sizing per Rational Method / NRCS TR-55</p>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('detention')">Detention Basin</div>
+  <div class="tab" onclick="switchTab('bioretention')">Bioretention Cell</div>
+  <div class="tab" onclick="switchTab('infiltration')">Infiltration Trench</div>
+</div>
+<div id="detention" class="panel active">
+<div class="grid">
+<div class="card"><h2>Inputs</h2>
+  <label>Drainage Area (acres)</label><input id="d_area" type="number" value="5" step="0.1">
+  <label>Runoff Coefficient C (pre-dev)</label><input id="d_cpre" type="number" value="0.25" step="0.01">
+  <label>Runoff Coefficient C (post-dev)</label><input id="d_cpost" type="number" value="0.65" step="0.01">
+  <label>Design Rainfall Intensity (in/hr, 10-yr)</label><input id="d_i10" type="number" value="3.5" step="0.1">
+  <label>25-yr Intensity (in/hr)</label><input id="d_i25" type="number" value="4.8" step="0.1">
+  <label>Basin Avg Depth (ft)</label><input id="d_depth" type="number" value="4" step="0.1">
+  <label>Side Slope (H:V)</label><input id="d_slope" type="number" value="3" step="0.5">
+  <button class="btn" onclick="calcDetention()">Calculate</button>
+</div>
+<div class="card"><h2>Results</h2>
+  <div id="d_results"><p style="color:#555;font-size:13px">Enter inputs and calculate.</p></div>
+  <p class="ref">Rational method Q=CiA. Storage by Modified Rational Method. NRCS TR-55 ref.</p>
+</div></div></div>
+<div id="bioretention" class="panel">
+<div class="grid">
+<div class="card"><h2>Inputs</h2>
+  <label>Drainage Area (acres)</label><input id="b_area" type="number" value="1.5" step="0.1">
+  <label>Impervious Fraction (%)</label><input id="b_imp" type="number" value="60" step="1">
+  <label>Design Storm Depth (in)</label><input id="b_storm" type="number" value="1.5" step="0.1">
+  <label>Media Depth (in)</label><input id="b_media" type="number" value="24" step="1">
+  <label>Media Porosity</label><input id="b_poros" type="number" value="0.35" step="0.01">
+  <label>Ponding Depth (in)</label><input id="b_pond" type="number" value="6" step="1">
+  <label>Drain Time Limit (hr)</label><input id="b_drain" type="number" value="24" step="1">
+  <button class="btn" onclick="calcBioretention()">Calculate</button>
+</div>
+<div class="card"><h2>Results</h2>
+  <div id="b_results"><p style="color:#555;font-size:13px">Enter inputs and calculate.</p></div>
+  <p class="ref">Cell area = WQv / (media storage + ponding). NJDEP Bioretention standards.</p>
+</div></div></div>
+<div id="infiltration" class="panel">
+<div class="grid">
+<div class="card"><h2>Inputs</h2>
+  <label>Drainage Area (acres)</label><input id="inf_area" type="number" value="2" step="0.1">
+  <label>Runoff Coefficient C</label><input id="inf_c" type="number" value="0.55" step="0.01">
+  <label>Design Rainfall Intensity (in/hr)</label><input id="inf_i" type="number" value="3.5" step="0.1">
+  <label>Soil Infiltration Rate (in/hr)</label>
+  <select id="inf_soil">
+    <option value="8.27">A - Sandy gravel (8.27 in/hr)</option>
+    <option value="2.41" selected>B - Sandy loam (2.41 in/hr)</option>
+    <option value="0.94">C - Clay loam (0.94 in/hr)</option>
+    <option value="0.13">D - Clay (0.13 in/hr)</option>
+  </select>
+  <label>Trench Depth (ft)</label><input id="inf_depth" type="number" value="3" step="0.5">
+  <label>Stone Porosity</label><input id="inf_poros" type="number" value="0.40" step="0.01">
+  <label>Safety Factor</label><input id="inf_sf" type="number" value="2" step="0.5">
+  <button class="btn" onclick="calcInfiltration()">Calculate</button>
+</div>
+<div class="card"><h2>Results</h2>
+  <div id="inf_results"><p style="color:#555;font-size:13px">Enter inputs and calculate.</p></div>
+  <p class="ref">Trench length = Q / (k_design x depth x porosity). ASCE standard with safety factor.</p>
+</div></div></div></div>
+<script>
+function switchTab(id){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  var map={detention:0,bioretention:1,infiltration:2};
+  document.querySelectorAll(".tab")[map[id]].classList.add("active");
+}
+function row(label,val,unit){return "<div class=\"result-row\"><span>"+label+"</span><span class=\"result-val\">"+val+" <small style=\"color:#888\">"+unit+"</small></span></div>";}
+function calcDetention(){
+  var A=+document.getElementById("d_area").value;
+  var Cpre=+document.getElementById("d_cpre").value;
+  var Cpost=+document.getElementById("d_cpost").value;
+  var i10=+document.getElementById("d_i10").value;
+  var i25=+document.getElementById("d_i25").value;
+  var dep=+document.getElementById("d_depth").value;
+  var Qpre=Cpre*i10*A; var Qpost=Cpost*i10*A;
+  var tc=30;
+  var Vstored=(Qpost-Qpre)*tc*60;
+  var VacFt=Vstored/43560;
+  var Aavg=Vstored/dep;
+  var Ab=Aavg*0.6;
+  var Qpost25=Cpost*i25*A;
+  var html=row("Pre-dev Q (10-yr)",Qpre.toFixed(2),"cfs")+row("Post-dev Q (10-yr)",Qpost.toFixed(2),"cfs")+row("Attenuation required",((Qpost-Qpre)/Qpost*100).toFixed(1),"%")+row("Required storage volume",Vstored.toFixed(0),"ft3")+row("Storage volume",VacFt.toFixed(3),"ac-ft")+row("Approx basin bottom area",Ab.toFixed(0),"ft2")+row("Post-dev Q (25-yr)",Qpost25.toFixed(2),"cfs")+"<div class=\"warn\">Preliminary sizing only. Hydrograph routing (TR-20/TR-55) required for permit design.</div>";
+  document.getElementById("d_results").innerHTML=html;
+}
+function calcBioretention(){
+  var A=+document.getElementById("b_area").value;
+  var imp=+document.getElementById("b_imp").value/100;
+  var storm=+document.getElementById("b_storm").value/12;
+  var media=+document.getElementById("b_media").value/12;
+  var poros=+document.getElementById("b_poros").value;
+  var pond=+document.getElementById("b_pond").value/12;
+  var drain=+document.getElementById("b_drain").value;
+  var rv=(imp*storm+(1-imp)*storm*0.1)*A*43560;
+  var storPerFt2=pond+media*poros;
+  var cellArea=rv/storPerFt2;
+  var cellAcres=cellArea/43560;
+  var pct=cellArea/(A*43560)*100;
+  var ksat=2.0; var drainVol=ksat/12*cellArea*drain;
+  var ok=drainVol>=rv;
+  var html=row("Runoff volume (WQv)",rv.toFixed(0),"ft3")+row("Storage per ft2 cell",storPerFt2.toFixed(3),"ft")+row("Required cell area",cellArea.toFixed(0),"ft2")+row("Cell area",cellAcres.toFixed(4),"acres")+row("Cell % of drainage area",pct.toFixed(1),"%")+row("Drain check ("+drain+"hr)",(ok?"PASS":"FAIL"),"")+( ok?"":"<div class=\"warn\">Drain time exceeds limit. Increase media depth or reduce drainage area.</div>");
+  document.getElementById("b_results").innerHTML=html;
+}
+function calcInfiltration(){
+  var A=+document.getElementById("inf_area").value;
+  var C=+document.getElementById("inf_c").value;
+  var i=+document.getElementById("inf_i").value;
+  var knat=+document.getElementById("inf_soil").value;
+  var dep=+document.getElementById("inf_depth").value;
+  var por=+document.getElementById("inf_poros").value;
+  var sf=+document.getElementById("inf_sf").value;
+  var Qin=C*i*A;
+  var kdes=knat/sf;
+  var kdesft=kdes/12;
+  var W=3;
+  var infPerFt=kdesft*W;
+  var Lreq=(Qin*3600)/(infPerFt*3600);
+  Lreq=Qin/(kdesft*W);
+  var Vol=Lreq*W*dep*por;
+  var html=row("Peak inflow Q",Qin.toFixed(2),"cfs")+row("Design infiltration rate",kdes.toFixed(2),"in/hr")+row("Required trench length",Math.ceil(Lreq),"lf")+row("Trench volume (3ft wide)",Vol.toFixed(0),"ft3")+row("Storage per LF",(W*dep*por).toFixed(2),"ft3/lf")+"<div class=\"warn\">Perc test (ASTM D3385) required. Min 2ft separation to SHWT. HSG-C/D soils may not qualify.</div>";
+  document.getElementById("inf_results").innerHTML=html;
+}
+</script></body></html>

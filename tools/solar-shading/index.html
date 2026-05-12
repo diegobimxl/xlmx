@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Solar Shading Calculator | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#b8996e}
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-val{color:#c8a96e;font-weight:600}
+canvas{display:block;margin:0 auto;border:1px solid #222;border-radius:4px}
+.ref{font-size:11px;color:#555;margin-top:10px;font-style:italic}
+.season-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.season-table th{background:#1a1a1a;color:#aaa;padding:7px 10px;text-align:left;border-bottom:1px solid #333}
+.season-table td{padding:7px 10px;border-bottom:1px solid #1e1e1e}
+.shaded{color:#5bc97d}.unshaded{color:#e07b54}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>Solar Shading Calculator</h1></div>
+<div class="container">
+<p class="subtitle">Horizontal overhang depth to shade glazing — solar altitude angles per latitude and season (ASHRAE 90.1 / LEED SSc)</p>
+<div class="grid2">
+<div>
+<div class="card"><h2>Inputs</h2>
+  <label>Latitude (degrees N)</label><input id="lat" type="number" value="32" step="0.5">
+  <label>Window Orientation</label>
+  <select id="orient">
+    <option value="S" selected>South</option>
+    <option value="SE">South-East</option>
+    <option value="SW">South-West</option>
+    <option value="E">East</option>
+    <option value="W">West</option>
+    <option value="N">North</option>
+  </select>
+  <label>Window Height (ft)</label><input id="wh" type="number" value="8" step="0.5">
+  <label>Window Sill Height from Floor (ft)</label><input id="ws" type="number" value="2.5" step="0.5">
+  <label>Overhang Setback from Window (ft)</label><input id="setback" type="number" value="0" step="0.5">
+  <label>Design Goal</label>
+  <select id="goal">
+    <option value="summer">Shade summer solstice noon</option>
+    <option value="equinox">Shade equinox noon</option>
+    <option value="custom">Custom altitude angle</option>
+  </select>
+  <label>Custom Altitude (deg, if Custom)</label><input id="custom_alt" type="number" value="45" step="1">
+  <button class="btn" onclick="calcShade()">Calculate</button>
+</div>
+</div>
+<div>
+<div class="card"><h2>Results</h2>
+  <div id="shade_results"><p style="color:#555;font-size:13px">Enter inputs and calculate.</p></div>
+</div>
+<div class="card"><h2>Section Diagram</h2>
+  <canvas id="shade_canvas" width="360" height="260"></canvas>
+  <p class="ref">Section shows overhang, window, and shadow extent at design solar altitude. ASHRAE 90.1-2022 Appendix B.</p>
+</div>
+</div>
+</div>
+<div class="card"><h2>Seasonal Solar Altitudes at Noon (degrees)</h2>
+<table class="season-table" id="season_table">
+<thead><tr><th>Season / Date</th><th>Solar Decl.</th><th>Altitude at Lat</th><th>Overhang Depth</th><th>Status</th></tr></thead>
+<tbody><tr><td colspan="5" style="color:#555;font-size:13px;padding:12px">Calculate to populate table.</td></tr></tbody>
+</table>
+</div>
+</div>
+<script>
+function solarAlt(lat,decl){
+  return 90-Math.abs(lat-decl);
+}
+var SEASONS=[
+  {name:"Summer Solstice (Jun 21)",decl:23.45},
+  {name:"Equinox (Mar/Sep 21)",decl:0},
+  {name:"Winter Solstice (Dec 21)",decl:-23.45},
+  {name:"Aug 21",decl:12.0},
+  {name:"Oct 21",decl:-10.5}
+];
+function calcShade(){
+  var lat=+document.getElementById("lat").value;
+  var wh=+document.getElementById("wh").value;
+  var ws=+document.getElementById("ws").value;
+  var setback=+document.getElementById("setback").value;
+  var goal=document.getElementById("goal").value;
+  var orient=document.getElementById("orient").value;
+  var designAlt;
+  if(goal==="summer") designAlt=solarAlt(lat,23.45);
+  else if(goal==="equinox") designAlt=solarAlt(lat,0);
+  else designAlt=+document.getElementById("custom_alt").value;
+  designAlt=Math.max(5,Math.min(85,designAlt));
+  var altRad=designAlt*Math.PI/180;
+  var D=wh/Math.tan(altRad)+setback;
+  // orientation correction for E/W
+  var corrNote="";
+  if(orient==="E"||orient==="W"){
+    corrNote=" (vertical fins more effective for E/W)";
+    D=D*1.4;
+  } else if(orient==="SE"||orient==="SW"){
+    D=D*1.15;
+    corrNote=" (diagonal orientation, depth +15%)";
+  } else if(orient==="N"){
+    D=0.5;
+    corrNote=" (North — minimal solar gain, shading rarely needed)";
+  }
+  var SHGCrel=Math.max(0,1-D/(D+wh));
+  function row(l,v,u){return "<div class=\"result-row\"><span>"+l+"</span><span class=\"result-val\">"+v+" <small style=\"color:#888\">"+u+"</small></span></div>";}
+  var html=row("Design solar altitude",designAlt.toFixed(1),"deg")+
+    row("Required overhang depth",D.toFixed(2),"ft")+
+    row("Overhang depth",D.toFixed(2)+corrNote,"ft")+
+    row("Effective shade coverage","100","% at design condition")+
+    row("Window height",wh.toFixed(1),"ft")+
+    row("Projection factor (PF)",(D/wh).toFixed(2),"")+
+    row("SHGC effectiveness (approx)",(100-SHGCrel*100).toFixed(0),"% reduction");
+  document.getElementById("shade_results").innerHTML=html;
+  drawDiagram(D,wh,ws,designAlt,setback);
+  buildSeasonTable(lat,D,wh,ws,setback,orient);
+}
+function drawDiagram(D,wh,ws,altDeg,setback){
+  var canvas=document.getElementById("shade_canvas");
+  var ctx=canvas.getContext("2d");
+  var W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#0d0d0d";ctx.fillRect(0,0,W,H);
+  var scale=18;
+  var ox=60,oy=H-40;
+  // Ground
+  ctx.strokeStyle="#333";ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
+  ctx.fillStyle="#555";ctx.font="10px system-ui";ctx.fillText("Ground",4,oy-4);
+  // Wall
+  ctx.strokeStyle="#444";ctx.lineWidth=2;
+  var wallX=ox+5*scale;
+  ctx.beginPath();ctx.moveTo(wallX,oy);ctx.lineTo(wallX,oy-25*scale);ctx.stroke();
+  ctx.fillStyle="#555";ctx.fillText("Wall",wallX+3,oy-22*scale);
+  // Window
+  var winBot=oy-ws*scale;
+  var winTop=oy-(ws+wh)*scale;
+  ctx.fillStyle="#1a3a5a";ctx.fillRect(wallX-4,winTop,8,wh*scale);
+  ctx.strokeStyle="#4488aa";ctx.lineWidth=1;ctx.strokeRect(wallX-4,winTop,8,wh*scale);
+  ctx.fillStyle="#4488aa";ctx.font="10px system-ui";ctx.fillText("Window",wallX+6,winBot-wh*scale/2+4);
+  // Overhang
+  var ohY=winTop-2;
+  var ohX=wallX+setback*scale;
+  ctx.fillStyle="#c8a96e";
+  ctx.fillRect(ohX-D*scale,ohY-6,D*scale+4,6);
+  ctx.fillStyle="#c8a96e";ctx.font="10px system-ui";ctx.fillText("Overhang D="+D.toFixed(1)+"ft",ohX-D*scale,ohY-10);
+  // Sun ray
+  var altRad=altDeg*Math.PI/180;
+  var rayLen=D*scale*2;
+  var rx=ohX-D*scale;
+  var ry=ohY-6;
+  ctx.strokeStyle="#f5a623";ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  ctx.moveTo(rx,ry);
+  var tx2=rx+rayLen*Math.cos(altRad);
+  var ty2=ry-rayLen*Math.sin(altRad);
+  ctx.lineTo(tx2,ty2);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle="#f5a623";ctx.fillText("Sun ray "+altDeg.toFixed(0)+"deg",tx2-40,ty2-4);
+  // Shadow on wall
+  var shadowBot=ohY+D/Math.tan(altRad*1)*scale;
+  ctx.strokeStyle="#333";ctx.lineWidth=1;ctx.setLineDash([2,2]);
+  ctx.beginPath();ctx.moveTo(ohX-D*scale,ohY);ctx.lineTo(wallX,shadowBot);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle="#e07b54";ctx.font="10px system-ui";
+  if(shadowBot<oy) ctx.fillText("Shadow",wallX+6,shadowBot);
+}
+function buildSeasonTable(lat,D,wh,ws,setback,orient){
+  var html="";
+  SEASONS.forEach(function(s){
+    var alt=solarAlt(lat,s.decl);
+    alt=Math.max(1,alt);
+    var altRad=alt*Math.PI/180;
+    var depNeeded=wh/Math.tan(altRad);
+    var shaded=D>=depNeeded;
+    html+="<tr><td>"+s.name+"</td><td>"+s.decl.toFixed(1)+"deg</td><td>"+alt.toFixed(1)+"deg</td><td>"+depNeeded.toFixed(2)+" ft</td><td class=\""+(shaded?"shaded":"unshaded")+"\">"+(shaded?"Shaded":"Unshaded")+"</td></tr>";
+  });
+  document.getElementById("season_table").querySelector("tbody").innerHTML=html;
+}
+</script></body></html>

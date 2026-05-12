@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Wood Beam Check | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media(max-width:580px){.wrap{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 10px;border-radius:6px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:9px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.checks{display:flex;flex-direction:column;gap:8px}
+.chk{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:10px 14px}
+.chk-head{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px}
+.chk-detail{font-size:11px;color:#666;line-height:1.5}
+.badge{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700}
+.pass{background:#1a2a1a;color:#4caf50}.fail{background:#2a1010;color:#f44336}
+.rb{height:6px;background:#222;border-radius:3px;margin-top:5px;overflow:hidden}
+.rf{height:100%;border-radius:3px}
+.sec{font-size:11px;color:#c8a96e;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:16px;margin-bottom:2px}
+.note{color:#666;font-size:11px;margin-top:12px;line-height:1.5;grid-column:1/-1}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Wood Beam Capacity Check (NDS)</h1></div>
+<div class=wrap>
+<div>
+<div class=sec>Loading</div>
+<label>Span L (ft)</label><input type=number id=L value=16 min=1 oninput=calc()>
+<label>Total UDL w (plf — dead + live)</label><input type=number id=w value=500 step=10 min=1 oninput=calc()>
+<label>Dead Load fraction (%)</label><input type=number id=dlf value=40 min=0 max=100 oninput=calc()>
+<div class=sec>Section</div>
+<label>Beam Type</label>
+<select id=type onchange=setDefaults()>
+<option value=sawn>Sawn Lumber / Glulam</option>
+<option value=lvl>LVL (1.75" wide plies)</option>
+<option value=custom>Custom (enter b, d)</option>
+</select>
+<label>Section Size</label>
+<select id=size onchange=sizeChange()>
+<option value="3.5|9.25">4x10 (3.5" × 9.25")</option>
+<option value="3.5|11.25">4x12 (3.5" × 11.25")</option>
+<option value="5.5|9.25">6x10 (5.5" × 9.25")</option>
+<option value="5.5|11.25">6x12 (5.5" × 11.25")</option>
+<option value="5.5|13.25" selected>6x14 (5.5" × 13.25")</option>
+<option value="5.5|15.25">6x16 (5.5" × 15.25")</option>
+<option value="3.5|11.875">3-1/2 × 11-7/8 LVL</option>
+<option value="3.5|14">3-1/2 × 14 LVL</option>
+<option value="3.5|16">3-1/2 × 16 LVL</option>
+<option value="5.25|14">5-1/4 × 14 LVL (3-ply)</option>
+</select>
+<label>Width b (in)</label><input type=number id=b value=5.5 step=0.25 min=1 oninput=calc()>
+<label>Depth d (in)</label><input type=number id=d value=13.25 step=0.25 min=1 oninput=calc()>
+<div class=sec>Material Properties</div>
+<label>Fb — Bending Design Value (psi)</label>
+<select id=Fb onchange=calc()>
+<option value=1500>DF-L #1: 1500 psi</option>
+<option value=1800 selected>DF-L SS: 1800 psi</option>
+<option value=2600>LVL (typical): 2600 psi</option>
+<option value=3100>LVL (high perf): 3100 psi</option>
+<option value=2400>Glulam 24F: 2400 psi</option>
+</select>
+<label>Fv — Shear Design Value (psi)</label>
+<select id=Fv onchange=calc()>
+<option value=170 selected>DF-L: 170 psi</option>
+<option value=285>LVL: 285 psi</option>
+<option value=265>Glulam: 265 psi</option>
+</select>
+<label>E — Modulus of Elasticity (psi)</label>
+<select id=E onchange=calc()>
+<option value=1600000 selected>DF-L: 1,600,000 psi</option>
+<option value=1900000>LVL: 1,900,000 psi</option>
+<option value=1800000>Glulam: 1,800,000 psi</option>
+</select>
+<label>Deflection Limit</label>
+<select id=dlim onchange=calc()>
+<option value=360>L/360 — Live load</option>
+<option value=240>L/240 — Total load</option>
+<option value=180>L/180 — Roof</option>
+</select>
+<button class=btn>Check Beam</button>
+</div>
+<div>
+<div class=sec>Results</div>
+<div class=checks id=out></div>
+</div>
+<p class=note>NDS 2018. Fb′ = Fb × CD × CM × Ct × CL × CF × Ci × Cr (CD=1.0 shown; multiply by 1.15 for roof/snow, 1.25 for 7-day, 1.6 for wind/seismic). Shear: Fv′ = Fv × all adjustment factors. Self-weight not included. Assumes simple span, uniform load, fully laterally supported.</p>
+</div>
+<script>
+function sizeChange(){
+  const v=document.getElementById('size').value.split('|');
+  document.getElementById('b').value=v[0];document.getElementById('d').value=v[1];calc();
+}
+function setDefaults(){calc();}
+function calc(){
+  const L=+document.getElementById('L').value;
+  const w=+document.getElementById('w').value;
+  const dlf=+document.getElementById('dlf').value/100;
+  const b=+document.getElementById('b').value;
+  const d=+document.getElementById('d').value;
+  const Fb=+document.getElementById('Fb').value;
+  const Fv=+document.getElementById('Fv').value;
+  const E=+document.getElementById('E').value;
+  const dlim=+document.getElementById('dlim').value;
+  const S=b*d*d/6;const I=b*d*d*d/12;const A=b*d;
+  const Mmax=w*L*L/8;const fb=Mmax*12/S;
+  const Vmax=w*L/2;const fv=1.5*Vmax/A;
+  const wLL=w*(1-dlf);
+  const defl=5*wLL/12*Math.pow(L*12,4)/(384*E*I);
+  const deflLim=L*12/dlim;
+  const mr=fb/Fb,vr=fv/Fv,dr=defl/deflLim;
+  function row(lbl,demand,cap,unit,ratio,detail){
+    const ok=ratio<=1;
+    const col=ok?'#4caf50':'#f44336';
+    return`<div class=chk>
+      <div class=chk-head><span>${lbl}</span><span class="badge ${ok?'pass':'fail'}">${ok?'OK':'FAIL'}</span></div>
+      <div class=chk-detail>${demand.toFixed(2)} ${unit} / ${cap.toFixed(2)} ${unit} — ratio <b>${ratio.toFixed(3)}</b> — ${detail}</div>
+      <div class=rb><div class=rf style="width:${Math.min(100,ratio*100).toFixed(0)}%;background:${col}"></div></div>
+    </div>`;
+  }
+  document.getElementById('out').innerHTML=
+    `<div style="font-size:12px;color:#888;margin-bottom:8px">${b}"×${d}" | S=${S.toFixed(1)} in³ | I=${I.toFixed(0)} in⁴</div>`+
+    row('Bending',fb,Fb,'psi',mr,`M = ${(Mmax/12000).toFixed(2)} kip·ft`)+
+    row('Shear',fv,Fv,'psi',vr,`V = ${(Vmax/1000).toFixed(2)} kips`)+
+    row(`Deflection (L/${dlim})`,defl,deflLim,'in',dr,`Δ=${defl.toFixed(3)}" limit=${deflLim.toFixed(3)}"`);
+}
+document.getElementById('size').addEventListener('change',sizeChange);
+calc();
+</script></body></html>

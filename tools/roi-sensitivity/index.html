@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ROI Sensitivity Analysis | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:960px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:320px 1fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#b8996e}
+.matrix-wrap{overflow-x:auto}
+table.matrix{border-collapse:collapse;font-size:12px;width:100%}
+table.matrix th,table.matrix td{padding:7px 10px;text-align:center;border:1px solid #1e1e1e}
+table.matrix th{background:#1a1a1a;color:#aaa;font-weight:600}
+table.matrix td.row-lbl{background:#161616;color:#888;font-weight:600;text-align:left}
+table.matrix td.base{outline:2px solid #c8a96e}
+.result-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-val{color:#c8a96e;font-weight:600}
+.ref{font-size:11px;color:#555;margin-top:8px;font-style:italic}
+.tornado-bar{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px}
+.bar-pos{height:18px;background:#5bc97d;border-radius:0 3px 3px 0}
+.bar-neg{height:18px;background:#e07b54;border-radius:3px 0 0 3px}
+.bar-label{width:140px;text-align:right;color:#aaa;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-val{font-size:11px;color:#888;min-width:36px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>ROI Sensitivity Analysis</h1></div>
+<div class="container">
+<p class="subtitle">Two-variable sensitivity matrix and tornado chart for real estate or project ROI — identify key value drivers</p>
+<div class="grid2">
+<div>
+<div class="card"><h2>Base Case Inputs</h2>
+  <label>Total Investment / Cost (USD)</label><input id="cost" type="number" value="5000000" step="50000">
+  <label>Net Operating Income / Annual Revenue (USD)</label><input id="noi" type="number" value="400000" step="10000">
+  <label>Exit Cap Rate or Yield (%)</label><input id="cap" type="number" value="5.5" step="0.1">
+  <label>Hold Period (years)</label><input id="hold" type="number" value="5" step="1">
+  <label>Annual NOI Growth Rate (%)</label><input id="growth" type="number" value="2.5" step="0.5">
+  <label>Equity (% of cost)</label><input id="equity_pct" type="number" value="30" step="5">
+  <label>Debt Interest Rate (%)</label><input id="debt_rate" type="number" value="6.5" step="0.25">
+  <label>Variable 1 (Row — axis label)</label>
+  <select id="var1">
+    <option value="cap" selected>Exit Cap Rate (%)</option>
+    <option value="cost">Total Cost ($)</option>
+    <option value="noi">NOI ($)</option>
+    <option value="hold">Hold Period (yr)</option>
+    <option value="growth">NOI Growth (%)</option>
+  </select>
+  <label>Var 1 Range (+/- steps from base)</label><input id="v1steps" type="number" value="1" step="0.25">
+  <label>Variable 2 (Column — axis label)</label>
+  <select id="var2">
+    <option value="noi" selected>NOI ($)</option>
+    <option value="cost">Total Cost ($)</option>
+    <option value="cap">Exit Cap Rate (%)</option>
+    <option value="hold">Hold Period (yr)</option>
+    <option value="growth">NOI Growth (%)</option>
+  </select>
+  <label>Var 2 Range (+/- steps from base)</label><input id="v2steps" type="number" value="25000" step="5000">
+  <button class="btn" onclick="calcSensitivity()">Run Analysis</button>
+</div>
+</div>
+<div>
+<div class="card"><h2>Base Case Results</h2>
+  <div id="base_results"><p style="color:#555;font-size:13px">Run analysis to see results.</p></div>
+  <p class="ref">Leveraged IRR uses equity cash flows. Unlevered uses total investment. Exit value = Year-N NOI / cap rate.</p>
+</div>
+<div class="card"><h2>Sensitivity Matrix (Equity Multiple)</h2>
+  <div class="matrix-wrap"><div id="matrix_out"><p style="color:#555;font-size:13px">Run analysis to see matrix.</p></div></div>
+</div>
+<div class="card"><h2>Tornado Chart (IRR Sensitivity)</h2>
+  <div id="tornado_out"><p style="color:#555;font-size:13px">Run analysis to see tornado.</p></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function getBase(){
+  return{cost:+document.getElementById('cost').value,noi:+document.getElementById('noi').value,cap:+document.getElementById('cap').value/100,hold:+document.getElementById('hold').value,growth:+document.getElementById('growth').value/100,eq_pct:+document.getElementById('equity_pct').value/100,debt_r:+document.getElementById('debt_rate').value/100};
+}
+function calcIRR(cashflows){
+  var r=0.1;
+  for(var i=0;i<100;i++){
+    var npv=0,dnpv=0;
+    cashflows.forEach(function(cf,t){npv+=cf/Math.pow(1+r,t);dnpv+=-t*cf/Math.pow(1+r,t+1);});
+    if(Math.abs(npv)<0.01) break;
+    r=r-npv/dnpv;
+    if(r<-0.99) r=-0.99;
+  }
+  return r;
+}
+function runCase(p){
+  var equity=p.cost*p.eq_pct;
+  var debt=p.cost*(1-p.eq_pct);
+  var annDebt=debt*p.debt_r;
+  var exitNOI=p.noi*Math.pow(1+p.growth,p.hold);
+  var exitVal=exitNOI/p.cap;
+  // Unlevered cash flows
+  var cfUnlev=[-p.cost];
+  for(var t=1;t<=p.hold;t++){cfUnlev.push(p.noi*Math.pow(1+p.growth,t-1));}
+  cfUnlev[p.hold]+=exitVal;
+  // Levered (equity) cash flows
+  var cfLev=[-equity];
+  for(var t=1;t<=p.hold;t++){cfLev.push(p.noi*Math.pow(1+p.growth,t-1)-annDebt);}
+  cfLev[p.hold]+=exitVal-debt;
+  var irrUnlev=calcIRR(cfUnlev);
+  var irrLev=calcIRR(cfLev);
+  var em=(exitVal-debt+cfLev.slice(1).reduce((a,b)=>a+b,0))/equity;
+  var npv=cfUnlev.reduce((s,cf,t)=>s+cf/Math.pow(1.08,t),0);
+  return{irrUnlev:irrUnlev,irrLev:irrLev,em:em,exitVal:exitVal,npv:npv,equity:equity,debt:debt};
+}
+function applyVar(base,varKey,delta){
+  var p=Object.assign({},base);
+  if(varKey==='cap') p.cap=(base.cap*100+delta)/100;
+  else if(varKey==='cost') p.cost+=delta;
+  else if(varKey==='noi') p.noi+=delta;
+  else if(varKey==='hold') p.hold=Math.max(1,base.hold+delta);
+  else if(varKey==='growth') p.growth=(base.growth*100+delta)/100;
+  return p;
+}
+function cellColor(em){
+  if(em>=2.5) return '#0d2010';
+  if(em>=2.0) return '#0f2a15';
+  if(em>=1.5) return '#102010';
+  if(em>=1.2) return '#1a1a1a';
+  if(em>=1.0) return '#1a1010';
+  return '#200808';
+}
+function cellTextColor(em){
+  if(em>=2.5) return '#7dff9b';
+  if(em>=2.0) return '#5bc97d';
+  if(em>=1.5) return '#c8d496';
+  if(em>=1.2) return '#c8a96e';
+  if(em>=1.0) return '#e09060';
+  return '#e07b54';
+}
+function calcSensitivity(){
+  var base=getBase();
+  var r=runCase(base);
+  // Base results
+  function row(l,v,u){return '<div class=\'result-row\'><span>'+l+'</span><span class=\'result-val\'>'+v+' <small style=\'color:#888\'>'+u+'</small></span></div>';}
+  var html=row('Unlevered IRR',(r.irrUnlev*100).toFixed(2),'%')+row('Levered IRR',(r.irrLev*100).toFixed(2),'%')+row('Equity Multiple',r.em.toFixed(2),'x')+row('Exit Value','$'+(r.exitVal/1e6).toFixed(2)+'M','')+row('NPV (8% discount)','$'+(r.npv/1e6).toFixed(2)+'M','')+row('Equity','$'+(r.equity/1e6).toFixed(2)+'M','')+row('Debt','$'+(r.debt/1e6).toFixed(2)+'M','');
+  document.getElementById('base_results').innerHTML=html;
+  // Matrix
+  var v1Key=document.getElementById('var1').value;
+  var v2Key=document.getElementById('var2').value;
+  var v1step=+document.getElementById('v1steps').value;
+  var v2step=+document.getElementById('v2steps').value;
+  var v1vals=[-2,-1,0,1,2].map(function(n){return n*v1step;});
+  var v2vals=[-2,-1,0,1,2].map(function(n){return n*v2step;});
+  var v1Labels=v1vals.map(function(d){return d>0?'+'+d:d;});
+  var v2Labels=v2vals.map(function(d){return d>0?'+'+d:d;});
+  var mhtml='<table class=\'matrix\'><thead><tr><th>'+v1Key+' \\ '+v2Key+'</th>';
+  v2Labels.forEach(function(l){mhtml+='<th>'+l+'</th>';});
+  mhtml+='</tr></thead><tbody>';
+  v1vals.forEach(function(d1,ri){
+    mhtml+='<tr><td class=\'row-lbl\'>'+v1Labels[ri]+'</td>';
+    v2vals.forEach(function(d2,ci){
+      var p1=applyVar(base,v1Key,d1);
+      var p2=applyVar(p1,v2Key,d2);
+      var res=runCase(p2);
+      var em=res.em;
+      var isBase=d1===0&&d2===0;
+      mhtml+='<td style=\'background:'+cellColor(em)+';color:'+cellTextColor(em)+(isBase?';outline:2px solid #c8a96e':'')+'\'>'+em.toFixed(2)+'x</td>';
+    });
+    mhtml+='</tr>';
+  });
+  mhtml+='</tbody></table>';
+  document.getElementById('matrix_out').innerHTML=mhtml;
+  // Tornado
+  var VARS=['cap','cost','noi','growth','hold'];
+  var LABELS={cap:'Exit Cap Rate',cost:'Total Cost',noi:'NOI',growth:'NOI Growth',hold:'Hold Period'};
+  var DELTAS={cap:1,cost:500000,noi:50000,growth:1,hold:1};
+  var results=[];
+  VARS.forEach(function(v){
+    var pUp=applyVar(base,v,DELTAS[v]);
+    var pDn=applyVar(base,v,-DELTAS[v]);
+    var irrUp=runCase(pUp).irrUnlev*100;
+    var irrDn=runCase(pDn).irrUnlev*100;
+    results.push({label:LABELS[v],up:irrUp,dn:irrDn,range:Math.abs(irrUp-irrDn)});
+  });
+  results.sort(function(a,b){return b.range-a.range;});
+  var maxRange=Math.max.apply(null,results.map(function(r){return r.range;}));
+  var base_irr=r.irrUnlev*100;
+  var thtml='';
+  results.forEach(function(res){
+    var wPos=(res.up-base_irr)/maxRange*120;
+    var wNeg=(base_irr-res.dn)/maxRange*120;
+    thtml+='<div class=\'tornado-bar\'><span class=\'bar-label\'>'+res.label+'</span>';
+    thtml+='<span class=\'bar-val\'>'+res.dn.toFixed(1)+'%</span>';
+    thtml+='<div style=\'position:relative;flex:1;display:flex;align-items:center\'>';
+    thtml+='<div class=\'bar-neg\' style=\'width:'+Math.max(0,wNeg)+'px;margin-left:auto\'></div>';
+    thtml+='<div style=\'width:2px;height:24px;background:#c8a96e\'></div>';
+    thtml+='<div class=\'bar-pos\' style=\'width:'+Math.max(0,wPos)+'px\'></div>';
+    thtml+='</div><span class=\'bar-val\'>'+res.up.toFixed(1)+'%</span>';
+    thtml+='</div>';
+  });
+  thtml+='<p style=\'font-size:11px;color:#555;margin-top:8px\'>(Each bar shows IRR range with +/- 1 unit change in that variable. Base IRR: '+base_irr.toFixed(2)+'%)</p>';
+  document.getElementById('tornado_out').innerHTML=thtml;
+}
+</script></body></html>

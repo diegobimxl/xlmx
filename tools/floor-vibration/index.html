@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Floor Vibration Check | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#b8996e}
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-val{color:#c8a96e;font-weight:600}
+.pass{color:#5bc97d!important}.fail{color:#e07b54!important}
+.verdict{text-align:center;padding:16px;border-radius:6px;margin-top:12px;font-size:16px;font-weight:700}
+.verdict.pass-bg{background:#0d2010;border:1px solid #1a4020;color:#5bc97d}
+.verdict.fail-bg{background:#201008;border:1px solid #402010;color:#e07b54}
+.ref{font-size:11px;color:#555;margin-top:10px;font-style:italic}
+.guide-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.guide-table th{background:#1a1a1a;color:#aaa;padding:6px 10px;text-align:left;border-bottom:1px solid #333}
+.guide-table td{padding:6px 10px;border-bottom:1px solid #1e1e1e}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>Floor Vibration Check</h1></div>
+<div class="container">
+<p class="subtitle">AISC Design Guide 11 — simplified floor vibration serviceability check (walking excitation)</p>
+<div class="grid2">
+<div class="card"><h2>Inputs</h2>
+  <label>Occupancy / Use Type</label>
+  <select id="occ" onchange="setLimits()">
+    <option value="office" selected>Office</option>
+    <option value="residential">Residential</option>
+    <option value="shopping">Shopping Mall / Corridor</option>
+    <option value="footbridge">Footbridge</option>
+    <option value="lab">Lab / Sensitive Equipment</option>
+    <option value="os">Open-Plan Office</option>
+  </select>
+  <label>Beam Span, L<sub>b</sub> (ft)</label><input id="Lb" type="number" value="30" step="1">
+  <label>Girder Span, L<sub>g</sub> (ft)</label><input id="Lg" type="number" value="40" step="1">
+  <label>Beam Spacing, S (ft)</label><input id="S" type="number" value="10" step="1">
+  <label>Effective Slab + Deck Depth, d<sub>e</sub> (in)</label><input id="de" type="number" value="5.5" step="0.25">
+  <label>Concrete Weight (pcf)</label><input id="wc" type="number" value="110" step="5">
+  <label>Beam Moment of Inertia, I<sub>x</sub> (in&#8308;)</label><input id="Ix" type="number" value="1350" step="10">
+  <label>Girder Moment of Inertia, I<sub>gx</sub> (in&#8308;)</label><input id="Igx" type="number" value="3200" step="10">
+  <label>Superimposed Dead Load (psf)</label><input id="sdl" type="number" value="11" step="1">
+  <label>Sustained Live Load (psf)</label><input id="sll" type="number" value="11" step="1">
+  <label>Modular Ratio n (E<sub>s</sub>/E<sub>c</sub>)</label><input id="nr" type="number" value="8" step="1">
+  <button class="btn" onclick="calcVib()">Check Vibration</button>
+</div>
+<div>
+<div class="card"><h2>Results</h2>
+  <div id="vib_results"><p style="color:#555;font-size:13px">Enter inputs and check.</p></div>
+  <p class="ref">AISC DG11 Eq 3.1-3.4. Acceleration limit a<sub>p</sub>/g per Table 4.1. Mode shapes simplified as simple-span beams.</p>
+</div>
+<div class="card" style="margin-top:16px"><h2>Acceleration Limits (AISC DG11 Table 4.1)</h2>
+  <table class="guide-table">
+  <thead><tr><th>Occupancy</th><th>a<sub>p</sub>/g</th></tr></thead>
+  <tbody>
+  <tr><td>Office, Residential, Church</td><td>0.5%</td></tr>
+  <tr><td>Open-plan office (w/ few partitions)</td><td>0.5–0.8%</td></tr>
+  <tr><td>Shopping Mall</td><td>1.5%</td></tr>
+  <tr><td>Footbridge (outdoor)</td><td>1.5%</td></tr>
+  <tr><td>Footbridge (indoor)</td><td>0.5%</td></tr>
+  <tr><td>Lab / Sensitive Equipment</td><td>0.2–0.5%</td></tr>
+  <tr><td>Aerobics / Dancing</td><td>1.5–2.5%</td></tr>
+  </tbody></table>
+</div>
+</div>
+</div>
+</div>
+<script>
+var LIMITS={office:0.005,residential:0.005,shopping:0.015,footbridge:0.015,lab:0.003,os:0.005};
+function setLimits(){}
+function calcVib(){
+  var occ=document.getElementById("occ").value;
+  var Lb=+document.getElementById("Lb").value;
+  var Lg=+document.getElementById("Lg").value;
+  var S=+document.getElementById("S").value;
+  var de=+document.getElementById("de").value;
+  var wc=+document.getElementById("wc").value;
+  var Ix=+document.getElementById("Ix").value;
+  var Igx=+document.getElementById("Igx").value;
+  var sdl=+document.getElementById("sdl").value;
+  var sll=+document.getElementById("sll").value;
+  var n=+document.getElementById("nr").value;
+  var apg_limit=LIMITS[occ];
+  // AISC DG11 approach
+  // Effective slab width
+  var Ds=wc*de/12; // slab weight per sq ft
+  var w=Ds+sdl+sll; // total weight psf
+  // Transformed moment of inertia (simplified composite)
+  var Es=29000; // ksi steel
+  var Ec=33*Math.pow(wc,1.5)*Math.pow(4.0,0.5)/1000; // ksi approx for 4000 psi
+  var n_calc=Es/Ec;
+  var beff=S*12; // in
+  var Ac=beff*de; // in2 slab area
+  var ybar=de/2; // approx slab centroid from top
+  var Ieff=Ix+n_calc*Ac*Math.pow((de/2+6),2)/n_calc; // simplified
+  Ieff=Ix*1.35; // rule of thumb: composite Ieff ~ 1.35*Ix
+  // Beam deflection (simple span, uniform load)
+  var wb=w*S/1000; // k/ft tributary
+  var delta_b=5*wb*Math.pow(Lb,3)*1728/(384*Es*Ix); // in — convert Lb to in
+  delta_b=5*(wb/12)*Math.pow(Lb*12,4)/(384*Es*Ieff*1000); // in
+  // Girder deflection
+  var Peff=w*S*Lb/1000; // equiv point load on girder
+  var delta_g=Peff*Math.pow(Lg*12,3)/(48*Es*Igx*1000);
+  var delta_total=delta_b+delta_g; // in
+  // Natural frequency
+  var fn=0.18*Math.sqrt(386.4/delta_total); // Hz AISC DG11
+  // Modal weight
+  var Weff=w*S*Lb*Lg*0.5/1000; // kips approx panel weight / 2
+  // Damping ratio
+  var beta_map={office:0.03,residential:0.03,shopping:0.02,footbridge:0.01,lab:0.01,os:0.025};
+  var beta=beta_map[occ];
+  // Step frequency (walking)
+  var fs=1.9; // Hz typical walking
+  if(fn<4) fs=fn; // resonance condition
+  // Forcing function — DG11 Eq 4.1 alpha factor
+  var alpha_map={office:0.1,residential:0.1,shopping:0.13,footbridge:0.13,lab:0.03,os:0.1};
+  var alpha=alpha_map[occ];
+  // Peak acceleration
+  var apg=alpha*Math.exp(-0.35*fn)/(beta*Weff);
+  // Clamp to reasonable range
+  apg=Math.max(apg,0.0001);
+  var pass=apg<=apg_limit;
+  var pctLimit=(apg/apg_limit*100).toFixed(0);
+  function row(l,v,u){return "<div class=\"result-row\"><span>"+l+"</span><span class=\"result-val\">"+v+" <small style=\"color:#888\">"+u+"</small></span></div>";}
+  var html=row("Beam deflection (delta_b)",delta_b.toFixed(4),"in")+
+    row("Girder deflection (delta_g)",delta_g.toFixed(4),"in")+
+    row("Total deflection",delta_total.toFixed(4),"in")+
+    row("Natural frequency fn",fn.toFixed(2),"Hz")+
+    row("Modal weight Weff",(Weff).toFixed(1),"kips")+
+    row("Damping ratio beta",(beta*100).toFixed(1),"%")+
+    row("Computed a_p/g",(apg*100).toFixed(3),"%")+
+    row("Limit a_p/g",(apg_limit*100).toFixed(1),"%")+
+    row("% of limit",pctLimit,"%")+
+    "<div class=\"verdict "+(pass?"pass-bg":"fail-bg")+"\">"+(pass?"PASS":"FAIL")+" — "+pctLimit+"% of limit</div>";
+  if(fn<4) html+="<div style=\"background:#1a1500;border:1px solid #3a3000;border-radius:4px;padding:10px;font-size:12px;color:#c8a96e;margin-top:12px\">fn below 4 Hz — resonance possible. Consider stiffening or tuned mass damper.</div>";
+  document.getElementById("vib_results").innerHTML=html;
+}
+</script></body></html>

@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Psychrometric Calc | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 24px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:24px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:20px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.tbl td:last-child{text-align:right}
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:7px 16px;border-radius:5px;font-size:13px;cursor:pointer}
+.tab.active{background:#c8a96e;color:#0d0d0d;font-weight:700;border-color:#c8a96e}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Psychrometric Calculator</h1></div>
+<div class=wrap>
+<div class=tabs>
+<button class="tab active" onclick="setMode('db_rh',this)">DB + RH</button>
+<button class=tab onclick="setMode('db_wb',this)">DB + WB</button>
+<button class=tab onclick="setMode('db_dp',this)">DB + Dew Point</button>
+</div>
+<label>Dry Bulb Temperature (°F)</label><input type=number id=db value=75 step=0.5 oninput=calc()>
+<label id=in2lbl>Relative Humidity (%)</label><input type=number id=in2 value=50 step=1 min=1 max=100 oninput=calc()>
+<label>Barometric Pressure (psia)</label><input type=number id=P value=14.696 step=0.01 min=10 oninput=calc()>
+<button class=btn onclick=calc()>Calculate</button>
+<div id=out></div>
+<p class=note>Equations per ASHRAE Fundamentals 2021. Saturation pressure: Buck equation approximation. Humidity ratio W = 0.62198×Pws/(P-Pws). Enthalpy h = 0.240×T + W×(1061+0.444×T). Specific volume v = 0.3704×(T+459.67)×(1+1.6078×W)/P. Valid for standard atmospheric conditions. Used for cooling load calculations, equipment selection, and comfort analysis.</p>
+</div>
+<script>
+let mode='db_rh';
+function setMode(m,btn){
+  mode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const lbls={db_rh:'Relative Humidity (%)',db_wb:'Wet Bulb Temperature (°F)',db_dp:'Dew Point Temperature (°F)'};
+  const vals={db_rh:50,db_wb:62,db_dp:55};
+  document.getElementById('in2lbl').textContent=lbls[m];
+  document.getElementById('in2').value=vals[m];
+  calc();
+}
+function Pws(T){const Tc=(T-32)*5/9;return Math.exp(17.368*Tc/(238.88+Tc))*0.3313;}
+function calc(){
+  const T=+document.getElementById('db').value;
+  const v2=+document.getElementById('in2').value;
+  const P=+document.getElementById('P').value;
+  const pws=Pws(T);
+  let RH,Tdp,Twb,W,pw;
+  if(mode==='db_rh'){
+    RH=v2/100;pw=RH*pws;
+    W=0.62198*pw/(P-pw);
+    const lnpw=Math.log(pw/0.3313);
+    Tdp=(238.88*lnpw/(17.368-lnpw))*9/5+32;
+    Twb=T-(T-Tdp)/3;
+  } else if(mode==='db_wb'){
+    Twb=v2;
+    const pwsWB=Pws(Twb);
+    W=((1061-0.444*(T-32))*0.62198*pwsWB/(P-pwsWB)-0.240*(T-Twb))/(1061+0.444*T-0.444*Twb);
+    pw=W*P/(0.62198+W);
+    RH=pw/pws;
+    const lnpw=Math.log(pw/0.3313);
+    Tdp=(238.88*lnpw/(17.368-lnpw))*9/5+32;
+  } else {
+    Tdp=v2;
+    const Tdc=(Tdp-32)*5/9;
+    pw=Math.exp(17.368*Tdc/(238.88+Tdc))*0.3313;
+    W=0.62198*pw/(P-pw);
+    RH=pw/pws;
+    Twb=Tdp+(T-Tdp)*0.65;
+  }
+  const h=0.240*T+W*(1061+0.444*T);
+  const sv=0.3704*(T+459.67)*(1+1.6078*W)/P;
+  const rhoLb=1/sv;
+  const grains=W*7000;
+  document.getElementById('out').innerHTML=`
+  <div class=kpis>
+    <div class=kpi><div class=val>${T.toFixed(1)}°F</div><div class=lbl>Dry Bulb</div></div>
+    <div class=kpi><div class=val>${(RH*100).toFixed(1)}%</div><div class=lbl>Rel. Humidity</div></div>
+    <div class=kpi><div class=val>${Twb.toFixed(1)}°F</div><div class=lbl>Wet Bulb</div></div>
+    <div class=kpi><div class=val>${Tdp.toFixed(1)}°F</div><div class=lbl>Dew Point</div></div>
+    <div class=kpi><div class=val>${h.toFixed(2)}</div><div class=lbl>Enthalpy (Btu/lb)</div></div>
+    <div class=kpi><div class=val>${(W*1000).toFixed(2)}</div><div class=lbl>Hum. Ratio (lb/klb)</div></div>
+    <div class=kpi><div class=val>${grains.toFixed(1)}</div><div class=lbl>Grains / lb</div></div>
+    <div class=kpi><div class=val>${sv.toFixed(3)}</div><div class=lbl>Spec. Vol (ft³/lb)</div></div>
+  </div>
+  <table class=tbl><thead><tr><th>Property</th><th>Value</th><th>Unit</th></tr></thead><tbody>
+  <tr><td>Dry Bulb Temperature</td><td>${T.toFixed(1)}</td><td>°F</td></tr>
+  <tr><td>Wet Bulb Temperature</td><td>${Twb.toFixed(2)}</td><td>°F</td></tr>
+  <tr><td>Dew Point Temperature</td><td>${Tdp.toFixed(2)}</td><td>°F</td></tr>
+  <tr><td>Relative Humidity</td><td>${(RH*100).toFixed(2)}</td><td>%</td></tr>
+  <tr><td>Humidity Ratio W</td><td>${W.toFixed(5)}</td><td>lb water/lb dry air</td></tr>
+  <tr><td>Grains of Moisture</td><td>${grains.toFixed(2)}</td><td>gr/lb</td></tr>
+  <tr><td>Enthalpy h</td><td>${h.toFixed(3)}</td><td>Btu/lb dry air</td></tr>
+  <tr><td>Specific Volume</td><td>${sv.toFixed(4)}</td><td>ft³/lb dry air</td></tr>
+  <tr><td>Density</td><td>${rhoLb.toFixed(4)}</td><td>lb/ft³</td></tr>
+  <tr><td>Saturation Pressure</td><td>${pws.toFixed(4)}</td><td>psia</td></tr>
+  </tbody></table>`;
+}
+calc();
+</script></body></html>

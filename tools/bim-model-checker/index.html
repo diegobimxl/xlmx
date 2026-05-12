@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BIM Model Checker | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:980px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:gap}
+.project-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.project-bar input{background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 12px;color:#e8e8e8;font-size:13px;flex:1;min-width:160px}
+.project-bar input:focus{outline:none;border-color:#c8a96e}
+.score-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:700px){.score-cards{grid-template-columns:1fr 1fr}}
+.score-card{background:#111;border:1px solid #222;border-radius:8px;padding:16px;text-align:center}
+.score-num{font-size:28px;font-weight:700;color:#c8a96e}
+.score-lbl{font-size:11px;color:#666;margin-top:4px}
+.section-card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.section-card h2{font-size:13px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.item{display:grid;grid-template-columns:24px 1fr 120px 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.item:last-child{border-bottom:none}
+.item-num{color:#555;font-size:11px;text-align:center}
+.item-desc{color:#ccc}
+.item-ref{font-size:11px;color:#555}
+.item-ctrl{display:flex;gap:6px;justify-content:flex-end}
+.check-btn{border:none;border-radius:3px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer}
+.pass-btn{background:#1a3020;color:#5bc97d}.pass-btn.active{background:#5bc97d;color:#0d0d0d}
+.fail-btn{background:#301a10;color:#e07b54}.fail-btn.active{background:#e07b54;color:#fff}
+.na-btn{background:#1a1a2a;color:#8888cc}.na-btn.active{background:#8888cc;color:#0d0d0d}
+.notes-input{background:#0d0d0d;border:1px solid #222;border-radius:3px;padding:3px 6px;color:#888;font-size:11px;width:100%;margin-top:3px}
+.notes-input:focus{outline:none;border-color:#555}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{background:#b8996e}
+.btn-out{background:transparent;color:#c8a96e;border:1px solid #c8a96e;border-radius:4px;padding:8px 16px;font-size:12px;cursor:pointer}
+.btn-out:hover{background:#c8a96e22}
+.progress-bar{height:6px;background:#1a1a1a;border-radius:3px;margin-top:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .3s}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>BIM Model Health Checker</h1></div>
+<div class="container">
+<p class="subtitle">ISO 19650 model quality checklist — coordinate setup, naming conventions, LOD compliance, clash detection, and handover readiness</p>
+<div class="project-bar">
+  <input id="proj" type="text" placeholder="Project Name">
+  <input id="model" type="text" placeholder="Model File Name">
+  <input id="disc" type="text" placeholder="Discipline (ARC/STR/MEP)">
+  <input id="stage" type="text" placeholder="Stage / Milestone">
+  <input id="reviewer" type="text" placeholder="Reviewer">
+  <button class="btn" onclick="exportReport()">Export Report</button>
+  <button class="btn-out" onclick="resetAll()">Reset</button>
+</div>
+<div class="score-cards">
+  <div class="score-card"><div class="score-num" id="sc_pass">0</div><div class="score-lbl">Pass</div></div>
+  <div class="score-card"><div class="score-num" id="sc_fail" style="color:#e07b54">0</div><div class="score-lbl">Fail</div></div>
+  <div class="score-card"><div class="score-num" id="sc_na" style="color:#8888cc">0</div><div class="score-lbl">N/A</div></div>
+  <div class="score-card"><div class="score-num" id="sc_score">-</div><div class="score-lbl">Score</div></div>
+</div>
+<div id="checklist"></div>
+</div>
+<script>
+var SECTIONS=[
+{title:'Project Setup & CDE (ISO 19650-2)',color:'#4e7bd4',items:[
+  {id:'s1i1',text:'CDE platform configured with correct folder structure',ref:'ISO 19650-2 Cl.5.2'},
+  {id:'s1i2',text:'WIP/Shared/Published/Archived containers defined',ref:'ISO 19650-2 Cl.5.3'},
+  {id:'s1i3',text:'BIM Execution Plan (BEP) issued and approved',ref:'ISO 19650-2 Cl.5.1'},
+  {id:'s1i4',text:'Exchange Information Requirements (EIR) documented',ref:'ISO 19650-2 Cl.4.2'},
+  {id:'s1i5',text:'Project origin and coordinates match survey datum',ref:'ISO 19650-2 / BEP'},
+  {id:'s1i6',text:'Shared coordinates distributed to all disciplines',ref:'BEP'},
+]},{title:'File Naming & Metadata',color:'#c8a96e',items:[
+  {id:'s2i1',text:'File names follow BEP naming convention',ref:'ISO 19650-2 Cl.6.2'},
+  {id:'s2i2',text:'Revision codes follow project protocol (S0/S1/S2/P01)',ref:'ISO 19650-2 Cl.6.4'},
+  {id:'s2i3',text:'Status codes applied correctly (S0=WIP, S2=Shared, A1=Approved)',ref:'ISO 19650-2 Table 1'},
+  {id:'s2i4',text:'Author, date, discipline metadata in title block',ref:'BEP'},
+  {id:'s2i5',text:'Host/origin model clearly identified',ref:'BEP'},
+]},{title:'LOD & Model Content',color:'#5bc97d',items:[
+  {id:'s3i1',text:'LOD level documented and meets milestone requirement',ref:'AIA G202 / BEP'},
+  {id:'s3i2',text:'Elements have correct LOD geometry per BEP matrix',ref:'AIA G202'},
+  {id:'s3i3',text:'Non-applicable elements purged',ref:'BEP'},
+  {id:'s3i4',text:'Generic families replaced with project-specific at LOD 300+',ref:'BEP'},
+  {id:'s3i5',text:'MEP systems at LOD 350 minimum for clash detection',ref:'BEP / BSRIA'},
+  {id:'s3i6',text:'Structural model has correct material properties',ref:'BEP'},
+]},{title:'Clash Detection & Coordination',color:'#9b6ed4',items:[
+  {id:'s4i1',text:'ARC-STR-MEP clash run performed',ref:'ISO 19650 / BEP'},
+  {id:'s4i2',text:'Hard clashes resolved or accepted with documentation',ref:'BEP'},
+  {id:'s4i3',text:'Clash tolerances set per discipline protocol',ref:'BEP'},
+  {id:'s4i4',text:'Open clashes logged in CDE clash register with owner',ref:'BEP'},
+  {id:'s4i5',text:'All RFIs from clash detection tracked and closed',ref:'BEP'},
+]},{title:'Sheets, Views & Annotations',color:'#e07b54',items:[
+  {id:'s5i1',text:'Sheet numbering follows project convention',ref:'BEP'},
+  {id:'s5i2',text:'All views placed on sheets, no orphaned views',ref:'BEP'},
+  {id:'s5i3',text:'Title block fully populated (name, address, date, rev, scale)',ref:'BEP'},
+  {id:'s5i4',text:'North arrow placed and correctly oriented on site plans',ref:'BEP'},
+  {id:'s5i5',text:'Dimensions are model-derived, not manually overridden',ref:'BEP'},
+]},{title:'Model Health & File Size',color:'#54b8c9',items:[
+  {id:'s6i1',text:'Model audited and compacted (Audit run)',ref:'Revit Best Practice'},
+  {id:'s6i2',text:'Unused families, views, sheets purged',ref:'Revit Best Practice'},
+  {id:'s6i3',text:'File size within project limit (typ 300MB per discipline)',ref:'BEP'},
+  {id:'s6i4',text:'Critical warnings reviewed and resolved',ref:'Revit Best Practice'},
+  {id:'s6i5',text:'No duplicate elements detected',ref:'Revit Best Practice'},
+]},{title:'Handover Readiness (ISO 19650-3)',color:'#f5a623',items:[
+  {id:'s7i1',text:'COBie / Asset Information Model prepared if required',ref:'ISO 19650-3'},
+  {id:'s7i2',text:'FM parameters populated on major equipment families',ref:'ISO 19650-3'},
+  {id:'s7i3',text:'IFC export tested and validated against EIR',ref:'ISO 19650 / IFC4'},
+  {id:'s7i4',text:'Model signed off by Lead Appointed Party (LAP)',ref:'ISO 19650-2 Cl.5.7'},
+  {id:'s7i5',text:'Final model published to Approved container in CDE',ref:'ISO 19650-2 Cl.5.6'},
+]}
+];
+var STATE={};
+function render(){
+  var html='';
+  SECTIONS.forEach(function(sec,si){
+    var pass=sec.items.filter(it=>STATE[it.id]==='pass').length;
+    var fail=sec.items.filter(it=>STATE[it.id]==='fail').length;
+    var na=sec.items.filter(it=>STATE[it.id]==='na').length;
+    var total=sec.items.length;
+    var scored=pass+fail;
+    var pct=scored?Math.round(pass/scored*100):0;
+    html+='<div class=\\'section-card\\'><h2 style=\\'color:'+sec.color+'\\'>'+sec.title+'<span class=\\'section-badge\\' style=\\'background:'+sec.color+'22;color:'+sec.color+'\\'>'+pass+'/'+total+'</span></h2>';
+    html+='<div class=\\'progress-bar\\'><div class=\\'progress-fill\\' style=\\'width:'+pct+'%;background:'+sec.color+'\\'></div></div><br>';
+    sec.items.forEach(function(item,ii){
+      var s=STATE[item.id]||'none';
+      html+='<div class=\\'item\\'><span class=\\'item-num\\'>'+(ii+1)+'</span>';
+      html+='<div><div class=\\'item-desc\\'>'+item.text+'</div><div class=\\'item-ref\\'>'+item.ref+'</div>';
+      html+='<input class=\\'notes-input\\' id=\\'note_'+item.id+'\\'  placeholder=\\'Notes...\\' oninput=\\'saveNote(\\''+item.id+'\\',this.value)\\'></div>';
+      html+='<div class=\\'item-ctrl\\'>';
+      html+='<button class=\\'check-btn pass-btn'+(s==='pass'?' active':'')+'\\'  onclick=\\'setState(\\''+item.id+'\\',\\'pass\\')\\'>Pass</button>';
+      html+='<button class=\\'check-btn fail-btn'+(s==='fail'?' active':'')+'\\'  onclick=\\'setState(\\''+item.id+'\\',\\'fail\\')\\'>Fail</button>';
+      html+='<button class=\\'check-btn na-btn'+(s==='na'?' active':'')+'\\'  onclick=\\'setState(\\''+item.id+'\\',\\'na\\')\\'>N/A</button>';
+      html+='</div></div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('checklist').innerHTML=html;
+  updateScore();
+}
+function setState(id,val){STATE[id]=val;render();}
+function saveNote(id,val){STATE['note_'+id]=val;}
+function updateScore(){
+  var pass=0,fail=0,na=0;
+  SECTIONS.forEach(function(sec){sec.items.forEach(function(item){var s=STATE[item.id];if(s==='pass')pass++;else if(s==='fail')fail++;else if(s==='na')na++;});});
+  document.getElementById('sc_pass').textContent=pass;
+  document.getElementById('sc_fail').textContent=fail;
+  document.getElementById('sc_na').textContent=na;
+  var scored=pass+fail;
+  var score=scored?Math.round(pass/scored*100)+('%'):'-';
+  var el=document.getElementById('sc_score');
+  el.textContent=score;
+  if(scored){var n=parseInt(score);el.style.color=n>=80?'#5bc97d':n>=60?'#c8a96e':'#e07b54';}
+}
+function resetAll(){STATE={};render();}
+function exportReport(){
+  var proj=document.getElementById('proj').value||'Project';
+  var model=document.getElementById('model').value||'Model';
+  var disc=document.getElementById('disc').value||'-';
+  var stage=document.getElementById('stage').value||'-';
+  var reviewer=document.getElementById('reviewer').value||'-';
+  var pass=document.getElementById('sc_pass').textContent;
+  var fail=document.getElementById('sc_fail').textContent;
+  var score=document.getElementById('sc_score').textContent;
+  var lines=['BIM MODEL HEALTH REPORT','='.repeat(50),'Project: '+proj,'Model: '+model,'Discipline: '+disc,'Stage: '+stage,'Reviewer: '+reviewer,'Date: '+new Date().toISOString().slice(0,10),'','SCORE: '+score+' (Pass:'+pass+' Fail:'+fail+')','='.repeat(50),''];
+  SECTIONS.forEach(function(sec){lines.push('');lines.push(sec.title);lines.push('-'.repeat(40));sec.items.forEach(function(item){var s=STATE[item.id]||'NOT CHECKED';var note=STATE['note_'+item.id]||'';lines.push('['+s.toUpperCase().padEnd(10)+'] '+item.text+(note?' | '+note:''));});});
+  var blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=proj.replace(/\s+/g,'-')+'-BIM-Check.txt';a.click();
+}
+window.onload=render;
+</script></body></html>

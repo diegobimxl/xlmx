@@ -1,0 +1,189 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fee Proposal Generator | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:960px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+textarea{resize:vertical;min-height:60px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn:hover{background:#b8996e}
+.btn-outline{background:transparent;color:#c8a96e;border:1px solid #c8a96e;border-radius:4px;padding:8px 16px;font-size:12px;cursor:pointer;margin-top:8px}
+.btn-outline:hover{background:#c8a96e22}
+.phase-table{width:100%;border-collapse:collapse;font-size:12px}
+.phase-table th{background:#1a1a1a;color:#aaa;padding:7px 10px;text-align:left;border-bottom:1px solid #333}
+.phase-table td{padding:7px 10px;border-bottom:1px solid #1e1e1e;vertical-align:middle}
+.phase-table input{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:3px;padding:4px 6px;color:#e8e8e8;font-size:12px}
+.phase-table input.pct{width:60px}
+.phase-table input.hrs{width:55px}
+.total-bar{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.total-label{font-size:13px;color:#aaa}
+.total-amount{font-size:24px;font-weight:700;color:#c8a96e}
+.proposal-out{background:#0a0a0a;border:1px solid #333;border-radius:6px;padding:20px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:#ccc;margin-top:12px;font-family:monospace;min-height:200px}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>Fee Proposal Generator</h1></div>
+<div class="container">
+<p class="subtitle">Architecture / BIM / Engineering fee proposal — percentage-of-construction or lump-sum with phase breakdown</p>
+<div class="grid2">
+<div>
+<div class="card"><h2>Project Parameters</h2>
+  <label>Client Name</label><input id="client" type="text" value="Apex Developers LLC">
+  <label>Project Name</label><input id="project" type="text" value="Mixed-Use Tower — Phase 1">
+  <label>Project Type</label>
+  <select id="ptype" onchange="autoFee()">
+    <option value="office">Office</option>
+    <option value="multifamily" selected>Multifamily</option>
+    <option value="retail">Retail</option>
+    <option value="hotel">Hotel</option>
+    <option value="civic">Civic / Institutional</option>
+    <option value="industrial">Industrial</option>
+    <option value="bim">BIM / VDC Services</option>
+    <option value="pm">Project Management</option>
+  </select>
+  <label>Construction Cost Estimate (USD)</label><input id="cce" type="number" value="12000000" step="100000">
+  <label>Gross Floor Area (sf)</label><input id="gfa" type="number" value="80000" step="1000">
+  <label>Fee Method</label>
+  <select id="feemethod" onchange="autoFee()">
+    <option value="pct">% of Construction Cost</option>
+    <option value="lump">Lump Sum</option>
+    <option value="sqft">Per SF Rate</option>
+  </select>
+  <label>Fee Rate (% or $/sf or lump $)</label><input id="feerate" type="number" value="6.5" step="0.1">
+  <label>Reimbursables Estimate (USD)</label><input id="reimb" type="number" value="8000" step="500">
+  <button class="btn" onclick="calcFee()">Calculate</button>
+  <button class="btn-outline" onclick="autoFee()">Auto-Suggest Rate</button>
+</div>
+</div>
+<div>
+<div class="card"><h2>Phase Breakdown</h2>
+  <table class="phase-table">
+  <thead><tr><th>Phase</th><th>% Fee</th><th>Hrs</th><th>Fee ($)</th></tr></thead>
+  <tbody id="phase_body"></tbody>
+  </table>
+  <div class="total-bar"><span class="total-label">Total Fee</span><span class="total-amount" id="total_fee">--</span></div>
+</div>
+<div class="card"><h2>Proposal Text</h2>
+  <button class="btn-outline" onclick="genProposal()">Generate Proposal Text</button>
+  <button class="btn-outline" onclick="copyProposal()">Copy to Clipboard</button>
+  <div class="proposal-out" id="proposal_out">Click "Generate Proposal Text" after calculating fee.</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+var PHASE_DEFS=[
+  {name:"Schematic Design (SD)",pct:15,hrs:80},
+  {name:"Design Development (DD)",pct:20,hrs:120},
+  {name:"Construction Documents (CD)",pct:35,hrs:220},
+  {name:"Bidding & Negotiation",pct:5,hrs:30},
+  {name:"Construction Administration (CA)",pct:20,hrs:140},
+  {name:"BIM/VDC Coordination",pct:0,hrs:0},
+  {name:"Closeout & Record Documents",pct:5,hrs:25}
+];
+var BIM_PHASES=[
+  {name:"BIM Execution Plan (BEP)",pct:10,hrs:40},
+  {name:"LOD 200 Schematic Model",pct:20,hrs:80},
+  {name:"LOD 350 Coordination Model",pct:35,hrs:180},
+  {name:"Clash Detection & RFI Support",pct:20,hrs:100},
+  {name:"LOD 400 Construction Model",pct:10,hrs:60},
+  {name:"As-Built / LOD 500",pct:5,hrs:30}
+];
+var PM_PHASES=[
+  {name:"Pre-Development & Feasibility",pct:10,hrs:60},
+  {name:"Procurement & Team Assembly",pct:10,hrs:50},
+  {name:"Design Phase Management",pct:20,hrs:100},
+  {name:"Permitting & Entitlements",pct:15,hrs:80},
+  {name:"Construction Phase PM",pct:35,hrs:200},
+  {name:"Closeout & Turnover",pct:10,hrs:50}
+];
+var FEE_BENCHMARKS={
+  office:{min:5.5,typ:7.0,max:9.5},multifamily:{min:5.0,typ:6.5,max:8.5},
+  retail:{min:4.5,typ:6.0,max:8.0},hotel:{min:7.0,typ:9.0,max:12.0},
+  civic:{min:8.0,typ:10.0,max:14.0},industrial:{min:3.5,typ:5.0,max:7.0},
+  bim:{min:1.5,typ:2.5,max:4.0},pm:{min:2.5,typ:3.5,max:5.0}
+};
+function getPhases(){
+  var type=document.getElementById("ptype").value;
+  if(type==="bim") return BIM_PHASES;
+  if(type==="pm") return PM_PHASES;
+  var phases=JSON.parse(JSON.stringify(PHASE_DEFS));
+  if(type==="industrial"){phases[0].pct=10;phases[2].pct=40;phases[4].pct=15;}
+  return phases;
+}
+function calcFeeAmount(){
+  var method=document.getElementById("feemethod").value;
+  var rate=+document.getElementById("feerate").value;
+  var cce=+document.getElementById("cce").value;
+  var gfa=+document.getElementById("gfa").value;
+  if(method==="pct") return cce*rate/100;
+  if(method==="sqft") return gfa*rate;
+  return rate;
+}
+function autoFee(){
+  var type=document.getElementById("ptype").value;
+  var method=document.getElementById("feemethod").value;
+  var bm=FEE_BENCHMARKS[type];
+  if(method==="pct"||method==="sqft") document.getElementById("feerate").value=bm.typ;
+  buildPhaseTable();
+}
+function buildPhaseTable(){
+  var phases=getPhases();
+  var totalFee=calcFeeAmount();
+  var html="";
+  phases.forEach(function(p,i){
+    var phFee=(totalFee*p.pct/100).toFixed(0);
+    html+="<tr><td>"+p.name+"</td><td><input class=\"pct\" id=\"pp"+i+"\" type=\"number\" value=\""+p.pct+"\" onchange=\"recalcPhases()\"></td><td><input class=\"hrs\" id=\"ph"+i+"\" type=\"number\" value=\""+p.hrs+"\"></td><td id=\"pf"+i+"\" style=\"color:#c8a96e;font-weight:600\">$"+Number(phFee).toLocaleString()+"</td></tr>";
+  });
+  document.getElementById("phase_body").innerHTML=html;
+  document.getElementById("total_fee").textContent="$"+Math.round(totalFee+Number(document.getElementById("reimb").value)).toLocaleString();
+}
+function calcFee(){buildPhaseTable();}
+function recalcPhases(){
+  var totalFee=calcFeeAmount();
+  var phases=getPhases();
+  var sum=0;
+  phases.forEach(function(p,i){sum+=+document.getElementById("pp"+i).value;});
+  phases.forEach(function(p,i){
+    var pct=+document.getElementById("pp"+i).value;
+    var phFee=totalFee*pct/100;
+    document.getElementById("pf"+i).textContent="$"+Math.round(phFee).toLocaleString();
+  });
+}
+function genProposal(){
+  var client=document.getElementById("client").value||"[Client]";
+  var proj=document.getElementById("project").value||"[Project]";
+  var cce=+document.getElementById("cce").value;
+  var gfa=+document.getElementById("gfa").value;
+  var method=document.getElementById("feemethod").value;
+  var rate=+document.getElementById("feerate").value;
+  var reimb=+document.getElementById("reimb").value;
+  var totalFee=calcFeeAmount();
+  var grandTotal=totalFee+reimb;
+  var type=document.getElementById("ptype").value;
+  var bm=FEE_BENCHMARKS[type];
+  var today=new Date().toISOString().slice(0,10);
+  var methodStr=method==="pct"?rate+"% of construction cost":method==="sqft"?"$"+rate+"/sf":"lump sum";
+  var txt="FEE PROPOSAL\n"+Array(50).join("-")+"\nDate: "+today+"\nClient: "+client+"\nProject: "+proj+"\n\nPROJECT SCOPE\nGross Floor Area: "+gfa.toLocaleString()+" sf\nConstruction Cost Estimate: $"+cce.toLocaleString()+"\n\nFEE SUMMARY\nFee Basis: "+methodStr+"\nProfessional Fee: $"+Math.round(totalFee).toLocaleString()+"\nReimbursables (est.): $"+reimb.toLocaleString()+"\nTotal Proposal: $"+Math.round(grandTotal).toLocaleString()+"\n\nINDUSTRY BENCHMARK ("+type+")\nMin: "+bm.min+"% | Typical: "+bm.typ+"% | Max: "+bm.max+"%\n\nPHASE BREAKDOWN\n";
+  var phases=getPhases();
+  phases.forEach(function(p,i){
+    var pct=document.getElementById("pp"+i)?+document.getElementById("pp"+i).value:p.pct;
+    var phFee=totalFee*pct/100;
+    txt+="  "+p.name+": $"+Math.round(phFee).toLocaleString()+" ("+pct+"%)\n";
+  });
+  txt+="\nTERMS\n- 50% retainer upon contract execution\n- Progress invoicing monthly per phase completion\n- Reimbursables billed at cost + 10% handling\n- Scope changes by written amendment only\n- Proposal valid 30 days from date above\n\nProposal prepared by: ___________________________\nClient acceptance: ___________________________  Date: ___________";
+  document.getElementById("proposal_out").textContent=txt;
+}
+function copyProposal(){
+  var t=document.getElementById("proposal_out").textContent;
+  navigator.clipboard.writeText(t).then(function(){alert("Copied to clipboard.");});
+}
+window.onload=function(){buildPhaseTable();};
+</script></body></html>

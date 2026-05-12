@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Development Schedule | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:14px}.topbar a:hover{text-decoration:underline}
+.topbar h1{font-size:16px;font-weight:600;color:#fff}
+.container{max-width:980px;margin:0 auto;padding:24px 16px}
+.subtitle{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:340px 1fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:600;color:#c8a96e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#b8996e}
+.phase-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.phase-label{font-size:12px;color:#aaa;width:160px;flex-shrink:0}
+.phase-dur{width:70px;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:6px 8px;color:#e8e8e8;font-size:12px}
+.gantt-wrap{overflow-x:auto}
+canvas{display:block}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr 1fr}}
+.metric{background:#1a1a1a;border:1px solid #222;border-radius:6px;padding:12px;text-align:center}
+.metric-val{font-size:22px;font-weight:700;color:#c8a96e}
+.metric-lbl{font-size:11px;color:#666;margin-top:4px}
+.ref{font-size:11px;color:#555;margin-top:8px;font-style:italic}
+</style></head><body>
+<div class="topbar"><a href="/tools/">&#8592; Tools</a><h1>Development Schedule</h1></div>
+<div class="container">
+<p class="subtitle">Real estate development phase schedule — pre-development through stabilization with Gantt output</p>
+<div class="grid2">
+<div>
+<div class="card"><h2>Project Info</h2>
+  <label>Project Name</label><input id="proj_name" type="text" value="Mixed-Use Development">
+  <label>Project Start Date</label><input id="proj_start" type="date" value="2025-01-01">
+  <label>Project Type</label>
+  <select id="proj_type" onchange="loadDefaults()">
+    <option value="office">Office</option>
+    <option value="multifamily" selected>Multifamily</option>
+    <option value="retail">Retail</option>
+    <option value="hotel">Hotel</option>
+    <option value="industrial">Industrial</option>
+    <option value="mixeduse">Mixed-Use</option>
+  </select>
+</div>
+<div class="card"><h2>Phase Durations (months)</h2>
+  <div class="phase-row"><span class="phase-label">Pre-Development</span><input class="phase-dur" id="ph0" type="number" value="6" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Entitlement / Permits</span><input class="phase-dur" id="ph1" type="number" value="8" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Design / DD-CDs</span><input class="phase-dur" id="ph2" type="number" value="6" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Financing / Closing</span><input class="phase-dur" id="ph3" type="number" value="4" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Site Work / Demo</span><input class="phase-dur" id="ph4" type="number" value="3" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Construction</span><input class="phase-dur" id="ph5" type="number" value="24" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Interior Fit-Out</span><input class="phase-dur" id="ph6" type="number" value="4" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Lease-Up / Stabilization</span><input class="phase-dur" id="ph7" type="number" value="12" min="1"></div>
+  <div class="phase-row"><span class="phase-label">Overlap pre/entitle (mo)</span><input class="phase-dur" id="ov01" type="number" value="2" min="0"></div>
+  <div class="phase-row"><span class="phase-label">Overlap design/entitle</span><input class="phase-dur" id="ov12" type="number" value="3" min="0"></div>
+  <button class="btn" onclick="buildSchedule()">Generate Schedule</button>
+</div>
+</div>
+<div>
+<div class="card"><h2>Gantt Chart</h2>
+  <div class="gantt-wrap"><canvas id="gantt" width="580" height="340"></canvas></div>
+  <p class="ref">Phases may overlap based on project delivery method. Critical path typically: Entitlement -> Financing -> Construction.</p>
+</div>
+<div class="card"><h2>Summary</h2>
+  <div id="summary"><p style="color:#555;font-size:13px">Generate schedule to see summary.</p></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+var DEFAULTS={
+  office:[4,10,7,4,2,22,3,10],
+  multifamily:[6,8,6,4,3,24,4,12],
+  retail:[3,6,4,3,2,12,3,6],
+  hotel:[6,12,8,5,3,28,5,14],
+  industrial:[2,4,3,2,2,10,1,3],
+  mixeduse:[8,12,8,5,4,30,6,14]
+};
+var COLORS=["#4e7bd4","#c8a96e","#5bc97d","#e07b54","#9b6ed4","#54b8c9","#d4546e","#8ec454"];
+var PHASE_LABELS=["Pre-Development","Entitlement/Permits","Design/DD-CDs","Financing/Closing","Site Work/Demo","Construction","Interior Fit-Out","Lease-Up/Stabilization"];
+function loadDefaults(){
+  var type=document.getElementById("proj_type").value;
+  var d=DEFAULTS[type];
+  for(var i=0;i<8;i++) document.getElementById("ph"+i).value=d[i];
+}
+function addMonths(date,months){
+  var d=new Date(date);
+  d.setMonth(d.getMonth()+months);
+  return d;
+}
+function fmtDate(d){return d.toISOString().slice(0,7);}
+function buildSchedule(){
+  var startDate=new Date(document.getElementById("proj_start").value);
+  var durations=[];
+  for(var i=0;i<8;i++) durations.push(+document.getElementById("ph"+i).value);
+  var ov01=+document.getElementById("ov01").value;
+  var ov12=+document.getElementById("ov12").value;
+  var phases=[];
+  var cur=new Date(startDate);
+  for(var i=0;i<8;i++){
+    var start=new Date(cur);
+    var end=addMonths(start,durations[i]);
+    phases.push({label:PHASE_LABELS[i],start:start,end:end,dur:durations[i]});
+    var overlap=0;
+    if(i===0) overlap=Math.min(ov01,durations[i]);
+    if(i===1) overlap=Math.min(ov12,durations[i]);
+    cur=addMonths(start,durations[i]-overlap);
+  }
+  var totalEnd=phases[7].end;
+  var totalMonths=Math.round((totalEnd-startDate)/(1000*60*60*24*30.44));
+  drawGantt(phases,startDate,totalEnd);
+  var constPhase=phases[5];
+  var html="<div class=\"summary-grid\">";
+  html+="<div class=\"metric\"><div class=\"metric-val\">"+totalMonths+"</div><div class=\"metric-lbl\">Total Months</div></div>";
+  html+="<div class=\"metric\"><div class=\"metric-val\">"+(totalMonths/12).toFixed(1)+"</div><div class=\"metric-lbl\">Total Years</div></div>";
+  html+="<div class=\"metric\"><div class=\"metric-val\">"+fmtDate(constPhase.start)+"</div><div class=\"metric-lbl\">Construction Start</div></div>";
+  html+="<div class=\"metric\"><div class=\"metric-val\">"+fmtDate(constPhase.end)+"</div><div class=\"metric-lbl\">Construction End</div></div>";
+  html+="<div class=\"metric\"><div class=\"metric-val\">"+fmtDate(totalEnd)+"</div><div class=\"metric-lbl\">Stabilization</div></div>";
+  html+="<div class=\"metric\"><div class=\"metric-val\">"+durations[5]+"mo</div><div class=\"metric-lbl\">Build Duration</div></div>";
+  html+="</div>";
+  phases.forEach(function(p,i){
+    var mo=Math.round((p.end-p.start)/(1000*60*60*24*30.44));
+    html+="<div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e1e1e;font-size:12px\"><span style=\"color:#aaa\">"+p.label+"</span><span style=\"color:#c8a96e\">"+fmtDate(p.start)+" &rarr; "+fmtDate(p.end)+"</span></div>";
+  });
+  document.getElementById("summary").innerHTML=html;
+}
+function drawGantt(phases,start,end){
+  var canvas=document.getElementById("gantt");
+  var ctx=canvas.getContext("2d");
+  var W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#0d0d0d";ctx.fillRect(0,0,W,H);
+  var labelW=150,padT=30,padB=20,padR=20;
+  var chartW=W-labelW-padR;
+  var rowH=(H-padT-padB)/phases.length;
+  var totalMs=end-start;
+  ctx.fillStyle="#888";ctx.font="11px system-ui";
+  // month ticks
+  var cur=new Date(start);
+  while(cur<=end){
+    var x=labelW+(cur-start)/totalMs*chartW;
+    ctx.fillStyle="#333";ctx.fillRect(x,padT,1,H-padT-padB);
+    if(cur.getMonth()%3===0){
+      ctx.fillStyle="#555";
+      ctx.fillText(fmtDate(cur),x+2,padT-4);
+    }
+    cur=addMonths(cur,1);
+  }
+  phases.forEach(function(p,i){
+    var y=padT+i*rowH;
+    var x1=labelW+(p.start-start)/totalMs*chartW;
+    var x2=labelW+(p.end-start)/totalMs*chartW;
+    ctx.fillStyle="#1a1a1a";ctx.fillRect(labelW,y+2,chartW,rowH-4);
+    ctx.fillStyle=COLORS[i];
+    ctx.globalAlpha=0.85;
+    ctx.fillRect(x1,y+4,Math.max(x2-x1,2),rowH-8);
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#e8e8e8";ctx.font="11px system-ui";
+    ctx.fillText(p.label,4,y+rowH/2+4);
+    if(x2-x1>30){
+      ctx.fillStyle="#0d0d0d";ctx.font="bold 11px system-ui";
+      ctx.fillText(p.dur+"mo",x1+4,y+rowH/2+4);
+    }
+  });
+  // today line
+  var now=new Date();
+  if(now>=start&&now<=end){
+    var tx=labelW+(now-start)/totalMs*chartW;
+    ctx.fillStyle="#ff4444";ctx.fillRect(tx,padT,2,H-padT-padB);
+    ctx.fillStyle="#ff4444";ctx.font="10px system-ui";ctx.fillText("today",tx+3,padT+10);
+  }
+}
+window.onload=function(){buildSchedule();};
+</script></body></html>
