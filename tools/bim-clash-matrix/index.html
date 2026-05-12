@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>BIM Clash Matrix | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.tb-right{margin-left:auto;display:flex;gap:8px}
+.btn-sm{background:#1a1a1a;border:1px solid #333;color:#c8a96e;padding:5px 12px;border-radius:4px;font-size:12px;cursor:pointer}
+.btn-sm:hover{border-color:#c8a96e}
+.wrap{max-width:1000px;margin:0 auto;padding:24px}
+.top-ctrl{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end}
+.top-ctrl label{font-size:11px;color:#666;display:block;margin-bottom:3px}
+.top-ctrl input{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:6px 10px;border-radius:5px;font-size:13px}
+.top-ctrl input:focus{outline:none;border-color:#c8a96e}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:10px;text-align:center}
+.kpi .val{font-size:18px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:10px;color:#888;margin-top:2px}
+.matrix-wrap{overflow-x:auto}
+table.mx{border-collapse:collapse;font-size:12px}
+table.mx th{background:#1a1a1a;color:#888;padding:8px 10px;border:1px solid #2a2a2a;white-space:nowrap;text-align:center;min-width:90px}
+table.mx th.rowhead{text-align:right;min-width:110px;color:#c8a96e}
+table.mx td{border:1px solid #2a2a2a;padding:6px 8px;text-align:center;cursor:pointer;min-width:90px;font-size:11px}
+table.mx td.diag{background:#111;cursor:default}
+table.mx td:hover:not(.diag){filter:brightness(1.3)}
+.s0{background:#111;color:#444}.s1{background:#1a2a1a;color:#4caf50}
+.s2{background:#2a2010;color:#ff9800}.s3{background:#2a1a10;color:#ff5722}.s4{background:#2a1010;color:#f44336}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;font-size:11px}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-dot{width:14px;height:14px;border-radius:3px}
+.log{margin-top:20px;font-size:12px}
+.log-item{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:5px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.note{color:#666;font-size:11px;margin-top:16px;line-height:1.5}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>BIM Clash Matrix</h1>
+<div class=tb-right>
+<button class=btn-sm onclick=exportCSV()>Export CSV</button>
+<button class=btn-sm onclick=window.print()>Print</button>
+</div></div>
+<div class=wrap>
+<div class=top-ctrl>
+<div><label>Project</label><input type=text id=proj value="Project Name"></div>
+<div><label>Date</label><input type=date id=dt></div>
+</div>
+<div class=kpis id=kpis></div>
+<div class=legend>
+<div class=leg><div class="leg-dot s0"></div>Not Run</div>
+<div class=leg><div class="leg-dot s1"></div>Resolved (0)</div>
+<div class=leg><div class="leg-dot s2"></div>Minor Clashes</div>
+<div class=leg><div class="leg-dot s3"></div>Moderate Clashes</div>
+<div class=leg><div class="leg-dot s4"></div>Critical Clashes</div>
+</div>
+<div class=matrix-wrap><table class=mx id=mx></table></div>
+<div class=log id=log></div>
+<p class=note>Click any cell to cycle through status. Track BIM coordination clashes between disciplines per ISO 19650 coordination workflow. Export for progress reports or ACC/Navisworks coordination meeting logs.</p>
+</div>
+<script>
+const DISCS=['Arch','Struct','HVAC','Plumbing','Electrical','Fire Prot.','Civil'];
+const STATUS=['s0','s1','s2','s3','s4'];
+const STATUS_LBL=['Not Run','Resolved','Minor','Moderate','Critical'];
+const STATUS_ICON=['—','✓ 0','1-5','6-20','20+'];
+let matrix={};
+let counts={};
+let history=[];
+document.getElementById('dt').value=new Date().toISOString().slice(0,10);
+DISCS.forEach(a=>DISCS.forEach(b=>{if(a!==b){const k=a+'|'+b;matrix[k]='s0';}}));
+// seed some values
+const seeds=[['Arch','Struct','s1'],['Arch','HVAC','s3'],['Struct','HVAC','s2'],['Struct','Plumbing','s1'],['HVAC','Plumbing','s4'],['HVAC','Electrical','s2'],['Plumbing','Electrical','s1'],['Arch','Electrical','s2']];
+seeds.forEach(([a,b,s])=>{matrix[a+'|'+b]=s;matrix[b+'|'+a]=s;});
+function render(){
+  const mx=document.getElementById('mx');
+  let h=`<tr><th class=rowhead></th>${DISCS.map(d=>`<th>${d}</th>`).join('')}</tr>`;
+  DISCS.forEach(a=>{
+    h+=`<tr><th class=rowhead>${a}</th>`;
+    DISCS.forEach(b=>{
+      if(a===b){h+=`<td class=diag></td>`;}
+      else{const k=a+'|'+b;const s=matrix[k]||'s0';h+=`<td class="${s}" onclick="toggle('${a}','${b}')">${STATUS_ICON[STATUS.indexOf(s)]}</td>`;}
+    });
+    h+=`</tr>`;
+  });
+  mx.innerHTML=h;
+  renderKPIs();renderLog();
+}
+function toggle(a,b){
+  const k=a+'|'+b;const k2=b+'|'+a;
+  const cur=STATUS.indexOf(matrix[k]||'s0');
+  const next=STATUS[(cur+1)%STATUS.length];
+  matrix[k]=next;matrix[k2]=next;
+  history.unshift({ts:new Date().toLocaleTimeString(),a,b,s:STATUS_LBL[STATUS.indexOf(next)]});
+  if(history.length>8)history.pop();
+  render();
+}
+function renderKPIs(){
+  const all=[];
+  DISCS.forEach(a=>DISCS.forEach(b=>{if(a<b)all.push(matrix[a+'|'+b]||'s0');}));
+  const tot=all.length;
+  const crit=all.filter(s=>s==='s4').length;
+  const mod=all.filter(s=>s==='s3').length;
+  const min=all.filter(s=>s==='s2').length;
+  const res=all.filter(s=>s==='s1').length;
+  const nr=all.filter(s=>s==='s0').length;
+  document.getElementById('kpis').innerHTML=`
+    <div class=kpi><div class=val>${tot}</div><div class=lbl>Total Pairs</div></div>
+    <div class=kpi><div class="val" style="color:#f44336">${crit}</div><div class=lbl>Critical</div></div>
+    <div class=kpi><div class="val" style="color:#ff5722">${mod}</div><div class=lbl>Moderate</div></div>
+    <div class=kpi><div class="val" style="color:#ff9800">${min}</div><div class=lbl>Minor</div></div>
+    <div class=kpi><div class="val" style="color:#4caf50">${res}</div><div class=lbl>Resolved</div></div>`;
+}
+function renderLog(){
+  document.getElementById('log').innerHTML=history.length?`<div style="font-size:11px;color:#c8a96e;margin-bottom:6px;font-weight:700">RECENT CHANGES</div>`+history.map(h=>`<div class=log-item><span>${h.a} ↔ ${h.b}</span><span style="color:#888">${h.s}</span><span style="color:#555">${h.ts}</span></div>`).join(''):'';
+}
+function exportCSV(){
+  const rows=[['','...'+DISCS.join(',')]];
+  DISCS.forEach(a=>{rows.push([a,...DISCS.map(b=>a===b?'-':STATUS_LBL[STATUS.indexOf(matrix[a+'|'+b]||'s0')])]);});
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='ClashMatrix_'+document.getElementById('proj').value.replace(/\s+/g,'_')+'.csv';a.click();
+}
+render();
+</script></body></html>

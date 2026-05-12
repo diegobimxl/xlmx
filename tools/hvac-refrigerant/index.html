@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Refrigerant GWP Reference | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px}
+.sub{color:#888;font-size:14px;margin-bottom:20px}
+.ctrl{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.ctrl input{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 12px;border-radius:6px;font-size:13px;width:220px}
+.ctrl input:focus{outline:none;border-color:#c8a96e}
+.ctrl select{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 12px;border-radius:6px;font-size:13px;cursor:pointer}
+.count{color:#888;font-size:12px;margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px 16px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.refrig{font-size:16px;font-weight:700;color:#c8a96e}
+.gwp-badge{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.gwp-low{background:#1a2a1a;color:#4caf50}
+.gwp-med{background:#2a2a1a;color:#cddc39}
+.gwp-high{background:#2a1a10;color:#ff9800}
+.gwp-vhigh{background:#2a1010;color:#f44336}
+.card-name{font-size:12px;color:#aaa;margin-bottom:8px}
+.props{display:flex;flex-direction:column;gap:3px}
+.prop{display:flex;justify-content:space-between;font-size:12px}
+.prop-lbl{color:#666}.prop-val{color:#ccc;font-weight:500}
+.status{display:inline-block;margin-top:6px;font-size:10px;padding:2px 7px;border-radius:3px}
+.status-active{background:#1a2a1a;color:#4caf50}
+.status-phase{background:#2a2010;color:#ff9800}
+.status-banned{background:#2a1010;color:#f44336}
+.status-emerging{background:#1a1a2a;color:#5c9eff}
+.calc-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin-bottom:24px}
+.calc-box h3{font-size:13px;color:#c8a96e;margin-bottom:12px;font-weight:700}
+.calc-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.calc-row label{font-size:12px;color:#888;display:block;margin-bottom:3px}
+.calc-row input,.calc-row select{background:#0d0d0d;border:1px solid #333;color:#e8e8e8;padding:6px 10px;border-radius:5px;font-size:13px}
+.calc-row input:focus,.calc-row select:focus{outline:none;border-color:#c8a96e}
+.calc-btn{background:#c8a96e;color:#0d0d0d;border:none;padding:7px 18px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer}
+.calc-result{margin-top:12px;font-size:13px;color:#e8e8e8;line-height:1.7}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Refrigerant GWP Reference + Charge Calculator</h1></div>
+<div class=wrap>
+<p class=sub>ASHRAE 34 refrigerant classification, GWP per IPCC AR6, regulatory phase-down status (AIM Act / F-Gas EU).</p>
+<div class=calc-box>
+<h3>Equipment Charge Calculator</h3>
+<div class=calc-row>
+<div><label>Refrigerant</label>
+<select id=cr>
+<option value="R-410A|2088">R-410A (GWP 2088)</option>
+<option value="R-32|675">R-32 (GWP 675)</option>
+<option value="R-454B|466">R-454B (GWP 466)</option>
+<option value="R-407C|1774">R-407C (GWP 1774)</option>
+<option value="R-22|1810">R-22 (GWP 1810)</option>
+<option value="R-134a|1430">R-134a (GWP 1430)</option>
+<option value="R-744|1">CO2 / R-744 (GWP 1)</option>
+<option value="R-717|0">Ammonia R-717 (GWP 0)</option>
+</select></div>
+<div><label>Charge per Unit (lbs)</label><input type=number id=chg value=15 step=0.5 min=0></div>
+<div><label>Number of Units</label><input type=number id=units value=4 min=1></div>
+<div><label>Annual Leak Rate (%)</label><input type=number id=leak value=5 step=0.5 min=0></div>
+<button class=calc-btn onclick=calcCharge()>Calculate</button>
+</div>
+<div class=calc-result id=cr_out></div>
+</div>
+<div class=ctrl>
+<input type=text id=search placeholder="Search refrigerant, type, application..." oninput=renderCards()>
+<select id=filt onchange=renderCards()>
+<option value="">All</option>
+<option value=low>Low GWP (&lt;150)</option>
+<option value=med>Moderate GWP (150–750)</option>
+<option value=high>High GWP (750–2500)</option>
+<option value=vhigh>Very High GWP (&gt;2500)</option>
+</select>
+<span class=count id=cnt></span>
+</div>
+<div class=grid id=grid></div>
+</div>
+<script>
+const REFS=[
+ {r:'R-22',n:'Chlorodifluoromethane',gwp:1810,ozone:'Yes',ashrae:'A1',type:'HCFC',app:'Legacy AC/refrigeration',status:'banned',note:'Phased out developed nations 2020'},
+ {r:'R-410A',n:'Difluoromethane / Pentafluoroethane blend',gwp:2088,ozone:'No',ashrae:'A1',type:'HFC',app:'Split AC, RTUs, VRF',status:'phase',note:'AIM Act step-down to 700 GWP by 2025'},
+ {r:'R-407C',n:'HFC blend (R-32/125/134a)',gwp:1774,ozone:'No',ashrae:'A1',type:'HFC',app:'Legacy AC retrofit from R-22',status:'phase',note:'Drop-in for R-22 systems'},
+ {r:'R-134a',n:'Tetrafluoroethane',gwp:1430,ozone:'No',ashrae:'A1',type:'HFC',app:'Mobile AC, chillers, refrigeration',status:'phase',note:'EU F-Gas ban auto AC 2017'},
+ {r:'R-404A',n:'HFC blend (R-125/143a/134a)',gwp:3922,ozone:'No',ashrae:'A1',type:'HFC',app:'Commercial refrigeration',status:'banned',note:'Very high GWP; restricted EU'},
+ {r:'R-32',n:'Difluoromethane',gwp:675,ozone:'No',ashrae:'A2L',type:'HFC',app:'Split AC, heat pumps — replacement for R-410A',status:'active',note:'Mildly flammable (A2L); lower GWP alternative'},
+ {r:'R-454B',n:'R-32 / R-1234yf blend (68.9%/31.1%)',gwp:466,ozone:'No',ashrae:'A2L',type:'HFO blend',app:'Split systems, RTUs (Puron Advance)',status:'active',note:'Primary R-410A replacement per AIM Act'},
+ {r:'R-452B',n:'R-32 / R-125 / R-1234yf',gwp:676,ozone:'No',ashrae:'A2L',type:'HFO blend',app:'Commercial AC, heat pumps',status:'active',note:'Opteon XL41'},
+ {r:'R-1234yf',n:'Tetrafluoropropene',gwp:4,ozone:'No',ashrae:'A2L',type:'HFO',app:'Mobile AC, small chillers',status:'active',note:'Ultra-low GWP; slightly flammable'},
+ {r:'R-1234ze(E)',n:'Trans-tetrafluoropropene',gwp:7,ozone:'No',ashrae:'A2',type:'HFO',app:'Centrifugal chillers',status:'active',note:'Low GWP, chiller retrofit candidate'},
+ {r:'R-513A',n:'R-1234yf / R-134a blend',gwp:631,ozone:'No',ashrae:'A1',type:'HFO blend',app:'Centrifugal chillers',status:'active',note:'Non-flammable; low-GWP chiller option'},
+ {r:'R-515B',n:'R-1234ze(E) / R-227ea blend',gwp:299,ozone:'No',ashrae:'A1',type:'HFO blend',app:'Chillers, heat pumps',status:'active',note:'Non-flammable, GWP <300'},
+ {r:'R-744',n:'Carbon dioxide (CO2)',gwp:1,ozone:'No',ashrae:'A1',type:'Natural',app:'Cascade systems, CO2 transcritical refrigeration, heat pumps',status:'active',note:'No ODP, no flammability; high pressure'},
+ {r:'R-717',n:'Ammonia (NH3)',gwp:0,ozone:'No',ashrae:'B2L',type:'Natural',app:'Industrial refrigeration, large chillers',status:'active',note:'Zero GWP; toxic, flammable — requires engineering controls'},
+ {r:'R-290',n:'Propane',gwp:3,ozone:'No',ashrae:'A3',type:'Natural',app:'Small self-contained units, mini-splits',status:'active',note:'Ultra-low GWP; highly flammable — charge limits apply'},
+ {r:'R-600a',n:'Isobutane',gwp:3,ozone:'No',ashrae:'A3',type:'Natural',app:'Domestic refrigerators, small appliances',status:'active',note:'Common in European domestic appliances'},
+ {r:'R-507A',n:'R-125 / R-143a azeotrope',gwp:3985,ozone:'No',ashrae:'A1',type:'HFC',app:'Commercial refrigeration',status:'phase',note:'Very high GWP; replacement program ongoing'},
+];
+function gwpClass(gwp){if(gwp<=150)return'low';if(gwp<=750)return'med';if(gwp<=2500)return'high';return'vhigh';}
+function gwpLabel(gwp){if(gwp<=150)return'Low GWP';if(gwp<=750)return'Moderate';if(gwp<=2500)return'High GWP';return'Very High';}
+function statusBadge(s){const m={active:'status-active',phase:'status-phase',banned:'status-banned',emerging:'status-emerging'};const l={active:'Active',phase:'Phase-Down',banned:'Restricted',emerging:'Emerging'};return`<span class="status ${m[s]||'status-active'}">${l[s]||s}</span>`;}
+function renderCards(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const f=document.getElementById('filt').value;
+  let src=REFS;
+  if(f)src=src.filter(r=>gwpClass(r.gwp)===f);
+  if(q)src=src.filter(r=>r.r.toLowerCase().includes(q)||r.n.toLowerCase().includes(q)||r.app.toLowerCase().includes(q)||r.type.toLowerCase().includes(q));
+  document.getElementById('cnt').textContent=src.length+' refrigerants';
+  document.getElementById('grid').innerHTML=src.map(r=>`
+    <div class=card>
+      <div class=card-head>
+        <span class=refrig>${r.r}</span>
+        <span class="gwp-badge gwp-${gwpClass(r.gwp)}">${gwpLabel(r.gwp)}</span>
+      </div>
+      <div class=card-name>${r.n}</div>
+      <div class=props>
+        <div class=prop><span class=prop-lbl>GWP (AR6)</span><span class=prop-val>${r.gwp}</span></div>
+        <div class=prop><span class=prop-lbl>ASHRAE 34</span><span class=prop-val>${r.ashrae} ${r.ashrae.includes('2')?' — Flammable':''}</span></div>
+        <div class=prop><span class=prop-lbl>Type</span><span class=prop-val>${r.type}</span></div>
+        <div class=prop><span class=prop-lbl>Applications</span><span class=prop-val style="text-align:right">${r.app}</span></div>
+        <div class=prop><span class=prop-lbl>Note</span><span class=prop-val style="text-align:right;color:#666">${r.note}</span></div>
+      </div>
+      ${statusBadge(r.status)}
+    </div>`).join('');
+}
+function calcCharge(){
+  const sel=document.getElementById('cr').value.split('|');
+  const refName=sel[0],gwp=+sel[1];
+  const chg=+document.getElementById('chg').value;
+  const units=+document.getElementById('units').value;
+  const leak=+document.getElementById('leak').value/100;
+  const totalCharge=chg*units;
+  const annualLeak=totalCharge*leak;
+  const CO2eq=totalCharge*gwp/2205;
+  const annualCO2=annualLeak*gwp/2205;
+  document.getElementById('cr_out').innerHTML=`
+    Total charge: <b>${totalCharge.toFixed(1)} lbs</b> &nbsp;|&nbsp;
+    Annual leak (${(leak*100).toFixed(0)}%): <b>${annualLeak.toFixed(1)} lbs/yr</b> &nbsp;|&nbsp;
+    CO₂e inventory: <b>${CO2eq.toFixed(1)} metric tons</b> &nbsp;|&nbsp;
+    Annual CO₂e emissions: <b>${annualCO2.toFixed(2)} MT/yr</b>
+    <span style="color:#666;font-size:11px;display:block;margin-top:4px">GWP ${gwp} × ${totalCharge.toFixed(1)} lbs ÷ 2205 lb/MT = CO₂e inventory</span>`;
+}
+renderCards();calcCharge();
+</script></body></html>

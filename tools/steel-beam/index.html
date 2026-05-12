@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Steel Beam Check | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media(max-width:580px){.wrap{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 10px;border-radius:6px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:9px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.checks{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.chk{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:10px 14px}
+.chk-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.chk-detail{font-size:11px;color:#666}
+.badge{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700}
+.pass{background:#1a2a1a;color:#4caf50}.fail{background:#2a1010;color:#f44336}
+.ratio-bar{height:6px;background:#222;border-radius:3px;margin-top:6px;overflow:hidden}
+.ratio-fill{height:100%;border-radius:3px;transition:width .3s}
+.note{color:#666;font-size:11px;margin-top:12px;line-height:1.6;grid-column:1/-1}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Steel Beam Capacity Check (AISC 360)</h1></div>
+<div class=wrap>
+<div>
+<div style="font-size:11px;color:#c8a96e;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Loading</div>
+<label>Span L (ft)</label><input type=number id=L value=24 min=1 oninput=calc()>
+<label>Load Type</label>
+<select id=lt onchange=calc()>
+<option value=udl>Uniform distributed load (UDL)</option>
+<option value=point>Point load at midspan</option>
+</select>
+<label id=wlbl>Total UDL w (kip/ft)</label>
+<input type=number id=w value=2.5 step=0.1 min=0 oninput=calc()>
+<label>Dead Load fraction (%)</label>
+<input type=number id=dlf value=40 min=0 max=100 oninput=calc()>
+<div style="font-size:11px;color:#c8a96e;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:20px;margin-bottom:4px">Section (W-Shape)</div>
+<label>Select W-Shape</label>
+<select id=sec onchange=calc()>
+<option value="W8x31|27.5|110|7.97|0.285|0.435">W8x31</option>
+<option value="W10x33|36.6|170|9.73|0.29|0.435">W10x33</option>
+<option value="W10x49|54.6|272|10.0|0.34|0.56">W10x49</option>
+<option value="W12x35|51.2|285|12.5|0.3|0.52">W12x35</option>
+<option value="W12x50|64.2|394|12.2|0.37|0.64" selected>W12x50</option>
+<option value="W12x65|87.9|533|12.0|0.39|0.605">W12x65</option>
+<option value="W14x48|70.2|484|13.8|0.34|0.595">W14x48</option>
+<option value="W14x68|103|722|14.0|0.415|0.72">W14x68</option>
+<option value="W16x57|92.2|758|16.4|0.43|0.715">W16x57</option>
+<option value="W18x65|117|1070|18.4|0.45|0.75">W18x65</option>
+<option value="W18x97|188|1750|18.6|0.535|0.87">W18x97</option>
+<option value="W21x62|127|1330|20.99|0.4|0.615">W21x62</option>
+<option value="W21x83|196|1830|21.4|0.515|0.835">W21x83</option>
+<option value="W24x76|176|2100|23.9|0.44|0.68">W24x76</option>
+<option value="W24x104|258|3100|24.1|0.5|0.75">W24x104</option>
+<option value="W30x90|245|3610|29.5|0.47|0.61">W30x90</option>
+</select>
+<label>Fy (ksi)</label>
+<select id=Fy onchange=calc()>
+<option value=36>A36 — 36 ksi</option>
+<option value=50 selected>A992 — 50 ksi</option>
+</select>
+<label>Deflection Limit</label>
+<select id=dlim onchange=calc()>
+<option value=360>L/360 — Live load</option>
+<option value=240>L/240 — Live + dead</option>
+<option value=180>L/180 — Roof, not plastered</option>
+</select>
+<button class=btn onclick=calc()>Check Beam</button>
+</div>
+<div>
+<div style="font-size:11px;color:#c8a96e;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Results</div>
+<div class=checks id=out></div>
+</div>
+<p class=note>LRFD per AISC 360-22. Compact section assumed (Mp = Fy x Zx). Shear capacity: Vn = 0.6 Fy Aw (Aw = d x tw). Deflection: uniform EI beam formula. E = 29,000 ksi. Self-weight not included — add to applied load. Lateral bracing at full length assumed (Cb=1.0, no LTB reduction).</p>
+</div>
+<script>
+function calc(){
+  const L=+document.getElementById('L').value;
+  const lt=document.getElementById('lt').value;
+  const w=+document.getElementById('w').value;
+  const dlf=+document.getElementById('dlf').value/100;
+  const dlim=+document.getElementById('dlim').value;
+  const Fy=+document.getElementById('Fy').value;
+  const parts=document.getElementById('sec').value.split('|');
+  const [name,Zx,Ix,d,tw,tf]=[parts[0],+parts[1],+parts[2],+parts[3],+parts[4],+parts[5]];
+  document.getElementById('wlbl').textContent=lt==='udl'?'Total UDL w (kip/ft)':'Point load P (kips)';
+  const E=29000;
+  const Aw=d*tw;
+  const phi_b=0.9,phi_v=1.0;
+  const Mp=Fy*Zx/12; // kip-ft
+  const Vn=0.6*Fy*Aw/1000; // kips
+  let Mu,Vu,defl_in;
+  if(lt==='udl'){
+    Mu=1.2*dlf*w*L*L/8+(1.6*(1-dlf)*w)*L*L/8;
+    Vu=(1.2*dlf*w+1.6*(1-dlf)*w)*L/2;
+    const wLL=(1-dlf)*w;
+    defl_in=5*wLL/12*Math.pow(L*12,4)/(384*E*Ix);
+  } else {
+    const P=w;
+    Mu=1.2*dlf*P*L/4+1.6*(1-dlf)*P*L/4;
+    Vu=(1.2*dlf*P+1.6*(1-dlf)*P)/2;
+    const PLL=(1-dlf)*P;
+    defl_in=PLL*1000*Math.pow(L*12,3)/(48*E*Ix);
+  }
+  const phiMn=phi_b*Mp;
+  const phiVn=phi_v*Vn;
+  const deflLimit=L*12/dlim;
+  const mr=Mu/phiMn,vr=Vu/phiVn,dr=defl_in/deflLimit;
+  function row(label,demand,cap,unit,ratio,note){
+    const ok=ratio<=1.0;
+    return `<div class=chk>
+      <div class=chk-head><span>${label}</span><span class="badge ${ok?'pass':'fail'}">${ok?'OK':'FAIL'}</span></div>
+      <div class=chk-detail>${demand.toFixed(2)} ${unit} / ${cap.toFixed(2)} ${unit} — ratio <b>${ratio.toFixed(3)}</b></div>
+      <div class=chk-detail>${note}</div>
+      <div class=ratio-bar><div class=ratio-fill style="width:${Math.min(100,ratio*100).toFixed(0)}%;background:${ok?'#4caf50':'#f44336'}"></div></div>
+    </div>`;
+  }
+  document.getElementById('out').innerHTML=
+    `<div style="font-size:12px;color:#888;margin-bottom:8px">${name} | A${Fy===36?36:992} | Ix=${Ix} in⁴ | Zx=${Zx} in³</div>`+
+    row('Flexure (LRFD)',Mu,phiMn,'kip-ft',mr,`φMn = 0.9 × Fy × Zx`)+
+    row('Shear (LRFD)',Vu,phiVn,'kips',vr,`φVn = 1.0 × 0.6 × Fy × Aw`)+
+    row(`Deflection (L/${dlim})`,defl_in,deflLimit,'in',dr,`Δ = ${defl_in.toFixed(3)}" — limit = ${deflLimit.toFixed(3)}"`);
+}
+calc();
+</script></body></html>

@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Contract Milestones | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.tb-right{margin-left:auto;display:flex;gap:8px}
+.btn-sm{background:#1a1a1a;border:1px solid #333;color:#c8a96e;padding:5px 12px;border-radius:4px;font-size:12px;cursor:pointer}
+.btn-sm:hover{border-color:#c8a96e}
+.wrap{max-width:900px;margin:0 auto;padding:24px}
+.top{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.top label{font-size:11px;color:#666;display:block;margin-bottom:3px}
+.top input{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 10px;border-radius:5px;font-size:13px;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:10px;text-align:center}
+.kpi .val{font-size:16px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:10px;color:#888;margin-top:2px}
+.add-row{display:grid;grid-template-columns:2fr 1fr 120px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center}
+.add-row input,.add-row select{background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:6px 8px;border-radius:5px;font-size:12px;width:100%}
+.add-row input:focus,.add-row select:focus{outline:none;border-color:#c8a96e}
+.add-btn{background:#c8a96e;color:#0d0d0d;border:none;padding:6px 0;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;width:100%}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:7px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:6px 10px;border:1px solid #1e1e1e}
+.tbl tr:hover td{background:#161616}
+.tbl td input,.tbl td select{background:transparent;border:none;color:#e8e8e8;font-size:12px;width:100%}
+.tbl td input:focus,.tbl td select:focus{outline:none;border-bottom:1px solid #c8a96e}
+.s-pending{color:#888}.s-invoiced{color:#ff9800}.s-paid{color:#4caf50}.s-overdue{color:#f44336}
+.del{background:transparent;border:none;color:#c88;cursor:pointer;font-size:13px;padding:2px 4px}
+.progress-wrap{margin-top:16px}
+.prog-bar{background:#111;border-radius:4px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:#c8a96e;border-radius:4px}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+@media print{.tb-right,.add-row,.del{display:none!important}body{background:#fff;color:#000}.tbl th{background:#eee;color:#000}.tbl td{border-color:#ccc}}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Contract Milestone Tracker</h1>
+<div class=tb-right>
+<button class=btn-sm onclick=exportCSV()>Export CSV</button>
+<button class=btn-sm onclick=window.print()>Print</button>
+</div></div>
+<div class=wrap>
+<div class=top>
+<div><label>Project / Contract</label><input type=text id=proj value="Project Name"></div>
+<div><label>Contract Value ($)</label><input type=number id=cv value=500000 step=1000></div>
+<div><label>Contract Date</label><input type=date id=cdate></div>
+</div>
+<div class=kpis id=kpis></div>
+<div class=add-row>
+<input type=text id=ni_name placeholder="Milestone description">
+<input type=number id=ni_pct value=10 min=0 max=100 placeholder="% of contract">
+<input type=date id=ni_due>
+<select id=ni_stat><option>Pending</option><option>Invoiced</option><option>Paid</option><option>Overdue</option></select>
+<button class=add-btn onclick=addItem()>Add</button>
+</div>
+<table class=tbl><thead><tr><th>#</th><th>Milestone</th><th>% Contract</th><th>Amount ($)</th><th>Due Date</th><th>Status</th><th>Paid Date</th><th></th></tr></thead>
+<tbody id=tbody></tbody></table>
+<div class=progress-wrap id=prog></div>
+</div>
+<script>
+let items=[];let nextN=1;
+document.getElementById('cdate').value=new Date().toISOString().slice(0,10);
+const STATUS=['Pending','Invoiced','Paid','Overdue'];
+const STATUS_CLS={Pending:'s-pending',Invoiced:'s-invoiced',Paid:'s-paid',Overdue:'s-overdue'};
+function addItem(){
+  const name=document.getElementById('ni_name').value;
+  if(!name){alert('Enter milestone name.');return;}
+  const pct=+document.getElementById('ni_pct').value;
+  const due=document.getElementById('ni_due').value;
+  const stat=document.getElementById('ni_stat').value;
+  items.push({id:Date.now(),num:nextN++,name,pct,due,stat,paidDate:''});
+  document.getElementById('ni_name').value='';
+  render();
+}
+function del(id){items=items.filter(x=>x.id!==id);render();}
+function upd(id,k,v){const i=items.find(x=>x.id===id);if(i)i[k]=k==='pct'?+v:v;renderKPIs();renderProg();}
+function getCV(){return +document.getElementById('cv').value||0;}
+function render(){
+  renderKPIs();
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=items.map(it=>{
+    const amt=(it.pct/100*getCV());
+    return `<tr>
+      <td>${it.num}</td>
+      <td><input value="${it.name}" onchange="upd(${it.id},'name',this.value)"></td>
+      <td><input type=number value="${it.pct}" min=0 max=100 style="width:50px" onchange="upd(${it.id},'pct',this.value)">%</td>
+      <td>$${amt.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+      <td><input type=date value="${it.due}" onchange="upd(${it.id},'due',this.value)"></td>
+      <td class="${STATUS_CLS[it.stat]}"><select onchange="upd(${it.id},'stat',this.value)">${STATUS.map(s=>`<option ${s===it.stat?'selected':''}>${s}</option>`).join('')}</select></td>
+      <td><input type=date value="${it.paidDate}" onchange="upd(${it.id},'paidDate',this.value)"></td>
+      <td><button class=del onclick="del(${it.id})">&#x2715;</button></td>
+    </tr>`;}).join('');
+  renderProg();
+}
+function renderKPIs(){
+  const cv=getCV();
+  const totalPct=items.reduce((a,i)=>a+i.pct,0);
+  const paidPct=items.filter(i=>i.stat==='Paid').reduce((a,i)=>a+i.pct,0);
+  const invoicedPct=items.filter(i=>i.stat==='Invoiced').reduce((a,i)=>a+i.pct,0);
+  const overduePct=items.filter(i=>i.stat==='Overdue').reduce((a,i)=>a+i.pct,0);
+  document.getElementById('kpis').innerHTML=`
+    <div class=kpi><div class=val>$${(cv/1000).toFixed(0)}K</div><div class=lbl>Contract Value</div></div>
+    <div class=kpi><div class="val" style="color:#4caf50">$${(paidPct/100*cv/1000).toFixed(0)}K</div><div class=lbl>Paid (${paidPct.toFixed(0)}%)</div></div>
+    <div class=kpi><div class="val" style="color:#ff9800">$${(invoicedPct/100*cv/1000).toFixed(0)}K</div><div class=lbl>Invoiced</div></div>
+    <div class=kpi><div class="val" style="color:#f44336">$${(overduePct/100*cv/1000).toFixed(0)}K</div><div class=lbl>Overdue</div></div>
+    <div class=kpi><div class=val>$${((100-totalPct)/100*cv/1000).toFixed(0)}K</div><div class=lbl>Remaining</div></div>`;
+}
+function renderProg(){
+  const cv=getCV();
+  const paidPct=items.filter(i=>i.stat==='Paid').reduce((a,i)=>a+i.pct,0);
+  document.getElementById('prog').innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px">
+      <span>Payment Progress</span><span>${paidPct.toFixed(1)}% collected</span></div>
+    <div class=prog-bar><div class=prog-fill style="width:${paidPct.toFixed(0)}%"></div></div>`;
+}
+function exportCSV(){
+  const cv=getCV();
+  const rows=[['#','Milestone','% Contract','Amount','Due Date','Status','Paid Date'],...items.map(i=>[i.num,i.name,i.pct+'%','$'+(i.pct/100*cv).toFixed(0),i.due,i.stat,i.paidDate])];
+  const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='ContractMilestones.csv';a.click();
+}
+// seed
+items=[
+ {id:1,num:1,name:'Notice to Proceed / Mobilization',pct:10,due:'',stat:'Paid',paidDate:''},
+ {id:2,num:2,name:'50% Construction Complete',pct:40,due:'',stat:'Invoiced',paidDate:''},
+ {id:3,num:3,name:'Substantial Completion',pct:40,due:'',stat:'Pending',paidDate:''},
+ {id:4,num:4,name:'Final Completion / Retainage Release',pct:10,due:'',stat:'Pending',paidDate:''},
+];
+nextN=5;render();
+</script></body></html>

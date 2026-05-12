@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>ADA Ramp Check | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media(max-width:580px){.wrap{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:7px 10px;border-radius:6px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:9px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.checks{display:flex;flex-direction:column;gap:8px}
+.chk{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:10px 14px}
+.chk-head{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px}
+.chk-detail{font-size:11px;color:#666;line-height:1.5}
+.badge{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700}
+.pass{background:#1a2a1a;color:#4caf50}.fail{background:#2a1010;color:#f44336}.na{background:#222;color:#666}
+canvas{border-radius:8px;background:#111;border:1px solid #2a2a2a;display:block;margin-top:12px}
+.note{color:#666;font-size:11px;margin-top:12px;line-height:1.5;grid-column:1/-1}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>ADA Ramp Compliance Check</h1></div>
+<div class=wrap>
+<div>
+<label>Rise (in) — total vertical change</label><input type=number id=rise value=18 step=0.5 min=0 oninput=calc()>
+<label>Ramp Run (in) — horizontal length</label><input type=number id=run value=216 step=1 min=1 oninput=calc()>
+<label>Clear Width (in)</label><input type=number id=width value=44 step=1 min=0 oninput=calc()>
+<label>Top Landing Depth (in)</label><input type=number id=topland value=60 step=1 min=0 oninput=calc()>
+<label>Bottom Landing Depth (in)</label><input type=number id=botland value=60 step=1 min=0 oninput=calc()>
+<label>Handrail Height — top of gripping surface (in)</label><input type=number id=hrht value=36 step=0.5 min=0 oninput=calc()>
+<label>Edge Protection Height (in)</label><input type=number id=edge value=4 step=0.5 min=0 oninput=calc()>
+<label>Code Reference</label>
+<select id=code onchange=calc()>
+<option value=ada>ADA 2010 / ABA (Federal)</option>
+<option value=ibc>IBC 2021 (Section 1012)</option>
+</select>
+<button class=btn>Check Compliance</button>
+</div>
+<div>
+<div style="font-size:11px;color:#c8a96e;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Compliance Results</div>
+<div class=checks id=out></div>
+<canvas id=cv width=300 height=200></canvas>
+</div>
+<p class=note>ADA 2010 Standards §405: max slope 1:12, max rise 30", min clear width 36", landings 60"x60", handrail 34"-38". IBC 1012: similar with minor differences. Edge protection: curb min 4" or 12" barrier rail. Handrail gripping surface: 1.25"–2" diameter.</p>
+</div>
+<script>
+function calc(){
+  const rise=+document.getElementById('rise').value;
+  const run=+document.getElementById('run').value;
+  const width=+document.getElementById('width').value;
+  const topland=+document.getElementById('topland').value;
+  const botland=+document.getElementById('botland').value;
+  const hrht=+document.getElementById('hrht').value;
+  const edge=+document.getElementById('edge').value;
+  const code=document.getElementById('code').value;
+  const slope=rise/run;
+  const slopePct=(slope*100).toFixed(1);
+  const ratio=run/rise;
+  const checks=[];
+  checks.push({label:'Slope (1:'+ratio.toFixed(1)+')',ok:slope<=1/12,detail:`${slopePct}% — max 1:12 (8.33%). Actual: ${rise}" rise / ${run}" run`,req:'≤ 1:12'});
+  checks.push({label:'Max Rise per Segment',ok:rise<=30,detail:`Rise = ${rise}". Max 30" per single ramp segment.`,req:'≤ 30"'});
+  checks.push({label:'Clear Width',ok:width>=(code==='ibc'?44:36),detail:`Width = ${width}". Min ${code==='ibc'?44:36}" clear between handrails.`,req:code==='ibc'?'≥ 44"':'≥ 36"'});
+  checks.push({label:'Top Landing',ok:topland>=60,detail:`Top landing = ${topland}". Min 60" (5 ft) in direction of travel.`,req:'≥ 60"'});
+  checks.push({label:'Bottom Landing',ok:botland>=60,detail:`Bottom landing = ${botland}". Min 60" (5 ft) in direction of travel.`,req:'≥ 60"'});
+  checks.push({label:'Handrail Height',ok:hrht>=34&&hrht<=38,detail:`${hrht}" — must be 34" to 38" above ramp surface.`,req:'34"–38"'});
+  checks.push({label:'Edge Protection',ok:edge>=4,detail:`${edge}" — min 4" curb or 12" barrier rail required.`,req:'≥ 4" curb'});
+  const allPass=checks.every(c=>c.ok);
+  document.getElementById('out').innerHTML=checks.map(c=>`
+    <div class=chk>
+      <div class=chk-head><span>${c.label}</span><span class="badge ${c.ok?'pass':'fail'}">${c.ok?'PASS':'FAIL'}</span></div>
+      <div class=chk-detail>${c.detail}</div>
+    </div>`).join('');
+  drawRamp(rise,run,width,slope,allPass);
+}
+function drawRamp(rise,run,width,slope,ok){
+  const cv=document.getElementById('cv');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+  const sc=Math.min((W-60)/run,(H-60)/rise,0.8);
+  const rw=run*sc,rh=rise*sc;
+  const ox=30,oy=H-30;
+  // ramp
+  ctx.fillStyle='#1a2a3a';
+  ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+rw,oy-rh);ctx.lineTo(ox+rw,oy);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=ok?'#4caf50':'#f44336';ctx.lineWidth=2;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+rw,oy-rh);ctx.stroke();
+  // handrail
+  ctx.strokeStyle='#c8a96e';ctx.lineWidth=1;
+  const hrH=+document.getElementById('hrht').value*sc*0.5;
+  ctx.beginPath();ctx.moveTo(ox,oy-hrH);ctx.lineTo(ox+rw,oy-rh-hrH);ctx.stroke();
+  // dims
+  ctx.fillStyle='#888';ctx.font='10px system-ui';ctx.textAlign='center';
+  ctx.fillText(run+'"',ox+rw/2,oy+14);
+  ctx.save();ctx.translate(ox-14,oy-rh/2);ctx.rotate(-Math.PI/2);ctx.fillText(rise+'"',0,0);ctx.restore();
+  ctx.fillStyle=ok?'#4caf50':'#f44336';ctx.font='bold 11px system-ui';ctx.textAlign='right';
+  ctx.fillText('1:'+(run/rise).toFixed(1),W-8,20);
+}
+calc();
+</script></body></html>

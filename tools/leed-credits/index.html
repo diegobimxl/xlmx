@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>LEED v4 Credits | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px}
+.sub{color:#888;font-size:14px;margin-bottom:20px}
+.score-bar{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.score-num{font-size:56px;font-weight:700;line-height:1}
+.score-cert{font-size:18px;font-weight:700;margin-top:4px}
+.score-bar-inner{flex:1;min-width:200px}
+.bar{height:12px;background:#222;border-radius:6px;margin-top:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;transition:width .4s}
+.cert-cert{color:#a07030}.cert-silver{color:#aaa}.cert-gold{color:#c8a96e}.cert-plat{color:#5cf}
+.categories{display:flex;flex-direction:column;gap:10px}
+.cat{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px 18px}
+.cat-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer}
+.cat-name{font-size:13px;font-weight:600;color:#c8a96e}
+.cat-pts{font-size:12px;color:#888}
+.credits{display:flex;flex-direction:column;gap:5px}
+.credit{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #222}
+.credit:last-child{border-bottom:none}
+.credit-name{color:#ccc;flex:1}
+.credit-pts{display:flex;align-items:center;gap:8px}
+.pts-avail{color:#555;font-size:11px}
+input[type=range]{width:80px;accent-color:#c8a96e;cursor:pointer}
+.pts-val{color:#c8a96e;font-weight:700;min-width:20px;text-align:center}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>LEED v4 BD+C Credit Estimator</h1></div>
+<div class=wrap>
+<p class=sub>Slide each credit to estimate achievable points. Certification: Certified 40+, Silver 50+, Gold 60+, Platinum 80+.</p>
+<div class=score-bar id=scorebar></div>
+<div class=categories id=cats></div>
+</div>
+<script>
+const CATS=[
+{id:'ip',name:'Integrative Process',color:'#9c27b0',credits:[
+  {n:'Integrative Process',max:2,val:1},
+]},
+{id:'loc',name:'Location and Transportation',color:'#3f51b5',credits:[
+  {n:'LEED for Neighborhood Development',max:16,val:0},
+  {n:'Sensitive Land Protection',max:2,val:2},
+  {n:'High Priority Site',max:3,val:0},
+  {n:'Surrounding Density & Diverse Uses',max:5,val:2},
+  {n:'Access to Quality Transit',max:5,val:3},
+  {n:'Bicycle Facilities',max:1,val:1},
+  {n:'Reduced Parking Footprint',max:1,val:1},
+  {n:'Green Vehicles',max:1,val:0},
+]},
+{id:'ss',name:'Sustainable Sites',color:'#4caf50',credits:[
+  {n:'Construction Activity Pollution Prevention',max:1,val:1},
+  {n:'Site Assessment',max:1,val:1},
+  {n:'Site Development — Protect or Restore Habitat',max:2,val:1},
+  {n:'Open Space',max:1,val:1},
+  {n:'Rainwater Management',max:3,val:2},
+  {n:'Heat Island Reduction',max:2,val:1},
+  {n:'Light Pollution Reduction',max:1,val:1},
+]},
+{id:'we',name:'Water Efficiency',color:'#2196f3',credits:[
+  {n:'Outdoor Water Use Reduction',max:2,val:2},
+  {n:'Indoor Water Use Reduction',max:6,val:4},
+  {n:'Building-Level Water Metering',max:1,val:1},
+  {n:'Cooling Tower Water Use',max:2,val:0},
+]},
+{id:'ea',name:'Energy and Atmosphere',color:'#ff9800',credits:[
+  {n:'Enhanced Commissioning',max:6,val:3},
+  {n:'Optimize Energy Performance',max:18,val:10},
+  {n:'Advanced Energy Metering',max:1,val:1},
+  {n:'Demand Response',max:2,val:0},
+  {n:'Renewable Energy Production',max:3,val:0},
+  {n:'Enhanced Refrigerant Management',max:1,val:1},
+  {n:'Green Power & Carbon Offsets',max:2,val:0},
+]},
+{id:'mr',name:'Materials and Resources',color:'#795548',credits:[
+  {n:'Construction Waste Management',max:2,val:1},
+  {n:'Building Product Disclosure — EPD',max:2,val:1},
+  {n:'Building Product Disclosure — Sourcing',max:2,val:1},
+  {n:'Building Product Disclosure — Optimization',max:2,val:0},
+  {n:'Construction & Demolition Waste',max:2,val:1},
+]},
+{id:'eq',name:'Indoor Environmental Quality',color:'#009688',credits:[
+  {n:'Enhanced IAQ Strategies',max:2,val:1},
+  {n:'Low-Emitting Materials',max:3,val:2},
+  {n:'Construction IAQ Management',max:1,val:1},
+  {n:'Indoor Air Quality Assessment',max:2,val:1},
+  {n:'Thermal Comfort',max:1,val:1},
+  {n:'Interior Lighting',max:2,val:1},
+  {n:'Daylight',max:3,val:1},
+  {n:'Quality Views',max:1,val:1},
+  {n:'Acoustic Performance',max:1,val:0},
+]},
+{id:'in',name:'Innovation',color:'#e91e63',credits:[
+  {n:'Innovation Credits (up to 5)',max:5,val:2},
+  {n:'LEED Accredited Professional',max:1,val:1},
+]},
+{id:'rp',name:'Regional Priority',color:'#607d8b',credits:[
+  {n:'Regional Priority Credits (up to 4)',max:4,val:2},
+]},
+];
+function total(){return CATS.reduce((s,c)=>s+c.credits.reduce((a,cr)=>a+cr.val,0),0);}
+function certLevel(pts){
+  if(pts>=80)return{lbl:'Platinum',cls:'cert-plat'};
+  if(pts>=60)return{lbl:'Gold',cls:'cert-gold'};
+  if(pts>=50)return{lbl:'Silver',cls:'cert-silver'};
+  if(pts>=40)return{lbl:'Certified',cls:'cert-cert'};
+  return{lbl:'Not Certified',cls:'',};
+}
+function render(){
+  const pts=total();
+  const cert=certLevel(pts);
+  const barColor=pts>=80?'#5cf':pts>=60?'#c8a96e':pts>=50?'#aaa':pts>=40?'#a07030':'#555';
+  document.getElementById('scorebar').innerHTML=`
+    <div><div class=score-num style="color:${barColor}">${pts}</div><div class="score-cert ${cert.cls}">${cert.lbl}</div></div>
+    <div class=score-bar-inner>
+      <div style="font-size:12px;color:#888">Points toward 110 maximum</div>
+      <div class=bar><div class=bar-fill style="width:${(pts/110*100).toFixed(0)}%;background:${barColor}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#444;margin-top:4px">
+        <span>0</span><span>Cert 40</span><span>Silver 50</span><span>Gold 60</span><span>Plat 80</span><span>110</span>
+      </div>
+    </div>`;
+  document.getElementById('cats').innerHTML=CATS.map((cat,ci)=>{
+    const catPts=cat.credits.reduce((a,cr)=>a+cr.val,0);
+    const catMax=cat.credits.reduce((a,cr)=>a+cr.max,0);
+    return `<div class=cat>
+      <div class=cat-head><span class=cat-name style="color:${cat.color}">${cat.name}</span><span class=cat-pts>${catPts} / ${catMax} pts</span></div>
+      <div class=credits>${cat.credits.map((cr,cri)=>`
+        <div class=credit>
+          <span class=credit-name>${cr.n}</span>
+          <div class=credit-pts>
+            <span class=pts-avail>max ${cr.max}</span>
+            <input type=range min=0 max=${cr.max} value=${cr.val} oninput="upd(${ci},${cri},+this.value)">
+            <span class=pts-val id="v_${ci}_${cri}">${cr.val}</span>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function upd(ci,cri,val){CATS[ci].credits[cri].val=val;document.getElementById('v_'+ci+'_'+cri).textContent=val;const pts=total();const cert=certLevel(pts);const barColor=pts>=80?'#5cf':pts>=60?'#c8a96e':pts>=50?'#aaa':pts>=40?'#a07030':'#555';document.getElementById('scorebar').querySelector('.score-num').textContent=pts;document.getElementById('scorebar').querySelector('.score-num').style.color=barColor;document.getElementById('scorebar').querySelector('.score-cert').textContent=cert.lbl;document.getElementById('scorebar').querySelector('.score-cert').className='score-cert '+cert.cls;document.getElementById('scorebar').querySelector('.bar-fill').style.width=(pts/110*100).toFixed(0)+'%';document.getElementById('scorebar').querySelector('.bar-fill').style.background=barColor;}
+render();
+</script></body></html>

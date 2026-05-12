@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Site Drainage | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:24px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:20px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+.sec{font-size:11px;color:#c8a96e;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:24px;margin-bottom:4px}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Site Drainage — Rational Method</h1></div>
+<div class=wrap>
+<div class=sec>Watershed</div>
+<label>Drainage Area A (acres)</label><input type=number id=A value=5 step=0.1 min=0.01>
+<label>Runoff Coefficient C</label>
+<select id=C>
+<option value=0.95>0.95 — Paved / impervious</option>
+<option value=0.85>0.85 — Rooftops</option>
+<option value=0.75 selected>0.75 — Mixed commercial</option>
+<option value=0.55>0.55 — Residential urban</option>
+<option value=0.35>0.35 — Grassy suburban</option>
+<option value=0.20>0.20 — Wooded / meadow</option>
+<option value=custom>Custom…</option>
+</select>
+<input type=number id=Ccustom placeholder="Enter C value 0.05–0.95" style="display:none;margin-top:6px" min=0.05 max=0.95 step=0.01>
+<label>Rainfall Intensity i (in/hr) — per local IDF curve</label><input type=number id=i value=3.5 step=0.1 min=0.1>
+<label>Return Period</label>
+<select id=rp>
+<option value=2>2-year (minor drainage)</option>
+<option value=10 selected>10-year (standard)</option>
+<option value=25>25-year (major storm)</option>
+<option value=100>100-year (regulatory floodplain)</option>
+</select>
+<div class=sec>Storm Sewer Pipe Sizing (Manning)</div>
+<label>Pipe Slope S (ft/ft)</label><input type=number id=S value=0.005 step=0.001 min=0.0001>
+<label>Pipe Material</label>
+<select id=mat>
+<option value=0.013 selected>RCP — n = 0.013</option>
+<option value=0.011>HDPE — n = 0.011</option>
+<option value=0.015>CMP — n = 0.015</option>
+<option value=0.012>PVC — n = 0.012</option>
+</select>
+<button class=btn onclick=calc()>Calculate</button>
+<div id=out></div>
+<p class=note>Rational Method: Q = C·i·A (peak cfs for areas ≤ 200 acres). Manning pipe capacity: Q = (1.49/n)·A·R^(2/3)·S^(1/2) for full-flow. Minimum velocity = 2.5 fps (self-cleaning). Maximum pipe sizes shown for standard diameters. Tc assumed = 10 min for small sites; adjust i accordingly.</p>
+</div>
+<script>
+document.getElementById('C').addEventListener('change',function(){
+  document.getElementById('Ccustom').style.display=this.value==='custom'?'block':'none';
+});
+const PIPES=[{d:12,a:0.785},{d:15,a:1.227},{d:18,a:1.767},{d:21,a:2.405},{d:24,a:3.142},{d:30,a:4.909},{d:36,a:7.069},{d:42,a=9.621},{d:48,a:12.566},{d:60,a:19.635}];
+const DIAMS=[12,15,18,21,24,30,36,42,48,60];
+function pipeQ(d_in,n,S){
+  const r=(d_in/12)/4;
+  const A=Math.PI*Math.pow(d_in/24,2);
+  return (1.49/n)*A*Math.pow(r,2/3)*Math.pow(S,0.5);
+}
+function calc(){
+  const A=+document.getElementById('A').value;
+  const csel=document.getElementById('C').value;
+  const C=csel==='custom'?+document.getElementById('Ccustom').value:+csel;
+  const i=+document.getElementById('i').value;
+  const S=+document.getElementById('S').value;
+  const n=+document.getElementById('mat').value;
+  const Q=C*i*A;
+  // Find min pipe size
+  let selD=null,selQ=0,selV=0;
+  for(const d of DIAMS){
+    const q=pipeQ(d,n,S);
+    const area=Math.PI*Math.pow(d/24,2);
+    const v=q/area;
+    if(q>=Q&&v>=2.5){selD=d;selQ=q;selV=v;break;}
+  }
+  const pipeRows=DIAMS.slice(0,7).map(d=>{
+    const q=pipeQ(d,n,S);
+    const area=Math.PI*Math.pow(d/24,2);
+    const v=q/area;
+    return `<tr ${d===selD?'style="background:#1a2a1a"':''}><td>${d}"</td><td>${q.toFixed(2)}</td><td>${v.toFixed(1)}</td><td>${q>=Q&&v>=2.5?'<span style="color:#4caf50">✓ OK</span>':'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('out').innerHTML=`
+  <div class=kpis>
+    <div class=kpi><div class=val>${Q.toFixed(2)}</div><div class=lbl>Peak Flow Q (cfs)</div></div>
+    <div class=kpi><div class=val>${C}</div><div class=lbl>Runoff Coeff C</div></div>
+    <div class=kpi><div class=val>${selD?selD+'"':'N/A'}</div><div class=lbl>Min Pipe Dia</div></div>
+    <div class=kpi><div class=val>${selV?selV.toFixed(1):'-'} fps</div><div class=lbl>Pipe Velocity</div></div>
+    <div class=kpi><div class=val>${(Q*646317/1440).toFixed(0)}</div><div class=lbl>Peak GPM</div></div>
+  </div>
+  <table class=tbl><thead><tr><th>Diameter</th><th>Full-Flow Q (cfs)</th><th>Velocity (fps)</th><th>Status</th></tr></thead>
+  <tbody>${pipeRows}</tbody></table>`;
+}
+calc();
+</script></body></html>

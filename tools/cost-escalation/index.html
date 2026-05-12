@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Cost Escalation | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:24px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Construction Cost Escalation</h1></div>
+<div class=wrap>
+<label>Base Cost Estimate ($)</label><input type=number id=cost value=5000000 step=10000>
+<label>Base Year (estimate prepared)</label>
+<select id=yr1>
+<option value=2019>2019</option><option value=2020>2020</option><option value=2021>2021</option>
+<option value=2022>2022</option><option value=2023>2023</option><option value=2024 selected>2024</option>
+<option value=2025>2025</option>
+</select>
+<label>Target Year (project construction)</label>
+<select id=yr2>
+<option value=2024>2024</option><option value=2025 selected>2025</option><option value=2026>2026</option>
+<option value=2027>2027</option><option value=2028>2028</option><option value=2029>2029</option>
+</select>
+<label>Escalation Scenario</label>
+<select id=scenario>
+<option value=low>Low (3% / yr) — stable market</option>
+<option value=base selected>Base (5% / yr) — typical</option>
+<option value=high>High (8% / yr) — hot market</option>
+<option value=custom>Custom annual rate…</option>
+</select>
+<input type=number id=custom_rate value=5 step=0.5 min=0 max=30 style="display:none;margin-top:6px" placeholder="Annual escalation %">
+<label>Project Type (regional factor)</label>
+<select id=ptype>
+<option value=1.0>Office / Commercial (1.00)</option>
+<option value=1.05>Healthcare / Lab (1.05)</option>
+<option value=0.90>Industrial / Warehouse (0.90)</option>
+<option value=1.10>High-Rise Residential (1.10)</option>
+<option value=0.85>Low-Rise Residential (0.85)</option>
+<option value=1.15>Data Center / Mission Critical (1.15)</option>
+</select>
+<button class=btn onclick=calc()>Calculate Escalation</button>
+<div id=out></div>
+<p class=note>Escalation applied as compound annual rate. ENR Building Cost Index (BCI) 5-year CAGR 2019–2024: approx 5.8%. Turner Building Cost Index QoQ: ~3–6% in normal years, ~14% peak 2021-2022. Rates above are approximations — verify with current ENR/RSMeans indices for final estimates. Escalation from bid date to midpoint of construction not included.</p>
+</div>
+<script>
+document.getElementById('scenario').addEventListener('change',function(){
+  document.getElementById('custom_rate').style.display=this.value==='custom'?'block':'none';
+});
+const RATES={low:0.03,base:0.05,high:0.08};
+function calc(){
+  const cost=+document.getElementById('cost').value;
+  const yr1=+document.getElementById('yr1').value;
+  const yr2=+document.getElementById('yr2').value;
+  const sc=document.getElementById('scenario').value;
+  const rate=sc==='custom'?+document.getElementById('custom_rate').value/100:RATES[sc];
+  const pf=+document.getElementById('ptype').value;
+  const yrs=yr2-yr1;
+  const escalFactor=Math.pow(1+rate,Math.abs(yrs));
+  const adjusted=cost*(yrs>=0?escalFactor:1/escalFactor)*pf;
+  const delta=adjusted-cost;
+  const pct=((adjusted-cost)/cost*100);
+  const midpt=cost*Math.pow(1+rate,Math.abs(yrs)/2)*pf;
+  const rows=[];
+  for(let y=Math.min(yr1,yr2);y<=Math.max(yr1,yr2);y++){
+    const n=y-yr1;
+    const v=cost*Math.pow(1+rate,Math.abs(n))*(n>=0?pf:1/pf);
+    rows.push(`<tr ${y===yr2?'style="background:#1a2a1a"':''}><td>${y}</td><td>$${(cost*Math.pow(1+rate,Math.abs(y-yr1))).toLocaleString(undefined,{maximumFractionDigits:0})}</td><td>$${(v).toLocaleString(undefined,{maximumFractionDigits:0})}</td></tr>`);
+  }
+  document.getElementById('out').innerHTML=`
+  <div class=kpis>
+    <div class=kpi><div class=val>$${(adjusted/1e6).toFixed(2)}M</div><div class=lbl>Escalated Cost (${yr2})</div></div>
+    <div class=kpi><div class=val style="color:${delta>=0?'#f44336':'#4caf50'}">${delta>=0?'+':''}$${(Math.abs(delta)/1000).toFixed(0)}K</div><div class=lbl>Total Escalation</div></div>
+    <div class=kpi><div class=val>${pct>=0?'+':''}${pct.toFixed(1)}%</div><div class=lbl>Total %</div></div>
+    <div class=kpi><div class=val>${(rate*100).toFixed(1)}%</div><div class=lbl>Annual Rate</div></div>
+    <div class=kpi><div class=val>$${(midpt/1e6).toFixed(2)}M</div><div class=lbl>Midpoint Estimate</div></div>
+  </div>
+  <table class=tbl><thead><tr><th>Year</th><th>Raw Escalated</th><th>With Type Factor</th></tr></thead>
+  <tbody>${rows.join('')}</tbody></table>`;
+}
+calc();
+</script></body></html>

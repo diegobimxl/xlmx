@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Net Effective Rent | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:24px}
+.kpi{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;text-align:center}
+.kpi .val{font-size:20px;font-weight:700;color:#c8a96e}.kpi .lbl{font-size:11px;color:#888;margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.tbl td:last-child{text-align:right}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>Net Effective Rent Calculator</h1></div>
+<div class=wrap>
+<label>Asking Rent ($/SF/yr)</label><input type=number id=rent value=42 step=0.5 min=1>
+<label>Rentable Area (SF)</label><input type=number id=sf value=5000 min=100>
+<label>Lease Term (months)</label><input type=number id=term value=60 min=1>
+<label>Free Rent (months)</label><input type=number id=free value=3 min=0>
+<label>Tenant Improvement Allowance ($/SF)</label><input type=number id=tia value=65 step=1 min=0>
+<label>Landlord Leasing Commission ($/SF total)</label><input type=number id=lc value=18 step=0.5 min=0>
+<label>Other Landlord Concessions ($)</label><input type=number id=other value=0 min=0>
+<label>Discount Rate for NPV (%/yr)</label><input type=number id=disc value=7 step=0.5 min=0>
+<button class=btn onclick=calc()>Calculate NER</button>
+<div id=out></div>
+<p class=note>Net Effective Rent = (Total Gross Rent - All Concessions) / Total Lease Months. Landlord cost basis for concessions amortized over lease term. Spread = Asking minus NER. NPV method discounts all cash flows. Used to compare deals with different concession packages.</p>
+</div>
+<script>
+function calc(){
+  const rent=+document.getElementById('rent').value;
+  const sf=+document.getElementById('sf').value;
+  const term=+document.getElementById('term').value;
+  const free=+document.getElementById('free').value;
+  const tia=+document.getElementById('tia').value*sf;
+  const lc=+document.getElementById('lc').value*sf;
+  const other=+document.getElementById('other').value;
+  const disc=+document.getElementById('disc').value/100;
+  const monthly=rent*sf/12;
+  const grossRent=monthly*term;
+  const freeRentVal=monthly*free;
+  const totalConcessions=freeRentVal+tia+lc+other;
+  const netRent=grossRent-totalConcessions;
+  const nerPerMo=netRent/term;
+  const nerPerSFYr=nerPerMo*12/sf;
+  const spread=rent-nerPerSFYr;
+  // NPV
+  const monthRate=disc/12;
+  let npv=0;
+  for(let m=1;m<=term;m++){
+    const cf=m<=free?0:monthly;
+    npv+=cf/Math.pow(1+monthRate,m);
+  }
+  npv-=(tia+lc+other);
+  const nerNPV=npv/sf/(term/12);
+  const rows=[
+    ['Gross Rent (full term)','$'+grossRent.toLocaleString(undefined,{maximumFractionDigits:0}),'Full asking x term'],
+    ['Free Rent Abatement','($'+freeRentVal.toLocaleString(undefined,{maximumFractionDigits:0})+')',free+' months free'],
+    ['TI Allowance','($'+tia.toLocaleString(undefined,{maximumFractionDigits:0})+')','$'+(tia/sf).toFixed(0)+'/SF'],
+    ['Leasing Commission','($'+lc.toLocaleString(undefined,{maximumFractionDigits:0})+')','$'+(lc/sf).toFixed(0)+'/SF'],
+    ['Other Concessions','($'+other.toLocaleString(undefined,{maximumFractionDigits:0})+')',''],
+    ['Net Effective Rent (total)','$'+netRent.toLocaleString(undefined,{maximumFractionDigits:0}),'Over '+term+' months'],
+  ];
+  document.getElementById('out').innerHTML=`
+  <div class=kpis>
+    <div class=kpi><div class=val>$${rent.toFixed(2)}</div><div class=lbl>Asking Rent ($/SF/yr)</div></div>
+    <div class=kpi><div class=val>$${nerPerSFYr.toFixed(2)}</div><div class=lbl>NER Simple ($/SF/yr)</div></div>
+    <div class=kpi><div class=val>$${nerNPV.toFixed(2)}</div><div class=lbl>NER NPV ($/SF/yr)</div></div>
+    <div class=kpi><div class=val>${spread.toFixed(2)}</div><div class=lbl>Spread $/SF/yr</div></div>
+    <div class=kpi><div class=val>${(spread/rent*100).toFixed(1)}%</div><div class=lbl>Concession Depth</div></div>
+    <div class=kpi><div class=val>$${(totalConcessions/1000).toFixed(0)}K</div><div class=lbl>Total Concessions</div></div>
+  </div>
+  <table class=tbl><thead><tr><th>Item</th><th>Amount</th><th>Note</th></tr></thead>
+  <tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td style="color:#666">${r[2]}</td></tr>`).join('')}</tbody></table>`;
+}
+calc();
+</script></body></html>

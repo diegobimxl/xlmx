@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Load Combinations | XLMX</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}.tb h1{font-size:16px;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:4px;margin-top:14px}
+input{width:100%;background:#1a1a1a;border:1px solid #333;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-size:14px}
+input:focus{outline:none;border-color:#c8a96e}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.btn{margin-top:20px;background:#c8a96e;color:#0d0d0d;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:20px}
+.tbl th{background:#1a1a1a;color:#c8a96e;padding:8px 10px;text-align:left;border:1px solid #2a2a2a}
+.tbl td{padding:7px 10px;border:1px solid #222}
+.tbl td:last-child{text-align:right;font-weight:700}
+.tbl tr.max td{background:#1a2a1a;color:#4caf50}
+.governs{background:#1a2a1a;border:1px solid #2a3a2a;border-radius:6px;padding:12px 16px;margin-top:16px;font-size:13px}
+.note{color:#666;font-size:12px;margin-top:16px;line-height:1.6}
+</style></head><body>
+<div class=tb><a href="/tools/">&larr; Tools</a><h1>ASCE 7 Load Combinations</h1></div>
+<div class=wrap>
+<p style="color:#888;font-size:14px;margin-bottom:20px">LRFD Strength Design per ASCE 7-22 Section 2.3.1</p>
+<div class=grid2>
+<div>
+<label>D — Dead Load (psf or k)</label><input type=number id=D value=40 step=1 oninput=calc()>
+<label>L — Live Load (psf or k)</label><input type=number id=L value=50 step=1 oninput=calc()>
+<label>Lr — Roof Live Load (psf or k)</label><input type=number id=Lr value=20 step=1 oninput=calc()>
+<label>S — Snow Load (psf or k)</label><input type=number id=S value=15 step=1 oninput=calc()>
+</div>
+<div>
+<label>R — Rain Load (psf or k)</label><input type=number id=R value=0 step=1 oninput=calc()>
+<label>W — Wind Load (psf or k)</label><input type=number id=W value=25 step=1 oninput=calc()>
+<label>E — Earthquake Load (psf or k)</label><input type=number id=E value=0 step=1 oninput=calc()>
+<label>H — Lateral Earth Pressure (psf or k)</label><input type=number id=H value=0 step=1 oninput=calc()>
+</div>
+</div>
+<div id=out></div>
+<p class=note>ASCE 7-22 Table 2.3.1 LRFD load combinations (7 combinations). Snow load use Lr or S, whichever governs. For ASD (allowable stress design), see ASCE 7-22 Section 2.4. Wind and seismic loads not combined (use 0.7E for seismic direction). All loads in consistent units (psf, kips, or kN).</p>
+</div>
+<script>
+const COMBOS=[
+  {n:'1',expr:'1.4D',fn:(D,L,Lr,S,R,W,E,H)=>1.4*D},
+  {n:'2',expr:'1.2D + 1.6L + 0.5(Lr or S or R)',fn:(D,L,Lr,S,R,W,E,H)=>1.2*D+1.6*L+0.5*Math.max(Lr,S,R)},
+  {n:'3',expr:'1.2D + 1.6(Lr or S or R) + (L or 0.5W)',fn:(D,L,Lr,S,R,W,E,H)=>1.2*D+1.6*Math.max(Lr,S,R)+Math.max(L,0.5*W)},
+  {n:'4',expr:'1.2D + 1.0W + L + 0.5(Lr or S or R)',fn:(D,L,Lr,S,R,W,E,H)=>1.2*D+W+L+0.5*Math.max(Lr,S,R)},
+  {n:'5',expr:'0.9D + 1.0W',fn:(D,L,Lr,S,R,W,E,H)=>0.9*D+W},
+  {n:'6',expr:'1.2D + 1.0E + L + 0.2S',fn:(D,L,Lr,S,R,W,E,H)=>1.2*D+E+L+0.2*S},
+  {n:'7',expr:'0.9D + 1.0E',fn:(D,L,Lr,S,R,W,E,H)=>0.9*D+E},
+];
+function calc(){
+  const D=+document.getElementById('D').value;
+  const L=+document.getElementById('L').value;
+  const Lr=+document.getElementById('Lr').value;
+  const S=+document.getElementById('S').value;
+  const R=+document.getElementById('R').value;
+  const W=+document.getElementById('W').value;
+  const E=+document.getElementById('E').value;
+  const H=+document.getElementById('H').value;
+  const results=COMBOS.map(c=>({...c,val:c.fn(D,L,Lr,S,R,W,E,H)}));
+  const maxVal=Math.max(...results.map(r=>r.val));
+  const governs=results.find(r=>r.val===maxVal);
+  document.getElementById('out').innerHTML=`
+  <table class=tbl>
+    <thead><tr><th>#</th><th>Combination</th><th>Result</th></tr></thead>
+    <tbody>${results.map(r=>`<tr ${r.val===maxVal?'class=max':''}><td>${r.n}</td><td>${r.expr}</td><td>${r.val.toFixed(2)}</td></tr>`).join('')}</tbody>
+  </table>
+  <div class=governs>Governing combination: <b>#${governs.n}</b> — ${governs.expr} = <b>${maxVal.toFixed(2)}</b></div>`;
+}
+calc();
+</script></body></html>
