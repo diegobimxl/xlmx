@@ -202,13 +202,6 @@ nav{position:sticky;top:0;z-index:100;background:rgba(3,3,7,.88);backdrop-filter
     <div class="stat-blk"><div class="stat-n c2" id="statCats">—</div><div class="stat-l">Categories</div></div>
     <div class="stat-blk"><div class="stat-n c3">12</div><div class="stat-l">Pro Tools</div></div>
   </div>
-  <div class="search-center">
-    <div class="search-box">
-      <span class="srch-icon">&#9906;</span>
-      <input id="heroSearch" type="text" placeholder="Search tools..." autocomplete="off" oninput="onSearch(this.value)">
-      <span class="srch-clear" id="srchClear" onclick="clearSearch()">&#10005;</span>
-    </div>
-  </div>
   <button class="random-btn" onclick="goRandom()">&#9889; Random Tool</button>
 </section>
 
@@ -305,29 +298,28 @@ var TOOLS=[
   {n:'Floor Vibration',d:'AISC DG11 simplified walking excitation check with occupancy limits',c:'Structural',s:'live',u:'/tools/floor-vibration/'},
   {n:'Concrete Mix Design',d:'ACI 211.1 absolute volume method for proportioning concrete mixes.',c:'Structural',s:'live',u:'/tools/concrete-mix/'},
 
-  // -- MEP Engineering -------------------------------------------
-  {n:'HVAC Tonnage Estimator',d:'Quick HVAC cooling load estimate by area, use type, and climate zone.',c:'MEP Engineering',s:'soon'},
-  {n:'Plumbing Fixture Counter',d:'Calculate minimum fixture counts per IPC by occupancy type and load.',c:'MEP Engineering',s:'soon'},
-  {n:'Electrical Load Calculator',d:'Estimate connected and demand load for a building by use and area.',c:'MEP Engineering',s:'soon'},
-  {n:'Duct Size Reference',d:'Quick duct sizing by CFM with equal friction method and velocity check.',c:'MEP Engineering',s:'soon'},
-  {n:'Water Heater Sizing Tool',d:'Size domestic hot water heaters by occupancy, peak demand, and recovery.',c:'MEP Engineering',s:'soon'},
-  {n:'Lighting Power Density Checker',d:'Compare installed LPD against ASHRAE 90.1 allowances by space type.',c:'MEP Engineering',s:'soon'},
-  {n:'Pipe Sizing Reference',d:'Quick reference for water pipe sizing by fixture unit count and pressure.',c:'MEP Engineering',s:'soon'},
-  {n:'Generator Sizing Estimator',d:'Estimate standby generator kW requirements by critical load list.',c:'MEP Engineering',s:'live',u:'/tools/generator-sizing/'},
-  {n:'Fire Sprinkler Density Checker',d:'Verify sprinkler density against NFPA 13 hazard classification requirements.',c:'MEP Engineering',s:'soon'},
-  {n:'Grease Interceptor Sizing',d:'Size grease interceptors for commercial kitchen applications per PDI standards.',c:'MEP Engineering',s:'soon'},
-  {n:'Pipe Sizing',d:'Hazen-Williams pipe sizing: diameter by flow, or head loss by size.',c:'MEP Engineering',u:'/tools/pipe-sizing/',s:'live'},
-  {n:'Duct Sizing',d:'HVAC duct sizing via equal friction method. Round and rectangular equivalent.',c:'MEP Engineering',u:'/tools/duct-sizing/',s:'live'},
-  {n:'LPD Calculator',d:'Lighting power density vs ASHRAE 90.1 allowance. Space-by-space.',c:'MEP Engineering',u:'/tools/lpd-calc/',s:'live'},
-  {n:'HVAC Load Estimator',d:'Simplified Manual J cooling and heating load by building type and climate.',c:'MEP Engineering',u:'/tools/hvac-load/',s:'live'},
-  {n:'Plumbing Fixture Count',d:'IPC/IBC minimum fixture count by occupancy and male/female split.',c:'MEP Engineering',u:'/tools/plumbing-fixture/',s:'live'},
-  {n:'Acoustics STC/NRC',d:'STC assembly table, NRC finishes, room-to-room privacy calculator',c:'MEP Engineering',u:'/tools/acoustics-stc/',s:'live'},
-  {n:'Elevator Wait Time',d:'CIBSE/Barney elevator count, RTT, handling capacity',c:'MEP Engineering',u:'/tools/elevator-calc/',s:'live'},
-  {n:'HVAC Equipment Schedule',d:'Editable HVAC equipment schedule with totals and CSV export',c:'MEP Engineering',u:'/tools/hvac-equipment-schedule/',s:'live'},
-  {n:'Refrigerant GWP Reference',d:'ASHRAE 34 classification, GWP, phase-down status, charge calculator',c:'MEP Engineering',u:'/tools/hvac-refrigerant/',s:'live'},
-  {n:'HVAC Psychrometrics',d:'DB+RH, DB+WB, or DB+DP: enthalpy, humidity ratio, wet bulb, grains',c:'MEP Engineering',s:'live',u:'/tools/hvac-psych/'},
-  {n:'HVAC Duct Sizing',d:'Equal friction method for round and rectangular duct sizing per ASHRAE.',c:'MEP Engineering',s:'live',u:'/tools/hvac-duct-sizing/'},
-  {n:'Water Heater Sizing',d:'Domestic hot water demand and storage sizing per IPC and ASHRAE.',c:'MEP Engineering',s:'live',u:'/tools/water-heater/'},
+  {n:'HVAC Tonnage Estimator',d:'Quick HVAC cooling load estimate by area, use type, and climate zone.',c:'Engineering',s:'soon'},
+  {n:'Plumbing Fixture Counter',d:'Calculate minimum fixture counts per IPC by occupancy type and load.',c:'Engineering',s:'soon'},
+  {n:'Electrical Load Calculator',d:'Estimate connected and demand load for a building by use and area.',c:'Engineering',s:'soon'},
+  {n:'Duct Size Reference',d:'Quick duct sizing by CFM with equal friction method and velocity check.',c:'Engineering',s:'soon'},
+  {n:'Water Heater Sizing Tool',d:'Size domestic hot water heaters by occupancy, peak demand, and recovery.',c:'Engineering',s:'soon'},
+  {n:'Lighting Power Density Checker',d:'Compare installed LPD against ASHRAE 90.1 allowances by space type.',c:'Engineering',s:'soon'},
+  {n:'Pipe Sizing Reference',d:'Quick reference for water pipe sizing by fixture unit count and pressure.',c:'Engineering',s:'soon'},
+  {n:'Generator Sizing Estimator',d:'Estimate standby generator kW requirements by critical load list.',c:'Engineering',s:'live',u:'/tools/generator-sizing/'},
+  {n:'Fire Sprinkler Density Checker',d:'Verify sprinkler density against NFPA 13 hazard classification requirements.',c:'Engineering',s:'soon'},
+  {n:'Grease Interceptor Sizing',d:'Size grease interceptors for commercial kitchen applications per PDI standards.',c:'Engineering',s:'soon'},
+  {n:'Pipe Sizing',d:'Hazen-Williams pipe sizing: diameter by flow, or head loss by size.',c:'Engineering',u:'/tools/pipe-sizing/',s:'live'},
+  {n:'Duct Sizing',d:'HVAC duct sizing via equal friction method. Round and rectangular equivalent.',c:'Engineering',u:'/tools/duct-sizing/',s:'live'},
+  {n:'LPD Calculator',d:'Lighting power density vs ASHRAE 90.1 allowance. Space-by-space.',c:'Engineering',u:'/tools/lpd-calc/',s:'live'},
+  {n:'HVAC Load Estimator',d:'Simplified Manual J cooling and heating load by building type and climate.',c:'Engineering',u:'/tools/hvac-load/',s:'live'},
+  {n:'Plumbing Fixture Count',d:'IPC/IBC minimum fixture count by occupancy and male/female split.',c:'Engineering',u:'/tools/plumbing-fixture/',s:'live'},
+  {n:'Acoustics STC/NRC',d:'STC assembly table, NRC finishes, room-to-room privacy calculator',c:'Engineering',u:'/tools/acoustics-stc/',s:'live'},
+  {n:'Elevator Wait Time',d:'CIBSE/Barney elevator count, RTT, handling capacity',c:'Engineering',u:'/tools/elevator-calc/',s:'live'},
+  {n:'HVAC Equipment Schedule',d:'Editable HVAC equipment schedule with totals and CSV export',c:'Engineering',u:'/tools/hvac-equipment-schedule/',s:'live'},
+  {n:'Refrigerant GWP Reference',d:'ASHRAE 34 classification, GWP, phase-down status, charge calculator',c:'Engineering',u:'/tools/hvac-refrigerant/',s:'live'},
+  {n:'HVAC Psychrometrics',d:'DB+RH, DB+WB, or DB+DP: enthalpy, humidity ratio, wet bulb, grains',c:'Engineering',s:'live',u:'/tools/hvac-psych/'},
+  {n:'HVAC Duct Sizing',d:'Equal friction method for round and rectangular duct sizing per ASHRAE.',c:'Engineering',s:'live',u:'/tools/hvac-duct-sizing/'},
+  {n:'Water Heater Sizing',d:'Domestic hot water demand and storage sizing per IPC and ASHRAE.',c:'Engineering',s:'live',u:'/tools/water-heater/'},
 
   // -- Civil/Site ------------------------------------------------
   {n:'Cut & Fill Volume',d:'Average End Area and grid methods, swell/shrink, truck loads',c:'Civil/Site',u:'/tools/cut-fill/',s:'live'},
@@ -500,16 +492,15 @@ var PRO_SET=new Set(["ROI Sensitivity","Development Pro Forma","BIM Model Checke
 var CAT_COLORS={
   "BIM":                  {bg:"rgba(99,102,241,.1)",   bd:"rgba(99,102,241,.35)",  tx:"#818cf8",  ic:"⎕"},
   "VDC & Coordination":   {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⟳"},
-  "Architecture":         {bg:"rgba(167,139,250,.1)",  bd:"rgba(167,139,250,.35)", tx:"#c4b5fd",  ic:"⛲"},
+  "Architecture":         {bg:"rgba(167,139,250,.1)",  bd:"rgba(167,139,250,.35)", tx:"#c4b5fd",  ic:"⊤"},
   "Design":               {bg:"rgba(244,114,182,.09)", bd:"rgba(244,114,182,.3)",  tx:"#f472b6",  ic:"✎"},
   "Structural":           {bg:"rgba(245,158,11,.09)",  bd:"rgba(245,158,11,.3)",   tx:"#fbbf24",  ic:"△"},
-  "MEP Engineering":      {bg:"rgba(6,182,212,.09)",   bd:"rgba(6,182,212,.3)",    tx:"#22d3ee",  ic:"⚡"},
   "Construction":         {bg:"rgba(251,146,60,.09)",  bd:"rgba(251,146,60,.3)",   tx:"#fb923c",  ic:"⛏"},
   "Engineering":          {bg:"rgba(234,179,8,.09)",   bd:"rgba(234,179,8,.3)",    tx:"#eab308",  ic:"⚙"},
   "Civil/Site":           {bg:"rgba(52,211,153,.09)",  bd:"rgba(52,211,153,.3)",   tx:"#34d399",  ic:"◺"},
-  "Real Estate & Development": {bg:"rgba(200,169,110,.1)", bd:"rgba(200,169,110,.35)", tx:"#c8a96e", ic:"□"},
+  "Real Estate & Development": {bg:"rgba(200,169,110,.1)", bd:"rgba(200,169,110,.35)", tx:"#c8a96e", ic:"⌂"},
   "Project Management":   {bg:"rgba(168,85,247,.09)",  bd:"rgba(168,85,247,.3)",   tx:"#a855f7",  ic:"○"},
-  "Finance":              {bg:"rgba(34,197,94,.09)",   bd:"rgba(34,197,94,.3)",    tx:"#22c55e",  ic:"▷"},
+  "Finance":              {bg:"rgba(34,197,94,.09)",   bd:"rgba(34,197,94,.3)",    tx:"#22c55e",  ic:"$"},
   "Sustainability":       {bg:"rgba(16,185,129,.09)",  bd:"rgba(16,185,129,.3)",   tx:"#10b981",  ic:"❀"},
   "Legal":                {bg:"rgba(148,163,184,.09)", bd:"rgba(148,163,184,.3)",  tx:"#94a3b8",  ic:"⚖"},
   "Code Compliance":      {bg:"rgba(239,68,68,.09)",   bd:"rgba(239,68,68,.3)",    tx:"#ef4444",  ic:"✔"},
@@ -528,7 +519,7 @@ var curCat="All",curQ="",proMode=false,explored=new Set(),cmdSel=0,cmdList=[];
 document.getElementById("statLive").textContent=LIVE.length;
 document.getElementById("statCats").textContent=ALL_CATS.length;
 document.getElementById("liveCount").textContent=LIVE.length+" LIVE";
-document.getElementById("heroSearch").placeholder="Search "+LIVE.length+" tools...";
+var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search "+LIVE.length+" tools...";
 
 ﻿function renderCats(){
   var arena=document.getElementById('physicsArena');
@@ -577,7 +568,7 @@ document.getElementById("heroSearch").placeholder="Search "+LIVE.length+" tools.
     _physBodies.push(body);
     _bubbleCats.push(cat);
 
-    var col=cat==='All'?{tx:'#e2e8f0',ic:'\u229b',bg:'rgba(255,255,255,.06)',bd:'rgba(255,255,255,.2)'}:catColor(cat);
+    var col=cat==='All'?{tx:'#e2e8f0',ic:'∞',bg:'rgba(255,255,255,.06)',bd:'rgba(255,255,255,.2)'}:catColor(cat);
     var D=_BR*2;
     var cnt=cat==='All'?LIVE.length:LIVE.filter(function(t){return t.c===cat;}).length;
     var el=document.createElement('div');
@@ -733,9 +724,9 @@ function _onUp(e){
 }
 
 
-function setCat(c){curCat=c;curQ="";document.getElementById("heroSearch").value="";document.getElementById("srchClear").classList.remove("vis");_syncBubbleActive();renderGrid();explored.add(c);updatePower();}
-function onSearch(v){curQ=v.toLowerCase().trim();curCat="All";document.getElementById("srchClear").classList.toggle("vis",!!v);_syncBubbleActive();renderGrid();}
-function clearSearch(){curQ="";curCat="All";document.getElementById("heroSearch").value="";document.getElementById("srchClear").classList.remove("vis");_syncBubbleActive();renderGrid();}
+function setCat(c){curCat=c;curQ="";var _hs=document.getElementById("heroSearch");if(_hs)_hs.value="";var _sc=document.getElementById("srchClear");if(_sc)_sc.classList.remove("vis");_syncBubbleActive();renderGrid();explored.add(c);updatePower();}
+function onSearch(v){curQ=v.toLowerCase().trim();curCat="All";var _sc2=document.getElementById("srchClear");if(_sc2)_sc2.classList.toggle("vis",!!v);_syncBubbleActive();renderGrid();}
+function clearSearch(){curQ="";curCat="All";var _hs=document.getElementById("heroSearch");if(_hs)_hs.value="";var _sc=document.getElementById("srchClear");if(_sc)_sc.classList.remove("vis");_syncBubbleActive();renderGrid();}
 // catNav replaced by physics bubbles
 
 function updatePower(){var pct=Math.min(100,Math.round(explored.size/10*100));document.getElementById("powerFill").style.width=pct+"%";document.getElementById("powerLbl").textContent="EXPLORATION_POWER: "+pct+"%";if(pct>=100)clog("ok","power","ACHIEVEMENT_UNLOCKED: Explorer_Badge activated");}
