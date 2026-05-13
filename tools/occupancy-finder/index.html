@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Building Code Occupancy Finder | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}
+.tb h1{font-size:15px;font-weight:600}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 20px}
+.sub{color:#888;font-size:13px;margin-bottom:20px}
+.search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:200px;background:#111;border:1px solid #333;border-radius:6px;padding:10px 14px;color:#e8e8e8;font-size:14px}
+.search-bar input:focus{outline:none;border-color:#c8a96e}
+.search-bar select{background:#111;border:1px solid #333;border-radius:6px;padding:10px 14px;color:#e8e8e8;font-size:13px;cursor:pointer}
+.search-bar select:focus{outline:none;border-color:#c8a96e}
+.occ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:14px}
+@media(max-width:540px){.occ-grid{grid-template-columns:1fr}}
+.occ-card{background:#111;border:1px solid #222;border-radius:8px;padding:18px;transition:border-color .2s;cursor:pointer}
+.occ-card:hover{border-color:#444}
+.occ-card.hidden{display:none}
+.occ-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.occ-badge{font-size:18px;font-weight:800;background:var(--clr);color:#0d0d0d;padding:6px 12px;border-radius:5px;font-family:'JetBrains Mono',monospace;flex-shrink:0;min-width:52px;text-align:center}
+.occ-title{font-size:14px;font-weight:600;color:#e8e8e8;line-height:1.3}
+.occ-desc{font-size:12px;color:#888;margin-top:3px;line-height:1.5}
+.req-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.req-item{background:#1a1a1a;border-radius:5px;padding:8px 10px}
+.req-key{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.req-val{font-size:12px;color:#c8a96e;font-weight:600}
+.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;margin-right:4px;margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+.tag.high{background:rgba(248,113,113,.15);color:#f87171}
+.tag.med{background:rgba(251,191,36,.15);color:#fbbf24}
+.tag.low{background:rgba(74,222,128,.15);color:#4ade80}
+.detail-panel{display:none;background:#1a1a1a;border-radius:6px;padding:14px;margin-top:12px}
+.detail-panel.open{display:block}
+.detail-row{display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid #222}
+.detail-row:last-child{border-bottom:none}
+.detail-key{color:#888;width:160px;flex-shrink:0}
+.detail-val{color:#ccc}
+.no-results{text-align:center;color:#555;padding:40px;font-size:14px;display:none}
+.count-badge{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);color:#c8a96e;font-size:11px;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="tb">
+  <a href="/tools/">&#8592; Tools</a>
+  <h1>IBC Occupancy Classification Finder</h1>
+</div>
+<div class="wrap">
+  <p class="sub">Look up IBC 2021 use groups, occupant load factors, sprinkler requirements, exit counts, and height/area limits. Click any card to expand full requirements.</p>
+  <div class="search-bar">
+    <input type="text" id="srch" placeholder="Search by type, use, or occupancy code..." oninput="filterOcc()">
+    <select id="filter_risk" onchange="filterOcc()">
+      <option value="">All Risk Categories</option>
+      <option value="High">High Hazard</option>
+      <option value="Med">Moderate</option>
+      <option value="Low">Low Hazard</option>
+    </select>
+    <span class="count-badge" id="cnt">Loading...</span>
+  </div>
+  <div class="occ-grid" id="occ-grid"></div>
+  <div class="no-results" id="no-res">No occupancy types match your search.</div>
+  <p style="font-size:11px;color:#444;margin-top:24px;line-height:1.7">Reference: IBC 2021 Chapter 3 (Use and Occupancy Classification), Chapter 4 (Special Detailed Requirements), Chapter 5 (General Building Heights and Areas), Chapter 10 (Means of Egress). This tool is for preliminary design reference only. Always verify with the Authority Having Jurisdiction (AHJ) and current adopted code edition for your project location.</p>
+</div>
+<script>
+var OCCS=[
+  {code:'A-1',color:'#f87171',risk:'High',title:'Assembly — Fixed Seating',
+   desc:'Theaters, concert halls, arenas, motion picture theaters with fixed seating for production, viewing, or participation.',
+   load:15,units:'SF/occ (fixed seating per seat)',sprinkler:'Required >300 occ or >12,000 SF',exits:'2 min; 3 if >500 occ; 4 if >1,000 occ',
+   max_stories_va:'2',max_area_va:'9,500 SF per story',separation:'2-hr from other occupancies',
+   notes:'Panic hardware required. Aisle accessway minimum 12 in. Exit sign at every exit.',
+   examples:'Movie theaters, auditoriums, concert halls, arenas'},
+  {code:'A-2',color:'#f87171',risk:'High',title:'Assembly — Food & Drink',
+   desc:'Restaurants, nightclubs, bars, taverns, banquet halls, casinos with food and drink service.',
+   load:15,units:'SF/occ (gross)',sprinkler:'Required >100 occ or >5,000 SF',exits:'2 min; 3 if >500 occ',
+   max_stories_va:'2',max_area_va:'9,500 SF',separation:'1-hr from Group S or F',
+   notes:'Kitchen areas: 200 SF/occ. Standing space: 5 SF/occ. High fire load due to cooking.',
+   examples:'Restaurants, bars, nightclubs, casino gaming floors'},
+  {code:'A-3',color:'#f87171',risk:'High',title:'Assembly — Worship / Recreation',
+   desc:'Churches, community halls, lecture halls, libraries, museums, gymnasiums without spectator seating.',
+   load:15,units:'SF/occ (gaming/standing); 50 (libraries)',sprinkler:'Required >300 occ or >12,000 SF',exits:'2 min; 3 if >500 occ',
+   max_stories_va:'2',max_area_va:'9,500 SF',separation:'2-hr from H, I; 1-hr from others',
+   notes:'Sprinklers can allow unlimited height/area with Type I/II construction.',
+   examples:'Churches, community centers, gyms, libraries, art galleries, museums'},
+  {code:'A-4',color:'#f87171',risk:'High',title:'Assembly — Indoor Sport',
+   desc:'Indoor arenas, skating rinks, swimming pools, tennis courts with viewing areas.',
+   load:15,units:'SF/occ (standing); per seat for fixed',sprinkler:'Required >300 occ',exits:'2 if ≤500; 3 if >500',
+   max_stories_va:'2',max_area_va:'9,500 SF',separation:'2-hr from H and I occupancies',
+   notes:'High roof spaces qualify for alternative sprinkler spacing under NFPA 13.',
+   examples:'Indoor arenas, pool facilities, skating rinks'},
+  {code:'A-5',color:'#f87171',risk:'High',title:'Assembly — Outdoor',
+   desc:'Outdoor amusement parks, bleachers, grandstands, stadiums.',
+   load:15,units:'SF/occ gross; per seat for fixed',sprinkler:'Per fire code; usually not required outdoors',exits:'Per occupant load table',
+   max_stories_va:'N/A (outdoor)',max_area_va:'Unlimited (outdoor)',separation:'N/A',
+   notes:'Structural design for crowd loads, wind, snow per IBC Ch. 16.',
+   examples:'Bleachers, grandstands, outdoor stadiums, amusement areas'},
+  {code:'B',color:'#60a5fa',risk:'Low',title:'Business',
+   desc:'Office buildings, outpatient medical, banks, government buildings, fire stations, police stations.',
+   load:100,units:'SF/occ (gross)',sprinkler:'Required >55 ft in height or unlimited area',exits:'2 min; typically 2-3',
+   max_stories_va:'5',max_area_va:'28,000 SF per story',separation:'1-hr with sprinklers',
+   notes:'Most flexible occupancy. Many mixed-use projects base occupancy on B. Accessible route required.',
+   examples:'Offices, medical clinics, banks, government buildings, call centers'},
+  {code:'E',color:'#4ade80',risk:'Med',title:'Educational',
+   desc:'Schools K-12, day care for more than 6 children above age 2.5.',
+   load:20,units:'SF/occ (classroom)',sprinkler:'Required >1 story; unlimited area buildings',exits:'2 min; direct exit to exterior preferred',
+   max_stories_va:'4',max_area_va:'14,500 SF',separation:'2-hr from H; 1-hr from others',
+   notes:'NFPA 72 fire alarm required. Panic hardware on exit doors. Classroom max travel distance 150 ft.',
+   examples:'Elementary schools, middle schools, high schools, day care'},
+  {code:'F-1',color:'#fbbf24',risk:'Med',title:'Factory — Moderate Hazard',
+   desc:'Manufacturing, assembly, fabrication with moderate fire hazard materials.',
+   load:100,units:'SF/occ (gross)',sprinkler:'Required >2 stories or >12,000 SF',exits:'2 min',
+   max_stories_va:'8',max_area_va:'25,500 SF',separation:'2-hr from H, I, R; 1-hr from B',
+   notes:'Hazard-specific sprinkler design (NFPA 13). High-piled stock provisions may apply.',
+   examples:'Metal fabrication, auto assembly, woodworking, laundries'},
+  {code:'F-2',color:'#4ade80',risk:'Low',title:'Factory — Low Hazard',
+   desc:'Manufacturing with noncombustible materials or combustibles in limited quantities.',
+   load:100,units:'SF/occ',sprinkler:'Required if >5 stories or >65 ft',exits:'2 min',
+   max_stories_va:'11',max_area_va:'39,000 SF',separation:'1-hr from H, I, R',
+   notes:'Lower sprinkler threshold than F-1. Common for food processing, beverage, ceramics.',
+   examples:'Ceramics, beverages, bricks, food processing, foundries'},
+  {code:'H-1',color:'#f87171',risk:'High',title:'High Hazard — Detonation',
+   desc:'Buildings containing materials that pose a detonation hazard.',
+   load:25,units:'SF/occ',sprinkler:'Required always',exits:'2 min; direct to grade preferred',
+   max_stories_va:'1',max_area_va:'Per fire code table',separation:'Special setbacks from property lines and other buildings',
+   notes:'Requires explosion control, blast-resistant construction, special fire suppression. AHJ approval critical.',
+   examples:'Explosives storage, ammonium nitrate, blasting agents'},
+  {code:'H-2',color:'#f87171',risk:'High',title:'High Hazard — Deflagration',
+   desc:'Buildings with deflagration materials including flammable gases and liquids.',
+   load:25,units:'SF/occ',sprinkler:'Required always',exits:'2 min; direct to exterior',
+   max_stories_va:'1',max_area_va:'Per IFC table',separation:'2-hr or per setback requirements',
+   notes:'Explosion control and mechanical ventilation required. Purge systems for gas detection.',
+   examples:'Flammable liquid storage, propane, industrial gases'},
+  {code:'I-1',color:'#f59e0b',risk:'High',title:'Institutional — Supervised',
+   desc:'24-hour residential care with inhabitants needing limited assistance (16+ persons).',
+   load:200,units:'SF/occ (sleeping)',sprinkler:'Required always',exits:'2 min',
+   max_stories_va:'4',max_area_va:'9,000 SF',separation:'2-hr from all groups',
+   notes:'NFPA 72 fire alarm required. Corridor width min 44 in. Smoke compartments required above 2 stories.',
+   examples:'Assisted living, group homes, congregate care, halfway houses'},
+  {code:'I-2',color:'#f59e0b',risk:'High',title:'Institutional — Medical',
+   desc:'24-hour medical, psychiatric, or nursing care (5+ non-ambulatory occupants).',
+   load:120,units:'SF/occ (inpatient)',sprinkler:'Required always',exits:'2 min; 2 smoke compartments per floor',
+   max_stories_va:'Unlimited with sprinklers',max_area_va:'Unlimited with sprinklers',separation:'2-hr from all groups',
+   notes:'Defend-in-place strategy. CMS requirements apply to hospitals. NFPA 101 Life Safety Code alternative.',
+   examples:'Hospitals, nursing homes, psychiatric facilities, ICUs'},
+  {code:'I-3',color:'#f59e0b',risk:'High',title:'Institutional — Restrained',
+   desc:'Detainees under restraint: prisons, jails, correctional facilities.',
+   load:35,units:'SF/occ (sleeping)',sprinkler:'Required always',exits:'Per security-level requirements',
+   max_stories_va:'4',max_area_va:'9,000 SF',separation:'2-hr from all groups',
+   notes:'5 security levels (Condition 1-5). Supervised evacuation. Specially classified key control.',
+   examples:'Prisons, jails, juvenile detention, mental health commitment'},
+  {code:'M',color:'#c8a96e',risk:'Med',title:'Mercantile',
+   desc:'Retail, wholesale, markets, department stores for display and sale of merchandise.',
+   load:60,units:'SF/occ (sales floor)',sprinkler:'Required >3 stories or >12,000 SF',exits:'2 min; 3 if >500 occ',
+   max_stories_va:'4',max_area_va:'21,500 SF',separation:'1-hr from H and I',
+   notes:'Mall regulations in IBC Section 402 for covered malls. High-piled stock provisions (IFC Ch. 32).',
+   examples:'Retail stores, supermarkets, department stores, drug stores, gas stations'},
+  {code:'R-1',color:'#a78bfa',risk:'Med',title:'Residential — Transient',
+   desc:'Transient occupancy (lodging less than 30 days): hotels, motels, boarding houses.',
+   load:200,units:'SF/occ (sleeping)',sprinkler:'Required if >3 stories',exits:'2 per floor min',
+   max_stories_va:'4 (Type VA)',max_area_va:'12,000 SF',separation:'1-hr between dwelling units',
+   notes:'NFPA 72 fire alarm + smoke alarms in each unit. ADA requires accessible rooms per 2010 ADA Standards.',
+   examples:'Hotels, motels, boarding houses, extended stay'},
+  {code:'R-2',color:'#a78bfa',risk:'Med',title:'Residential — Permanent Multi',
+   desc:'Permanent residential occupancy: apartments, condominiums, dormitories (3+ units).',
+   load:200,units:'SF/occ per unit',sprinkler:'Required if >3 stories',exits:'2 min per floor',
+   max_stories_va:'4 (Type VA)',max_area_va:'12,000 SF',separation:'1-hr between units; 2-hr above 4 stories',
+   notes:'Most common residential code path. Smoke alarms in each bedroom and common areas. Energy code ASHRAE 90.1 or IECC.',
+   examples:'Apartments, condos, townhomes, dormitories, fraternities'},
+  {code:'R-3',color:'#a78bfa',risk:'Low',title:'Residential — 1 and 2 Family',
+   desc:'Single-family and two-family dwellings, townhomes not more than 3 stories.',
+   load:200,units:'SF/occ',sprinkler:'IRC requirement varies by state',exits:'1 exit; egress window from sleeping rooms',
+   max_stories_va:'3',max_area_va:'N/A (IRC governs)',separation:'N/A (detached)',
+   notes:'Governed by IRC rather than IBC in most jurisdictions. Energy code: IECC.',
+   examples:'Single family homes, duplexes, townhomes ≤3 stories'},
+  {code:'S-1',color:'#94a3b8',risk:'Med',title:'Storage — Moderate Hazard',
+   desc:'Storage of moderate-hazard materials: combustible goods, used vehicles, furniture.',
+   load:300,units:'SF/occ',sprinkler:'Required >2 stories or >12,000 SF; high-piled stock',exits:'2 min',
+   max_stories_va:'4',max_area_va:'17,500 SF',separation:'2-hr from H, I, R',
+   notes:'High-piled combustible storage requires in-rack sprinklers per NFPA 13. Forklift areas: seismic anchorage.',
+   examples:'Mini-storage, warehouses with combustibles, used car lots, furniture storage'},
+  {code:'S-2',color:'#4ade80',risk:'Low',title:'Storage — Low Hazard',
+   desc:'Storage of noncombustible materials: parking garages, grain silos, glass.',
+   load:300,units:'SF/occ',sprinkler:'Required in enclosed parking garages',exits:'2 min',
+   max_stories_va:'11',max_area_va:'79,000 SF (open garage)',separation:'1-hr from B, M',
+   notes:'Parking garages: vehicle exhaust ventilation required (ASHRAE 62.1). Carbon monoxide detection required.',
+   examples:'Parking garages, cold storage, noncombustible warehouses, grain silos'},
+  {code:'U',color:'#94a3b8',risk:'Low',title:'Utility and Miscellaneous',
+   desc:'Agricultural buildings, carports, fences over 6 ft, grain silos, greenhouses, livestock shelters, private garages, sheds, tanks, towers.',
+   load:100,units:'SF/occ',sprinkler:'Generally not required',exits:'1 min',
+   max_stories_va:'Per specific use',max_area_va:'Per specific use',separation:'1-hr where required',
+   notes:'Minimal code requirements. Many exempt from permit requirements. Check local ordinance.',
+   examples:'Agricultural buildings, carports, private garages, greenhouses, sheds'}
+];
+var expanded={};
+function filterOcc(){
+  var q=document.getElementById('srch').value.toLowerCase();
+  var risk=document.getElementById('filter_risk').value;
+  var grid=document.getElementById('occ-grid');
+  var cards=grid.querySelectorAll('.occ-card');
+  var visible=0;
+  OCCS.forEach(function(o,i){
+    var card=cards[i];
+    var match=true;
+    if(q){
+      var haystack=(o.code+' '+o.title+' '+o.desc+' '+o.examples).toLowerCase();
+      match=haystack.includes(q);
+    }
+    if(risk&&o.risk!==risk) match=false;
+    card.classList.toggle('hidden',!match);
+    if(match) visible++;
+  });
+  document.getElementById('cnt').textContent=visible+' types';
+  document.getElementById('no-res').style.display=visible===0?'block':'none';
+}
+function toggleCard(i){
+  expanded[i]=!expanded[i];
+  var panel=document.getElementById('det-'+i);
+  if(panel) panel.classList.toggle('open',!!expanded[i]);
+}
+function render(){
+  var html='';
+  OCCS.forEach(function(o,i){
+    var riskCls=o.risk==='High'?'high':o.risk==='Med'?'med':'low';
+    html+='<div class="occ-card" onclick="toggleCard('+i+')">';
+    html+='<div class="occ-top">';
+    html+='<div class="occ-badge" style="--clr:'+o.color+';background:'+o.color+'">'+o.code+'</div>';
+    html+='<div><div class="occ-title">'+o.title+'</div><div class="occ-desc">'+o.desc+'</div>';
+    html+='<span class="tag '+riskCls+'">'+o.risk+' Risk</span>';
+    html+='</div></div>';
+    html+='<div class="req-grid">';
+    html+='<div class="req-item"><div class="req-key">Occupant Load Factor</div><div class="req-val">'+o.load+' '+o.units+'</div></div>';
+    html+='<div class="req-item"><div class="req-key">Sprinkler Requirement</div><div class="req-val">'+o.sprinkler+'</div></div>';
+    html+='<div class="req-item"><div class="req-key">Exit Requirements</div><div class="req-val">'+o.exits+'</div></div>';
+    html+='<div class="req-item"><div class="req-key">Max Stories (Type VA)</div><div class="req-val">'+o.max_stories_va+'</div></div>';
+    html+='</div>';
+    html+='<div class="detail-panel" id="det-'+i+'">';
+    html+='<div class="detail-row"><div class="detail-key">Max Area (Type VA)</div><div class="detail-val">'+o.max_area_va+'</div></div>';
+    html+='<div class="detail-row"><div class="detail-key">Separation</div><div class="detail-val">'+o.separation+'</div></div>';
+    html+='<div class="detail-row"><div class="detail-key">Key Notes</div><div class="detail-val">'+o.notes+'</div></div>';
+    html+='<div class="detail-row"><div class="detail-key">Common Examples</div><div class="detail-val">'+o.examples+'</div></div>';
+    html+='</div>';
+    html+='</div>';
+  });
+  document.getElementById('occ-grid').innerHTML=html;
+  document.getElementById('cnt').textContent=OCCS.length+' types';
+}
+render();
+</script>
+</body>
+</html>

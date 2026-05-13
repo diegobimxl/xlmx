@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEED Credit Tracker | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}
+.tb h1{font-size:15px;font-weight:600;flex:1}
+.tb-right{display:flex;align-items:center;gap:10px}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px}
+.score-hdr{background:#111;border:1px solid #222;border-radius:10px;padding:20px 24px;margin-bottom:24px;display:flex;gap:32px;align-items:center;flex-wrap:wrap}
+.sc-num{font-size:52px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace}
+.sc-cert{font-size:15px;font-weight:700;margin-top:4px}
+.sc-detail{flex:1;min-width:200px}
+.sc-row{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px}
+.sc-bar{height:10px;background:#1e1e1e;border-radius:5px;overflow:hidden}
+.sc-fill{height:100%;border-radius:5px;transition:width .4s}
+.thresholds{display:flex;justify-content:space-between;font-size:10px;color:#444;margin-top:3px}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{background:#1a1a1a;border:1px solid #222;border-radius:6px;padding:8px 14px;text-align:center}
+.stat-val{font-size:18px;font-weight:700;color:#c8a96e}
+.stat-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.cat-block{background:#111;border:1px solid #222;border-radius:8px;margin-bottom:12px;overflow:hidden}
+.cat-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none}
+.cat-hdr:hover{background:rgba(255,255,255,.02)}
+.cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cat-name{font-size:13px;font-weight:600;flex:1}
+.cat-pts{font-size:12px;color:#888}
+.cat-chevron{font-size:10px;color:#555;transition:transform .2s}
+.cat-chevron.open{transform:rotate(90deg)}
+.credit-list{border-top:1px solid #1e1e1e}
+.credit{display:grid;grid-template-columns:1fr auto auto;align-items:start;gap:12px;padding:10px 16px;border-bottom:1px solid #1a1a1a;font-size:12px}
+.credit:last-child{border-bottom:none}
+.credit:hover{background:rgba(255,255,255,.015)}
+.cr-name{color:#ccc;padding-top:2px}
+.cr-note{font-size:10px;color:#555;margin-top:3px;cursor:pointer;font-style:italic}
+.cr-note:hover{color:#888}
+.cr-pts{display:flex;align-items:center;gap:6px;justify-content:flex-end;white-space:nowrap}
+.pts-max{color:#555;font-size:11px}
+.pts-earn{font-size:12px;font-weight:700;min-width:20px;text-align:center}
+.cr-status{flex-shrink:0}
+select.st{background:#1a1a1a;border:1px solid #2a2a2a;color:#e8e8e8;font-size:11px;padding:4px 6px;border-radius:4px;cursor:pointer;width:110px}
+select.st:focus{outline:none;border-color:#c8a96e}
+.st-pursuing{border-color:#3b82f6!important;color:#60a5fa!important}
+.st-achieved{border-color:#22c55e!important;color:#4ade80!important}
+.st-at-risk{border-color:#f59e0b!important;color:#fbbf24!important}
+.st-no{color:#555!important}
+.export-btn{background:#1e1e1e;border:1px solid #333;color:#c8a96e;padding:7px 14px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600}
+.export-btn:hover{background:#2a2a2a}
+.reset-btn{background:transparent;border:1px solid #333;color:#666;padding:7px 14px;border-radius:5px;font-size:12px;cursor:pointer}
+.reset-btn:hover{color:#aaa;border-color:#555}
+.note-input{background:#1a1a1a;border:1px solid #2a2a2a;color:#aaa;padding:4px 8px;border-radius:4px;font-size:11px;width:200px;margin-top:4px;display:none}
+.note-input:focus{outline:none;border-color:#c8a96e;display:block}
+.cert-cert{color:#a07030}
+.cert-silver{color:#aaa}
+.cert-gold{color:#c8a96e}
+.cert-plat{color:#5cf}
+.cert-none{color:#555}
+</style>
+</head>
+<body>
+<div class="tb">
+  <a href="/tools/">&#8592; Tools</a>
+  <h1>LEED v4 BD+C Credit Tracker</h1>
+  <div class="tb-right">
+    <button class="reset-btn" onclick="resetAll()">Reset</button>
+    <button class="export-btn" onclick="exportSummary()">Export CSV</button>
+  </div>
+</div>
+<div class="wrap">
+  <div class="score-hdr">
+    <div>
+      <div class="sc-num" id="sc-num">0</div>
+      <div class="sc-cert cert-none" id="sc-cert">Not Certified</div>
+    </div>
+    <div class="sc-detail">
+      <div class="sc-row"><span>Points toward 110 maximum</span><span id="sc-pct">0%</span></div>
+      <div class="sc-bar"><div class="sc-fill" id="sc-fill" style="width:0%;background:#555"></div></div>
+      <div class="thresholds"><span>0</span><span>Cert 40</span><span>Silver 50</span><span>Gold 60</span><span>Plat 80</span><span>110</span></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="stat-ach">0</div><div class="stat-lbl">Achieved</div></div>
+      <div class="stat"><div class="stat-val" id="stat-pur">0</div><div class="stat-lbl">Pursuing</div></div>
+      <div class="stat"><div class="stat-val" id="stat-risk">0</div><div class="stat-lbl">At Risk</div></div>
+      <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Projected</div></div>
+    </div>
+  </div>
+  <div id="cats"></div>
+</div>
+<script>
+var DATA=[
+  {id:'ip',name:'Integrative Process',color:'#9c27b0',credits:[
+    {n:'Integrative Process',max:2,pts:0,status:'no',note:''}
+  ]},
+  {id:'loc',name:'Location and Transportation',color:'#3f51b5',credits:[
+    {n:'LEED for Neighborhood Development',max:16,pts:0,status:'no',note:''},
+    {n:'Sensitive Land Protection',max:2,pts:0,status:'no',note:''},
+    {n:'High Priority Site',max:3,pts:0,status:'no',note:''},
+    {n:'Surrounding Density & Diverse Uses',max:5,pts:0,status:'no',note:''},
+    {n:'Access to Quality Transit',max:5,pts:0,status:'no',note:''},
+    {n:'Bicycle Facilities',max:1,pts:0,status:'no',note:''},
+    {n:'Reduced Parking Footprint',max:1,pts:0,status:'no',note:''},
+    {n:'Green Vehicles',max:1,pts:0,status:'no',note:''}
+  ]},
+  {id:'ss',name:'Sustainable Sites',color:'#4caf50',credits:[
+    {n:'Construction Activity Pollution Prevention',max:1,pts:0,status:'no',note:''},
+    {n:'Site Assessment',max:1,pts:0,status:'no',note:''},
+    {n:'Site Development — Protect or Restore Habitat',max:2,pts:0,status:'no',note:''},
+    {n:'Open Space',max:1,pts:0,status:'no',note:''},
+    {n:'Rainwater Management',max:3,pts:0,status:'no',note:''},
+    {n:'Heat Island Reduction',max:2,pts:0,status:'no',note:''},
+    {n:'Light Pollution Reduction',max:1,pts:0,status:'no',note:''}
+  ]},
+  {id:'we',name:'Water Efficiency',color:'#2196f3',credits:[
+    {n:'Outdoor Water Use Reduction',max:2,pts:0,status:'no',note:''},
+    {n:'Indoor Water Use Reduction',max:6,pts:0,status:'no',note:''},
+    {n:'Building-Level Water Metering',max:1,pts:0,status:'no',note:''},
+    {n:'Cooling Tower Water Use',max:2,pts:0,status:'no',note:''}
+  ]},
+  {id:'ea',name:'Energy and Atmosphere',color:'#ff9800',credits:[
+    {n:'Enhanced Commissioning',max:6,pts:0,status:'no',note:''},
+    {n:'Optimize Energy Performance',max:18,pts:0,status:'no',note:''},
+    {n:'Advanced Energy Metering',max:1,pts:0,status:'no',note:''},
+    {n:'Demand Response',max:2,pts:0,status:'no',note:''},
+    {n:'Renewable Energy Production',max:3,pts:0,status:'no',note:''},
+    {n:'Enhanced Refrigerant Management',max:1,pts:0,status:'no',note:''},
+    {n:'Green Power & Carbon Offsets',max:2,pts:0,status:'no',note:''}
+  ]},
+  {id:'mr',name:'Materials and Resources',color:'#795548',credits:[
+    {n:'Construction Waste Management',max:2,pts:0,status:'no',note:''},
+    {n:'Building Product Disclosure — EPD',max:2,pts:0,status:'no',note:''},
+    {n:'Building Product Disclosure — Sourcing',max:2,pts:0,status:'no',note:''},
+    {n:'Building Product Disclosure — Optimization',max:2,pts:0,status:'no',note:''},
+    {n:'Construction & Demolition Waste',max:2,pts:0,status:'no',note:''}
+  ]},
+  {id:'eq',name:'Indoor Environmental Quality',color:'#009688',credits:[
+    {n:'Enhanced IAQ Strategies',max:2,pts:0,status:'no',note:''},
+    {n:'Low-Emitting Materials',max:3,pts:0,status:'no',note:''},
+    {n:'Construction IAQ Management',max:1,pts:0,status:'no',note:''},
+    {n:'Indoor Air Quality Assessment',max:2,pts:0,status:'no',note:''},
+    {n:'Thermal Comfort',max:1,pts:0,status:'no',note:''},
+    {n:'Interior Lighting',max:2,pts:0,status:'no',note:''},
+    {n:'Daylight',max:3,pts:0,status:'no',note:''},
+    {n:'Quality Views',max:1,pts:0,status:'no',note:''},
+    {n:'Acoustic Performance',max:1,pts:0,status:'no',note:''}
+  ]},
+  {id:'in',name:'Innovation',color:'#e91e63',credits:[
+    {n:'Innovation Credits',max:5,pts:0,status:'no',note:''},
+    {n:'LEED Accredited Professional',max:1,pts:0,status:'no',note:''}
+  ]},
+  {id:'rp',name:'Regional Priority',color:'#607d8b',credits:[
+    {n:'Regional Priority Credits',max:4,pts:0,status:'no',note:''}
+  ]}
+];
+var OPEN={};
+function certLevel(pts){
+  if(pts>=80)return{lbl:'Platinum',cls:'cert-plat',color:'#5cf'};
+  if(pts>=60)return{lbl:'Gold',cls:'cert-gold',color:'#c8a96e'};
+  if(pts>=50)return{lbl:'Silver',cls:'cert-silver',color:'#aaa'};
+  if(pts>=40)return{lbl:'Certified',cls:'cert-cert',color:'#a07030'};
+  return{lbl:'Not Certified',cls:'cert-none',color:'#555'};
+}
+function updateScore(){
+  var ach=0,pur=0,risk=0;
+  DATA.forEach(function(cat){cat.credits.forEach(function(cr){
+    if(cr.status==='achieved'){ach+=cr.pts;}
+    else if(cr.status==='pursuing'){pur+=cr.pts;}
+    else if(cr.status==='at-risk'){risk+=cr.pts;}
+  });});
+  var proj=ach+pur+risk;
+  var cert=certLevel(proj);
+  document.getElementById('sc-num').textContent=proj;
+  document.getElementById('sc-num').style.color=cert.color;
+  var el=document.getElementById('sc-cert');
+  el.textContent=cert.lbl;
+  el.className='sc-cert '+cert.cls;
+  document.getElementById('sc-pct').textContent=Math.round(proj/110*100)+'%';
+  document.getElementById('sc-fill').style.width=Math.min(100,proj/110*100).toFixed(0)+'%';
+  document.getElementById('sc-fill').style.background=cert.color;
+  document.getElementById('stat-ach').textContent=ach;
+  document.getElementById('stat-pur').textContent=pur;
+  document.getElementById('stat-risk').textContent=risk;
+  document.getElementById('stat-total').textContent=proj;
+}
+function catPts(cat){
+  var a=0,max=0;
+  cat.credits.forEach(function(cr){
+    if(cr.status==='achieved'||cr.status==='pursuing'||cr.status==='at-risk') a+=cr.pts;
+    max+=cr.max;
+  });
+  return {a:a,max:max};
+}
+function setStatus(ci,cri,val){
+  DATA[ci].credits[cri].status=val;
+  var pts=parseInt(document.getElementById('pts_'+ci+'_'+cri).value)||0;
+  DATA[ci].credits[cri].pts=pts;
+  var s=document.getElementById('st_'+ci+'_'+cri);
+  s.className='st st-'+val;
+  var p=document.getElementById('pts_'+ci+'_'+cri);
+  p.style.display=(val==='no')?'none':'inline-block';
+  updateCatHeader(ci);
+  updateScore();
+}
+function setPts(ci,cri,val){
+  var v=Math.min(DATA[ci].credits[cri].max,Math.max(0,parseInt(val)||0));
+  DATA[ci].credits[cri].pts=v;
+  updateCatHeader(ci);
+  updateScore();
+}
+function updateCatHeader(ci){
+  var p=catPts(DATA[ci]);
+  var el=document.getElementById('cat-pts-'+ci);
+  if(el) el.textContent=p.a+' / '+p.max+' pts';
+}
+function toggleCat(ci){
+  OPEN[ci]=!OPEN[ci];
+  var list=document.getElementById('clist-'+ci);
+  var chev=document.getElementById('chev-'+ci);
+  if(list) list.style.display=OPEN[ci]?'block':'none';
+  if(chev) chev.className='cat-chevron'+(OPEN[ci]?' open':'');
+}
+function editNote(ci,cri){
+  var inp=document.getElementById('note_'+ci+'_'+cri);
+  if(!inp) return;
+  if(inp.style.display==='none'||inp.style.display===''){
+    inp.style.display='block';inp.focus();
+  } else {inp.style.display='none';}
+}
+function saveNote(ci,cri){
+  var inp=document.getElementById('note_'+ci+'_'+cri);
+  if(!inp) return;
+  DATA[ci].credits[cri].note=inp.value;
+  var lbl=document.getElementById('notelbl_'+ci+'_'+cri);
+  if(lbl) lbl.textContent=inp.value||'+ add note';
+}
+function renderAll(){
+  var html='';
+  DATA.forEach(function(cat,ci){
+    var p=catPts(cat);
+    html+='<div class="cat-block"><div class="cat-hdr" onclick="toggleCat('+ci+')">';
+    html+='<div class="cat-dot" style="background:'+cat.color+'"></div>';
+    html+='<span class="cat-name" style="color:'+cat.color+'">'+cat.name+'</span>';
+    html+='<span class="cat-pts" id="cat-pts-'+ci+'">'+p.a+' / '+p.max+' pts</span>';
+    html+='<span class="cat-chevron" id="chev-'+ci+'">&#9654;</span></div>';
+    html+='<div class="credit-list" id="clist-'+ci+'" style="display:none">';
+    cat.credits.forEach(function(cr,cri){
+      html+='<div class="credit">';
+      html+='<div><div class="cr-name">'+cr.n+'</div>';
+      html+='<div class="cr-note" id="notelbl_'+ci+'_'+cri+'" onclick="editNote('+ci+','+cri+')">+ add note</div>';
+      html+='<input class="note-input" id="note_'+ci+'_'+cri+'" type="text" placeholder="notes..." onblur="saveNote('+ci+','+cri+')">';
+      html+='</div>';
+      html+='<div class="cr-pts">';
+      html+='<span class="pts-max">max '+cr.max+'</span>';
+      html+='<input type="number" min="0" max="'+cr.max+'" value="0" style="width:44px;background:#1a1a1a;border:1px solid #2a2a2a;color:#c8a96e;padding:4px;border-radius:4px;font-size:12px;text-align:center;display:none" id="pts_'+ci+'_'+cri+'" onchange="setPts('+ci+','+cri+',this.value)">';
+      html+='</div>';
+      html+='<select class="st st-no" id="st_'+ci+'_'+cri+'" onchange="setStatus('+ci+','+cri+',this.value)">';
+      html+='<option value="no">Not Pursuing</option>';
+      html+='<option value="pursuing">Pursuing</option>';
+      html+='<option value="achieved">Achieved</option>';
+      html+='<option value="at-risk">At Risk</option>';
+      html+='</select>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('cats').innerHTML=html;
+}
+function resetAll(){
+  DATA.forEach(function(cat){cat.credits.forEach(function(cr){cr.pts=0;cr.status='no';cr.note='';});});
+  renderAll();updateScore();
+}
+function exportSummary(){
+  var rows=['Category,Credit,Max Pts,Status,Points,Note'];
+  DATA.forEach(function(cat){cat.credits.forEach(function(cr){
+    rows.push([cat.name,'"'+cr.n+'"',cr.max,cr.status,cr.pts,'"'+cr.note+'"'].join(','));
+  });});
+  var blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='leed-tracker.csv';a.click();
+}
+renderAll();
+updateScore();
+</script>
+</body>
+</html>

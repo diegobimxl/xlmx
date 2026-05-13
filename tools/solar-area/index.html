@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar Panel Area Estimator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}
+.tb h1{font-size:15px;font-weight:600}
+.wrap{max-width:900px;margin:0 auto;padding:28px 20px}
+.sub{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h2{font-size:12px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#f59e0b}
+.btn{background:#f59e0b;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#fbbf24}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0 20px}
+@media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:#111;border:1px solid #222;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#f59e0b;font-family:'JetBrains Mono',monospace}
+.kpi-lbl{font-size:10px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.section{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.section h3{font-size:12px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.res-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.res-row:last-child{border-bottom:none}
+.res-val{color:#f59e0b;font-weight:600;font-family:'JetBrains Mono',monospace}
+.check{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#1a1a1a;border-radius:6px;margin-bottom:8px;font-size:12px}
+.badge{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700}
+.badge.pass{background:#1a2a1a;color:#4ade80}
+.badge.fail{background:#2a1010;color:#f87171}
+.badge.warn{background:#2a2010;color:#fbbf24}
+.visual{margin-top:16px;background:#1a1a1a;border-radius:6px;padding:16px;text-align:center}
+.roof-diagram{position:relative;display:inline-block}
+.roof-bg{fill:#1e2a1e;stroke:#2a3a2a;stroke-width:1}
+.panel-fill{fill:#f59e0b;opacity:0.7}
+.text-info{fill:#888;font-size:11px;font-family:monospace}
+.total-row{display:flex;justify-content:space-between;padding:12px 0;border-top:2px solid #333;margin-top:8px;font-weight:700;font-size:14px}
+.total-val{color:#f59e0b;font-family:'JetBrains Mono',monospace}
+.note{font-size:11px;color:#555;margin-top:12px;font-style:italic;line-height:1.6}
+.out-wrap{display:none}
+.range-wrap{display:flex;align-items:center;gap:8px}
+.range-wrap input[type=range]{flex:1;accent-color:#f59e0b}
+.range-num{width:50px;text-align:center;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:6px 4px;color:#f59e0b;font-size:13px}
+</style>
+</head>
+<body>
+<div class="tb">
+  <a href="/tools/">&#8592; Tools</a>
+  <h1>Solar Panel Area Estimator</h1>
+</div>
+<div class="wrap">
+  <p class="sub">Estimate PV array area, panel count, annual generation, payback, and CO2 avoided. Based on NREL PVWatts methodology for system sizing.</p>
+  <div class="grid2">
+    <div class="card">
+      <h2>Building Load</h2>
+      <label>Annual Energy Consumption (kWh/yr)</label>
+      <input id="kwh" type="number" value="500000" step="10000">
+      <label>Solar Offset Target (%)</label>
+      <div class="range-wrap">
+        <input type="range" id="off_rng" min="10" max="100" value="30" step="5" oninput="document.getElementById('off_num').value=this.value">
+        <input type="number" id="off_num" value="30" min="10" max="100" step="5" class="range-num" oninput="document.getElementById('off_rng').value=this.value">
+        <span style="font-size:12px;color:#888">%</span>
+      </div>
+      <label>Building Type</label>
+      <select id="btype" onchange="applyLoad()">
+        <option value="office">Office</option>
+        <option value="multifamily">Multifamily</option>
+        <option value="retail">Retail</option>
+        <option value="school">School</option>
+        <option value="warehouse">Warehouse</option>
+        <option value="custom" selected>Custom (use above value)</option>
+      </select>
+      <label>Electricity Rate ($/kWh)</label>
+      <input id="rate" type="number" value="0.14" step="0.01">
+      <label>System Cost ($/Watt installed)</label>
+      <input id="cost_w" type="number" value="2.80" step="0.10">
+    </div>
+    <div class="card">
+      <h2>Solar Resource &amp; Panel Specs</h2>
+      <label>Location / Peak Sun Hours (hr/day)</label>
+      <select id="psh" onchange="updatePSH()">
+        <option value="4.5">New York, NY — 4.5 hr</option>
+        <option value="3.5">Chicago, IL — 3.5 hr</option>
+        <option value="5.5">Houston, TX — 5.5 hr</option>
+        <option value="6.5">Phoenix, AZ — 6.5 hr</option>
+        <option value="5.5">Los Angeles, CA — 5.5 hr</option>
+        <option value="5.0">Atlanta, GA — 5.0 hr</option>
+        <option value="4.5">Washington DC — 4.5 hr</option>
+        <option value="5.5">Miami, FL — 5.5 hr</option>
+        <option value="5.5">Denver, CO — 5.5 hr</option>
+        <option value="5.5">Dallas, TX — 5.5 hr</option>
+        <option value="5.0">Salt Lake City, UT — 5.0 hr</option>
+        <option value="3.5">Seattle, WA — 3.5 hr</option>
+        <option value="5.5">San Francisco, CA — 5.5 hr</option>
+        <option value="custom">Custom...</option>
+      </select>
+      <label>Peak Sun Hours (hr/day)</label>
+      <input id="psh_val" type="number" value="4.5" step="0.1">
+      <label>Panel Power Rating (Watts)</label>
+      <select id="panel_w">
+        <option value="300">Standard — 300 W</option>
+        <option value="350">Standard High Eff — 350 W</option>
+        <option value="400" selected>Premium — 400 W</option>
+        <option value="450">High Power — 450 W</option>
+        <option value="500">Commercial — 500 W</option>
+      </select>
+      <label>Panel Efficiency (%)</label>
+      <input id="eff" type="number" value="20" step="0.5" min="15" max="25">
+      <label>System Derate Factor (losses)</label>
+      <select id="derate">
+        <option value="0.77">Standard — 0.77 (NREL default)</option>
+        <option value="0.82">Good — 0.82</option>
+        <option value="0.85">Premium — 0.85</option>
+      </select>
+      <label>Available Roof Area (SF)</label>
+      <input id="roof_avail" type="number" value="20000" step="500">
+      <button class="btn" onclick="calculate()">Calculate Solar Array</button>
+    </div>
+  </div>
+  <div class="out-wrap" id="out">
+    <div class="kpis" id="kpi-row"></div>
+    <div class="grid2">
+      <div class="section">
+        <h3>System Summary</h3>
+        <div id="sys-rows"></div>
+        <div class="total-row"><span>Simple Payback</span><span class="total-val" id="payback-val"></span></div>
+      </div>
+      <div class="section">
+        <h3>Environmental Impact</h3>
+        <div id="env-rows"></div>
+        <div style="margin-top:14px">
+          <h3 style="margin-bottom:10px">Roof Area Check</h3>
+          <div id="checks"></div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Array Layout (approximate)</h3>
+      <div class="visual">
+        <svg id="roof-svg" width="400" height="160" viewBox="0 0 400 160"></svg>
+      </div>
+    </div>
+    <p class="note">PVWatts simplified methodology: kWh = kWp x PSH x 365 x derate. Panel area = Watt/m2 at given efficiency. Costs based on NREL benchmarks (2024). Consult structural engineer for roof loading. Grid interconnect and utility requirements vary by jurisdiction.</p>
+  </div>
+</div>
+<script>
+var LOADS={office:500000,multifamily:350000,retail:400000,school:250000,warehouse:150000};
+function applyLoad(){
+  var v=document.getElementById('btype').value;
+  if(v!=='custom'&&LOADS[v]) document.getElementById('kwh').value=LOADS[v];
+}
+function updatePSH(){
+  var v=document.getElementById('psh').value;
+  if(v!=='custom') document.getElementById('psh_val').value=v;
+}
+function row(l,v){return '<div class="res-row"><span>'+l+'</span><span class="res-val">'+v+'</span></div>';}
+function calculate(){
+  var kwh=parseFloat(document.getElementById('kwh').value)||500000;
+  var off_pct=parseFloat(document.getElementById('off_num').value)/100;
+  var rate=parseFloat(document.getElementById('rate').value)||0.14;
+  var cost_w=parseFloat(document.getElementById('cost_w').value)||2.80;
+  var psh=parseFloat(document.getElementById('psh_val').value)||4.5;
+  var panel_w=parseFloat(document.getElementById('panel_w').value)||400;
+  var eff=parseFloat(document.getElementById('eff').value)/100;
+  var derate=parseFloat(document.getElementById('derate').value)||0.77;
+  var roof_avail=parseFloat(document.getElementById('roof_avail').value)||20000;
+  var kwh_target=kwh*off_pct;
+  var kwp_needed=kwh_target/(psh*365*derate);
+  var panels=Math.ceil(kwp_needed*1000/panel_w);
+  var panel_area_m2=panel_w/1000/eff;
+  var total_area_m2=panels*panel_area_m2;
+  var total_area_sf=total_area_m2*10.764;
+  var sys_kw=panels*panel_w/1000;
+  var annual_kwh=sys_kw*psh*365*derate;
+  var sys_cost=sys_kw*1000*cost_w;
+  var annual_savings=annual_kwh*rate;
+  var payback=sys_cost/annual_savings;
+  var co2_avoided=annual_kwh*0.386;
+  var trees_equiv=Math.round(co2_avoided/21);
+  var fit=total_area_sf<=roof_avail*0.7;
+  var fit_cls=fit?'pass':'fail';
+  var leed_ea=off_pct>=0.05?'pass':'fail';
+  var khtml='';
+  khtml+='<div class="kpi"><div class="kpi-val">'+panels.toLocaleString()+'</div><div class="kpi-lbl">Panels Required</div></div>';
+  khtml+='<div class="kpi"><div class="kpi-val">'+Math.round(total_area_sf/1000)+'k</div><div class="kpi-lbl">Array SF</div></div>';
+  khtml+='<div class="kpi"><div class="kpi-val">'+sys_kw.toFixed(0)+'</div><div class="kpi-lbl">System kWp</div></div>';
+  khtml+='<div class="kpi"><div class="kpi-val">'+Math.round(annual_kwh/1000)+'k</div><div class="kpi-lbl">kWh / Year</div></div>';
+  document.getElementById('kpi-row').innerHTML=khtml;
+  var sysHtml='';
+  sysHtml+=row('System Capacity',sys_kw.toFixed(1)+' kWp');
+  sysHtml+=row('Panel Count',panels.toLocaleString()+' panels @ '+panel_w+'W');
+  sysHtml+=row('Array Area',Math.round(total_area_sf).toLocaleString()+' SF ('+total_area_m2.toFixed(0)+' m2)');
+  sysHtml+=row('Annual Generation',Math.round(annual_kwh).toLocaleString()+' kWh/yr');
+  sysHtml+=row('% of Building Load',(off_pct*100).toFixed(0)+'%');
+  sysHtml+=row('System Cost','$'+Math.round(sys_cost/1000)+'k (at $'+cost_w+'/W)');
+  sysHtml+=row('Annual Savings','$'+Math.round(annual_savings).toLocaleString());
+  document.getElementById('sys-rows').innerHTML=sysHtml;
+  document.getElementById('payback-val').textContent=payback.toFixed(1)+' years';
+  var envHtml='';
+  envHtml+=row('CO2 Avoided',Math.round(co2_avoided).toLocaleString()+' kgCO2e/yr');
+  envHtml+=row('Equiv. Tree Planting',trees_equiv.toLocaleString()+' trees/yr');
+  envHtml+=row('30-Year CO2 Avoided',(co2_avoided*30/1000).toFixed(0)+' tCO2e');
+  envHtml+=row('LEED EA: Ren. Energy Pts',(off_pct>=0.10?'3 pts (10%+)':off_pct>=0.05?'1 pt (5%+)':'0 pts'));
+  document.getElementById('env-rows').innerHTML=envHtml;
+  var chkHtml='';
+  chkHtml+='<div class="check"><span>Array fits on available roof area</span><span class="badge '+fit_cls+'">'+fit_cls.toUpperCase()+'</span></div>';
+  chkHtml+='<div class="check"><span>LEED EA — Renewable Energy (5%+ offset)</span><span class="badge '+leed_ea+'">'+leed_ea.toUpperCase()+'</span></div>';
+  chkHtml+='<div class="check"><span>Structural review required (4+ psf dead load)</span><span class="badge warn">REVIEW</span></div>';
+  document.getElementById('checks').innerHTML=chkHtml;
+  var svg=document.getElementById('roof-svg');
+  var svgW=400,svgH=160;
+  var roofW=svgW-20,roofH=svgH-20;
+  var pct=Math.min(1,total_area_sf/(roof_avail));
+  var filledW=roofW*pct;
+  var pw=Math.sqrt(panel_area_m2*10.764)*svgW/(Math.sqrt(roof_avail)*1.1)*4;
+  var ph=pw*0.6;
+  var cols=Math.floor(filledW/pw)||1;
+  var rows_n=Math.floor(roofH/ph)||1;
+  var svgContent='';
+  svgContent+='<rect x="10" y="10" width="'+roofW+'" height="'+roofH+'" class="roof-bg" rx="3"/>';
+  svgContent+='<text x="'+(roofW/2+10)+'" y="140" class="text-info" text-anchor="middle">Roof: '+Math.round(roof_avail/1000)+'k SF | Array: '+Math.round(total_area_sf/1000)+'k SF ('+Math.round(pct*100)+'%)</text>';
+  for(var r=0;r<rows_n&&r*ph<roofH-ph-10;r++){
+    for(var c=0;c<cols&&c*pw<filledW;c++){
+      svgContent+='<rect x="'+(12+c*(pw+2))+'" y="'+(12+r*(ph+2))+'" width="'+(pw-2)+'" height="'+(ph-2)+'" class="panel-fill" rx="1"/>';
+    }
+  }
+  svg.innerHTML=svgContent;
+  document.getElementById('out').style.display='block';
+}
+</script>
+</body>
+</html>

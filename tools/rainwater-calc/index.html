@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rainwater Harvesting Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.tb a{color:#c8a96e;text-decoration:none;font-size:13px}
+.tb h1{font-size:15px;font-weight:600}
+.wrap{max-width:860px;margin:0 auto;padding:28px 20px}
+.sub{color:#888;font-size:13px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h2{font-size:12px;font-weight:700;color:#2196f3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#2196f3}
+.btn{background:#2196f3;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#42a5f5}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0 20px}
+@media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:#111;border:1px solid #222;border-radius:8px;padding:16px;text-align:center}
+.kpi-val{font-size:22px;font-weight:700;color:#2196f3;font-family:'JetBrains Mono',monospace}
+.kpi-lbl{font-size:10px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.section{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.section h3{font-size:12px;font-weight:700;color:#2196f3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.res-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.res-row:last-child{border-bottom:none}
+.res-val{color:#2196f3;font-weight:600;font-family:'JetBrains Mono',monospace}
+.check{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#1a1a1a;border-radius:6px;margin-bottom:8px;font-size:12px}
+.badge{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700}
+.badge.pass{background:#1a2a1a;color:#4ade80}
+.badge.fail{background:#2a1010;color:#f87171}
+.badge.warn{background:#2a2010;color:#fbbf24}
+.month-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:10px}
+.mo-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.mo-bar{background:#1a1a1a;width:100%;position:relative;border-radius:2px}
+.mo-fill{background:#2196f3;border-radius:2px;transition:height .4s}
+.mo-lbl{font-size:8px;color:#555;text-align:center}
+.total-row{display:flex;justify-content:space-between;padding:12px 0;border-top:2px solid #333;margin-top:8px;font-weight:700;font-size:14px}
+.total-val{color:#2196f3;font-family:'JetBrains Mono',monospace}
+.note{font-size:11px;color:#555;margin-top:12px;font-style:italic;line-height:1.6}
+.out-wrap{display:none}
+</style>
+</head>
+<body>
+<div class="tb">
+  <a href="/tools/">&#8592; Tools</a>
+  <h1>Rainwater Harvesting Calculator</h1>
+</div>
+<div class="wrap">
+  <p class="sub">Estimate annual rainwater collection potential, tank sizing, and water demand offset. References LEED v4 WEp1/WEc1, IPC Section 1302.</p>
+  <div class="grid2">
+    <div class="card">
+      <h2>Collection System</h2>
+      <label>Roof / Catchment Area (SF)</label>
+      <input id="roof" type="number" value="12000" step="500">
+      <label>Runoff Coefficient</label>
+      <select id="runoff">
+        <option value="0.95">Metal / membrane roof — 0.95</option>
+        <option value="0.90" selected>Conventional roof — 0.90</option>
+        <option value="0.75">Gravel roof — 0.75</option>
+        <option value="0.40">Green roof (extensive) — 0.40</option>
+        <option value="0.20">Green roof (intensive) — 0.20</option>
+      </select>
+      <label>Filter / System Efficiency (%)</label>
+      <input id="eff" type="number" value="90" min="50" max="99" step="5">
+      <label>City / Location</label>
+      <select id="city" onchange="updateRainfall()">
+        <option value="39.4">New York, NY — 39.4 in/yr</option>
+        <option value="34.7">Chicago, IL — 34.7 in/yr</option>
+        <option value="49.7">Houston, TX — 49.7 in/yr</option>
+        <option value="14.0">Phoenix, AZ — 14.0 in/yr</option>
+        <option value="15.4">Los Angeles, CA — 15.4 in/yr</option>
+        <option value="37.6">Atlanta, GA — 37.6 in/yr</option>
+        <option value="38.0">Washington DC — 38.0 in/yr</option>
+        <option value="54.5">Miami, FL — 54.5 in/yr</option>
+        <option value="17.3">Denver, CO — 17.3 in/yr</option>
+        <option value="37.5">Dallas, TX — 37.5 in/yr</option>
+        <option value="16.9">Salt Lake City, UT — 16.9 in/yr</option>
+        <option value="57.1">Seattle, WA — 57.1 in/yr</option>
+        <option value="21.5">San Francisco, CA — 21.5 in/yr</option>
+        <option value="custom">Custom...</option>
+      </select>
+      <label>Annual Rainfall (inches)</label>
+      <input id="rainfall" type="number" value="39.4" step="0.5">
+    </div>
+    <div class="card">
+      <h2>Water Demand</h2>
+      <label>Building Occupancy (FTE)</label>
+      <input id="occ" type="number" value="150" step="10">
+      <label>Daily Indoor Water Use (gal/person/day)</label>
+      <input id="gpd" type="number" value="20" step="2">
+      <label>Irrigation Area (SF)</label>
+      <input id="irr" type="number" value="5000" step="500">
+      <label>Irrigation Rate (in/week, irrigation season)</label>
+      <input id="irr_rate" type="number" value="1.0" step="0.1">
+      <label>Irrigation Season (weeks)</label>
+      <input id="irr_wk" type="number" value="20" step="2">
+      <label>Tank Size (gallons)</label>
+      <input id="tank" type="number" value="10000" step="1000">
+      <button class="btn" onclick="calculate()">Calculate Rainwater Potential</button>
+    </div>
+  </div>
+  <div class="out-wrap" id="out">
+    <div class="kpis" id="kpi-row"></div>
+    <div class="grid2">
+      <div class="section">
+        <h3>Annual Water Balance</h3>
+        <div id="bal-rows"></div>
+        <div class="total-row"><span>Net Demand After Harvesting</span><span class="total-val" id="net-demand"></span></div>
+      </div>
+      <div class="section">
+        <h3>LEED + Code Compliance</h3>
+        <div id="checks"></div>
+        <div style="margin-top:14px">
+          <h3 style="margin-bottom:10px">Monthly Collection (gallons)</h3>
+          <div class="month-grid" id="mo-grid"></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Collection = Roof Area (SF) x Rainfall (in) x 0.623 x Runoff Coeff x Efficiency. LEED WEp1 requires 20% indoor water reduction. IPC 1302.2 requires first-flush diverter. Consult local health code for potable reuse requirements.</p>
+  </div>
+</div>
+<script>
+var MONTHLY_DIST={
+  '39.4':[2.9,2.9,4.0,4.2,4.1,3.9,4.5,4.1,4.0,3.5,3.4,3.9],
+  '34.7':[1.8,1.8,2.7,3.4,3.5,3.8,3.5,3.4,3.2,2.9,2.9,2.0],
+  '49.7':[3.7,2.9,3.3,3.6,4.8,5.4,4.3,4.1,5.2,5.3,4.5,2.6],
+  '14.0':[0.8,0.8,1.0,0.2,0.1,0.1,0.9,0.9,0.7,0.6,0.5,0.8],
+  '15.4':[3.5,3.5,2.2,1.3,0.3,0.1,0.1,0.1,0.3,0.4,1.4,2.2],
+  '37.6':[4.1,4.3,5.1,3.6,3.7,3.8,5.1,4.3,4.0,3.0,3.4,3.2],
+  '38.0':[2.8,2.6,3.6,3.1,3.8,3.7,4.0,3.5,3.9,3.4,3.0,3.1],
+  '54.5':[2.0,2.1,2.7,2.8,6.6,9.3,7.6,7.6,7.7,5.4,3.3,1.8],
+  '17.3':[0.7,0.7,1.2,1.7,1.9,1.5,1.9,1.4,1.1,1.0,0.9,0.7],
+  '37.5':[1.8,2.1,2.8,3.5,4.2,3.4,2.3,2.2,3.2,4.8,3.3,2.0],
+  '16.9':[1.4,1.3,1.6,1.8,1.6,1.0,0.8,0.9,1.0,1.4,1.4,1.6],
+  '57.1':[3.5,2.8,3.7,3.1,2.4,1.6,0.6,0.8,1.6,3.5,5.9,4.8],
+  '21.5':[4.3,3.5,3.0,1.5,0.7,0.2,0.1,0.1,0.3,1.0,3.3,4.2]
+};
+var MO_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function updateRainfall(){
+  var v=document.getElementById('city').value;
+  if(v!=='custom') document.getElementById('rainfall').value=v;
+}
+function calculate(){
+  var roof=parseFloat(document.getElementById('roof').value)||12000;
+  var runoff=parseFloat(document.getElementById('runoff').value)||0.9;
+  var eff=parseFloat(document.getElementById('eff').value)/100;
+  var rainfall=parseFloat(document.getElementById('rainfall').value)||39;
+  var occ=parseFloat(document.getElementById('occ').value)||150;
+  var gpd=parseFloat(document.getElementById('gpd').value)||20;
+  var irr_area=parseFloat(document.getElementById('irr').value)||5000;
+  var irr_rate=parseFloat(document.getElementById('irr_rate').value)||1.0;
+  var irr_wk=parseFloat(document.getElementById('irr_wk').value)||20;
+  var tank=parseFloat(document.getElementById('tank').value)||10000;
+  var annual_gal=roof*rainfall*0.623*runoff*eff;
+  var indoor_demand=occ*gpd*365;
+  var irr_demand=irr_area*irr_rate*0.623*irr_wk;
+  var total_demand=indoor_demand+irr_demand;
+  var offset_pct=Math.min(100,annual_gal/total_demand*100);
+  var net_demand=Math.max(0,total_demand-annual_gal);
+  var khtml='';
+  khtml+='<div class="kpi"><div class="kpi-val">'+Math.round(annual_gal/1000).toLocaleString()+'k</div><div class="kpi-lbl">Gallons / Year</div></div>';
+  khtml+='<div class="kpi"><div class="kpi-val">'+offset_pct.toFixed(0)+'%</div><div class="kpi-lbl">Demand Offset</div></div>';
+  khtml+='<div class="kpi"><div class="kpi-val">'+Math.round(tank/annual_gal*365)+'</div><div class="kpi-lbl">Tank Days Supply</div></div>';
+  khtml+='<div class="kpi"><div class="kpi-val">'+Math.round(annual_gal/748.05/1000)+'k</div><div class="kpi-lbl">Gallons Saved / Yr</div></div>';
+  document.getElementById('kpi-row').innerHTML=khtml;
+  var balHtml='';
+  var rows=[
+    ['Annual Collection',Math.round(annual_gal).toLocaleString()+' gal'],
+    ['Indoor Water Demand',Math.round(indoor_demand).toLocaleString()+' gal'],
+    ['Irrigation Demand',Math.round(irr_demand).toLocaleString()+' gal'],
+    ['Total Demand',Math.round(total_demand).toLocaleString()+' gal'],
+    ['Demand Offset',offset_pct.toFixed(1)+'%']
+  ];
+  rows.forEach(function(r){
+    balHtml+='<div class="res-row"><span>'+r[0]+'</span><span class="res-val">'+r[1]+'</span></div>';
+  });
+  document.getElementById('bal-rows').innerHTML=balHtml;
+  document.getElementById('net-demand').textContent=Math.round(net_demand).toLocaleString()+' gal/yr';
+  var leed_we_c=offset_pct>=30?'pass':offset_pct>=10?'warn':'fail';
+  var tank_ok=tank>=annual_gal*0.05?'pass':'warn';
+  var irr_ok=irr_demand<annual_gal*0.6?'pass':'warn';
+  var chkHtml='';
+  chkHtml+='<div class="check"><span>LEED WEc1 — Outdoor Water Reduction 30%</span><span class="badge '+leed_we_c+'">'+leed_we_c.toUpperCase()+'</span></div>';
+  chkHtml+='<div class="check"><span>Tank &ge; 5% Annual Collection</span><span class="badge '+tank_ok+'">'+tank_ok.toUpperCase()+'</span></div>';
+  chkHtml+='<div class="check"><span>Irrigation &lt; 60% of Harvested Supply</span><span class="badge '+irr_ok+'">'+irr_ok.toUpperCase()+'</span></div>';
+  document.getElementById('checks').innerHTML=chkHtml;
+  var cityVal=document.getElementById('city').value;
+  var dist=MONTHLY_DIST[cityVal]||null;
+  if(!dist){
+    var frac=[0.07,0.07,0.09,0.09,0.09,0.08,0.09,0.09,0.08,0.08,0.08,0.09];
+    dist=frac.map(function(f){return f*rainfall;});
+  }
+  var moGals=dist.map(function(in_rain){return roof*in_rain*0.623*runoff*eff;});
+  var maxMo=Math.max.apply(null,moGals);
+  var moHtml='';
+  moGals.forEach(function(g,i){
+    var h=maxMo>0?Math.max(4,g/maxMo*60):4;
+    moHtml+='<div class="mo-bar-wrap"><div class="mo-bar" style="height:60px"><div class="mo-fill" style="height:'+h.toFixed(0)+'px;margin-top:'+(60-h.toFixed(0))+'px"></div></div><div class="mo-lbl">'+MO_NAMES[i]+'</div></div>';
+  });
+  document.getElementById('mo-grid').innerHTML=moHtml;
+  document.getElementById('out').style.display='block';
+}
+</script>
+</body>
+</html>
