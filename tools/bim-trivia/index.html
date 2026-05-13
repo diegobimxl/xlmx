@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIM Trivia — XL Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#030307;color:#e2e8f0;font-family:'Inter',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
+a.back{color:#818cf8;text-decoration:none;font-size:13px;align-self:flex-start;margin-bottom:32px;opacity:.7}
+a.back:hover{opacity:1}
+h1{font-size:28px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.sub{color:#64748b;font-size:14px;margin-bottom:36px}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:32px;width:100%;max-width:580px}
+.progress-bar{background:rgba(255,255,255,.06);border-radius:99px;height:4px;margin-bottom:28px;overflow:hidden}
+.progress-fill{background:linear-gradient(90deg,#6366f1,#818cf8);height:100%;border-radius:99px;transition:.4s}
+.q-meta{font-size:12px;color:#475569;margin-bottom:14px;display:flex;justify-content:space-between}
+.q-text{font-size:18px;font-weight:600;line-height:1.5;margin-bottom:28px;color:#f1f5f9}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px 18px;cursor:pointer;font-size:14px;color:#cbd5e1;transition:.2s;text-align:left}
+.opt:hover:not(.locked){background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.35);color:#e2e8f0}
+.opt.correct{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.4);color:#6ee7b7}
+.opt.wrong{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#fca5a5}
+.opt.locked{cursor:default}
+.explain{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px;margin-top:18px;font-size:13px;color:#94a3b8;line-height:1.6;display:none}
+.explain.show{display:block}
+.next-btn{margin-top:22px;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#818cf8;border-radius:9px;padding:11px 28px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s;display:none}
+.next-btn.show{display:inline-block}
+.next-btn:hover{background:rgba(99,102,241,.35)}
+.score-card{text-align:center;padding:20px 0}
+.score-num{font-size:64px;font-weight:800;color:#818cf8;line-height:1}
+.score-denom{font-size:20px;color:#475569;margin-bottom:8px}
+.score-msg{font-size:15px;color:#94a3b8;margin-bottom:28px}
+.restart-btn{background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#818cf8;border-radius:9px;padding:12px 32px;cursor:pointer;font-size:15px;font-weight:600;transition:.2s}
+.restart-btn:hover{background:rgba(99,102,241,.35)}
+.streak{font-size:12px;color:#f59e0b;margin-top:4px}
+#start-screen{text-align:center;padding:20px 0}
+#start-screen p{color:#64748b;font-size:14px;margin-bottom:28px;line-height:1.7}
+.start-btn{background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#818cf8;border-radius:9px;padding:13px 36px;cursor:pointer;font-size:16px;font-weight:700;transition:.2s}
+.start-btn:hover{background:rgba(99,102,241,.35)}
+.diff-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle}
+.easy{background:rgba(16,185,129,.15);color:#6ee7b7}
+.medium{background:rgba(251,146,60,.12);color:#fdba74}
+.hard{background:rgba(239,68,68,.1);color:#fca5a5}
+</style>
+</head>
+<body>
+<a class="back" href="/">← Back to Hub</a>
+<h1>BIM Trivia</h1>
+<div class="sub">Test your BIM &amp; AEC knowledge</div>
+
+<div class="card" id="main-card">
+  <div id="start-screen">
+    <p>10 questions covering BIM standards, coordination workflows,<br>LOD levels, VDC concepts, and AEC fundamentals.</p>
+    <button class="start-btn" onclick="startGame()">Start Quiz</button>
+  </div>
+  <div id="game-screen" style="display:none">
+    <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+    <div class="q-meta"><span id="q-num"></span><span id="score-live"></span></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="opts" id="opts"></div>
+    <div class="explain" id="explain"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()">Next →</button>
+  </div>
+  <div id="end-screen" style="display:none">
+    <div class="score-card">
+      <div class="score-num" id="final-score"></div>
+      <div class="score-denom" id="final-denom"></div>
+      <div class="score-msg" id="final-msg"></div>
+      <button class="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var ALL_Q=[
+  {q:"What does LOD 400 represent in a BIM model?",d:"medium",opts:["Schematic massing only","Design intent with approximate dimensions","Construction-ready geometry with fabrication detail","As-built documentation"],a:2,ex:"LOD 400 means the element is modeled with sufficient detail for fabrication and assembly. LOD 300 covers construction documents; LOD 500 is as-built."},
+  {q:"ISO 19650 is an international standard for:",d:"hard",opts:["Structural load calculations","BIM information management across the project lifecycle","Fire egress compliance","Energy performance certification"],a:1,ex:"ISO 19650 governs how information should be produced, exchanged, and delivered using BIM — covering naming conventions, CDE protocols, and delivery milestones."},
+  {q:"In the context of BIM coordination, what is a 'clash'?",d:"easy",opts:["A naming convention violation","Two building elements occupying the same space","A missing sheet in the drawing set","A Revit family parameter error"],a:1,ex:"A clash (or interference) occurs when two model elements overlap in 3D space — e.g., a duct running through a beam. Hard clashes = direct overlap. Soft clashes = clearance violation."},
+  {q:"What does CDE stand for in ISO 19650?",d:"medium",opts:["Central Drawing Environment","Common Data Environment","Coordinated Design Exchange","Construction Documentation Engine"],a:1,ex:"CDE (Common Data Environment) is the single source of truth for all project information — typically platforms like Autodesk Construction Cloud, BIM 360, or Procore."},
+  {q:"Which software is Autodesk's primary parametric BIM authoring tool?",d:"easy",opts:["AutoCAD","Navisworks","Revit","Civil 3D"],a:2,ex:"Revit is Autodesk's flagship BIM platform for architectural, structural, and MEP design. Navisworks is for coordination and clash detection; Civil 3D is for site/civil work."},
+  {q:"In BIM project delivery, what does 'VDC' stand for?",d:"medium",opts:["Virtual Design and Construction","Verified Drawing Compliance","Visual Data Coordination","Volumetric Design Calculation"],a:0,ex:"VDC (Virtual Design and Construction) is a discipline that integrates people, systems, and business processes to simulate construction virtually before building physically."},
+  {q:"A BIM Execution Plan (BEP) is typically produced by:",d:"hard",opts:["The local building authority","The contractor only","The BIM author responding to the Employer's Information Requirements","The cost consultant"],a:2,ex:"The BEP is the project team's response to the EIR (Employer's Information Requirements). It defines BIM standards, roles, deliverables, and coordination protocols for the project."},
+  {q:"What is the primary purpose of Navisworks in a BIM workflow?",d:"medium",opts:["Parametric family creation","4D construction sequencing and clash detection","Structural analysis","Cost estimation"],a:1,ex:"Navisworks aggregates multi-discipline models (Revit, Civil 3D, etc.) to run clash detection, 4D timeline simulations, and coordination reviews without modifying source files."},
+  {q:"In IFC (Industry Foundation Classes), what role does the open standard play?",d:"hard",opts:["Proprietary Autodesk format for model sharing","Vendor-neutral open format enabling interoperability between BIM tools","A rendering standard for photorealistic output","A structural calculation protocol"],a:1,ex:"IFC is an open, neutral file format developed by buildingSMART International. It allows models to be exchanged between different software platforms (Revit, ArchiCAD, Tekla, etc.) without data loss."},
+  {q:"Which LOD level is typically required for a Design Development (DD) submission?",d:"hard",opts:["LOD 100","LOD 200","LOD 300","LOD 500"],a:2,ex:"LOD 300 represents elements modeled with specific geometry, location, and quantity — matching a DD/CD-level submission. LOD 200 is appropriate for SD; LOD 100 for early massing."}
+];
+
+var questions=[];var cur=0;var score=0;var streak=0;var answered=false;
+
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+function startGame(){
+  questions=shuffle(ALL_Q).slice(0,10);
+  cur=0;score=0;streak=0;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  showQ();
+}
+
+function showQ(){
+  answered=false;
+  var q=questions[cur];
+  var pct=((cur)/questions.length*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('q-num').textContent='Question '+(cur+1)+' / '+questions.length;
+  document.getElementById('score-live').textContent='Score: '+score;
+  var diff=q.d;
+  document.getElementById('q-text').innerHTML=q.q+'<span class="diff-badge '+diff+'">'+diff+'</span>';
+  var optsEl=document.getElementById('opts');
+  optsEl.innerHTML=q.opts.map(function(o,i){
+    return '<button class="opt" onclick="pick('+i+')">'+o+'</button>';
+  }).join('');
+  document.getElementById('explain').className='explain';
+  document.getElementById('explain').textContent='';
+  document.getElementById('next-btn').className='next-btn';
+}
+
+function pick(i){
+  if(answered)return;
+  answered=true;
+  var q=questions[cur];
+  var opts=document.querySelectorAll('.opt');
+  opts.forEach(function(o){o.classList.add('locked')});
+  if(i===q.a){
+    opts[i].classList.add('correct');
+    score++;streak++;
+  }else{
+    opts[i].classList.add('wrong');
+    opts[q.a].classList.add('correct');
+    streak=0;
+  }
+  var ex=document.getElementById('explain');
+  ex.textContent=q.ex;
+  ex.className='explain show';
+  document.getElementById('score-live').textContent='Score: '+score;
+  document.getElementById('next-btn').className='next-btn show';
+}
+
+function nextQ(){
+  cur++;
+  if(cur>=questions.length){endGame();return;}
+  showQ();
+}
+
+function endGame(){
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('end-screen').style.display='block';
+  document.getElementById('prog').style.width='100%';
+  document.getElementById('final-score').textContent=score;
+  document.getElementById('final-denom').textContent='out of '+questions.length;
+  var pct=score/questions.length;
+  var msg=pct===1?'Perfect score. You live and breathe BIM.':pct>=.8?'Strong result — solid BIM foundation.':pct>=.6?'Good base. Revisit ISO 19650 and LOD levels.':'Keep studying. The models don\'t lie.';
+  document.getElementById('final-msg').textContent=msg;
+}
+
+function restartGame(){
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  startGame();
+}
+</script>
+</body>
+</html>

@@ -88,16 +88,11 @@ nav{position:sticky;top:0;z-index:100;background:rgba(3,3,7,.88);backdrop-filter
 .cat-section-hdr h2{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--mu);text-transform:uppercase;}
 .cat-section-line{flex:1;height:1px;background:linear-gradient(90deg,var(--bd2),transparent);}
 #catNav{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:20px;}
-.cpill{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:7px 14px;border-radius:8px;cursor:pointer;
-  font-size:12px;font-weight:600;letter-spacing:.01em;
-  border:1px solid;transition:all .18s;white-space:nowrap;
-  position:relative;overflow:hidden;
-}
+.cpill{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:9px;border:1px solid;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;font-size:12px;font-weight:600;line-height:1;white-space:nowrap;}
 .cpill::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .2s;background:currentColor;}
 .cpill:hover::before{opacity:.05;}
 .cpill.active::before{opacity:.08;}
+.cicon{font-size:16px;line-height:1;transition:color .2s;flex-shrink:0;}
 .cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .cpill span.cname{color:inherit;}
 .cpill .ccnt{font-size:10px;font-family:"JetBrains Mono",monospace;opacity:.55;margin-left:2px;}
@@ -251,41 +246,41 @@ window.onerror=function(msg,src,line,col,err){var el=document.getElementById("to
 var TOOLS=[
 
   // -- BIM & VDC --------------------------------------------------
-  {n:'LOD Checker',d:'Validate Level of Development compliance across phases. Reference matrix + project gap report.',c:'BIM & VDC',u:'/lod-checker',s:'live'},
-  {n:'Clash Matrix',d:'Track coordination clashes between 8 disciplines. Click-to-edit grid, sorted log, CSV/JSON export.',c:'BIM & VDC',u:'/clash-matrix',s:'live'},
-  {n:'BIM Execution Plan Checklist',d:'Interactive checklist verifying your BEP covers all ISO 19650 required elements.',c:'BIM & VDC',u:'/tools/bep-checklist/',s:'live'},
-  {n:'Model Health Scorecard',d:'Score your Revit model on naming, worksets, linked files, and coordination readiness.',c:'BIM & VDC',s:'soon'},
-  {n:'ISO 19650 Compliance Checklist',d:'Interactive checklist for information management compliance across project stages.',c:'BIM & VDC',s:'soon'},
-  {n:'Coordination Issue Log',d:'Track RFIs and coordination issues with assignee, priority, and resolution date.',c:'BIM & VDC',s:'soon'},
-  {n:'Transmittal Generator',d:'Create formal document transmittals with revision tracking and distribution lists.',c:'BIM & VDC',s:'soon'},
-  {n:'BIM Role & Responsibility Matrix',d:'Define and assign BIM tasks across team members by discipline and project phase.',c:'BIM & VDC',s:'soon'},
-  {n:'LOD Hour Estimator',d:'Estimate modeling hours by LOD level and element count for fee proposals.',c:'BIM & VDC',s:'soon'},
-  {n:'ISO 19650 File Namer',d:'Generate compliant container naming strings for any project using the ISO 19650 convention.',c:'BIM & VDC',s:'soon'},
-  {n:'4D Sequencing Planner',d:'Map model elements to construction sequence phases for 4D BIM planning.',c:'BIM & VDC',s:'soon'},
-  {n:'VDC Scope Matrix',d:'Define VDC deliverables by phase, use case, and responsible party.',c:'BIM & VDC',s:'soon'},
-  {n:'Workset Naming Generator',d:'Generate standardized Revit workset names by discipline and use case.',c:'BIM & VDC',s:'soon'},
-  {n:'Model Element Counter',d:'Log element counts by category to track model growth and scope changes.',c:'BIM & VDC',s:'soon'},
-  {n:'Federated Model Tracker',d:'Track linked model versions, dates, and responsible parties in a federated BIM workflow.',c:'BIM & VDC',s:'soon'},
-  {n:'Floor Plate Efficiency',d:'Gross/rentable/usable SF breakdown, load factor, and density benchmarks.',c:'BIM & VDC',u:'/tools/floor-plate/',s:'live'},
-  {n:'LOD Reference Cards',d:'BIM LOD 100-500 filterable reference per AIA G202/BIMForum',c:'BIM & VDC',u:'/tools/lod-reference/',s:'live'},
-  {n:'BIM Clash Matrix',d:'Discipline-pair clash tracker with severity levels and CSV export',c:'BIM & VDC',u:'/tools/bim-clash-matrix/',s:'live'},
-  {n:'BIM Model Checker',d:'ISO 19650 model health checklist: CDE, naming, LOD, clash, handover',c:'BIM & VDC',s:'live',u:'/tools/bim-model-checker/'},
-  {n:'CADXL Viewer',d:'Client-side CAD viewer. Load DXF / KML files, inspect layers, measure distances, and edit geometry — no server, no upload.',c:'BIM & VDC',s:'live',u:'/tools/cadxl/'},
+  {n:'LOD Checker',d:'Validate Level of Development compliance across phases. Reference matrix + project gap report.',c:'BIM',u:'/lod-checker',s:'live'},
+  {n:'Clash Matrix',d:'Track coordination clashes between 8 disciplines. Click-to-edit grid, sorted log, CSV/JSON export.',c:'VDC & Coordination',u:'/clash-matrix',s:'live'},
+  {n:'BIM Execution Plan Checklist',d:'Interactive checklist verifying your BEP covers all ISO 19650 required elements.',c:'BIM',u:'/tools/bep-checklist/',s:'live'},
+  {n:'Model Health Scorecard',d:'Score your Revit model on naming, worksets, linked files, and coordination readiness.',c:'BIM',s:'soon'},
+  {n:'ISO 19650 Compliance Checklist',d:'Interactive checklist for information management compliance across project stages.',c:'BIM',s:'soon'},
+  {n:'Coordination Issue Log',d:'Track RFIs and coordination issues with assignee, priority, and resolution date.',c:'VDC & Coordination',s:'soon'},
+  {n:'Transmittal Generator',d:'Create formal document transmittals with revision tracking and distribution lists.',c:'VDC & Coordination',s:'soon'},
+  {n:'BIM Role & Responsibility Matrix',d:'Define and assign BIM tasks across team members by discipline and project phase.',c:'BIM',s:'soon'},
+  {n:'LOD Hour Estimator',d:'Estimate modeling hours by LOD level and element count for fee proposals.',c:'BIM',s:'soon'},
+  {n:'ISO 19650 File Namer',d:'Generate compliant container naming strings for any project using the ISO 19650 convention.',c:'BIM',s:'soon'},
+  {n:'4D Sequencing Planner',d:'Map model elements to construction sequence phases for 4D BIM planning.',c:'VDC & Coordination',s:'soon'},
+  {n:'VDC Scope Matrix',d:'Define VDC deliverables by phase, use case, and responsible party.',c:'VDC & Coordination',s:'soon'},
+  {n:'Workset Naming Generator',d:'Generate standardized Revit workset names by discipline and use case.',c:'BIM',s:'soon'},
+  {n:'Model Element Counter',d:'Log element counts by category to track model growth and scope changes.',c:'BIM',s:'soon'},
+  {n:'Federated Model Tracker',d:'Track linked model versions, dates, and responsible parties in a federated BIM workflow.',c:'BIM',s:'soon'},
+  {n:'Floor Plate Efficiency',d:'Gross/rentable/usable SF breakdown, load factor, and density benchmarks.',c:'VDC & Coordination',u:'/tools/floor-plate/',s:'live'},
+  {n:'LOD Reference Cards',d:'BIM LOD 100-500 filterable reference per AIA G202/BIMForum',c:'BIM',u:'/tools/lod-reference/',s:'live'},
+  {n:'BIM Clash Matrix',d:'Discipline-pair clash tracker with severity levels and CSV export',c:'VDC & Coordination',u:'/tools/bim-clash-matrix/',s:'live'},
+  {n:'BIM Model Checker',d:'ISO 19650 model health checklist: CDE, naming, LOD, clash, handover',c:'BIM',s:'live',u:'/tools/bim-model-checker/'},
+  {n:'CADXL Viewer',d:'Client-side CAD viewer. Load DXF / KML files, inspect layers, measure distances, and edit geometry — no server, no upload.',c:'BIM',s:'live',u:'/tools/cadxl/'},
 
   // -- Architecture & Design --------------------------------------
-  {n:'Room Area Calculator',d:'Calculate net, gross, and efficiency ratios for any building program list.',c:'Architecture & Design',s:'soon'},
-  {n:'Occupancy Load Calculator',d:'Calculate occupant loads per IBC based on use type and floor area.',c:'Architecture & Design',s:'live',u:'/tools/occupancy-load/'},
-  {n:'FAR & Density Calculator',d:'Calculate Floor Area Ratio and allowable buildout for any site.',c:'Architecture & Design',s:'soon'},
-  {n:'Setback Compliance Checker',d:'Verify front, rear, and side setback compliance against zoning requirements.',c:'Architecture & Design',s:'soon'},
-  {n:'Ramp Slope Checker',d:'Verify ADA and IBC ramp slope, landing, and handrail requirements.',c:'Architecture & Design',s:'soon'},
-  {n:'Program Area Planner',d:'Build a space program with categories, quantities, unit areas, and totals.',c:'Architecture & Design',s:'soon'},
-  {n:'CSI Spec Section Finder',d:'Find MasterFormat spec sections by keyword, number, or trade.',c:'Architecture & Design',s:'soon'},
-  {n:'Building Area Calculator',d:'Sum gross, rentable, and usable areas with BOMA efficiency metrics.',c:'Architecture & Design',s:'soon'},
-  {n:'Exterior Wall Area Calculator',d:'Calculate exterior facade area by elevation with deductions for openings.',c:'Architecture & Design',s:'soon'},
-  {n:'Ceiling Height Optimizer',d:'Compare structural depth options against floor-to-floor height constraints.',c:'Architecture & Design',s:'soon'},
-  {n:'Massing Study',d:'GFA, FAR, coverage, and buildable footprint with lot diagram',c:'Architecture & Design',u:'/tools/massing-study/',s:'live'},
-  {n:'ADA Ramp Compliance',d:'Slope, width, landing, handrail, and edge protection checks',c:'Architecture & Design',u:'/tools/accessibility-ramp/',s:'live'},
-  {n:'Solar Shading',d:'Horizontal overhang depth to shade glazing by season and latitude',c:'Architecture & Design',s:'live',u:'/tools/solar-shading/'},
+  {n:'Room Area Calculator',d:'Calculate net, gross, and efficiency ratios for any building program list.',c:'Architecture',s:'soon'},
+  {n:'Occupancy Load Calculator',d:'Calculate occupant loads per IBC based on use type and floor area.',c:'Architecture',s:'live',u:'/tools/occupancy-load/'},
+  {n:'FAR & Density Calculator',d:'Calculate Floor Area Ratio and allowable buildout for any site.',c:'Architecture',s:'soon'},
+  {n:'Setback Compliance Checker',d:'Verify front, rear, and side setback compliance against zoning requirements.',c:'Architecture',s:'soon'},
+  {n:'Ramp Slope Checker',d:'Verify ADA and IBC ramp slope, landing, and handrail requirements.',c:'Architecture',s:'soon'},
+  {n:'Program Area Planner',d:'Build a space program with categories, quantities, unit areas, and totals.',c:'Architecture',s:'soon'},
+  {n:'CSI Spec Section Finder',d:'Find MasterFormat spec sections by keyword, number, or trade.',c:'Architecture',s:'soon'},
+  {n:'Building Area Calculator',d:'Sum gross, rentable, and usable areas with BOMA efficiency metrics.',c:'Architecture',s:'soon'},
+  {n:'Exterior Wall Area Calculator',d:'Calculate exterior facade area by elevation with deductions for openings.',c:'Architecture',s:'soon'},
+  {n:'Ceiling Height Optimizer',d:'Compare structural depth options against floor-to-floor height constraints.',c:'Architecture',s:'soon'},
+  {n:'Massing Study',d:'GFA, FAR, coverage, and buildable footprint with lot diagram',c:'Architecture',u:'/tools/massing-study/',s:'live'},
+  {n:'ADA Ramp Compliance',d:'Slope, width, landing, handrail, and edge protection checks',c:'Architecture',u:'/tools/accessibility-ramp/',s:'live'},
+  {n:'Solar Shading',d:'Horizontal overhang depth to shade glazing by season and latitude',c:'Architecture',s:'live',u:'/tools/solar-shading/'},
 
   // -- Structural ------------------------------------------------
   {n:'Retaining Wall Check',d:'Rankine active pressure, sliding, overturning, and bearing capacity FS.',c:'Structural',u:'/tools/retaining-wall/',s:'live'},
@@ -371,33 +366,33 @@ var TOOLS=[
   {n:'Net Effective Rent',d:'NER simple and NPV method with concession breakdown',c:'Finance',u:'/tools/net-effective-rent/',s:'live'},
 
   // -- Sustainability & Code --------------------------------------
-  {n:'Energy Use Intensity Benchmarker',d:'Compare building EUI against CBECS benchmarks by building type and climate.',c:'Sustainability & Code',s:'live',u:'/tools/eui-benchmarker/'},
-  {n:'LEED Credit Tracker',d:'Track LEED credit pursuit and point totals across all categories with status.',c:'Sustainability & Code',s:'soon'},
-  {n:'Window-to-Wall Ratio Calculator',d:'Calculate WWR by facade orientation and compare against energy code limits.',c:'Sustainability & Code',s:'live',u:'/tools/wwr-calc/'},
-  {n:'Carbon Footprint Estimator',d:'Rough embodied carbon estimate for structural systems by material and volume.',c:'Sustainability & Code',s:'soon'},
-  {n:'Rainwater Harvesting Calculator',d:'Estimate rainwater collection potential by roof area and annual rainfall.',c:'Sustainability & Code',s:'soon'},
-  {n:'Solar Panel Area Estimator',d:'Estimate roof area needed for target solar offset by location and load.',c:'Sustainability & Code',s:'soon'},
-  {n:'Building Code Occupancy Finder',d:'Look up IBC occupancy classifications and use group requirements by building type.',c:'Sustainability & Code',s:'soon'},
-  {n:'Solar PV Sizing',d:'Panel count, array area, payback, CO2 avoided',c:'Sustainability & Code',u:'/tools/solar-calc/',s:'live'},
-  {n:'Embodied Carbon A1-A3',d:'EC3/WBLCA GWP estimator with editable material quantities',c:'Sustainability & Code',u:'/tools/embodied-carbon/',s:'live'},
-  {n:'Daylight Factor',d:'WFR, daylight factor, illuminance, LEED v4 daylighting check',c:'Sustainability & Code',u:'/tools/daylight-factor/',s:'live'},
-  {n:'LEED v4 Credits',d:'BD+C credit estimator with slider controls and certification level',c:'Sustainability & Code',u:'/tools/leed-credits/',s:'live'},
-  {n:'Carbon Budget Tool',d:'Embodied and operational carbon accounting with RIBA 2030 / LEED Zero targets.',c:'Sustainability & Code',s:'live',u:'/tools/co2-budget/'},
+  {n:'Energy Use Intensity Benchmarker',d:'Compare building EUI against CBECS benchmarks by building type and climate.',c:'Sustainability',s:'live',u:'/tools/eui-benchmarker/'},
+  {n:'LEED Credit Tracker',d:'Track LEED credit pursuit and point totals across all categories with status.',c:'Sustainability',s:'soon'},
+  {n:'Window-to-Wall Ratio Calculator',d:'Calculate WWR by facade orientation and compare against energy code limits.',c:'Sustainability',s:'live',u:'/tools/wwr-calc/'},
+  {n:'Carbon Footprint Estimator',d:'Rough embodied carbon estimate for structural systems by material and volume.',c:'Sustainability',s:'soon'},
+  {n:'Rainwater Harvesting Calculator',d:'Estimate rainwater collection potential by roof area and annual rainfall.',c:'Sustainability',s:'soon'},
+  {n:'Solar Panel Area Estimator',d:'Estimate roof area needed for target solar offset by location and load.',c:'Sustainability',s:'soon'},
+  {n:'Building Code Occupancy Finder',d:'Look up IBC occupancy classifications and use group requirements by building type.',c:'Sustainability',s:'soon'},
+  {n:'Solar PV Sizing',d:'Panel count, array area, payback, CO2 avoided',c:'Sustainability',u:'/tools/solar-calc/',s:'live'},
+  {n:'Embodied Carbon A1-A3',d:'EC3/WBLCA GWP estimator with editable material quantities',c:'Sustainability',u:'/tools/embodied-carbon/',s:'live'},
+  {n:'Daylight Factor',d:'WFR, daylight factor, illuminance, LEED v4 daylighting check',c:'Sustainability',u:'/tools/daylight-factor/',s:'live'},
+  {n:'LEED v4 Credits',d:'BD+C credit estimator with slider controls and certification level',c:'Sustainability',u:'/tools/leed-credits/',s:'live'},
+  {n:'Carbon Budget Tool',d:'Embodied and operational carbon accounting with RIBA 2030 / LEED Zero targets.',c:'Sustainability',s:'live',u:'/tools/co2-budget/'},
 
   // -- Construction & Engineering ------------------------------
-  {n:'Excavation Volume Calculator',d:'Calculate cut and fill volumes for site excavation by shape and depth.',c:'Construction & Engineering',s:'soon'},
-  {n:'Compaction Factor Tool',d:'Apply swell and compaction factors to raw earthwork quantities.',c:'Construction & Engineering',s:'soon'},
-  {n:'Cost per SF Benchmarker',d:'Compare project cost/SF against construction type and region benchmarks.',c:'Construction & Engineering',s:'soon'},
-  {n:'Roof Area Calculator',d:'Calculate roof surface area by pitch and plan dimensions for material takeoff.',c:'Construction & Engineering',s:'live',u:'/tools/roof-area-calc/'},
-  {n:'Drywall Estimator',d:'Estimate drywall sheets, joint compound, and screws by room dimensions.',c:'Construction & Engineering',s:'soon'},
-  {n:'Paint Coverage Calculator',d:'Estimate paint gallons by surface area, coat count, and spread rate.',c:'Construction & Engineering',s:'soon'},
-  {n:'Tile & Flooring Estimator',d:'Calculate tile or flooring quantities with waste factor by room.',c:'Construction & Engineering',s:'live',u:'/tools/tile-calc/'},
-  {n:'Lumber Takeoff Calculator',d:'Estimate dimensional lumber quantities for framing by wall length and spacing.',c:'Construction & Engineering',s:'soon'},
-  {n:'Footing Size Calculator',d:'Size spread footings from column load, soil bearing capacity, and safety factor.',c:'Construction & Engineering',s:'soon'},
-  {n:'Construction Schedule Compressor',d:'Identify critical path and fast-tracking opportunities in a phase schedule.',c:'Construction & Engineering',s:'soon'},
-  {n:'Bid Leveling Sheet',d:'Compare subcontractor bids side-by-side with apples-to-apples leveling.',c:'Construction & Engineering',s:'soon'},
-  {n:'Bid Comparison Matrix',d:'Side-by-side CSI scope bid tabulation with low-bid highlighting and CSV export.',c:'Construction & Engineering',s:'live',u:'/tools/bid-comparison/'},
-  {n:'Fire Flow Calculator',d:'NFPA 1 / IFC Appendix B fire flow demand by construction type and occupancy.',c:'Construction & Engineering',s:'live',u:'/tools/fire-flow/'},
+  {n:'Excavation Volume Calculator',d:'Calculate cut and fill volumes for site excavation by shape and depth.',c:'Construction',s:'soon'},
+  {n:'Compaction Factor Tool',d:'Apply swell and compaction factors to raw earthwork quantities.',c:'Construction',s:'soon'},
+  {n:'Cost per SF Benchmarker',d:'Compare project cost/SF against construction type and region benchmarks.',c:'Engineering',s:'soon'},
+  {n:'Roof Area Calculator',d:'Calculate roof surface area by pitch and plan dimensions for material takeoff.',c:'Construction',s:'live',u:'/tools/roof-area-calc/'},
+  {n:'Drywall Estimator',d:'Estimate drywall sheets, joint compound, and screws by room dimensions.',c:'Construction',s:'soon'},
+  {n:'Paint Coverage Calculator',d:'Estimate paint gallons by surface area, coat count, and spread rate.',c:'Construction',s:'soon'},
+  {n:'Tile & Flooring Estimator',d:'Calculate tile or flooring quantities with waste factor by room.',c:'Construction',s:'live',u:'/tools/tile-calc/'},
+  {n:'Lumber Takeoff Calculator',d:'Estimate dimensional lumber quantities for framing by wall length and spacing.',c:'Construction',s:'soon'},
+  {n:'Footing Size Calculator',d:'Size spread footings from column load, soil bearing capacity, and safety factor.',c:'Engineering',s:'soon'},
+  {n:'Construction Schedule Compressor',d:'Identify critical path and fast-tracking opportunities in a phase schedule.',c:'Construction',s:'soon'},
+  {n:'Bid Leveling Sheet',d:'Compare subcontractor bids side-by-side with apples-to-apples leveling.',c:'Construction',s:'soon'},
+  {n:'Bid Comparison Matrix',d:'Side-by-side CSI scope bid tabulation with low-bid highlighting and CSV export.',c:'Construction',s:'live',u:'/tools/bid-comparison/'},
+  {n:'Fire Flow Calculator',d:'NFPA 1 / IFC Appendix B fire flow demand by construction type and occupancy.',c:'Engineering',s:'live',u:'/tools/fire-flow/'},
 
   // -- Code Compliance -------------------------------------------
   {n:'ADA Checker',d:'ADA/ABA accessibility compliance checklist with pass/fail by dimension.',c:'Code Compliance',u:'/tools/accessibility-check/',s:'live'},
@@ -430,13 +425,13 @@ var TOOLS=[
   {n:'Architecture Fee Calculator',d:'AIA phase fee breakdown by % of construction or hourly staffing.',c:'Project Management',u:'/tools/project-fee/',s:'live'},
 
   // -- Contracts & Legal -----------------------------------------
-  {n:'Scope of Work Generator',d:'Draft a professional Scope of Work from project description and deliverables.',c:'Contracts & Legal',s:'soon'},
-  {n:'AIA Fee Proposal Builder',d:'Structure a professional fee proposal with phases, scope, and exclusions.',c:'Contracts & Legal',s:'soon'},
-  {n:'Contract Terms Checklist',d:'Checklist of critical contract terms to review before signing any AEC agreement.',c:'Contracts & Legal',s:'soon'},
-  {n:'Retainage Calculator',d:'Calculate retainage holdback and release milestones on any construction contract.',c:'Contracts & Legal',s:'live',u:'/tools/retainage-calc/'},
-  {n:'Delay & Liquidated Damages Calculator',d:'Calculate potential LD exposure from schedule delays on a fixed-fee contract.',c:'Contracts & Legal',s:'soon'},
-  {n:'Lien Waiver Tracker',d:'Track conditional and unconditional lien waivers by subcontractor and pay app.',c:'Contracts & Legal',s:'soon'},
-  {n:'Pay App Review Checklist',d:'Structured checklist for reviewing contractor payment applications for completeness.',c:'Contracts & Legal',s:'soon'},
+  {n:'Scope of Work Generator',d:'Draft a professional Scope of Work from project description and deliverables.',c:'Legal',s:'soon'},
+  {n:'AIA Fee Proposal Builder',d:'Structure a professional fee proposal with phases, scope, and exclusions.',c:'Legal',s:'soon'},
+  {n:'Contract Terms Checklist',d:'Checklist of critical contract terms to review before signing any AEC agreement.',c:'Legal',s:'soon'},
+  {n:'Retainage Calculator',d:'Calculate retainage holdback and release milestones on any construction contract.',c:'Legal',s:'live',u:'/tools/retainage-calc/'},
+  {n:'Delay & Liquidated Damages Calculator',d:'Calculate potential LD exposure from schedule delays on a fixed-fee contract.',c:'Legal',s:'soon'},
+  {n:'Lien Waiver Tracker',d:'Track conditional and unconditional lien waivers by subcontractor and pay app.',c:'Legal',s:'soon'},
+  {n:'Pay App Review Checklist',d:'Structured checklist for reviewing contractor payment applications for completeness.',c:'Legal',s:'soon'},
 
   // -- Documentation --------------------------------------------
   {n:'Room Finish Schedule',d:'Printable room finish schedule with floor/wall/ceiling dropdowns',c:'Documentation',u:'/tools/room-finish/',s:'live'},
@@ -490,22 +485,26 @@ var PRO_SET=new Set(["ROI Sensitivity","Development Pro Forma","BIM Model Checke
 
 // ── Category color map ────────────────────────────────────────────────────────
 var CAT_COLORS={
-  "BIM & VDC":              {bg:"rgba(99,102,241,.1)", bd:"rgba(99,102,241,.35)", tx:"#818cf8"},
-  "Architecture & Design":  {bg:"rgba(167,139,250,.1)",bd:"rgba(167,139,250,.35)",tx:"#c4b5fd"},
-  "Structural":             {bg:"rgba(245,158,11,.09)",bd:"rgba(245,158,11,.3)",  tx:"#fbbf24"},
-  "MEP Engineering":        {bg:"rgba(6,182,212,.09)", bd:"rgba(6,182,212,.3)",   tx:"#22d3ee"},
-  "Civil/Site":             {bg:"rgba(16,185,129,.09)",bd:"rgba(16,185,129,.3)",  tx:"#34d399"},
-  "Real Estate & Development":{bg:"rgba(200,169,110,.1)",bd:"rgba(200,169,110,.35)",tx:"#c8a96e"},
-  "Finance":                {bg:"rgba(34,197,94,.08)", bd:"rgba(34,197,94,.28)",  tx:"#4ade80"},
-  "Sustainability & Code":  {bg:"rgba(132,204,22,.08)",bd:"rgba(132,204,22,.28)", tx:"#a3e635"},
-  "Construction & Engineering":{bg:"rgba(249,115,22,.09)",bd:"rgba(249,115,22,.3)",tx:"#fb923c"},
-  "Code Compliance":        {bg:"rgba(248,113,113,.08)",bd:"rgba(248,113,113,.28)",tx:"#fca5a5"},
-  "Project Management":     {bg:"rgba(59,130,246,.09)",bd:"rgba(59,130,246,.3)",  tx:"#60a5fa"},
-  "Contracts & Legal":      {bg:"rgba(196,181,253,.08)",bd:"rgba(196,181,253,.28)",tx:"#ddd6fe"},
-  "Documentation":          {bg:"rgba(244,63,94,.08)", bd:"rgba(244,63,94,.28)",  tx:"#fb7185"},
-  "Business":               {bg:"rgba(20,184,166,.08)",bd:"rgba(20,184,166,.28)", tx:"#2dd4bf"},
-  "Calculators":            {bg:"rgba(148,163,184,.08)",bd:"rgba(148,163,184,.28)",tx:"#94a3b8"},
-  "General Productivity":   {bg:"rgba(192,132,252,.09)",bd:"rgba(192,132,252,.3)","tx":"#e879f9"},
+  "BIM":                  {bg:"rgba(99,102,241,.1)",   bd:"rgba(99,102,241,.35)",  tx:"#818cf8",  ic:"⎕"},
+  "VDC & Coordination":   {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⟳"},
+  "Architecture":         {bg:"rgba(167,139,250,.1)",  bd:"rgba(167,139,250,.35)", tx:"#c4b5fd",  ic:"⛲"},
+  "Design":               {bg:"rgba(244,114,182,.09)", bd:"rgba(244,114,182,.3)",  tx:"#f472b6",  ic:"✎"},
+  "Structural":           {bg:"rgba(245,158,11,.09)",  bd:"rgba(245,158,11,.3)",   tx:"#fbbf24",  ic:"△"},
+  "MEP Engineering":      {bg:"rgba(6,182,212,.09)",   bd:"rgba(6,182,212,.3)",    tx:"#22d3ee",  ic:"⚡"},
+  "Construction":         {bg:"rgba(251,146,60,.09)",  bd:"rgba(251,146,60,.3)",   tx:"#fb923c",  ic:"⛏"},
+  "Engineering":          {bg:"rgba(234,179,8,.09)",   bd:"rgba(234,179,8,.3)",    tx:"#eab308",  ic:"⚙"},
+  "Civil/Site":           {bg:"rgba(52,211,153,.09)",  bd:"rgba(52,211,153,.3)",   tx:"#34d399",  ic:"◺"},
+  "Real Estate & Development": {bg:"rgba(200,169,110,.1)", bd:"rgba(200,169,110,.35)", tx:"#c8a96e", ic:"□"},
+  "Project Management":   {bg:"rgba(168,85,247,.09)",  bd:"rgba(168,85,247,.3)",   tx:"#a855f7",  ic:"○"},
+  "Finance":              {bg:"rgba(34,197,94,.09)",   bd:"rgba(34,197,94,.3)",    tx:"#22c55e",  ic:"▷"},
+  "Sustainability":       {bg:"rgba(16,185,129,.09)",  bd:"rgba(16,185,129,.3)",   tx:"#10b981",  ic:"❀"},
+  "Legal":                {bg:"rgba(148,163,184,.09)", bd:"rgba(148,163,184,.3)",  tx:"#94a3b8",  ic:"⚖"},
+  "Code Compliance":      {bg:"rgba(239,68,68,.09)",   bd:"rgba(239,68,68,.3)",    tx:"#ef4444",  ic:"✔"},
+  "Documentation":        {bg:"rgba(249,115,22,.09)",  bd:"rgba(249,115,22,.3)",   tx:"#f97316",  ic:"▤"},
+  "Calculators":          {bg:"rgba(99,102,241,.08)",  bd:"rgba(99,102,241,.25)",  tx:"#818cf8",  ic:"▦"},
+  "Business":             {bg:"rgba(6,182,212,.08)",   bd:"rgba(6,182,212,.25)",   tx:"#22d3ee",  ic:"◇"},
+  "General Productivity": {bg:"rgba(156,163,175,.08)", bd:"rgba(156,163,175,.25)", tx:"#9ca3af",  ic:"◯"},
+  "Leisure":              {bg:"rgba(250,204,21,.09)",  bd:"rgba(250,204,21,.3)",   tx:"#facc15",  ic:"◎"}
 };
 function catColor(c){return CAT_COLORS[c]||{bg:"rgba(255,255,255,.05)",bd:"rgba(255,255,255,.15)",tx:"#9ca3af"};}
 
@@ -518,26 +517,37 @@ document.getElementById("statCats").textContent=ALL_CATS.length;
 document.getElementById("liveCount").textContent=LIVE.length+" LIVE";
 document.getElementById("heroSearch").placeholder="Search "+LIVE.length+" tools...";
 
-function renderCats(){
+﻿function renderCats(){
   var nav=document.getElementById("catNav");
   var cats=["All"].concat(ALL_CATS);
   nav.innerHTML=cats.map(function(c){
     var cnt=c==="All"?LIVE.length:LIVE.filter(function(t){return t.c===c;}).length;
     if(!cnt&&c!=="All")return "";
-    var col=c==="All"?{bg:"rgba(255,255,255,.05)",bd:"rgba(255,255,255,.18)",tx:"#e2e8f0"}:catColor(c);
+    var col=c==="All"?{bg:"rgba(255,255,255,.05)",bd:"rgba(255,255,255,.18)",tx:"#e2e8f0",ic:"*"}:catColor(c);
     var isActive=c===curCat;
-    var style="background:"+(isActive?col.bg.replace(/[\d.]+\)$/,"0.18)"):"rgba(255,255,255,.03)")+";border-color:"+(isActive?col.bd:"rgba(255,255,255,.08)")+";color:"+(isActive?col.tx:"#6b7280")+";";
-    return "<div class='cpill"+(isActive?" active":"")+"' style='"+style+"' onclick='setCat("+singleQ(c)+")'>"
-      +"<span class='cdot' style='background:"+col.tx+";opacity:"+(isActive?"1":".35")+"'></span>"
-      +"<span class='cname'>"+c+"</span>"
-      +"<span class='ccnt'>"+cnt+"</span>"
-      +"</div>";
+    var bg=isActive?col.bg.replace(/[\d.]+\)$/,"0.18)"):"rgba(255,255,255,.03)";
+    var bd=isActive?col.bd:"rgba(255,255,255,.08)";
+    var tx=isActive?col.tx:"#6b7280";
+    var ic=col.ic||"o";
+    var safe=c.replace(/&/g,"&amp;");
+    var cls="cpill"+(isActive?" active":"");
+    var sty="background:"+bg+";border-color:"+bd+";color:"+tx+";";
+    return '<div class="'+cls+'" style="'+sty+'" data-cat="'+safe+'">'
+      +'<span class="cicon" style="color:'+(isActive?col.tx:"rgba(255,255,255,.3)")+';">'+ic+'</span>'
+      +'<span class="cname">'+c+'</span>'
+      +'<span class="ccnt">'+cnt+'</span>'
+      +'</div>';
   }).join("");
 }
 
 function setCat(c){curCat=c;curQ="";document.getElementById("heroSearch").value="";document.getElementById("srchClear").classList.remove("vis");renderCats();renderGrid();explored.add(c);updatePower();}
 function onSearch(v){curQ=v.toLowerCase().trim();curCat="All";document.getElementById("srchClear").classList.toggle("vis",!!v);renderCats();renderGrid();}
 function clearSearch(){curQ="";curCat="All";document.getElementById("heroSearch").value="";document.getElementById("srchClear").classList.remove("vis");renderCats();renderGrid();}
+document.getElementById("catNav").addEventListener("click",function(e){
+  var el=e.target.closest("[data-cat]");
+  if(el)setCat(el.getAttribute("data-cat"));
+});
+
 function updatePower(){var pct=Math.min(100,Math.round(explored.size/10*100));document.getElementById("powerFill").style.width=pct+"%";document.getElementById("powerLbl").textContent="EXPLORATION_POWER: "+pct+"%";if(pct>=100)clog("ok","power","ACHIEVEMENT_UNLOCKED: Explorer_Badge activated");}
 
 function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
@@ -609,7 +619,24 @@ var ALOGS=[["sys","db","TOOLS_INDEX synced — ready"],["sys","cache","CDN_HIT: 
 var ali=0;
 function autoLog(){var e=ALOGS[ali%ALOGS.length];clog(e[0],e[1],e[2]);ali++;setTimeout(autoLog,2800+Math.random()*3200);}
 
-var STATUS=[{n:"Tools Engine"},{n:"Search"},{n:"CDN Edge"},{n:"Build Pipeline"},{n:"Auth Layer"}];
+var STATUS=[{n:"Tools Engine"},{n:"Search"},{n:"CDN Edge"},{n:"Build Pipeline"},{n:"Auth Layer"},
+{n:'Golden Ratio Calculator',d:'Compute golden ratio proportions for compositions',c:'Design',s:'live',u:'/tools/golden-ratio/'},
+{n:'Typography Scale Generator',d:'Modular typographic scales for consistent hierarchy',c:'Design',s:'soon'},
+{n:'Color Contrast Checker',d:'WCAG AA/AAA contrast ratio checker',c:'Design',s:'soon'},
+{n:'Grid System Builder',d:'Column grid, gutters and margins for layouts',c:'Design',s:'soon'},
+{n:'Proportion Calculator',d:'Classic proportion systems: Vitruvius, Renaissance, Corbusier',c:'Design',s:'soon'},
+{n:'Logo Safe Zone Calculator',d:'Minimum clear space around brand marks',c:'Design',s:'soon'},
+{n:'Gestalt Principles Reference',d:'Visual perception laws applied to layout and composition',c:'Design',s:'soon'},
+{n:'Color Palette Generator',d:'Complementary, analogous and triadic palettes from a base hue',c:'Design',s:'soon'},
+{n:'Fibonacci Sequence Visualizer',d:'Golden spiral and Fibonacci proportions in design',c:'Design',s:'soon'},
+{n:'BIM Trivia',d:'Test your BIM & AEC knowledge with quick-fire questions',c:'Leisure',s:'live',u:'/tools/bim-trivia/'},
+{n:'Architecture Word Search',d:'Hidden terms from the world of architecture and design',c:'Leisure',s:'soon'},
+{n:'Building Blindspot Quiz',d:'Guess famous buildings from abstract silhouettes',c:'Leisure',s:'soon'},
+{n:'Measurement Challenge',d:'Estimate dimensions — how good is your spatial intuition?',c:'Leisure',s:'soon'},
+{n:'AEC Acronym Battle',d:'How many AEC acronyms can you decode in 60 seconds?',c:'Leisure',s:'soon'},
+{n:'Tile Pattern Puzzle',d:'Match tile patterns — a relaxing geometry puzzle',c:'Leisure',s:'soon'},
+{n:'Floor Plan Scramble',d:'Reassemble scrambled room blocks into a valid floor plan',c:'Leisure',s:'soon'}
+];
 function renderStatus(){document.getElementById("statusWrap").innerHTML=STATUS.map(function(s){var ms=Math.floor(Math.random()*12+3);return "<div class='srow'><span class='sdot'></span><span class='sname'>"+s.n+"</span><span class='slat'>"+ms+"ms</span></div>";}).join("");}
 
 function openCmd(){document.getElementById("cmdOverlay").classList.add("open");setTimeout(function(){document.getElementById("cmdInput").focus();},50);cmdSearch("");}
