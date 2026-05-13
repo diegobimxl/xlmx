@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRA + Green Building Tax Incentive Finder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:320px 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#b8965e}
+.incentive-card{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.incentive-card.eligible{border-color:#10b98144}
+.incentive-card.maybe{border-color:#f59e0b44}
+.incentive-card.ineligible{opacity:0.5}
+.incentive-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.incentive-name{font-size:15px;font-weight:600;color:#fff}
+.incentive-code{font-size:11px;color:#888;margin-top:2px}
+.incentive-amount{text-align:right}
+.incentive-amount .amount{font-size:20px;font-weight:700;font-family:monospace;color:#c8a96e}
+.incentive-amount .lbl{font-size:11px;color:#888}
+.incentive-desc{font-size:13px;color:#aaa;line-height:1.6;margin-bottom:12px}
+.requirements{font-size:12px;color:#888;line-height:1.6}
+.requirements strong{color:#ccc}
+.pill{display:inline-block;border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700;margin-right:4px;margin-bottom:4px}
+.pill-green{background:#10b98122;color:#10b981;border:1px solid #10b98144}
+.pill-gold{background:#c8a96e22;color:#c8a96e;border:1px solid #c8a96e44}
+.pill-blue{background:#3b82f622;color:#60a5fa;border:1px solid #3b82f644}
+.pill-gray{background:#33333344;color:#666;border:1px solid #333}
+.total-box{background:#c8a96e11;border:2px solid #c8a96e33;border-radius:8px;padding:24px;margin-bottom:24px;text-align:center}
+.total-box .total{font-size:42px;font-weight:700;font-family:monospace;color:#c8a96e}
+.total-box .lbl{font-size:14px;color:#888;margin-top:4px}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:#ccc;cursor:pointer}
+.checkbox-row input[type=checkbox]{width:auto;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Green Building Tax Incentive Finder</h1>
+  <p>IRA 2022 + §179D + §45L + §48 — US Federal Incentives for Sustainable Buildings</p>
+  <span class="badge" style="background:#c8a96e22;color:#c8a96e;border:1px solid #c8a96e44">IRA 2022</span>
+  <span class="badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">§179D</span>
+  <span class="badge" style="background:#3b82f622;color:#60a5fa;border:1px solid #3b82f644">§45L</span>
+  <span class="badge" style="background:#8b5cf622;color:#a78bfa;border:1px solid #8b5cf644">§48 ITC</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Project Profile</h3>
+        <label>Project Type</label>
+        <select id="proj_type">
+          <option value="commercial">Commercial Building (office/retail/industrial)</option>
+          <option value="multifamily">Multifamily Residential (3+ stories)</option>
+          <option value="single_family">Single-Family / Low-Rise Residential</option>
+          <option value="public">Government / Tax-Exempt Entity</option>
+          <option value="industrial">Industrial / Manufacturing</option>
+        </select>
+        <label>Project Status</label>
+        <select id="status">
+          <option value="new">New Construction</option>
+          <option value="renovation">Major Renovation / Retrofit</option>
+          <option value="existing">Existing Building (retro-commissioning)</option>
+        </select>
+        <label>Total Gross Floor Area (SF)</label>
+        <input type="number" id="gfa" value="50000">
+        <label>Number of Dwelling Units (if residential)</label>
+        <input type="number" id="units" value="0">
+        <label>Estimated Total Construction Cost ($)</label>
+        <input type="number" id="total_cost" value="5000000">
+        <div style="margin-top:16px;border-top:1px solid #222;padding-top:16px">
+          <div style="font-size:12px;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Qualifying Systems / Features</div>
+          <label class="checkbox-row"><input type="checkbox" id="has_solar" checked> Solar PV System</label>
+          <label class="checkbox-row"><input type="checkbox" id="has_batt"> Battery Storage (≥3 kWh)</label>
+          <label class="checkbox-row"><input type="checkbox" id="has_hp" checked> Heat Pump HVAC</label>
+          <label class="checkbox-row"><input type="checkbox" id="has_ev"> EV Charging Infrastructure</label>
+          <label class="checkbox-row"><input type="checkbox" id="has_wind"> Wind Energy System</label>
+          <label class="checkbox-row"><input type="checkbox" id="energy_25pct" checked> ≥25% energy savings vs baseline</label>
+          <label class="checkbox-row"><input type="checkbox" id="energy_50pct"> ≥50% energy savings vs baseline</label>
+          <label class="checkbox-row"><input type="checkbox" id="prevailing_wage" checked> Prevailing Wage + Apprenticeship requirements met</label>
+          <label class="checkbox-row"><input type="checkbox" id="energy_community"> Located in Energy Community</label>
+          <label class="checkbox-row"><input type="checkbox" id="domestic_content"> Domestic Content (US-made materials)</label>
+        </div>
+        <label style="margin-top:16px">Solar PV System Size (kWp)</label>
+        <input type="number" id="pv_kw" value="200" step="10">
+        <label>Installed PV Cost ($/W)</label>
+        <input type="number" id="pv_cost_w" value="2.50" step="0.1">
+        <label>Heat Pump System Cost ($)</label>
+        <input type="number" id="hp_cost" value="250000">
+        <button class="btn" onclick="calcIncentives()">Find Eligible Incentives</button>
+      </div>
+    </div>
+    <div>
+      <div id="resultsSection">
+        <div class="card">
+          <h3>Eligible Incentives</h3>
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Configure project and calculate to see eligible incentives</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM Documentation for Tax Credits</div>
+    <p>§179D requires a qualified energy study by a licensed engineer certifying 25%+ or 50%+ energy savings — this must be backed by an ASHRAE 90.1 Appendix G energy model from your BIM model (EnergyPlus or approved software). §45L requires ENERGY STAR or DOE Zero Energy Ready Home certification with HERS rating — coordinate with energy rater. §48 ITC requires IRS Form 3468 and documentation of qualifying property placed in service. BIM XL can provide the energy model and documentation package. All incentive claims should be reviewed with a tax professional — dollar amounts shown are estimates only.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Maximize your project's incentive stack?</strong><br>
+    BIM XL partners with tax professionals and energy modelers to deliver §179D energy studies, §45L certification support, and IRA ITC documentation packages. We integrate the energy model with your BIM model for a streamlined submission. Contact <strong>BIM XL</strong> for an incentive maximization consultation.</p>
+  </div>
+</div>
+<script>
+function calcIncentives(){
+  var proj=document.getElementById('proj_type').value;
+  var status=document.getElementById('status').value;
+  var gfa=parseFloat(document.getElementById('gfa').value);
+  var units=parseFloat(document.getElementById('units').value)||0;
+  var total_cost=parseFloat(document.getElementById('total_cost').value);
+  var has_solar=document.getElementById('has_solar').checked;
+  var has_batt=document.getElementById('has_batt').checked;
+  var has_hp=document.getElementById('has_hp').checked;
+  var has_ev=document.getElementById('has_ev').checked;
+  var has_wind=document.getElementById('has_wind').checked;
+  var e25=document.getElementById('energy_25pct').checked;
+  var e50=document.getElementById('energy_50pct').checked;
+  var pw=document.getElementById('prevailing_wage').checked;
+  var ec=document.getElementById('energy_community').checked;
+  var dc=document.getElementById('domestic_content').checked;
+  var pv_kw=parseFloat(document.getElementById('pv_kw').value);
+  var pv_cost=pv_kw*1000*parseFloat(document.getElementById('pv_cost_w').value);
+  var hp_cost_v=parseFloat(document.getElementById('hp_cost').value);
+
+  var incentives=[];
+  var total=0;
+
+  // §48 ITC — Solar
+  if(has_solar){
+    var base_itc=0.30;
+    var bonus=0;
+    if(ec) bonus+=0.10;
+    if(dc) bonus+=0.10;
+    var itc_pct=base_itc+bonus;
+    var itc_amt=pv_cost*itc_pct;
+    total+=itc_amt;
+    incentives.push({
+      name:'§48 Investment Tax Credit — Solar PV',code:'IRA 2022 §48',eligible:true,
+      amount:itc_amt,per:'lump sum',
+      desc:'30% base ITC on installed cost of commercial solar PV system. Bonus credits apply for Energy Community (+10%) and Domestic Content (+10%). Prevailing wage requirement must be met for full credit (else 6%).',
+      reqs:'Placed in service after IRA enactment. PW+Apprenticeship required for full rate. Form 3468. Transferable or direct pay for tax-exempt entities under IRA.',
+      pills:['IRA 2022','Solar','Commercial']
+    });
+  }
+
+  // §48 Battery
+  if(has_batt){
+    var batt_pct=0.30+(ec?0.10:0)+(dc?0.10:0);
+    var batt_est=pv_kw*200*batt_pct; // rough $200/kWh storage
+    total+=batt_est;
+    incentives.push({
+      name:'§48 ITC — Battery Storage',code:'IRA 2022 §48E',eligible:true,
+      amount:batt_est,per:'estimated',
+      desc:'30% ITC on standalone battery storage (≥3 kWh). As of IRA, no longer must be paired with solar. Same bonus credit stack as solar applies.',
+      reqs:'≥3 kWh usable capacity. No longer solar-paired requirement. PW+Apprenticeship for full rate.',
+      pills:['IRA 2022','Storage','New 2023+']
+    });
+  }
+
+  // §179D Commercial Energy Efficiency
+  if((proj==='commercial'||proj==='public'||proj==='industrial')&&(e25||e50)){
+    var base_179d=e50?(pw?5.00:1.00):(pw?2.50:0.50);
+    var adj_179d=base_179d*(1+(ec?0.1:0));
+    var amt_179d=gfa*adj_179d;
+    total+=amt_179d;
+    incentives.push({
+      name:'§179D Commercial Buildings Energy Efficiency Deduction',code:'IRS §179D (IRA enhanced)',eligible:true,
+      amount:amt_179d,per:'tax deduction',
+      desc:'Tax deduction of $0.50-5.00/SF for commercial buildings achieving 25%-50%+ energy savings vs ASHRAE 90.1 baseline. IRA expanded to include tax-exempt entities via allocation to designers. Prevailing wage required for maximum rates.',
+      reqs:'Certified energy study by licensed engineer. ASHRAE 90.1 baseline model required. Must meet energy savings threshold. PW for rates above $0.50/SF. Updated baseline every 4 years.',
+      pills:['§179D','Commercial','ASHRAE 90.1']
+    });
+  }
+
+  // §45L Residential
+  if(proj==='multifamily'||proj==='single_family'){
+    if(status==='new'&&units>0){
+      var rate_45l=(proj==='single_family'?2500:2500); // ENERGY STAR
+      var rate_zero=5000; // Zero Energy Ready
+      var est_45l=units*rate_45l;
+      total+=est_45l;
+      incentives.push({
+        name:'§45L New Energy Efficient Home Credit',code:'IRA 2022 §45L',eligible:true,
+        amount:est_45l,per:'per unit ($2,500–5,000)',
+        desc:'$2,500 per unit for ENERGY STAR certified new homes/apartments. $5,000 per unit for DOE Zero Energy Ready Home (ZERH) certification. Multifamily now eligible (previously only single-family). PW required for multifamily ZERH.',
+        reqs:'ENERGY STAR 3.2+ or ZERH certification. For multifamily: meets applicable ENERGY STAR Multifamily New Construction standards. Completed before end of tax year.',
+        pills:['§45L','Residential','ENERGY STAR']
+      });
+    }
+  }
+
+  // §48C HP/EV
+  if(has_hp&&(proj==='commercial'||proj==='industrial')){
+    var hp_itc=hp_cost_v*0.30;
+    total+=hp_itc;
+    incentives.push({
+      name:'§48C Advanced Energy Manufacturing / Heat Pump Credit',code:'IRA 2022 §48C',eligible:true,
+      amount:hp_itc,per:'estimated',
+      desc:'30% ITC for commercial heat pump and advanced HVAC systems under §48C competitive allocation. Also applicable under §48 for ground source heat pumps. Note: §48C primarily targets manufacturing, but geothermal HP qualifies under §48.',
+      reqs:'GSHP systems qualify for 30% ITC under §48. Air-source HP may qualify under §48C competitive allocation. Consult tax counsel for specific equipment classification.',
+      pills:['§48C','Heat Pump','Commercial']
+    });
+  }
+
+  if(has_ev){
+    incentives.push({
+      name:'§30C EV Charging Infrastructure Credit',code:'§30C (IRA extended)',eligible:true,
+      amount:100000,per:'per location (max)',
+      desc:'30% of cost up to $1,000/station for commercial EV charging (max $100,000 per property). Income census tract requirements apply. Placed in service in eligible census tracts.',
+      reqs:'Must be in low-income or non-urban census tract (IRA requirement). Bidirectional chargers qualify. Per-station $1,000 cap, $100,000 per property.',
+      pills:['§30C','EV','2023+']
+    });
+    total+=100000;
+  }
+
+  // HEEHRA (not commercial, but mention for residential renovation)
+  if((proj==='single_family'||proj==='multifamily')&&status==='renovation'){
+    incentives.push({
+      name:'HEEHRA Rebates — High-Efficiency Electric Home Rebate Act',code:'IRA §50121',eligible:true,
+      amount:14000,per:'per unit maximum',
+      desc:'Up to $14,000 in point-of-sale rebates per household for heat pumps ($8,000), heat pump water heaters ($1,750), EV charger ($1,500), weatherization ($1,600+), electric panel ($4,000+). Income-based — max benefit for households below 80% AMI.',
+      reqs:'State must administer program (rollout ongoing). Income-based: 100% rebate <80% AMI, 50% rebate 80-150% AMI. Installed by licensed contractor.',
+      pills:['HEEHRA','Residential','Rebate']
+    });
+    total+=14000;
+  }
+
+  var html='<div class="total-box"><div class="total">$'+Math.round(total).toLocaleString()+'</div><div class="lbl">Estimated Total Incentive Value</div><div style="font-size:12px;color:#888;margin-top:8px">Consult a tax professional — values are estimates for planning purposes only</div></div>';
+
+  incentives.forEach(function(inc){
+    html+='<div class="incentive-card eligible">'
+      +'<div class="incentive-header">'
+      +'<div><div class="incentive-name">'+inc.name+'</div><div class="incentive-code">'+inc.code+'</div></div>'
+      +'<div class="incentive-amount"><div class="amount">$'+Math.round(inc.amount).toLocaleString()+'</div><div class="lbl">'+inc.per+'</div></div>'
+      +'</div>'
+      +'<p class="incentive-desc">'+inc.desc+'</p>'
+      +'<div class="requirements"><strong>Requirements:</strong> '+inc.reqs+'</div>'
+      +'<div style="margin-top:10px">'+inc.pills.map(function(p){return '<span class="pill pill-gold">'+p+'</span>';}).join('')+'</div>'
+      +'</div>';
+  });
+
+  document.getElementById('resultsSection').innerHTML=
+    '<div class="card"><h3>Eligible Incentives ('+incentives.length+' found)</h3>'+html+'</div>';
+}
+calcIncentives();
+</script>
+</body>
+</html>

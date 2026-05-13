@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stack Effect Ventilation — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.divider{border-top:1px solid #1a1a1a;margin:14px 0}
+.formula-box{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;font-family:monospace;font-size:0.8rem;color:#86efac;margin:10px 0}
+.bar-wrap{background:#1a1a1a;border-radius:3px;height:8px;overflow:hidden;margin-top:4px}
+.bar-fill{height:8px;border-radius:3px;background:#10b981;transition:width .3s}
+.bar-fill.warn{background:#f59e0b}
+.bar-fill.bad{background:#ef4444}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Stack Effect Ventilation Calculator <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Buoyancy-driven airflow, neutral pressure plane, multi-story stack analysis — ASHRAE 62.1 · IBC 1203 · CIBSE AM10</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Geometry</h3>
+    <label>Stack Height — Inlet to Outlet (ft)</label>
+    <input type="number" id="height" value="30" oninput="calc()">
+    <label>Inlet Opening Area (SF)</label>
+    <input type="number" id="a_in" value="8" step="0.5" oninput="calc()">
+    <label>Outlet Opening Area (SF)</label>
+    <input type="number" id="a_out" value="10" step="0.5" oninput="calc()">
+    <label>Discharge Coefficient Cd (0.6–0.8)</label>
+    <input type="number" id="cd" value="0.65" step="0.05" oninput="calc()">
+    <label>Floor Area Served (SF)</label>
+    <input type="number" id="floor_area" value="2000" oninput="calc()">
+    <label>Floor-to-Ceiling Height (ft)</label>
+    <input type="number" id="ceiling" value="10" oninput="calc()">
+    <label>Number of Floors</label>
+    <input type="number" id="floors" value="3" min="1" max="20" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>Thermal Conditions</h3>
+    <label>Indoor Design Temperature (°F)</label>
+    <input type="number" id="ti" value="75" oninput="calc()">
+    <label>Outdoor Temperature (°F)</label>
+    <input type="number" id="to" value="60" oninput="calc()">
+    <label>ASHRAE Climate Zone</label>
+    <select id="cz" onchange="calc()">
+      <option value="1">CZ 1 — Hot (Miami)</option>
+      <option value="2">CZ 2 — Hot (Houston)</option>
+      <option value="3" selected>CZ 3 — Mixed (Atlanta)</option>
+      <option value="4">CZ 4 — Cool (Baltimore)</option>
+      <option value="5">CZ 5 — Cool (Chicago)</option>
+      <option value="6">CZ 6 — Cold (Minneapolis)</option>
+    </select>
+    <label>Building Use</label>
+    <select id="buse" onchange="calc()">
+      <option value="office">Office / Commercial</option>
+      <option value="atrium">Atrium / Lobby</option>
+      <option value="school">School</option>
+      <option value="residential">Residential</option>
+      <option value="industrial">Industrial / Warehouse</option>
+    </select>
+    <label>Occupant Density (persons/1000 SF)</label>
+    <input type="number" id="occ" value="5" oninput="calc()">
+    <label>Stack System Type</label>
+    <select id="stack_type" onchange="calc()">
+      <option value="solar">Solar Chimney (OAT drives buoyancy)</option>
+      <option value="thermal">Thermal Stack (internal heat gain)</option>
+      <option value="wind_assist">Wind-Assisted Stack</option>
+    </select>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Stack Airflow</h3>
+    <div class="result-big" id="cfm">—</div>
+    <div class="result-label">CFM per floor (single-story model)</div>
+    <div class="result-sub" id="total_cfm">—</div>
+    <div class="result-label">Total CFM (multi-floor stack)</div>
+    <div class="result-sub" id="velocity">—</div>
+    <div class="result-label">Outlet velocity (fpm)</div>
+  </div>
+  <div class="card">
+    <h3>Ventilation Performance</h3>
+    <div class="result-big good" id="ach">—</div>
+    <div class="result-label">ACH — Air Changes per Hour</div>
+    <div class="result-sub" id="cfm_per_person">—</div>
+    <div class="result-label">CFM/person</div>
+    <div class="result-sub" id="ashrae_req">—</div>
+    <div class="result-label">ASHRAE 62.1 required ventilation</div>
+  </div>
+  <div class="card">
+    <h3>Compliance & Sizing</h3>
+    <div class="result-big" id="compliance">—</div>
+    <div class="result-label">ASHRAE 62.1 compliance</div>
+    <div class="result-sub" id="neutral_plane">—</div>
+    <div class="result-label">Neutral pressure plane height (ft from floor)</div>
+    <div class="result-sub" id="delta_p">—</div>
+    <div class="result-label">Stack pressure differential (in. w.g.)</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Multi-Story Stack Analysis</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Floor</th>
+        <th>Stack Height (ft)</th>
+        <th>ΔT (°F)</th>
+        <th>CFM</th>
+        <th>ACH</th>
+        <th>Meets 62.1</th>
+      </tr>
+    </thead>
+    <tbody id="floor_table"></tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Seasonal Performance (Monthly Outdoor Temp)</h3>
+  <div id="seasonal_bars"></div>
+  <div class="formula-box">
+Stack flow: Q = Cd × A_eff × √(2 × g × h × |Ti - To| / Ti)
+where A_eff = (A_in × A_out) / √(A_in² + A_out²); Ti, To in Rankine (°F + 459.67)
+  </div>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: STACK_HEIGHT_FT, STACK_INLET_SF, STACK_OUTLET_SF, STACK_CFM, STACK_ACH for natural ventilation documentation</li>
+    <li>Stack effect strongest when ΔT ≥ 10°F; reliable passive ventilation typically requires ΔT ≥ 5°F minimum — model worst-case mild day</li>
+    <li>CIBSE AM10 (Natural Ventilation in Non-Domestic Buildings): buoyancy-driven single-sided and cross-flow design guidance</li>
+    <li>Solar chimney: south-facing glazed shaft absorbs solar radiation, increases chimney air temperature by 10-30°F above ambient — increases stack effect by factor of 2-4x</li>
+    <li>Neutral Pressure Plane (NPP): air enters below NPP, exits above. Inlet openings should be below NPP, outlets above. NPP shifts down with larger outlet area.</li>
+    <li>IBC Section 1203: natural ventilation area requirement — openable area ≥ 4% of floor area OR mechanical ventilation per IMC</li>
+    <li>Wind-assisted stack: wind creates negative pressure at outlet (Bernoulli) — cowl/terminal design critical; adds 30-60% to buoyancy-only CFM at 5 mph wind</li>
+    <li>CSI Spec Section 23 37 00 (Air Outlets and Inlets), 08 90 00 (Louvers and Vents) — specify Cd and free area for stack openings</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Natural Ventilation Design & CFD Analysis</h4>
+  <p>BIM XL delivers stack ventilation modeling, atrium design, Revit MEP integration, and passive ventilation compliance documentation.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var ASHRAE_CFM={office:17,atrium:15,school:15,residential:7.5,industrial:20}; // CFM/person minimum
+var g=32.174; // ft/s²
+
+// Monthly outdoor temps by CZ (°F) — representative city
+var MONTHLY_TO={
+  1:[72,72,75,78,82,85,87,87,85,81,76,72],
+  2:[52,55,63,70,77,84,88,88,82,72,62,53],
+  3:[43,47,55,63,71,79,82,81,74,63,53,44],
+  4:[33,36,46,56,66,75,79,77,70,58,47,35],
+  5:[22,26,38,50,61,71,76,74,66,54,40,26],
+  6:[12,18,30,45,57,67,73,70,61,49,34,18]
+};
+var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function calc(){
+  var h=parseFloat(document.getElementById('height').value)||30;
+  var a_in=parseFloat(document.getElementById('a_in').value)||8;
+  var a_out=parseFloat(document.getElementById('a_out').value)||10;
+  var cd=parseFloat(document.getElementById('cd').value)||0.65;
+  var fa=parseFloat(document.getElementById('floor_area').value)||2000;
+  var ceil=parseFloat(document.getElementById('ceiling').value)||10;
+  var floors=parseInt(document.getElementById('floors').value)||3;
+  var ti_f=parseFloat(document.getElementById('ti').value)||75;
+  var to_f=parseFloat(document.getElementById('to').value)||60;
+  var occ=parseFloat(document.getElementById('occ').value)||5;
+  var buse=document.getElementById('buse').value;
+  var cz=parseInt(document.getElementById('cz').value)||3;
+
+  var ti_r=ti_f+459.67;
+  var to_r=to_f+459.67;
+  var dT=ti_f-to_f;
+
+  // Effective area
+  var a_eff=(a_in*a_out)/Math.sqrt(a_in*a_in+a_out*a_out);
+
+  // Stack velocity (ft/s)
+  var arg=2*g*h*Math.abs(dT)/ti_r;
+  var v=arg>0?cd*Math.sqrt(arg):0;
+
+  // CFM
+  var cfm=v*a_eff*60;
+  var vol=fa*ceil; // volume per floor
+  var ach=cfm>0?cfm*60/vol:0; // wrong — should be cfm * 60 / vol
+  ach=vol>0?cfm*60/vol:0;
+
+  // ASHRAE 62.1
+  var persons=fa*occ/1000;
+  var req_cfm_pp=ASHRAE_CFM[buse]||17;
+  var req_cfm=persons*req_cfm_pp;
+  var meets=cfm>=req_cfm;
+
+  // Neutral pressure plane: NPP = h × A_out²/(A_in²+A_out²) from inlet
+  var npp=h*a_out*a_out/(a_in*a_in+a_out*a_out);
+
+  // Pressure differential (in. w.g.)
+  // ΔP = 0.192 × h × (1/To_R - 1/Ti_R) × 27.67 [convert to in. w.g.]
+  var dp=0.192*h*(1/to_r-1/ti_r)*27.67;
+
+  // Outlet velocity
+  var vel_out=a_out>0?cfm/(a_out*60):0; // fps
+
+  document.getElementById('cfm').textContent=Math.round(cfm).toLocaleString()+' CFM';
+  document.getElementById('cfm').className='result-big '+(cfm>=req_cfm?'good':cfm>=req_cfm*0.7?'warn':'bad');
+  document.getElementById('total_cfm').textContent=Math.round(cfm*floors).toLocaleString()+' CFM ('+floors+' floors)';
+  document.getElementById('velocity').textContent=vel_out.toFixed(1)+' fps at outlet';
+  document.getElementById('ach').textContent=ach.toFixed(2)+' ACH';
+  document.getElementById('ach').className='result-big '+(ach>=0.5?'good':ach>=0.3?'warn':'bad');
+  document.getElementById('cfm_per_person').textContent=persons>0?(cfm/persons).toFixed(1)+' CFM/person':'N/A';
+  document.getElementById('ashrae_req').textContent=req_cfm.toFixed(0)+' CFM min ('+req_cfm_pp+' CFM/person)';
+  document.getElementById('compliance').textContent=meets?'MEETS 62.1':'BELOW 62.1';
+  document.getElementById('compliance').className='result-big '+(meets?'good':'bad');
+  document.getElementById('neutral_plane').textContent=npp.toFixed(1)+' ft from inlet';
+  document.getElementById('delta_p').textContent=Math.abs(dp).toFixed(4)+' in. w.g.';
+
+  // Floor table
+  var tbody=document.getElementById('floor_table');
+  tbody.innerHTML='';
+  for(var i=1;i<=floors;i++){
+    var hi=h*i/floors; // stack height at each floor
+    var arg_i=2*g*hi*Math.abs(dT)/ti_r;
+    var v_i=arg_i>0?cd*Math.sqrt(arg_i):0;
+    var cfm_i=v_i*a_eff*60;
+    var ach_i=vol>0?cfm_i*60/vol:0;
+    var m=cfm_i>=req_cfm;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>Floor '+i+'</td><td>'+hi.toFixed(0)+'</td><td>'+dT.toFixed(1)+'</td><td>'+(Math.round(cfm_i))+'</td><td>'+ach_i.toFixed(2)+'</td><td class="'+(m?'good':'bad')+'">'+(m?'Yes':'No')+'</td>';
+    tbody.appendChild(tr);
+  }
+
+  // Seasonal bars
+  var monthly=MONTHLY_TO[cz]||MONTHLY_TO[3];
+  var max_cfm=0;
+  var cfms=monthly.map(function(to_m){
+    var dT_m=ti_f-to_m;
+    if(dT_m<=0)return 0;
+    var arg_m=2*g*h*dT_m/ti_r;
+    var v_m=cd*Math.sqrt(arg_m);
+    var c=v_m*a_eff*60;
+    if(c>max_cfm)max_cfm=c;
+    return c;
+  });
+  var bars=document.getElementById('seasonal_bars');
+  bars.innerHTML='';
+  cfms.forEach(function(c,i){
+    var pct=max_cfm>0?c/max_cfm*100:0;
+    var cl=c>=req_cfm?'bar-fill good':c>=req_cfm*0.7?'bar-fill warn':'bar-fill bad';
+    bars.innerHTML+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:0.8rem">'
+      +'<span style="width:36px;color:#666">'+MONTHS[i]+'</span>'
+      +'<div style="flex:1"><div class="bar-wrap"><div class="'+cl+'" style="width:'+pct+'%"></div></div></div>'
+      +'<span style="width:70px;text-align:right;font-size:0.78rem;color:#aaa">'+Math.round(c)+' CFM</span>'
+      +'<span style="width:60px;text-align:right;font-size:0.75rem;color:'+(c>=req_cfm?'#10b981':c>0?'#f59e0b':'#ef4444')+'">'+monthly[i]+'°F OAT</span>'
+      +'</div>';
+  });
+}
+
+calc();
+</script>
+</body>
+</html>

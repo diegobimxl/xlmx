@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASHRAE Climate Zone Reference</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1200px;margin:0 auto;padding:32px}
+.search-row{display:flex;gap:12px;margin-bottom:24px}
+.search-row input{flex:1;background:#111;border:1px solid #333;border-radius:6px;padding:10px 16px;color:#e0e0e0;font-size:14px}
+.search-row input:focus{outline:none;border-color:#10b981}
+.cz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:32px}
+.cz-card{border-radius:8px;padding:20px;border:1px solid;cursor:pointer;transition:all 0.2s}
+.cz-card:hover{transform:translateY(-2px)}
+.cz-card .cz-num{font-size:36px;font-weight:800;font-family:monospace;line-height:1}
+.cz-card .cz-name{font-size:13px;font-weight:600;margin-top:4px;margin-bottom:8px}
+.cz-card .cz-desc{font-size:12px;opacity:0.8;line-height:1.5}
+.detail-panel{background:#111;border:1px solid #222;border-radius:8px;padding:24px;margin-bottom:24px;display:none}
+.detail-panel.visible{display:block}
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.detail-box{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px}
+.detail-box .title{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.detail-box .val{font-size:16px;font-weight:600;font-family:monospace;color:#10b981}
+.detail-box .sub{font-size:11px;color:#666;margin-top:2px}
+.req-table{width:100%;border-collapse:collapse;font-size:12px}
+.req-table th{background:#0d0d0d;color:#888;padding:9px;text-align:left;border-bottom:1px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.req-table td{padding:9px;border-bottom:1px solid #1a1a1a;color:#ccc}
+.req-table tr:hover td{background:#0d0d0d}
+.city-list{font-size:12px;color:#888;line-height:1.7;margin-top:12px}
+.full-table{width:100%;border-collapse:collapse;font-size:12px}
+.full-table th{background:#111;color:#888;padding:10px;text-align:left;border-bottom:2px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0}
+.full-table td{padding:10px;border-bottom:1px solid #1a1a1a;color:#ccc;vertical-align:top}
+.full-table tr:hover td{background:#111}
+.full-table td:first-child{font-family:monospace;font-weight:700;font-size:16px}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>ASHRAE Climate Zone Reference</h1>
+  <p>ASHRAE 169-2021 Climate Zones — Building Code Requirements, HDD/CDD, Design Strategies</p>
+  <span class="badge">ASHRAE 169-2021</span>
+  <span class="badge">IECC 2021</span>
+</div>
+<div class="container">
+  <div class="search-row">
+    <input type="text" id="citySearch" placeholder="Search city, state, or climate zone..." oninput="filterCities()">
+  </div>
+
+  <div class="cz-grid" id="czCards">
+  </div>
+
+  <div class="detail-panel" id="detailPanel">
+    <div id="detailContent"></div>
+  </div>
+
+  <div id="cityResults" style="display:none;margin-bottom:24px">
+    <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:12px">City Search Results</div>
+    <div id="cityResultsTable"></div>
+  </div>
+
+  <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:12px">All Climate Zones — Requirements Summary</div>
+  <table class="full-table">
+    <tr><th>CZ</th><th>Description</th><th>HDD (65°F)</th><th>CDD (65°F)</th><th>Roof U (max)</th><th>Wall U (max)</th><th>Window U (max)</th><th>SHGC (max)</th><th>Dominant Strategy</th></tr>
+    <tr><td style="color:#ef4444">1</td><td>Very Hot — Humid/Dry</td><td>&lt;500</td><td>&gt;9,000</td><td>0.048</td><td>0.124</td><td>0.50</td><td>0.25</td><td>Max shading, high insulation, dehumidification</td></tr>
+    <tr><td style="color:#f97316">2</td><td>Hot — Humid/Dry</td><td>500–1,800</td><td>6,300–9,000</td><td>0.048</td><td>0.084</td><td>0.40</td><td>0.25</td><td>Low SHGC E/W, efficient cooling, vapor control</td></tr>
+    <tr><td style="color:#fbbf24">3</td><td>Warm — Humid/Dry/Marine</td><td>1,800–3,600</td><td>3,600–6,300</td><td>0.048</td><td>0.084</td><td>0.35</td><td>0.25</td><td>Mixed loads, spectrally selective glass, shading</td></tr>
+    <tr><td style="color:#10b981">4</td><td>Mixed — Humid/Dry/Marine</td><td>3,600–5,400</td><td>1,800–3,600</td><td>0.027</td><td>0.064</td><td>0.29</td><td>0.25</td><td>Balance heating/cooling, south solar, CI on walls</td></tr>
+    <tr><td style="color:#60a5fa">5</td><td>Cool — Humid/Dry/Marine</td><td>5,400–7,200</td><td>720–1,800</td><td>0.027</td><td>0.042</td><td>0.29</td><td>0.25</td><td>Heating dominant, south passive solar, CI, air sealing</td></tr>
+    <tr><td style="color:#a78bfa">6</td><td>Cold — Humid/Dry</td><td>7,200–9,000</td><td>&lt;720</td><td>0.027</td><td>0.030</td><td>0.29</td><td>No limit</td><td>Triple-pane windows, R-30+ walls, high SHGC south</td></tr>
+    <tr><td style="color:#e879f9">7</td><td>Very Cold</td><td>9,000–12,600</td><td>&lt;360</td><td>0.027</td><td>0.030</td><td>0.29</td><td>No limit</td><td>Extreme air sealing, triple-pane, R-40+ walls</td></tr>
+    <tr><td style="color:#f1f5f9">8</td><td>Subarctic</td><td>&gt;12,600</td><td>&lt;180</td><td>0.027</td><td>0.030</td><td>0.29</td><td>No limit</td><td>Passive house required, R-60+ roofs, deep energy</td></tr>
+  </table>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM Project Setup</div>
+    <p>Set the ASHRAE Climate Zone as a Revit project parameter at project inception: <em>ASHRAE_Climate_Zone</em> and <em>ASHRAE_Climate_Zone_Moisture</em> (A/B/C). This feeds into all energy calculation tools. For LEED, the climate zone determines baseline ASHRAE 90.1 U-values, SHGC limits, and LPD requirements. For Passive House PHIUS 2021, climate zone determines site-specific annual heating and cooling energy targets (kBtu/SF/yr). The ASHRAE climate zone for any US location can be looked up in ASHRAE 169-2021 Table 1.1 or the IECC county lookup tool at energycodes.gov.</p>
+  </div>
+  <div class="cta">
+    <p><strong>Project-specific climate analysis and code baseline setup?</strong><br>
+    BIM XL configures your Revit project with the correct ASHRAE climate zone parameters, baseline requirements, and energy model inputs from day one. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+var CZ_DATA=[
+  {num:1,color:'#ef4444',bg:'#ef444411',border:'#ef444433',name:'Very Hot',moisture:'A (Humid) / B (Dry)',hdd:'<500',cdd:'>9,000',
+   cities:'Miami FL, Honolulu HI, San Juan PR, Key West FL, Tampa FL, Phoenix AZ (1B)',
+   strategies:['Minimize solar gains — SHGC ≤0.25 all orientations','Maximum shading: horizontal overhangs, vertical fins','Reflective roof (SRI ≥82) or green roof','Dehumidification critical — ERV with low latent effectiveness','Air-seal for humidity control, not just energy'],
+   u_roof:0.048,u_wall:0.124,u_win:0.50,shgc:0.25,
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'4.75 kBtu/SF/yr'},
+  {num:2,color:'#f97316',bg:'#f9731611',border:'#f9731633',name:'Hot',moisture:'A (Humid) / B (Dry)',hdd:'500–1,800',cdd:'6,300–9,000',
+   cities:'Houston TX, New Orleans LA, Orlando FL, Atlanta GA (2A), Phoenix AZ, Las Vegas NV, Tucson AZ (2B)',
+   strategies:['Low SHGC on E/W facades (0.20-0.25)','High-efficiency chiller or VRF cooling','Cool roof critical','Vapor retarder on outside of assembly (warm-humid)','Dehumidification with DOAS+ERV'],
+   u_roof:0.048,u_wall:0.084,u_win:0.40,shgc:0.25,
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'4.75 kBtu/SF/yr'},
+  {num:3,color:'#fbbf24',bg:'#fbbf2411',border:'#fbbf2433',name:'Warm',moisture:'A (Humid) / B (Dry) / C (Marine)',hdd:'1,800–3,600',cdd:'3,600–6,300',
+   cities:'Atlanta GA, Nashville TN, Charlotte NC (3A), Albuquerque NM, El Paso TX (3B), San Francisco CA, Los Angeles CA, Seattle WA (3C)',
+   strategies:['Spectrally selective low-e glass (LSG >1.4)','Mixed-mode ventilation feasible in 3C','Moderate CI — R-13 to R-20 walls','South passive solar beneficial in 3B/3C','Ground source HP cost-effective'],
+   u_roof:0.048,u_wall:0.084,u_win:0.35,shgc:0.25,
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'4.75 kBtu/SF/yr'},
+  {num:4,color:'#10b981',bg:'#10b98111',border:'#10b98133',name:'Mixed',moisture:'A (Humid) / B (Dry) / C (Marine)',hdd:'3,600–5,400',cdd:'1,800–3,600',
+   cities:'Baltimore MD, Washington DC, St. Louis MO, Kansas City MO (4A), Albuquerque NM, Boise ID (4B), Salem OR, Eugene OR (4C)',
+   strategies:['Balance heating and cooling strategies','South-biased glazing with overhangs','R-20+ wall, R-38+ roof','CI on metal stud walls essential','ASHRAE 55 adaptive comfort window for mixed mode'],
+   u_roof:0.027,u_wall:0.064,u_win:0.29,shgc:0.25,
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'4.75 kBtu/SF/yr'},
+  {num:5,color:'#60a5fa',bg:'#60a5fa11',border:'#60a5fa33',name:'Cool',moisture:'A (Humid) / B (Dry)',hdd:'5,400–7,200',cdd:'720–1,800',
+   cities:'Chicago IL, Cleveland OH, Columbus OH, Indianapolis IN (5A), Denver CO, Salt Lake City UT, Reno NV (5B)',
+   strategies:['Heating dominant — prioritize envelope insulation','R-25+ walls with CI; R-49+ roofs','Passive solar essential — south WWR 30-40%','High-efficiency heat pump or gas furnace','Airtightness <1.0 ACH50 target'],
+   u_roof:0.027,u_wall:0.042,u_win:0.29,shgc:0.25,
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'4.75 kBtu/SF/yr'},
+  {num:6,color:'#a78bfa',bg:'#a78bfa11',border:'#a78bfa33',name:'Cold',moisture:'A (Humid) / B (Dry)',hdd:'7,200–9,000',cdd:'<720',
+   cities:'Minneapolis MN, Milwaukee WI, Detroit MI, Burlington VT (6A), Helena MT, Great Falls MT, Casper WY (6B)',
+   strategies:['Triple-pane windows required for Passive House','R-30+ walls; R-60+ roofs','No SHGC limit — maximize south solar','Interior vapor barrier in most assemblies','Cold-climate ASHP or GSHP','Blower door test target <0.5 ACH50'],
+   u_roof:0.027,u_wall:0.030,u_win:0.29,shgc:'No limit',
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'4.75 kBtu/SF/yr'},
+  {num:7,color:'#e879f9',bg:'#e879f911',border:'#e879f933',name:'Very Cold',moisture:'(no moisture suffix)',hdd:'9,000–12,600',cdd:'<360',
+   cities:'Fairbanks AK, International Falls MN, International Falls region, Northern Canada',
+   strategies:['Passive House standard baseline','R-40+ walls; R-80+ roofs','Triple or quad-pane windows','MVHR (PHIUS: sensible only ERV not enough)','Airtightness <0.2 ACH50 for Passive House'],
+   u_roof:0.027,u_wall:0.030,u_win:0.29,shgc:'No limit',
+   passive_heat:'4.75 kBtu/SF/yr',passive_cool:'N/A'},
+  {num:8,color:'#f1f5f9',bg:'#f1f5f911',border:'#f1f5f933',name:'Subarctic',moisture:'(no moisture suffix)',hdd:'>12,600',cdd:'<180',
+   cities:'Fairbanks AK inner zone, Arctic regions',
+   strategies:['Deep energy retrofit / super-insulated','R-100+ roofs not uncommon','Permanent daylight shortages — LED critical','District heating most efficient at this scale','Super-airtight with MVHR at 90%+ effectiveness'],
+   u_roof:0.027,u_wall:0.030,u_win:0.29,shgc:'No limit',
+   passive_heat:'See PHIUS climate-specific tables',passive_cool:'N/A'}
+];
+
+var CITIES_DB=[
+  {city:'Miami',state:'FL',cz:1},{city:'Honolulu',state:'HI',cz:1},{city:'Phoenix',state:'AZ',cz:2},
+  {city:'Las Vegas',state:'NV',cz:3},{city:'Houston',state:'TX',cz:2},{city:'New Orleans',state:'LA',cz:2},
+  {city:'Atlanta',state:'GA',cz:3},{city:'Dallas',state:'TX',cz:3},{city:'Los Angeles',state:'CA',cz:3},
+  {city:'San Francisco',state:'CA',cz:3},{city:'Albuquerque',state:'NM',cz:4},{city:'Washington DC',state:'DC',cz:4},
+  {city:'Baltimore',state:'MD',cz:4},{city:'Portland',state:'OR',cz:4},{city:'Seattle',state:'WA',cz:4},
+  {city:'Denver',state:'CO',cz:5},{city:'Chicago',state:'IL',cz:5},{city:'Salt Lake City',state:'UT',cz:5},
+  {city:'Boston',state:'MA',cz:5},{city:'New York',state:'NY',cz:4},{city:'Philadelphia',state:'PA',cz:4},
+  {city:'Indianapolis',state:'IN',cz:5},{city:'Cleveland',state:'OH',cz:5},{city:'Detroit',state:'MI',cz:5},
+  {city:'Minneapolis',state:'MN',cz:6},{city:'Milwaukee',state:'WI',cz:6},{city:'Burlington',state:'VT',cz:6},
+  {city:'Helena',state:'MT',cz:6},{city:'Boise',state:'ID',cz:5},{city:'Reno',state:'NV',cz:5},
+  {city:'Fairbanks',state:'AK',cz:7},{city:'Anchorage',state:'AK',cz:7},{city:'Billings',state:'MT',cz:6},
+  {city:'Kansas City',state:'MO',cz:4},{city:'St. Louis',state:'MO',cz:4},{city:'Columbus',state:'OH',cz:5},
+  {city:'Charlotte',state:'NC',cz:3},{city:'Nashville',state:'TN',cz:4},{city:'Tucson',state:'AZ',cz:2}
+];
+
+function renderCards(){
+  var html='';
+  CZ_DATA.forEach(function(cz){
+    html+='<div class="cz-card" style="background:'+cz.bg+';border-color:'+cz.border+'" onclick="showDetail('+cz.num+')">'
+      +'<div class="cz-num" style="color:'+cz.color+'">'+cz.num+'</div>'
+      +'<div class="cz-name" style="color:'+cz.color+'">'+cz.name+'</div>'
+      +'<div class="cz-desc">'+cz.moisture+'<br>HDD: '+cz.hdd+'<br>CDD: '+cz.cdd+'</div>'
+      +'</div>';
+  });
+  document.getElementById('czCards').innerHTML=html;
+}
+
+function showDetail(n){
+  var cz=CZ_DATA.find(function(c){return c.num===n;});
+  var panel=document.getElementById('detailPanel');
+  panel.classList.add('visible');
+  var html='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'
+    +'<div><div style="font-size:20px;font-weight:700;color:'+cz.color+'">Climate Zone '+cz.num+' — '+cz.name+'</div>'
+    +'<div style="font-size:13px;color:#888;margin-top:4px">'+cz.moisture+'</div></div>'
+    +'<button onclick="document.getElementById(\'detailPanel\').classList.remove(\'visible\')" style="background:none;border:none;color:#555;cursor:pointer;font-size:20px">×</button>'
+    +'</div>'
+    +'<div class="detail-grid">'
+    +'<div class="detail-box"><div class="title">Heating Degree Days</div><div class="val">'+cz.hdd+'</div><div class="sub">HDD base 65°F</div></div>'
+    +'<div class="detail-box"><div class="title">Cooling Degree Days</div><div class="val">'+cz.cdd+'</div><div class="sub">CDD base 65°F</div></div>'
+    +'<div class="detail-box"><div class="title">ASHRAE 90.1 Window U</div><div class="val">≤'+cz.u_win+'</div><div class="sub">Nonresidential prescriptive</div></div>'
+    +'<div class="detail-box"><div class="title">Roof U-Value</div><div class="val">≤'+cz.u_roof+'</div><div class="sub">R-'+(Math.round(1/cz.u_roof))+'+ equivalent</div></div>'
+    +'<div class="detail-box"><div class="title">Wall U-Value</div><div class="val">≤'+cz.u_wall+'</div><div class="sub">R-'+(Math.round(1/cz.u_wall))+'+ effective</div></div>'
+    +'<div class="detail-box"><div class="title">Window SHGC</div><div class="val">'+cz.shgc+'</div><div class="sub">Max allowed</div></div>'
+    +'</div>'
+    +'<div style="margin-bottom:16px"><div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Key Design Strategies</div>'
+    +cz.strategies.map(function(s){return '<div style="font-size:13px;color:#ccc;padding:5px 0;border-bottom:1px solid #1a1a1a">'+s+'</div>';}).join('')
+    +'</div>'
+    +'<div class="city-list"><strong style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Representative Cities:</strong> '+cz.cities+'</div>';
+  document.getElementById('detailContent').innerHTML=html;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function filterCities(){
+  var q=document.getElementById('citySearch').value.toLowerCase();
+  if(!q){document.getElementById('cityResults').style.display='none';return;}
+  var matches=CITIES_DB.filter(function(c){
+    return c.city.toLowerCase().includes(q)||c.state.toLowerCase().includes(q)||('cz'+c.cz).includes(q)||('zone'+c.cz).includes(q)||('climate zone '+c.cz+'').includes(q);
+  });
+  if(!matches.length){document.getElementById('cityResults').style.display='none';return;}
+  var html='<table class="full-table"><tr><th>City</th><th>State</th><th>Climate Zone</th><th>Zone Name</th><th>Roof U</th><th>Wall U</th><th>Window U</th></tr>';
+  matches.forEach(function(c){
+    var czd=CZ_DATA.find(function(z){return z.num===c.cz;});
+    html+='<tr onclick="showDetail('+c.cz+')" style="cursor:pointer">'
+      +'<td style="color:#fff;font-weight:600;font-family:system-ui">'+c.city+'</td><td>'+c.state+'</td>'
+      +'<td style="color:'+czd.color+';font-family:monospace;font-size:16px;font-weight:700">'+c.cz+'</td>'
+      +'<td style="color:'+czd.color+'">'+czd.name+'</td>'
+      +'<td style="font-family:monospace">'+czd.u_roof+'</td>'
+      +'<td style="font-family:monospace">'+czd.u_wall+'</td>'
+      +'<td style="font-family:monospace">'+czd.u_win+'</td>'
+      +'</tr>';
+  });
+  html+='</table>';
+  document.getElementById('cityResultsTable').innerHTML=html;
+  document.getElementById('cityResults').style.display='block';
+}
+renderCards();
+</script>
+</body>
+</html>

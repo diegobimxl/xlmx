@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insulation Comparison Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1200px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:300px 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.ins-table{width:100%;border-collapse:collapse;font-size:12px}
+.ins-table th{background:#0d0d0d;color:#888;padding:10px;text-align:left;border-bottom:2px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;white-space:nowrap}
+.ins-table th:hover{color:#10b981}
+.ins-table td{padding:10px;border-bottom:1px solid #1a1a1a;vertical-align:top}
+.ins-table tr:hover td{background:#0d0d0d}
+.ins-name{font-weight:600;color:#fff;font-size:13px}
+.ins-sub{font-size:11px;color:#666;margin-top:2px}
+.star{color:#fbbf24}
+.star-empty{color:#333}
+.pros{color:#10b981;font-size:11px;line-height:1.6}
+.cons{color:#f87171;font-size:11px;line-height:1.6}
+.bar-cell{min-width:80px}
+.mini-bar-bg{height:8px;background:#222;border-radius:4px;overflow:hidden;margin-top:4px}
+.mini-bar{height:100%;border-radius:4px}
+.calc-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.calc-row input{width:120px;flex-shrink:0}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Insulation Comparison Tool</h1>
+  <p>EPS vs Mineral Wool vs Spray Foam vs Polyiso vs XPS vs Fiberglass — Properties, Cost, Performance</p>
+  <span class="badge">ASHRAE 90.1</span>
+  <span class="badge">Embodied Carbon</span>
+</div>
+<div class="container">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
+    <div><label style="margin-top:0">Target R-Value</label><input type="number" id="target_r" value="20" style="width:100px" step="1"></div>
+    <div><label style="margin-top:0">Wall/Roof Area (SF)</label><input type="number" id="area" value="5000" style="width:120px"></div>
+    <div><label style="margin-top:0">Filter Category</label><select id="catFilter" onchange="renderTable()" style="width:160px"><option value="all">All Types</option><option value="rigid">Rigid Board</option><option value="batt">Batt / Blanket</option><option value="spray">Spray Applied</option><option value="loose">Loose Fill / Blown</option></select></div>
+    <button onclick="renderTable()" style="background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px">Compare at Target R</button>
+  </div>
+
+  <div id="tableWrap"></div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / Revit Material Library</div>
+    <p>Assign insulation properties in Revit material library: <em>R_Value_per_Inch</em>, <em>GWP_kgCO2e_SF_per_inch</em>, <em>Vapor_Permeance_Perms</em>, <em>Fire_Rating</em>. For LEED EQc2, low-emitting materials require VOC certification — spray polyurethane foam must have third-party emissions testing. For LEED MRc2 (Building LCA), embodied carbon of insulation is a material flow input to EC3 or Tally. Continuous insulation (CI) on metal-framed walls is accounted for separately from cavity insulation in ASHRAE 90.1 Table A3.3 adjustment factors. Document CI type and R-value per inch as a Revit wall layer parameter for automated U-value calculations.</p>
+  </div>
+  <div class="cta">
+    <p><strong>Insulation specification and embodied carbon analysis?</strong><br>
+    BIM XL delivers material selection studies, ASHRAE 90.1 CI compliance documentation, and EPD-backed embodied carbon analysis for LEED MRc1. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+var INS=[
+  {name:'EPS (Expanded Polystyrene)',sub:'Type II, ASTM C578',cat:'rigid',r_in:3.8,cost_lo:0.28,cost_hi:0.45,ec:1.2,perm_in:2.0,fire:'Requires thermal barrier',gwp:42,stars_cost:4,stars_perf:3,pros:['Low cost per R','Moisture resistant','Recyclable','No HFCs'],cons:['Lower R/inch than PIC','Needs thermal barrier','Insects can burrow in EPS'],use:'Wall CI, under slab, below-grade'},
+  {name:'XPS (Extruded Polystyrene)',sub:'ASTM C578',cat:'rigid',r_in:5.0,cost_lo:0.50,cost_hi:0.70,ec:3.8,perm_in:0.6,fire:'Requires thermal barrier',gwp:1430,stars_cost:3,stars_perf:4,pros:['High R/inch','Excellent moisture resistance','Consistent performance over time'],cons:['High GWP (HFC blowing agent)','Not vapor open','Insects can penetrate'],use:'Below grade, under slab, cold roof'},
+  {name:'Polyiso (Polyisocyanurate)',sub:'ASTM C1289 — Foil-faced',cat:'rigid',r_in:6.5,cost_lo:0.55,cost_hi:0.80,ec:2.2,perm_in:0.05,fire:'Requires thermal barrier (foil-faced)',gwp:680,stars_cost:3,stars_perf:5,pros:['Highest R/inch of rigid boards','Low vapor permeance (foil)','Lightweight','LEED-friendly'],cons:['R-value drops in cold weather','Foil facing = vapor barrier (may be pro or con)','Cost premium'],use:'Roof CI, wall CI above grade'},
+  {name:'Mineral Wool / Rockwool',sub:'ASTM C612 / ASTM C553',cat:'rigid',r_in:4.2,cost_lo:0.45,cost_hi:0.75,ec:0.8,perm_in:30,fire:'Non-combustible (up to 2000°F)',gwp:0,stars_cost:3,stars_perf:4,pros:['Non-combustible — no thermal barrier needed','High vapor permeability (dries toward exterior)','Excellent sound attenuation','No HFCs / low GWP'],cons:['Cost premium over EPS','Heavier than foam board','Moisture absorption if not protected'],use:'Exterior CI on masonry/steel, fire-rated assemblies'},
+  {name:'Fiberglass Batt',sub:'ASTM C665',cat:'batt',r_in:2.9,cost_lo:0.06,cost_hi:0.12,ec:0.4,perm_in:120,fire:'Non-combustible',gwp:0,stars_cost:5,stars_perf:2,pros:['Lowest cost','Non-combustible','No blowing agents','Widely available'],cons:['Lowest R/inch','Not air barrier — must be combined with air seal','Performance loss if compressed or wet'],use:'Cavity fill — wood/metal stud walls, attic'},
+  {name:'Mineral Wool Batt (Comfortboard)',sub:'ASTM C665',cat:'batt',r_in:4.2,cost_lo:0.30,cost_hi:0.55,ec:0.8,perm_in:30,fire:'Non-combustible',gwp:0,stars_cost:3,stars_perf:4,pros:['Non-combustible batt','Higher R/inch than fiberglass','Vapor open — good for mixed climates','Better acoustic performance'],cons:['Cost premium over fiberglass','Heavier'],use:'Cavity fill, exterior CI (Comfortboard rigid)'},
+  {name:'Open-Cell Spray Foam',sub:'ASTM C1029 Type II',cat:'spray',r_in:3.7,cost_lo:0.55,cost_hi:0.90,ec:2.0,perm_in:16,fire:'Requires thermal barrier',gwp:1,stars_cost:3,stars_perf:3,pros:['Air barrier + insulation in one','Excellent for irregular surfaces','Low GWP blowing agent (water)','Vapor permeable (good for humid climates)'],cons:['Requires thermal barrier','Softer — not structural','Higher cost than batt'],use:'Unvented attics, wall cavities, crawlspaces'},
+  {name:'Closed-Cell Spray Foam',sub:'ASTM C1029 Type VI',cat:'spray',r_in:6.5,cost_lo:1.00,cost_hi:1.60,ec:3.5,perm_in:0.8,fire:'Requires thermal barrier',gwp:700,stars_cost:2,stars_perf:5,pros:['Highest R/inch spray product','Air + vapor barrier + insulation','Structural rigidity','Moisture resistant'],cons:['High GWP (HFC blowing agent)','Most expensive per SF','Not vapor open — risk in humid climates if on wrong side'],use:'Unvented roof decks, wall sheathing, below grade'},
+  {name:'Dense-Pack Cellulose',sub:'ASTM C739',cat:'loose',r_in:3.7,cost_lo:0.15,cost_hi:0.30,ec:0.06,perm_in:30,fire:'Class 1 (treated)',gwp:0,stars_cost:5,stars_perf:3,pros:['Very low embodied carbon (recycled paper)','Excellent air sealing when dense-packed','Highest thermal mass of insulations','Lowest cost per R for attics'],cons:['Must stay dry','Settling in wall cavities over time','Requires professional installation for dense-pack'],use:'Retrofit wall cavities (dense-pack), attics (blown), floors'},
+  {name:'Spray Polyurethane Foam (SISM)',sub:'ASTM E84 Class A',cat:'spray',r_in:6.0,cost_lo:1.20,cost_hi:2.00,ec:3.5,perm_in:1.0,fire:'Requires thermal barrier',gwp:500,stars_cost:1,stars_perf:5,pros:['Ultra-high performance','Simultaneous air barrier','Used for Passive House assemblies'],cons:['Highest cost','High GWP','Thermal barrier required','Difficult to remove for recycling'],use:'Passive House exterior CI, unvented roofs'}
+];
+
+function stars(n,max){
+  var s='';
+  for(var i=0;i<max;i++) s+='<span class="'+(i<n?'star':'star-empty')+'">★</span>';
+  return s;
+}
+function renderTable(){
+  var target=parseFloat(document.getElementById('target_r').value)||20;
+  var area=parseFloat(document.getElementById('area').value)||5000;
+  var cat=document.getElementById('catFilter').value;
+  var data=cat==='all'?INS:INS.filter(function(i){return i.cat===cat;});
+
+  var maxR=Math.max.apply(null,data.map(function(d){return d.r_in;}));
+  var maxEC=Math.max.apply(null,data.map(function(d){return d.ec;}));
+
+  var html='<table class="ins-table">'
+    +'<tr><th>Insulation Type</th><th>Category</th><th>R/inch</th><th>Thickness for R-'+target+'</th><th>Cost/SF at R-'+target+'</th><th>Total Cost ('+Math.round(area/1000)+'k SF)</th><th>EC (kgCO2e/SF)</th><th>Perms/inch</th><th>Fire</th><th>Performance</th><th>Cost Rating</th><th>Best Used For</th></tr>';
+
+  data.forEach(function(ins){
+    var thick=target/ins.r_in;
+    var cost_lo=ins.cost_lo*thick;
+    var cost_hi=ins.cost_hi*thick;
+    var ec_tot=ins.ec*thick;
+    var total_lo=cost_lo*area;
+    var total_hi=cost_hi*area;
+    var r_bar=Math.round(ins.r_in/maxR*100);
+    var ec_bar=Math.round(ins.ec/maxEC*100);
+    html+='<tr>'
+      +'<td><div class="ins-name">'+ins.name+'</div><div class="ins-sub">'+ins.sub+'</div></td>'
+      +'<td><span style="font-size:11px;color:#888">'+ins.cat+'</span></td>'
+      +'<td><strong style="color:#10b981;font-family:monospace">'+ins.r_in+'</strong>'
+      +'<div class="mini-bar-bg"><div class="mini-bar" style="width:'+r_bar+'%;background:#10b981"></div></div></td>'
+      +'<td><strong style="font-family:monospace;color:#fff">'+thick.toFixed(1)+'"</strong></td>'
+      +'<td><span style="font-family:monospace">$'+cost_lo.toFixed(2)+'–$'+cost_hi.toFixed(2)+'/SF</span></td>'
+      +'<td><span style="font-family:monospace;color:#c8a96e">$'+Math.round(total_lo/1000)+'K–$'+Math.round(total_hi/1000)+'K</span></td>'
+      +'<td><span style="font-family:monospace;color:'+(ec_tot<1?'#10b981':ec_tot<3?'#f59e0b':'#ef4444')+'">'+ec_tot.toFixed(1)+'</span>'
+      +'<div class="mini-bar-bg"><div class="mini-bar" style="width:'+ec_bar+'%;background:'+(ins.ec<1?'#10b981':ins.ec<3?'#f59e0b':'#ef4444')+'"></div></div></td>'
+      +'<td style="font-family:monospace">'+ins.perm_in+'</td>'
+      +'<td style="font-size:11px;color:#888">'+ins.fire+'</td>'
+      +'<td>'+stars(ins.stars_perf,5)+'</td>'
+      +'<td>'+stars(ins.stars_cost,5)+'</td>'
+      +'<td style="font-size:11px;color:#888">'+ins.use+'</td>'
+      +'</tr>';
+  });
+  html+='</table>';
+  document.getElementById('tableWrap').innerHTML=html;
+}
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natural Ventilation Calculator — Cross & Stack</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;font-family:monospace;color:#10b981}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.result-row .key{color:#888}
+.result-row .val{font-family:monospace;font-weight:600;color:#fff}
+.guide-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.guide-table th{background:#0d0d0d;color:#888;padding:8px;text-align:left;border-bottom:1px solid #222;font-size:11px}
+.guide-table td{padding:8px;border-bottom:1px solid #1a1a1a;color:#ccc;vertical-align:top}
+.guide-table tr:hover td{background:#161616}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+.tab-nav{display:flex;gap:8px;margin-bottom:20px}
+.tab-btn{padding:8px 18px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;font-size:13px;cursor:pointer}
+.tab-btn.active{background:#10b98122;border-color:#10b981;color:#10b981}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Natural Ventilation Calculator</h1>
+  <p>Cross-Ventilation (Wind-Driven) and Stack Effect (Buoyancy) Flow Rates</p>
+  <span class="badge">ASHRAE 62.1</span>
+  <span class="badge">Passive Strategy</span>
+</div>
+<div class="container">
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('cross')">Cross-Ventilation (Wind)</button>
+    <button class="tab-btn" onclick="showTab('stack')">Stack Effect (Buoyancy)</button>
+  </div>
+
+  <div id="crossTab">
+    <div class="grid2">
+      <div class="card">
+        <h3>Cross-Ventilation Parameters</h3>
+        <label>Inlet Opening Area (SF)</label>
+        <input type="number" id="a_in" value="20" step="0.5">
+        <label>Outlet Opening Area (SF)</label>
+        <input type="number" id="a_out" value="20" step="0.5">
+        <label>Wind Speed at Building Height (mph)</label>
+        <input type="number" id="wind_mph" value="8" step="0.5">
+        <label>Wind Incidence Angle (degrees from normal)</label>
+        <input type="number" id="wind_angle" value="0" step="5" min="0" max="90">
+        <label>Opening Type</label>
+        <select id="opening_type">
+          <option value="0.60">Casement window fully open — Cd 0.60</option>
+          <option value="0.65" selected>Louvered opening — Cd 0.65</option>
+          <option value="0.70">Open door/wall opening — Cd 0.70</option>
+          <option value="0.50">Window at 45° — Cd 0.50</option>
+          <option value="0.40">Screen/grille — Cd 0.40</option>
+        </select>
+        <label>Room Floor Area (SF)</label>
+        <input type="number" id="room_area_cross" value="500" step="50">
+        <label>Room Ceiling Height (ft)</label>
+        <input type="number" id="ceiling_h" value="10" step="0.5">
+        <button class="btn" onclick="calcCross()">Calculate Cross-Ventilation</button>
+      </div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="crossResults">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Enter parameters and calculate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stackTab" style="display:none">
+    <div class="grid2">
+      <div class="card">
+        <h3>Stack Effect Parameters</h3>
+        <label>Height between inlet and outlet centers (ft)</label>
+        <input type="number" id="stack_h" value="20" step="1">
+        <label>Interior Temperature (°F)</label>
+        <input type="number" id="ti_stack" value="80" step="1">
+        <label>Exterior Temperature (°F)</label>
+        <input type="number" id="to_stack" value="65" step="1">
+        <label>Inlet Opening Area (SF)</label>
+        <input type="number" id="a_in_stack" value="10" step="0.5">
+        <label>Outlet Opening Area (SF)</label>
+        <input type="number" id="a_out_stack" value="10" step="0.5">
+        <label>Discharge Coefficient Cd</label>
+        <input type="number" id="cd_stack" value="0.65" step="0.01">
+        <label>Space Floor Area (SF)</label>
+        <input type="number" id="room_area_stack" value="2000" step="100">
+        <label>Space Height (ft)</label>
+        <input type="number" id="space_h" value="20" step="1">
+        <button class="btn" onclick="calcStack()">Calculate Stack Ventilation</button>
+      </div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="stackResults">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Enter parameters and calculate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>Natural Ventilation Design Guidelines</h3>
+    <table class="guide-table">
+      <tr><th>Strategy</th><th>Optimal Conditions</th><th>Rules of Thumb</th><th>Limitations</th></tr>
+      <tr><td>Cross-ventilation</td><td>Wind above 6 mph, building &lt;5 stories, openings on opposite facades</td><td>Building depth ≤ 5× ceiling height; window area ≥ 5% of floor area</td><td>Fails with low wind, multiple floors, complex floor plans</td></tr>
+      <tr><td>Stack effect / atrium</td><td>ΔT &gt;5°F, height &gt;15 ft, sheltered site</td><td>Stack height ≥ 20 ft for reliable flow; outlet area ≥ inlet area</td><td>Low driving force in mild climates; requires thermal zoning</td></tr>
+      <tr><td>Single-sided ventilation</td><td>Shallow rooms ≤ 15 ft deep</td><td>Effective depth = 2.5× ceiling height; max 20 ft deep</td><td>Limited airflow; IAQ risk with pollution nearby</td></tr>
+      <tr><td>Mixed mode</td><td>All climates with defined free-cooling hours</td><td>Reduce HVAC EUI by 15–30% in mixed climates; automate dampers</td><td>Controls complexity; requires BMS integration</td></tr>
+    </table>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / CFD Integration</div>
+    <p>Model natural ventilation openings in Revit as Air Terminal or Generic Model families with parameters: <em>Opening_Area_SF</em>, <em>Cd_Discharge_Coeff</em>, <em>NV_Strategy</em> (Cross/Stack/SingleSided). For LEED EQc1 (Enhanced Ventilation), natural ventilation compliance requires multizone airflow model or CFD study. Autodesk Insight Wind Rose tool provides quick feasibility check. For detailed analysis, export Revit geometry to IES-VE MacroFlo or OpenFOAM for CFD simulation. Mixed-mode systems require BMS control sequences — coordinate with controls engineer and document in Revit MEP as control system families.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Natural ventilation feasibility study and BIM integration?</strong><br>
+    BIM XL delivers cross-ventilation and stack effect analysis, CFD-ready Revit models, and LEED EQc1 documentation. Mixed-mode control sequences available. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+function showTab(t){
+  document.getElementById('crossTab').style.display=t==='cross'?'block':'none';
+  document.getElementById('stackTab').style.display=t==='stack'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){
+    b.classList.toggle('active',i===(t==='cross'?0:1));
+  });
+}
+function calcCross(){
+  var a_in=parseFloat(document.getElementById('a_in').value);
+  var a_out=parseFloat(document.getElementById('a_out').value);
+  var wind_mph=parseFloat(document.getElementById('wind_mph').value);
+  var angle=parseFloat(document.getElementById('wind_angle').value);
+  var cd=parseFloat(document.getElementById('opening_type').value);
+  var room_area=parseFloat(document.getElementById('room_area_cross').value);
+  var ceil=parseFloat(document.getElementById('ceiling_h').value);
+
+  var wind_fps=wind_mph*1.467;
+  var angle_factor=Math.cos(angle*Math.PI/180);
+  // Effective opening area: series combination
+  var a_eff=(a_in*a_out)/Math.sqrt(a_in*a_in+a_out*a_out);
+  var q_cfm=cd*a_eff*wind_fps*angle_factor*60; // CFM
+  var vol=room_area*ceil; // cubic feet
+  var ach=q_cfm*60/vol;
+  var cfm_sf=q_cfm/room_area;
+
+  var ach_color=ach>=6?'#10b981':ach>=3?'#f59e0b':'#ef4444';
+
+  document.getElementById('crossResults').innerHTML=
+    '<div class="kpi-grid">'
+    +'<div class="kpi"><div class="val">'+Math.round(q_cfm).toLocaleString()+' CFM</div><div class="lbl">Airflow Rate</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+ach_color+'">'+ach.toFixed(1)+' ACH</div><div class="lbl">Air Changes/Hour</div></div>'
+    +'<div class="kpi"><div class="val">'+cfm_sf.toFixed(2)+' CFM/SF</div><div class="lbl">Airflow/SF</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px">'
+    +'<div class="result-row"><span class="key">Wind speed at opening</span><span class="val">'+wind_fps.toFixed(1)+' fps</span></div>'
+    +'<div class="result-row"><span class="key">Effective opening area</span><span class="val">'+a_eff.toFixed(1)+' SF</span></div>'
+    +'<div class="result-row"><span class="key">Angle correction factor</span><span class="val">'+angle_factor.toFixed(2)+'</span></div>'
+    +'<div class="result-row"><span class="key">ASHRAE 62.1 comfort ventilation</span><span class="val" style="color:'+(ach>=4?'#10b981':'#ef4444')+'">'+(ach>=4?'Likely meets requirements':'Insufficient — need '+((4*vol/60/cd/a_eff/60)).toFixed(0)+' mph min wind')+'</span></div>'
+    +'</div>'
+    +'<div style="background:'+(ach>=6?'#10b98111':'#f59e0b11')+';border:1px solid '+(ach>=6?'#10b98133':'#f59e0b33')+';border-radius:6px;padding:12px;margin-top:12px">'
+    +'<p style="font-size:13px;color:#ccc;line-height:1.5">'
+    +(ach>=6?'Good natural ventilation potential — '+ach.toFixed(1)+' ACH suitable for passive cooling in mild climates.':
+      ach>=3?'Moderate ventilation — adequate for IAQ but may need supplemental cooling in warm weather.':
+      'Low ventilation rate — below minimum comfort threshold. Consider larger openings or complementary stack effect strategy.')
+    +'</p></div>';
+}
+function calcStack(){
+  var h=parseFloat(document.getElementById('stack_h').value);
+  var ti=parseFloat(document.getElementById('ti_stack').value);
+  var to=parseFloat(document.getElementById('to_stack').value);
+  var a_in=parseFloat(document.getElementById('a_in_stack').value);
+  var a_out=parseFloat(document.getElementById('a_out_stack').value);
+  var cd=parseFloat(document.getElementById('cd_stack').value);
+  var room_area=parseFloat(document.getElementById('room_area_stack').value);
+  var space_h=parseFloat(document.getElementById('space_h').value);
+
+  var ti_R=ti+459.67;
+  var to_R=to+459.67;
+  var dt=ti-to;
+  if(dt<=0){
+    document.getElementById('stackResults').innerHTML='<div style="background:#ef444411;border:1px solid #ef444433;border-radius:6px;padding:14px"><p style="font-size:13px;color:#ef4444">Stack effect requires interior temperature HIGHER than exterior. Increase interior temp or reduce exterior temp.</p></div>';
+    return;
+  }
+  var g=32.2; // ft/s²
+  var rho_out=0.075*(460+32)/(460+to); // lb/ft³ at outdoor temp
+  var dp=rho_out*g*h*(dt/ti_R); // pressure difference in lb/ft²
+  var dp_inwg=dp/5.193; // convert to in WG
+  var a_eff=(a_in*a_out)/Math.sqrt(a_in*a_in+a_out*a_out);
+  var v_fps=cd*Math.sqrt(2*g*h*(dt/ti_R));
+  var q_cfm=a_eff*v_fps*60;
+  var vol=room_area*space_h;
+  var ach=q_cfm*60/vol;
+  var ach_color=ach>=4?'#10b981':ach>=2?'#f59e0b':'#ef4444';
+
+  document.getElementById('stackResults').innerHTML=
+    '<div class="kpi-grid">'
+    +'<div class="kpi"><div class="val">'+Math.round(q_cfm).toLocaleString()+' CFM</div><div class="lbl">Stack Airflow Rate</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+ach_color+'">'+ach.toFixed(1)+' ACH</div><div class="lbl">Air Changes/Hour</div></div>'
+    +'<div class="kpi"><div class="val">'+dp_inwg.toFixed(3)+'" WG</div><div class="lbl">Stack Pressure</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px">'
+    +'<div class="result-row"><span class="key">Stack height</span><span class="val">'+h+' ft</span></div>'
+    +'<div class="result-row"><span class="key">Temperature difference</span><span class="val">'+dt.toFixed(1)+'°F ΔT</span></div>'
+    +'<div class="result-row"><span class="key">Effective opening area</span><span class="val">'+a_eff.toFixed(1)+' SF</span></div>'
+    +'<div class="result-row"><span class="key">Air velocity through opening</span><span class="val">'+v_fps.toFixed(1)+' fps</span></div>'
+    +'<div class="result-row"><span class="key">Minimum stack height for 4 ACH</span><span class="val">'+Math.max(0,((4*vol/60/(a_eff*cd*60))*(4*vol/60/(a_eff*cd*60))/2/g*(ti_R/dt))).toFixed(1)+' ft</span></div>'
+    +'</div>';
+}
+calcCross();
+</script>
+</body>
+</html>

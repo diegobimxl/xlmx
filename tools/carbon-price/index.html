@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Price Sensitivity — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.bar-wrap{background:#1a1a1a;border-radius:3px;height:8px;overflow:hidden;margin-top:4px}
+.bar-fill{height:8px;border-radius:3px;background:#10b981;transition:width .3s}
+.bar-fill.warn{background:#f59e0b}
+.bar-fill.bad{background:#ef4444}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.section-title{font-size:0.75rem;color:#666;text-transform:uppercase;letter-spacing:.08em;margin:20px 0 10px}
+.scenario-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.82rem}
+.scenario-label{width:140px;color:#aaa;flex-shrink:0}
+.scenario-val{width:80px;text-align:right;font-weight:600}
+.scenario-val.good{color:#10b981}
+.scenario-val.warn{color:#f59e0b}
+.scenario-val.bad{color:#ef4444}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Carbon Price Sensitivity <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Carbon tax exposure, compliance cost, and green premium payback by scenario — ASHRAE 90.1 · EPA eGRID · IEA Carbon Pricing</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Project Profile</h3>
+    <label>Building Type</label>
+    <select id="btype" onchange="calc()">
+      <option value="office">Office</option>
+      <option value="retail">Retail</option>
+      <option value="multifamily">Multifamily</option>
+      <option value="hotel">Hotel</option>
+      <option value="school">School</option>
+      <option value="warehouse">Warehouse</option>
+      <option value="healthcare">Healthcare</option>
+    </select>
+    <label>Gross Floor Area (SF)</label>
+    <input type="number" id="area" value="50000" oninput="calc()">
+    <label>Current EUI (kBtu/SF/yr)</label>
+    <input type="number" id="eui_cur" value="65" oninput="calc()">
+    <label>Target EUI after upgrade (kBtu/SF/yr)</label>
+    <input type="number" id="eui_tgt" value="45" oninput="calc()">
+    <label>Electricity Grid Mix (% renewable)</label>
+    <input type="number" id="ren_pct" value="25" min="0" max="100" oninput="calc()">
+    <label>Gas / Fossil Fuel % of Energy</label>
+    <input type="number" id="gas_pct" value="40" min="0" max="100" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>Carbon Price Scenarios</h3>
+    <label>Current Carbon Price ($/tCO₂e)</label>
+    <input type="number" id="cp_now" value="15" oninput="calc()">
+    <label>Near-term Scenario 2028 ($/tCO₂e)</label>
+    <input type="number" id="cp_near" value="40" oninput="calc()">
+    <label>Mid-term Scenario 2032 ($/tCO₂e)</label>
+    <input type="number" id="cp_mid" value="80" oninput="calc()">
+    <label>Long-term Scenario 2040 ($/tCO₂e)</label>
+    <input type="number" id="cp_long" value="150" oninput="calc()">
+    <label>Upgrade Capital Cost ($)</label>
+    <input type="number" id="capex" value="500000" oninput="calc()">
+    <label>Annual Energy Savings from Upgrade ($)</label>
+    <input type="number" id="energy_save" value="35000" oninput="calc()">
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Current Carbon Exposure</h3>
+    <div class="result-big" id="cur_co2">—</div>
+    <div class="result-label">Tonnes CO₂e / year</div>
+    <div class="result-sub" id="cur_cost">—</div>
+    <div class="result-label">Annual carbon cost at current price</div>
+    <div class="result-sub" id="co2_intensity">—</div>
+    <div class="result-label">kgCO₂e / SF / year</div>
+  </div>
+  <div class="card">
+    <h3>Post-Upgrade Reduction</h3>
+    <div class="result-big good" id="co2_saved">—</div>
+    <div class="result-label">Tonnes CO₂e / year avoided</div>
+    <div class="result-sub" id="pct_red">—</div>
+    <div class="result-label">% carbon reduction</div>
+    <div class="result-sub" id="cur_save_val">—</div>
+    <div class="result-label">Carbon cost saved at current price</div>
+  </div>
+  <div class="card">
+    <h3>Breakeven Summary</h3>
+    <div class="result-big" id="be_price">—</div>
+    <div class="result-label">$/tCO₂e to break even on upgrade (carbon alone)</div>
+    <div class="result-sub" id="simple_pb">—</div>
+    <div class="result-label">Simple payback (energy savings only)</div>
+    <div class="result-sub" id="carbon_pb">—</div>
+    <div class="result-label">Payback with carbon cost at near-term price</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Carbon Cost Exposure by Scenario</h3>
+  <p class="section-title">Current Building vs. Upgraded Building</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Carbon Price</th>
+        <th>Current Annual Cost</th>
+        <th>Upgraded Annual Cost</th>
+        <th>Carbon Savings/yr</th>
+        <th>Cumulative 10yr Savings</th>
+      </tr>
+    </thead>
+    <tbody id="scenario_table"></tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>10-Year Cumulative Carbon Liability</h3>
+  <p class="section-title">Assumes 5%/yr carbon price escalation within each scenario bracket</p>
+  <div id="cum_bars"></div>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: CARBON_EUI_INTENSITY (kgCO2e/SF/yr), CARBON_ANNUAL_TONNES, CARBON_PRICE_SCENARIO</li>
+    <li>EPA eGRID 2022: national average grid emission factor 386 gCO2e/kWh; natural gas 53 kgCO2e/therm</li>
+    <li>IEA Net Zero 2050 carbon price trajectory: $130/tCO2e by 2030, $250/tCO2e by 2050 in advanced economies</li>
+    <li>ASHRAE 90.1-2022 energy compliance reduces carbon exposure 20-40% vs 90.1-2016 baseline</li>
+    <li>SEC Climate Disclosure Rule (2024): large accelerated filers must report Scope 1+2 emissions — carbon tracking now a compliance requirement</li>
+    <li>NYC Local Law 97 carbon intensity limits: 0.00675 tCO2e/SF for offices by 2030; fines up to $268/tCO2e above limit</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Carbon Strategy & Decarbonization Roadmap</h4>
+  <p>BIM XL delivers carbon baseline studies, scenario modeling, and upgrade sequencing for LEED Zero and GRESB reporting.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var EUI_BASE={office:65,retail:75,multifamily:52,hotel:90,school:48,warehouse:28,healthcare:180};
+var ELEC_EF=0.386; // tCO2e/MWh (eGRID national average)
+var GAS_EF=0.00531; // tCO2e/therm; therm=99.97kBtu
+
+function calc(){
+  var area=parseFloat(document.getElementById('area').value)||50000;
+  var eui_c=parseFloat(document.getElementById('eui_cur').value)||65;
+  var eui_t=parseFloat(document.getElementById('eui_tgt').value)||45;
+  var ren=parseFloat(document.getElementById('ren_pct').value)||25;
+  var gas_pct=parseFloat(document.getElementById('gas_pct').value)||40;
+  var cp_now=parseFloat(document.getElementById('cp_now').value)||15;
+  var cp_near=parseFloat(document.getElementById('cp_near').value)||40;
+  var cp_mid=parseFloat(document.getElementById('cp_mid').value)||80;
+  var cp_long=parseFloat(document.getElementById('cp_long').value)||150;
+  var capex=parseFloat(document.getElementById('capex').value)||500000;
+  var esave=parseFloat(document.getElementById('energy_save').value)||35000;
+
+  var elec_pct=(100-gas_pct)/100;
+  var gas_pct_d=gas_pct/100;
+  var grid_ef=ELEC_EF*(1-ren/100);
+
+  // kBtu/yr total energy
+  var energy_c=eui_c*area; // kBtu/yr
+  var energy_t=eui_t*area;
+
+  // split by fuel
+  var elec_kbtu_c=energy_c*elec_pct;
+  var gas_kbtu_c=energy_c*gas_pct_d;
+  var elec_kbtu_t=energy_t*elec_pct;
+  var gas_kbtu_t=energy_t*gas_pct_d;
+
+  // convert: 1 kWh=3.412 kBtu; 1 therm=99.97 kBtu
+  var elec_mwh_c=elec_kbtu_c/3412;
+  var gas_therm_c=gas_kbtu_c/99.97;
+  var elec_mwh_t=elec_kbtu_t/3412;
+  var gas_therm_t=gas_kbtu_t/99.97;
+
+  var co2_c=elec_mwh_c*grid_ef+gas_therm_c*GAS_EF*1000; // tonnes
+  var co2_t=elec_mwh_t*grid_ef+gas_therm_t*GAS_EF*1000;
+  var co2_saved=co2_c-co2_t;
+  var pct_red=co2_c>0?co2_saved/co2_c*100:0;
+  var intensity=co2_c*1000/area; // kgCO2e/SF/yr
+
+  document.getElementById('cur_co2').textContent=co2_c.toFixed(1);
+  document.getElementById('cur_cost').textContent='$'+Math.round(co2_c*cp_now).toLocaleString()+'/yr';
+  document.getElementById('co2_intensity').textContent=intensity.toFixed(2)+' kgCO₂e/SF/yr';
+  document.getElementById('co2_saved').textContent=co2_saved.toFixed(1);
+  document.getElementById('pct_red').textContent=pct_red.toFixed(1)+'% reduction';
+  document.getElementById('cur_save_val').textContent='$'+Math.round(co2_saved*cp_now).toLocaleString()+'/yr at $'+cp_now+'/tCO₂e';
+
+  // Breakeven carbon price: capex = (co2_saved * cp) * yrs(10) + energy_saves*10
+  // Simplified: carbon payback alone = capex / (co2_saved * cp_price)
+  var be_price=co2_saved>0?capex/(co2_saved*10):0;
+  document.getElementById('be_price').textContent='$'+be_price.toFixed(0)+'/tCO₂e';
+
+  var simple_pb=esave>0?(capex/esave).toFixed(1)+' yrs':'N/A';
+  document.getElementById('simple_pb').textContent=simple_pb;
+
+  var combined_save_near=esave+co2_saved*cp_near;
+  var carbon_pb=combined_save_near>0?(capex/combined_save_near).toFixed(1)+' yrs':'N/A';
+  document.getElementById('carbon_pb').textContent=carbon_pb;
+
+  // Scenario table
+  var scenarios=[
+    {label:'Today (2026)',price:cp_now},
+    {label:'Near-term (2028)',price:cp_near},
+    {label:'Mid-term (2032)',price:cp_mid},
+    {label:'Long-term (2040)',price:cp_long}
+  ];
+  var tbody=document.getElementById('scenario_table');
+  tbody.innerHTML='';
+  var maxSave=0;
+  var cumData=[];
+  scenarios.forEach(function(s){
+    var cc_cur=Math.round(co2_c*s.price);
+    var cc_tgt=Math.round(co2_t*s.price);
+    var cc_save=Math.round(co2_saved*s.price);
+    var cum10=Math.round((esave+cc_save)*10);
+    if(cum10>maxSave)maxSave=cum10;
+    cumData.push({label:s.label,cum:cum10,save:cc_save});
+    var cl=s.price<30?'good':s.price<100?'warn':'bad';
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+s.label+'</td><td class="'+cl+'">$'+s.price+'/t</td><td>$'+cc_cur.toLocaleString()+'</td><td>$'+cc_tgt.toLocaleString()+'</td><td class="good">$'+cc_save.toLocaleString()+'</td><td class="good">$'+cum10.toLocaleString()+'</td>';
+    tbody.appendChild(tr);
+  });
+  // totals row
+  var tr2=document.createElement('tr');
+  tr2.innerHTML='<td>Upgrade Capex</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="bad">-$'+capex.toLocaleString()+'</td>';
+  tbody.appendChild(tr2);
+
+  // Cumulative bars
+  var bars=document.getElementById('cum_bars');
+  bars.innerHTML='';
+  cumData.forEach(function(d){
+    var pct=maxSave>0?Math.min(d.cum/maxSave*100,100):0;
+    var cl=d.cum>capex?'good':'warn';
+    bars.innerHTML+='<div class="scenario-row"><span class="scenario-label">'+d.label+'</span><div style="flex:1"><div class="bar-wrap"><div class="bar-fill '+cl+'" style="width:'+pct+'%"></div></div></div><span class="scenario-val '+cl+'">$'+Math.round(d.cum/1000)+'K</span></div>';
+  });
+}
+
+calc();
+</script>
+</body>
+</html>

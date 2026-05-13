@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glazing Optimizer — WWR + SHGC by Orientation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.orient-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.orient-card{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:16px}
+.orient-card h4{font-size:12px;font-weight:600;margin-bottom:10px}
+.orient-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.orient-row:last-child{border-bottom:none}
+.orient-row .key{color:#888}
+.orient-row .val{font-family:monospace;font-weight:600}
+.rec{color:#10b981}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.summary-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.summary-table th{background:#0d0d0d;color:#888;padding:9px;text-align:left;border-bottom:2px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.summary-table td{padding:9px;border-bottom:1px solid #1a1a1a;vertical-align:middle}
+.summary-table tr:hover td{background:#0d0d0d}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Glazing Optimizer</h1>
+  <p>Optimal WWR + SHGC by Orientation and Climate Zone</p>
+  <span class="badge">ASHRAE 90.1</span>
+  <span class="badge">Solar Analysis</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Project Parameters</h3>
+        <label>Climate Zone</label>
+        <select id="cz" onchange="calcGlazing()">
+          <option value="1">1 — Very Hot (Miami)</option>
+          <option value="2">2 — Hot (Phoenix, Houston)</option>
+          <option value="3">3 — Warm (Atlanta, LA)</option>
+          <option value="4" selected>4 — Mixed (Baltimore, Seattle)</option>
+          <option value="5">5 — Cool (Chicago, Denver)</option>
+          <option value="6">6 — Cold (Minneapolis)</option>
+          <option value="7">7 — Very Cold (Fairbanks)</option>
+        </select>
+        <label>Building Type</label>
+        <select id="btype" onchange="calcGlazing()">
+          <option value="office" selected>Office</option>
+          <option value="residential">Residential</option>
+          <option value="retail">Retail</option>
+          <option value="industrial">Industrial / Warehouse</option>
+        </select>
+        <label>Floor-to-Floor Height (ft)</label>
+        <input type="number" id="f2f" value="14" step="0.5" oninput="calcGlazing()">
+        <div style="margin-top:16px;border-top:1px solid #222;padding-top:16px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">Per-Orientation WWR (%)</div>
+          <label style="margin-top:0">North facade WWR (%)</label>
+          <input type="number" id="wwr_n" value="25" min="0" max="100" step="5" oninput="calcGlazing()">
+          <label>South facade WWR (%)</label>
+          <input type="number" id="wwr_s" value="35" min="0" max="100" step="5" oninput="calcGlazing()">
+          <label>East facade WWR (%)</label>
+          <input type="number" id="wwr_e" value="25" min="0" max="100" step="5" oninput="calcGlazing()">
+          <label>West facade WWR (%)</label>
+          <input type="number" id="wwr_w" value="25" min="0" max="100" step="5" oninput="calcGlazing()">
+        </div>
+        <div style="margin-top:16px;border-top:1px solid #222;padding-top:16px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">SHGC by Orientation</div>
+          <label style="margin-top:0">North SHGC</label>
+          <input type="number" id="shgc_n" value="0.40" step="0.01" oninput="calcGlazing()">
+          <label>South SHGC</label>
+          <input type="number" id="shgc_s" value="0.40" step="0.01" oninput="calcGlazing()">
+          <label>East SHGC</label>
+          <input type="number" id="shgc_e" value="0.25" step="0.01" oninput="calcGlazing()">
+          <label>West SHGC</label>
+          <input type="number" id="shgc_w" value="0.25" step="0.01" oninput="calcGlazing()">
+        </div>
+        <label>Window U-Value (all orientations)</label>
+        <input type="number" id="u_win" value="0.29" step="0.01" oninput="calcGlazing()">
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Optimization Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Adjust parameters to see real-time results</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>ASHRAE 90.1 Prescriptive Glazing Limits (Nonresidential)</h3>
+    <table class="summary-table">
+      <tr><th>Climate Zone</th><th>Max WWR</th><th>Max Window U</th><th>Max SHGC (N/E/W/S if separate)</th><th>Strategy</th></tr>
+      <tr><td>1 Very Hot</td><td>40%</td><td>U-0.50</td><td>SHGC 0.25 (all)</td><td>Minimize solar gain, maximize shade</td></tr>
+      <tr><td>2 Hot</td><td>40%</td><td>U-0.40</td><td>SHGC 0.25</td><td>Low SHGC critical on E/W</td></tr>
+      <tr><td>3 Warm</td><td>40%</td><td>U-0.35</td><td>SHGC 0.25</td><td>Low-e with moderate VLT</td></tr>
+      <tr><td>4 Mixed</td><td>40%</td><td>U-0.29</td><td>SHGC 0.25</td><td>Spectrally selective; higher S SHGC with shading</td></tr>
+      <tr><td>5 Cool</td><td>40%</td><td>U-0.29</td><td>SHGC 0.25</td><td>South-biased glazing with overhangs</td></tr>
+      <tr><td>6 Cold</td><td>40%</td><td>U-0.29</td><td>No limit</td><td>Maximize S solar gain; triple-pane N/E/W</td></tr>
+      <tr><td>7 Very Cold</td><td>40%</td><td>U-0.29</td><td>No limit</td><td>Triple-pane; passive solar essential</td></tr>
+    </table>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM Glazing Optimization Workflow</div>
+    <p>In Revit, use Autodesk Insight sun path + solar analysis tools to validate SHGC and daylighting per facade. Set curtain wall type properties: <em>WWR_Percent</em>, <em>SHGC_Orientation</em>, <em>U_Value_Whole_Window</em>. For LEED IEQc8 (Daylight), simulate sDA 300/50% — higher WWR on N/S improves daylight while low SHGC on E/W controls glare. Use parametric mass models in Revit to test WWR variations before committing to curtain wall design. The ASHRAE 90.1 overall average SHGC approach (§5.5.4.3) allows trading higher SHGC on N for lower on S/E/W — model this in energy simulation.</p>
+  </div>
+  <div class="cta">
+    <p><strong>Facade performance optimization and energy modeling?</strong><br>
+    BIM XL provides per-orientation solar analysis, curtain wall specification, and ASHRAE 90.1 glazing compliance packages integrated with your Revit model. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+// Solar heat gain factors by orientation and climate zone [N, S, E, W]
+var SOLAR_HG={
+  1:[0.15,0.30,0.55,0.65],
+  2:[0.15,0.35,0.58,0.68],
+  3:[0.15,0.40,0.55,0.62],
+  4:[0.15,0.50,0.50,0.55],
+  5:[0.15,0.55,0.45,0.50],
+  6:[0.15,0.60,0.40,0.42],
+  7:[0.15,0.65,0.35,0.38]
+};
+var CZ_U_LIMIT={1:0.50,2:0.40,3:0.35,4:0.29,5:0.29,6:0.29,7:0.29};
+var CZ_SHGC_LIMIT={1:0.25,2:0.25,3:0.25,4:0.25,5:0.25,6:99,7:99};
+var ORIENT_NAMES=['North','South','East','West'];
+
+function calcGlazing(){
+  var cz=parseInt(document.getElementById('cz').value);
+  var sg=SOLAR_HG[cz];
+  var wwrs=[parseFloat(document.getElementById('wwr_n').value)/100,
+            parseFloat(document.getElementById('wwr_s').value)/100,
+            parseFloat(document.getElementById('wwr_e').value)/100,
+            parseFloat(document.getElementById('wwr_w').value)/100];
+  var shgcs=[parseFloat(document.getElementById('shgc_n').value),
+             parseFloat(document.getElementById('shgc_s').value),
+             parseFloat(document.getElementById('shgc_e').value),
+             parseFloat(document.getElementById('shgc_w').value)];
+  var u=parseFloat(document.getElementById('u_win').value);
+  var u_limit=CZ_U_LIMIT[cz];
+  var shgc_limit=CZ_SHGC_LIMIT[cz];
+
+  var totalWWR=(wwrs[0]+wwrs[1]+wwrs[2]+wwrs[3])/4;
+  var u_pass=u<=u_limit;
+  var all_shgc_pass=true;
+  var orient_data=[];
+
+  // Recommended SHGC per orientation by CZ
+  var rec_shgc=[[0.40,0.40,0.25,0.25],[0.35,0.35,0.20,0.20],[0.30,0.35,0.22,0.22],
+                [0.40,0.40,0.25,0.25],[0.40,0.45,0.25,0.25],[0.40,0.50,0.25,0.25],[0.40,0.55,0.25,0.25]];
+  var rec=rec_shgc[cz-1];
+  var rec_wwr=[[0.25,0.30,0.20,0.20],[0.25,0.25,0.20,0.20],[0.25,0.35,0.20,0.20],
+               [0.25,0.35,0.20,0.20],[0.25,0.40,0.20,0.20],[0.20,0.40,0.20,0.20],[0.20,0.40,0.15,0.15]];
+  var r_wwr=rec_wwr[cz-1];
+
+  for(var i=0;i<4;i++){
+    var shgc_pass=shgcs[i]<=shgc_limit||shgc_limit>=99;
+    if(!shgc_pass) all_shgc_pass=false;
+    var rel_solar=sg[i]*wwrs[i]*shgcs[i];
+    orient_data.push({
+      name:ORIENT_NAMES[i],wwr:wwrs[i],shgc:shgcs[i],
+      rel_solar:rel_solar,shgc_pass:shgc_pass,
+      rec_shgc:rec[i],rec_wwr:r_wwr[i]
+    });
+  }
+
+  var all_pass=u_pass&&all_shgc_pass&&totalWWR<=0.40;
+  var pass_color=all_pass?'#10b981':'#ef4444';
+
+  var html='<div style="background:'+pass_color+'22;border:1px solid '+pass_color+'44;border-radius:6px;padding:12px;margin-bottom:16px;text-align:center">'
+    +'<div style="font-size:13px;font-weight:700;color:'+pass_color+'">'+(all_pass?'ASHRAE 90.1 COMPLIANT':'NON-COMPLIANT — See issues below')+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-top:4px">CZ '+cz+' — Weighted avg WWR: '+(totalWWR*100).toFixed(0)+'% (max 40%)</div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:12px;margin-bottom:14px;font-size:12px">'
+    +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a"><span style="color:#888">Window U-Value</span><span style="font-family:monospace;color:'+(u_pass?'#10b981':'#ef4444')+'">'+u+' ('+(u_pass?'PASS ≤'+u_limit:'FAIL >'+u_limit)+')</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:#888">Overall WWR</span><span style="font-family:monospace;color:'+(totalWWR<=0.40?'#10b981':'#ef4444')+'">'+(totalWWR*100).toFixed(0)+'% ('+(totalWWR<=0.40?'PASS':'FAIL >40%')+')</span></div>'
+    +'</div>'
+    +'<div class="orient-grid">';
+
+  orient_data.forEach(function(o){
+    var c=o.shgc_pass?'#10b98133':'#ef444433';
+    var tc=o.shgc_pass?'#10b981':'#ef4444';
+    html+='<div class="orient-card" style="border-color:'+c+'">'
+      +'<h4 style="color:'+tc+'">'+o.name+' Facade</h4>'
+      +'<div class="orient-row"><span class="key">WWR</span><span class="val '+(o.wwr<=0.40?'rec':'warn')+'">'+(o.wwr*100).toFixed(0)+'%</span></div>'
+      +'<div class="orient-row"><span class="key">SHGC</span><span class="val '+(o.shgc_pass?'rec':'bad')+'">'+o.shgc+'</span></div>'
+      +'<div class="orient-row"><span class="key">Rel. Solar Load</span><span class="val '+(o.rel_solar<0.08?'rec':o.rel_solar<0.15?'warn':'bad')+'">'+(o.rel_solar*100).toFixed(1)+'</span></div>'
+      +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid #222;font-size:11px;color:#555">'
+      +'Recommended: WWR '+(o.rec_wwr*100).toFixed(0)+'%, SHGC '+o.rec_shgc
+      +'</div>'
+      +'</div>';
+  });
+
+  html+='</div>';
+  document.getElementById('results').innerHTML=html;
+}
+calcGlazing();
+</script>
+</body>
+</html>

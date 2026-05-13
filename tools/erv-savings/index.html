@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERV / HRV Energy Savings Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;font-family:monospace;color:#10b981}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-row .key{color:#888}
+.result-row .val{font-family:monospace;font-weight:600;color:#fff}
+.compare-col{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px}
+.compare-col .label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.info-box{background:#111;border:1px solid #222;border-radius:6px;padding:14px}
+.info-box .title{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.info-box p{font-size:12px;color:#ccc;line-height:1.6}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>ERV / HRV Energy Savings Calculator</h1>
+  <p>Energy Recovery Ventilation — Heat and Moisture Recovery Payback Analysis</p>
+  <span class="badge">ASHRAE 62.1</span>
+  <span class="badge">DOAS + ERV</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Ventilation System Parameters</h3>
+        <label>Building Type</label>
+        <select id="btype" onchange="setVent()">
+          <option value="office" selected>Office</option>
+          <option value="school">School / Classroom</option>
+          <option value="retail">Retail</option>
+          <option value="multifamily">Multifamily (Residential)</option>
+          <option value="hospitality">Hospitality / Hotel</option>
+          <option value="healthcare">Healthcare</option>
+        </select>
+        <label>Gross Floor Area (SF)</label>
+        <input type="number" id="gfa" value="30000">
+        <label>Ventilation Rate (CFM per SF of floor)</label>
+        <input type="number" id="cfm_sf" value="0.15" step="0.01">
+        <label>Annual Hours of Operation</label>
+        <input type="number" id="hours" value="3250" step="100">
+        <label>Climate Zone</label>
+        <select id="cz">
+          <option value="1">1 — Very Hot (Miami)</option>
+          <option value="2">2 — Hot (Phoenix)</option>
+          <option value="3">3 — Warm (Atlanta)</option>
+          <option value="4" selected>4 — Mixed (Baltimore)</option>
+          <option value="5">5 — Cool (Chicago)</option>
+          <option value="6">6 — Cold (Minneapolis)</option>
+          <option value="7">7 — Very Cold</option>
+        </select>
+        <label>Indoor Design Temperature (°F)</label>
+        <input type="number" id="ti" value="72" step="1">
+        <label>Outdoor Annual Average Temperature (°F)</label>
+        <input type="number" id="to" value="52" step="1">
+        <div style="margin-top:20px;border-top:1px solid #222;padding-top:20px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">ERV Unit Specifications</div>
+          <label>ERV Type</label>
+          <select id="erv_type" onchange="setERV()">
+            <option value="rotary" data-se="0.80" data-le="0.75">Rotary Wheel ERV (sensible 80%, latent 75%)</option>
+            <option value="plate" data-se="0.75" data-le="0" selected>Cross-Flow Plate HRV (sensible 75%, latent 0%)</option>
+            <option value="membrane" data-se="0.75" data-le="0.70">Membrane ERV (sensible 75%, latent 70%)</option>
+            <option value="heat_pipe" data-se="0.60" data-le="0">Heat Pipe HRV (sensible 60%, latent 0%)</option>
+            <option value="runaround" data-se="0.55" data-le="0">Runaround Coil (sensible 55%, latent 0%)</option>
+          </select>
+          <label>Sensible Effectiveness (%)</label>
+          <input type="number" id="se" value="75" step="1" min="30" max="95">
+          <label>Latent Effectiveness (%)</label>
+          <input type="number" id="le" value="0" step="1" min="0" max="90">
+          <label>ERV System Installed Cost ($/CFM)</label>
+          <input type="number" id="cost_cfm" value="3.50" step="0.25">
+          <label>Heating Energy Cost ($/kBtu)</label>
+          <input type="number" id="heat_cost" value="0.012" step="0.001">
+          <label>Cooling Energy Cost ($/kBtu)</label>
+          <input type="number" id="cool_cost" value="0.020" step="0.001">
+        </div>
+        <button class="btn" onclick="calcERV()">Calculate Savings</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="resultsBlock">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Configure system and calculate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="title">ERV vs HRV</div>
+      <p>HRV (Heat Recovery) transfers sensible heat only. ERV also transfers moisture (latent heat). In hot/humid climates, ERV outperforms HRV by pre-conditioning moisture. In cold dry climates, HRV may be preferred to avoid excess humidification. Rotary wheel ERVs have highest total effectiveness (80%+ sensible + 70%+ latent).</p>
+    </div>
+    <div class="info-box">
+      <div class="title">ASHRAE 90.1 Requirement</div>
+      <p>ASHRAE 90.1-2022 §6.5.6.1: ERV required when design ventilation rate exceeds 3,000 CFM AND the difference between outdoor and indoor temperature/humidity exceeds ASHRAE limits by climate zone. Effectiveness minimums: 50% sensible for most climates. LEED EAc1 credits ERV as a HVAC efficiency measure.</p>
+    </div>
+    <div class="info-box">
+      <div class="title">DOAS + ERV System</div>
+      <p>Dedicated Outdoor Air System with ERV decouples ventilation from space conditioning. Allows downsizing of space conditioning equipment by 20-30%. Enables independent humidity control. When combined with radiant panels or fan coils, DOAS+ERV is considered best-in-class for IAQ and energy performance.</p>
+    </div>
+    <div class="info-box">
+      <div class="title">Latent Load Recovery</div>
+      <p>In hot-humid climates (Zones 1-3), latent cooling can be 30-50% of total cooling load. ERV reducing latent load by 70% can cut total cooling EUI by 15-25%. Rotary wheel or membrane ERVs required for significant latent recovery. MERV-13 pre-filter required to protect ERV media in healthcare applications.</p>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / MEP Coordination</div>
+    <p>Model DOAS+ERV as a dedicated AHU in Revit MEP with parameters: <em>ERV_Sensible_Effectiveness</em>, <em>ERV_Latent_Effectiveness</em>, <em>ERV_Design_CFM</em>, <em>ERV_Annual_kBtu_Saved</em>. Pressure drop across ERV core (typically 0.5-1.0 in. WG per side) must be included in fan sizing. For LEED EAc1, ERV effectiveness values are required inputs to the energy model — coordinate with energy modeler. Route supply and exhaust ducts to minimize cross-contamination risk; minimum 10 ft separation per ASHRAE 170 for healthcare.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>ERV/DOAS system design and energy modeling?</strong><br>
+    BIM XL provides DOAS+ERV sizing, Revit MEP coordination, and ASHRAE 90.1 §6.5.6.1 compliance documentation. Full energy model integration for LEED and code compliance. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+
+<script>
+var VENT_PRESETS={office:0.15,school:0.20,retail:0.10,multifamily:0.08,hospitality:0.12,healthcare:0.30};
+var CZ_HDDHRS={1:200,2:500,3:1200,4:2200,5:3200,6:4000,7:4500};
+var CZ_CDDHRS={1:3500,2:3000,3:2000,4:1200,5:600,6:300,7:100};
+function setVent(){
+  var t=document.getElementById('btype').value;
+  document.getElementById('cfm_sf').value=VENT_PRESETS[t];
+}
+function setERV(){
+  var opt=document.getElementById('erv_type').options[document.getElementById('erv_type').selectedIndex];
+  document.getElementById('se').value=Math.round(parseFloat(opt.dataset.se)*100);
+  document.getElementById('le').value=Math.round(parseFloat(opt.dataset.le)*100);
+}
+function calcERV(){
+  var gfa=parseFloat(document.getElementById('gfa').value);
+  var cfm_sf=parseFloat(document.getElementById('cfm_sf').value);
+  var hours=parseFloat(document.getElementById('hours').value);
+  var cz=parseInt(document.getElementById('cz').value);
+  var ti=parseFloat(document.getElementById('ti').value);
+  var to=parseFloat(document.getElementById('to').value);
+  var se=parseFloat(document.getElementById('se').value)/100;
+  var le=parseFloat(document.getElementById('le').value)/100;
+  var cost_cfm=parseFloat(document.getElementById('cost_cfm').value);
+  var heat_cost=parseFloat(document.getElementById('heat_cost').value);
+  var cool_cost=parseFloat(document.getElementById('cool_cost').value);
+
+  var total_cfm=gfa*cfm_sf;
+  var capital_cost=total_cfm*cost_cfm;
+
+  // Sensible heat recovery
+  var hddhrs=CZ_HDDHRS[cz]; // heating degree-hours
+  var cddhrs=CZ_CDDHRS[cz];
+
+  // Sensible heating saved: CFM * 1.1 * deltaT_effective * hours_heating
+  // Approx: annual sensible heating kBtu = CFM * 1.1 * ΔT_avg_heating * hours
+  var dt_heat=Math.max(0,ti-to);
+  var heat_hours=Math.round(hours*CZ_HDDHRS[cz]/8760);
+  var cool_hours=Math.round(hours*CZ_CDDHRS[cz]/8760);
+
+  var sensible_heat_kbtu=total_cfm*1.1*se*dt_heat*heat_hours/1000;
+  var sensible_cool_kbtu=total_cfm*1.1*se*Math.max(0,to-ti)*cool_hours/1000*0.5; // cooling
+
+  // Latent: approximate 30% of sensible in humid climates
+  var latent_factor=[0.6,0.5,0.35,0.2,0.1,0.05,0.05][cz-1];
+  var latent_heat_kbtu=sensible_heat_kbtu*le*latent_factor;
+  var latent_cool_kbtu=sensible_cool_kbtu*le*(1+latent_factor);
+
+  var total_heat_saved=sensible_heat_kbtu+latent_heat_kbtu;
+  var total_cool_saved=sensible_cool_kbtu+latent_cool_kbtu;
+  var annual_savings=total_heat_saved*heat_cost+total_cool_saved*cool_cost;
+  var payback=annual_savings>0?capital_cost/annual_savings:999;
+  var total_kbtu_saved=total_heat_saved+total_cool_saved;
+
+  var payback_color=payback<5?'#10b981':payback<10?'#f59e0b':'#ef4444';
+
+  document.getElementById('resultsBlock').innerHTML=
+    '<div class="kpi-grid">'
+    +'<div class="kpi"><div class="val">$'+Math.round(annual_savings).toLocaleString()+'</div><div class="lbl">Annual Energy Savings</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+payback_color+'">'+payback.toFixed(1)+' yrs</div><div class="lbl">Simple Payback</div></div>'
+    +'<div class="kpi"><div class="val">'+Math.round(total_kbtu_saved/1000)+'k kBtu</div><div class="lbl">Annual kBtu Recovered</div></div>'
+    +'</div>'
+    +'<div class="compare-col"><div class="label">System Summary</div>'
+    +'<div class="result-row"><span class="key">Total ventilation CFM</span><span class="val">'+Math.round(total_cfm).toLocaleString()+' CFM</span></div>'
+    +'<div class="result-row"><span class="key">ERV capital cost</span><span class="val">$'+Math.round(capital_cost).toLocaleString()+'</span></div>'
+    +'<div class="result-row"><span class="key">Sensible heat recovered</span><span class="val">'+Math.round(total_heat_saved/1000)+'k kBtu/yr</span></div>'
+    +'<div class="result-row"><span class="key">Cooling load recovered</span><span class="val">'+Math.round(total_cool_saved/1000)+'k kBtu/yr</span></div>'
+    +'<div class="result-row"><span class="key">Sensible effectiveness</span><span class="val">'+(se*100).toFixed(0)+'%</span></div>'
+    +'<div class="result-row"><span class="key">Latent effectiveness</span><span class="val">'+(le*100).toFixed(0)+'%</span></div>'
+    +'<div class="result-row"><span class="key">20-yr cumulative savings</span><span class="val" style="color:#10b981">$'+Math.round(annual_savings*20).toLocaleString()+'</span></div>'
+    +'<div class="result-row"><span class="key">ASHRAE 90.1 compliance</span><span class="val" style="color:'+(total_cfm>3000?'#10b981':'#888')+'">'+(total_cfm>3000?'Required at '+Math.round(total_cfm)+' CFM':'Not required (&lt;3,000 CFM)')+'</span></div>'
+    +'</div>';
+}
+calcERV();
+</script>
+</body>
+</html>

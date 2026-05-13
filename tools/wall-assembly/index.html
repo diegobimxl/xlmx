@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wall Assembly Comparator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.tb a{color:#10b981;text-decoration:none;font-size:13px}.tb h1{font-size:15px;font-weight:600;flex:1}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px}
+.sub{color:#888;font-size:13px;margin-bottom:20px;line-height:1.6}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters select,.filters input{background:#111;border:1px solid #333;color:#e8e8e8;padding:7px 12px;border-radius:5px;font-size:12px}
+.filters select:focus,.filters input:focus{outline:none;border-color:#10b981}
+.tbl-wrap{overflow-x:auto;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#111;color:#888;font-weight:600;padding:9px 12px;text-align:left;border-bottom:1px solid #2a2a2a;cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:#e8e8e8}
+td{padding:9px 12px;border-bottom:1px solid #1a1a1a;color:#ccc;vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:#e8e8e8;font-weight:500}
+.tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.t-exc{background:rgba(16,185,129,.12);color:#10b981}
+.t-good{background:rgba(96,165,250,.12);color:#60a5fa}
+.t-fair{background:rgba(251,191,36,.12);color:#fbbf24}
+.t-poor{background:rgba(248,113,113,.12);color:#f87171}
+.t-spec{background:rgba(200,169,110,.12);color:#c8a96e}
+.metric{font-family:monospace;font-size:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:12px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:16px}
+.cmp-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.cmp-row:last-child{border-bottom:none}
+.cmp-val{font-family:monospace;font-weight:600}
+.good{color:#4ade80}.mid{color:#c8a96e}.bad{color:#f87171}.neutral{color:#aaa}
+.callout{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:14px;margin-bottom:14px}
+.callout h3{font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.callout p{font-size:12px;color:#aaa;line-height:1.7}
+.note{font-size:11px;color:#555;font-style:italic;margin-top:10px;line-height:1.6}
+.cnt-badge{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#10b981;font-size:11px;padding:3px 10px;border-radius:20px;font-family:monospace}
+</style>
+</head>
+<body>
+<div class="tb"><a href="/tools/">&#8592; Tools</a><h1>Wall Assembly Comparator</h1><span class="cnt-badge" id="wcnt">16 assemblies</span></div>
+<div class="wrap">
+<p class="sub">Compare 16 wall assembly systems on R-value, effective R-value (accounting for thermal bridging), thermal mass, embodied carbon, cost, and fire/sound ratings. Calculator shows annual heat loss comparison between any two systems.</p>
+<div class="filters">
+  <input type="text" id="wsrch" placeholder="Search assembly..." oninput="filterWalls()" style="min-width:200px">
+  <select id="wcat" onchange="filterWalls()">
+    <option value="">All Types</option>
+    <option value="wood">Wood Framing</option>
+    <option value="metal">Metal Framing</option>
+    <option value="masonry">Masonry / Concrete</option>
+    <option value="mass-timber">Mass Timber</option>
+    <option value="composite">Composite / SIP</option>
+    <option value="passive">Passive House</option>
+  </select>
+</div>
+<div class="tbl-wrap">
+<table id="wtable">
+<thead><tr>
+  <th onclick="sortW('name')">Assembly ↕</th>
+  <th onclick="sortW('r_clear')">R-Clear ↕</th>
+  <th onclick="sortW('r_eff')">R-Eff ↕</th>
+  <th onclick="sortW('u_eff')">U-Eff ↕</th>
+  <th onclick="sortW('mass')">Mass lb/SF ↕</th>
+  <th onclick="sortW('ec')">EC kgCO2e/SF ↕</th>
+  <th onclick="sortW('cost_lo')">$/SF ↕</th>
+  <th onclick="sortW('fire')">Fire ↕</th>
+  <th onclick="sortW('stc')">STC ↕</th>
+  <th>Notes</th>
+</tr></thead>
+<tbody id="wbody"></tbody>
+</table>
+</div>
+<div class="callout">
+  <h3>Developer ROI Framework</h3>
+  <p>ICF vs. standard wood frame: $8-15/SF installed premium → 20-30% heating/cooling reduction → 6-10 yr payback in zone 5+. Mass timber (CLT) vs. concrete: similar structural cost at scale but 40-60% lower embodied carbon A1-A3 → carbon credit value $8-25/tCO2e. Double stud / Passive House assemblies add $12-20/SF but can eliminate mechanical heating in zones 5-6 (saves $8-18/SF in HVAC first cost).</p>
+</div>
+<div class="grid2">
+  <div class="card">
+    <h2>Heat Loss Comparison Calculator</h2>
+    <label>Assembly A</label>
+    <select id="wall_a"><option value="">— select —</option></select>
+    <label>Assembly B</label>
+    <select id="wall_b"><option value="">— select —</option></select>
+    <label>Wall Area (SF)</label>
+    <input id="warea" type="number" value="8000" step="500">
+    <label>Heating Degree Days (HDD)</label>
+    <input id="hdd" type="number" value="6500" step="100">
+    <label>Energy Cost ($/kBtu)</label>
+    <input id="wcost" type="number" value="0.022" step="0.002">
+    <button class="btn" onclick="compareWalls()">Compare Heat Loss</button>
+  </div>
+  <div class="card">
+    <h2>Comparison Results</h2>
+    <div id="wcmp-out"><p style="color:#555;font-size:13px">Select two assemblies and calculate.</p></div>
+  </div>
+</div>
+<div class="grid2">
+  <div class="callout">
+    <h3>BIM / Drafting Note</h3>
+    <p>In Revit Wall Types: build compound layers matching the assembly. Assign Thermal Resistance (R) to each layer. Use the Energy Settings to toggle between clear-field and framing R-values — always export with the "Framing Fraction" parameter set to match the actual stud spacing (typically 15% for 16"OC, 12% for 24"OC). For thermal bridging compliance per ASHRAE 90.1 App. A, use the U-factor path to account for linear transmittance (ψ) at interfaces.</p>
+  </div>
+  <div class="callout">
+    <h3>Code Reference</h3>
+    <p>ASHRAE 90.1-2022 Table 5.5: use the effective R-value (framing included) for compliance, not clear-field. IBC 2021 Chapter 7: fire-resistance requirements by occupancy and construction type. IECC 2021 Table R402.1.2: residential minimum R-values by climate zone. NFPA 285 test required for foam plastic exterior insulation (CI) on combustible wall assemblies. Mass timber (CLT) fire ratings per AWC CLT Handbook and ASTM E119 tests (typically 2-hr for 5-layer CLT).</p>
+  </div>
+</div>
+<p class="note">Effective R-values based on ASHRAE Fundamentals Handbook isothermal planes method. Framing fraction: 15% for 16"OC, 12% for 24"OC. Costs are rough order-of-magnitude installed, excluding finishes. Embodied carbon (EC) A1-A3 from EC3 / NIST BEES industry averages. Verify with local contractor pricing and current material EPDs.</p>
+</div>
+<script>
+var WALLS=[
+  {name:'2x4 Wood Frame 16"OC + Batt R-13',cat:'wood',r_clear:18,r_eff:14,u_eff:0.071,mass:6,ec:3.2,cost_lo:12,cost_hi:18,fire:'1-hr w/ gypsum',stc:35,notes:'Most common residential. CI required for code in cold zones.'},
+  {name:'2x6 Wood Frame 16"OC + Batt R-20',cat:'wood',r_clear:25,r_eff:20,u_eff:0.050,mass:7,ec:3.8,cost_lo:15,cost_hi:22,fire:'1-hr w/ gypsum',stc:36,notes:'Better performance, modest cost premium over 2x4.'},
+  {name:'2x6 Frame + 2" CI (R-20+10)',cat:'wood',r_clear:30,r_eff:28,u_eff:0.036,mass:8,ec:5.1,cost_lo:21,cost_hi:30,fire:'1-hr w/ gypsum',stc:37,notes:'ASHRAE 90.1 path for zone 5-6. Eliminates most thermal bridging.'},
+  {name:'Metal Stud 3-5/8" + R-21',cat:'metal',r_clear:28,r_eff:12,u_eff:0.083,mass:5,ec:4.8,cost_lo:14,cost_hi:22,fire:'1-hr',stc:40,notes:'Severe thermal bridging from studs. Avoid for envelope without CI.'},
+  {name:'Metal Stud + 4" CI (R-21+25)',cat:'metal',r_clear:46,r_eff:40,u_eff:0.025,mass:6,ec:7.2,cost_lo:24,cost_hi:36,fire:'2-hr',stc:42,notes:'High-performance commercial curtain wall backup. Code-compliant zone 6-7.'},
+  {name:'ICF (6" concrete + 2.5"+2.5" EPS)',cat:'composite',r_clear:22,r_eff:22,u_eff:0.045,mass:80,ec:18,cost_lo:25,cost_hi:40,fire:'4-hr (concrete core)',stc:50,notes:'Excellent mass + insulation combo. No thermal bridging. Hurricane-rated.'},
+  {name:'SIP — 6.5" EPS Core',cat:'composite',r_clear:24,r_eff:24,u_eff:0.042,mass:6,ec:5.2,cost_lo:18,cost_hi:28,fire:'1-hr w/ gypsum',stc:36,notes:'Tight, fast assembly. Minimal thermal bridging at panels (not splines).'},
+  {name:'CMU 8" + 3" CI',cat:'masonry',r_clear:11,r_eff:11,u_eff:0.091,mass:90,ec:22,cost_lo:28,cost_hi:42,fire:'4-hr',stc:52,notes:'High mass, excellent fire. CI on exterior needed for energy performance.'},
+  {name:'Precast Concrete (6" solid)',cat:'masonry',r_clear:2,r_eff:2,u_eff:0.500,mass:75,ec:30,cost_lo:35,cost_hi:55,fire:'4-hr',stc:55,notes:'Typically used with separate insulation assembly. High embodied carbon.'},
+  {name:'Precast Concrete + 4" Mineral Wool CI',cat:'masonry',r_clear:18,r_eff:17,u_eff:0.059,mass:76,ec:28,cost_lo:50,cost_hi:72,fire:'4-hr',stc:55,notes:'Common for high-rise. Good fire + sound. Large thermal mass exterior.'},
+  {name:'CLT (5-layer, 6.75") + 4" Mineral Wool',cat:'mass-timber',r_clear:20,r_eff:20,u_eff:0.050,mass:22,ec:9,cost_lo:45,cost_hi:70,fire:'2-hr (exposed CLT)',stc:45,notes:'Low embodied carbon vs. concrete. Often exposed interior, CI exterior.'},
+  {name:'Glulam + CLT (3-layer) + Rainscreen',cat:'mass-timber',r_clear:15,r_eff:15,u_eff:0.067,mass:18,ec:7,cost_lo:40,cost_hi:62,fire:'1-hr',stc:42,notes:'Exposed interior timber. Energy performance depends on added CI.'},
+  {name:'Double Stud (2x4+2x4, 10" OC)',cat:'passive',r_clear:40,r_eff:38,u_eff:0.026,mass:8,ec:6.2,cost_lo:30,cost_hi:45,fire:'1-hr w/ gypsum',stc:40,notes:'Passive House residential. No thermal bridging at studs.'},
+  {name:'Advanced Frame 24"OC + 6" Spray Foam',cat:'wood',r_clear:38,r_eff:36,u_eff:0.028,mass:7,ec:8.5,cost_lo:28,cost_hi:42,fire:'1-hr w/ gypsum',stc:38,notes:'High R, but spray foam has high GWP (HFC blowing agent). Verify GWP.'},
+  {name:'EIFS (Metal Stud + 4" EPS + Finish)',cat:'composite',r_clear:36,r_eff:30,u_eff:0.033,mass:6,ec:6.8,cost_lo:22,cost_hi:34,fire:'1-hr (needs thermal barrier)',stc:38,notes:'Economical high-R facade. Drainage EIFS required in most jurisdictions.'},
+  {name:'Mass Timber + R-40 Passive Envelope',cat:'passive',r_clear:45,r_eff:44,u_eff:0.023,mass:20,ec:8,cost_lo:55,cost_hi:80,fire:'2-hr',stc:48,notes:'Passive House commercial with timber. Low carbon + high performance.'}
+];
+var sortKeyW='r_eff',sortAscW=false,filteredW=WALLS.slice();
+function rClass(r){return r>=38?'t-exc':r>=25?'t-good':r>=16?'t-fair':'t-poor';}
+function ecClass(e){return e<=5?'t-exc':e<=10?'t-good':e<=20?'t-fair':'t-poor';}
+function renderWalls(){
+  var s=filteredW.slice().sort(function(a,b){
+    var av=a[sortKeyW]||0,bv=b[sortKeyW]||0;
+    return sortAscW?(typeof av==='string'?av.localeCompare(bv):av-bv):(typeof av==='string'?bv.localeCompare(av):bv-av);
+  });
+  var html='';
+  s.forEach(function(w,i){
+    var idx=WALLS.indexOf(w);
+    html+='<tr>';
+    html+='<td>'+w.name+'</td>';
+    html+='<td class="metric '+rClass(w.r_clear)+'">R-'+w.r_clear+'</td>';
+    html+='<td class="metric '+rClass(w.r_eff)+'">R-'+w.r_eff+'</td>';
+    html+='<td class="metric">'+(w.u_eff).toFixed(3)+'</td>';
+    html+='<td class="metric">'+w.mass+'</td>';
+    html+='<td class="metric '+ecClass(w.ec)+'">'+w.ec.toFixed(1)+'</td>';
+    html+='<td class="metric">$'+w.cost_lo+'-'+w.cost_hi+'</td>';
+    html+='<td style="font-size:11px">'+w.fire+'</td>';
+    html+='<td class="metric">'+w.stc+'</td>';
+    html+='<td style="font-size:11px;color:#666;max-width:200px">'+w.notes+'</td>';
+    html+='</tr>';
+  });
+  document.getElementById('wbody').innerHTML=html;
+  document.getElementById('wcnt').textContent=s.length+' assemblies';
+  populateWallSelects();
+}
+function sortW(k){if(sortKeyW===k)sortAscW=!sortAscW;else{sortKeyW=k;sortAscW=false;}renderWalls();}
+function filterWalls(){
+  var q=document.getElementById('wsrch').value.toLowerCase();
+  var cat=document.getElementById('wcat').value;
+  filteredW=WALLS.filter(function(w){
+    return(!q||(w.name+w.notes).toLowerCase().includes(q))&&(!cat||w.cat===cat);
+  });
+  renderWalls();
+}
+function populateWallSelects(){
+  ['wall_a','wall_b'].forEach(function(id){
+    var sel=document.getElementById(id),cur=sel.value;
+    sel.innerHTML='<option value="">— select —</option>';
+    WALLS.forEach(function(w,i){sel.innerHTML+='<option value="'+i+'"'+(cur==i?' selected':'')+'>'+w.name+'</option>';});
+  });
+}
+function compareWalls(){
+  var ai=parseInt(document.getElementById('wall_a').value);
+  var bi=parseInt(document.getElementById('wall_b').value);
+  if(isNaN(ai)||isNaN(bi)){document.getElementById('wcmp-out').innerHTML='<p style="color:#f87171;font-size:12px">Select both assemblies.</p>';return;}
+  var wa=WALLS[ai],wb=WALLS[bi];
+  var area=parseFloat(document.getElementById('warea').value)||8000;
+  var hdd=parseFloat(document.getElementById('hdd').value)||6500;
+  var cost=parseFloat(document.getElementById('wcost').value)||0.022;
+  var area_m2=area*0.0929;
+  var loss_a=1/wa.r_eff*area*hdd*24/100000;
+  var loss_b=1/wb.r_eff*area*hdd*24/100000;
+  var save_kbtu=(loss_a-loss_b)*100;
+  var annual_save=save_kbtu*cost;
+  var cost_diff=((wb.cost_lo+wb.cost_hi)/2-(wa.cost_lo+wa.cost_hi)/2)*area;
+  var payback=cost_diff>0&&annual_save>0?cost_diff/annual_save:0;
+  var ec_diff=(wb.ec-wa.ec)*area_m2;
+  var rows=[
+    ['Clear Field R-value','R-'+wa.r_clear,'R-'+wb.r_clear,'mid'],
+    ['Effective R-value','R-'+wa.r_eff,'R-'+wb.r_eff,wb.r_eff>wa.r_eff?'good':'bad'],
+    ['U-Factor (eff)',wa.u_eff.toFixed(3),wb.u_eff.toFixed(3),wb.u_eff<wa.u_eff?'good':'bad'],
+    ['Thermal Mass (lb/SF)',wa.mass,wb.mass,'neutral'],
+    ['Embodied Carbon (kgCO2e/SF)',wa.ec.toFixed(1),wb.ec.toFixed(1),wb.ec<wa.ec?'good':'bad'],
+    ['Installed Cost/SF','$'+(wa.cost_lo+wa.cost_hi)/2,'$'+(wb.cost_lo+wb.cost_hi)/2,'mid'],
+    ['Cost Delta ('+area.toLocaleString()+' SF)','—','$'+Math.round(cost_diff).toLocaleString(),cost_diff<0?'good':'bad'],
+    ['Annual Heating Savings','—','$'+Math.round(annual_save).toLocaleString()+'/yr','good'],
+    ['Payback Period','—',payback>0?payback.toFixed(1)+' yrs':'N/A',payback>0&&payback<12?'good':payback<20?'mid':'bad'],
+    ['EC Delta (A1-A3)','—',(ec_diff>0?'+':'')+ec_diff.toFixed(0)+' kgCO2e',ec_diff<0?'good':'bad']
+  ];
+  var html='<div style="font-size:11px;color:#888;margin-bottom:8px"><b style="color:#e8e8e8">'+wa.name+'</b> vs. <b style="color:#10b981">'+wb.name+'</b></div>';
+  rows.forEach(function(r){html+='<div class="cmp-row"><span>'+r[0]+'</span><div style="display:flex;gap:12px"><span class="cmp-val neutral">'+r[1]+'</span><span class="cmp-val '+r[3]+'">'+r[2]+'</span></div></div>';});
+  document.getElementById('wcmp-out').innerHTML=html;
+}
+renderWalls();
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passive Solar Heating Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:24px;font-weight:700;font-family:monospace;color:#10b981}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.month-chart{margin-top:16px}
+.month-chart h4{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.bar-row .month{width:28px;color:#888;text-align:right;flex-shrink:0}
+.bar-row .bar-bg{flex:1;height:16px;background:#1a1a1a;border-radius:4px;overflow:hidden}
+.bar-row .bar-fill{height:100%;background:#10b981;border-radius:4px;transition:width 0.3s}
+.bar-row .bar-val{width:70px;text-align:right;color:#ccc;font-family:monospace;flex-shrink:0}
+.rule-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.rule-table th{background:#0d0d0d;color:#888;padding:8px;text-align:left;border-bottom:1px solid #222;font-size:11px}
+.rule-table td{padding:8px;border-bottom:1px solid #1a1a1a;color:#ccc}
+.rule-table tr:hover td{background:#161616}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Passive Solar Heating Calculator</h1>
+  <p>Direct Gain / Indirect Gain / Thermal Mass — Monthly Solar Heat Gain Analysis</p>
+  <span class="badge">Passive Design</span>
+  <span class="badge">ASHRAE 90.1</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Location & Climate</h3>
+        <label>City / Climate Preset</label>
+        <select id="city" onchange="setCity()">
+          <option value="phoenix">Phoenix, AZ (Zone 2B)</option>
+          <option value="losangeles">Los Angeles, CA (Zone 3C)</option>
+          <option value="albuquerque" selected>Albuquerque, NM (Zone 4B)</option>
+          <option value="denver">Denver, CO (Zone 5B)</option>
+          <option value="chicago">Chicago, IL (Zone 5A)</option>
+          <option value="salt_lake">Salt Lake City, UT (Zone 5B)</option>
+          <option value="boston">Boston, MA (Zone 5A)</option>
+          <option value="minneapolis">Minneapolis, MN (Zone 6A)</option>
+          <option value="helena">Helena, MT (Zone 6B)</option>
+        </select>
+        <label>Latitude (degrees N)</label>
+        <input type="number" id="lat" value="35.1" step="0.5" min="25" max="65">
+        <label>Heating Degree Days (HDD 65°F)</label>
+        <input type="number" id="hdd" value="4292">
+        <label>Design Winter Temp (°F)</label>
+        <input type="number" id="design_temp" value="16">
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>Building & Glazing</h3>
+        <label>South-Facing Glazing Area (SF)</label>
+        <input type="number" id="glazing_sf" value="400" step="10">
+        <label>Glazing Type</label>
+        <select id="glazing_type">
+          <option value="single" data-shgc="0.86" data-u="1.04">Single Pane (U-1.04, SHGC 0.86)</option>
+          <option value="double_clear" data-shgc="0.70" data-u="0.48">Double Clear (U-0.48, SHGC 0.70)</option>
+          <option value="double_lowe" data-shgc="0.40" data-u="0.29" selected>Double Low-e (U-0.29, SHGC 0.40)</option>
+          <option value="triple_lowe" data-shgc="0.35" data-u="0.15">Triple Low-e (U-0.15, SHGC 0.35)</option>
+        </select>
+        <label>SHGC (South Glazing)</label>
+        <input type="number" id="shgc" value="0.40" step="0.01" min="0.1" max="0.9">
+        <label>Glazing U-Value (BTU/hr·SF·°F)</label>
+        <input type="number" id="u_glass" value="0.29" step="0.01" min="0.1">
+        <label>Overhang Depth (ft) — summer shading</label>
+        <input type="number" id="overhang" value="3.0" step="0.5">
+        <label>Conditioned Floor Area (SF)</label>
+        <input type="number" id="floor_area" value="2500">
+        <label>Building Envelope Heat Loss (BTU/hr·°F) — whole building</label>
+        <input type="number" id="ua_bldg" value="500" step="50">
+        <button class="btn" onclick="calcSolar()">Calculate Passive Solar</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="resultsBlock">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Run calculation to see results</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>Passive Solar Design Rules of Thumb</h3>
+        <table class="rule-table">
+          <tr><th>Parameter</th><th>Rule of Thumb</th></tr>
+          <tr><td>South glazing : floor area ratio</td><td>7%–12% (direct gain)</td></tr>
+          <tr><td>Trombe wall area</td><td>15%–35% of floor area</td></tr>
+          <tr><td>Thermal mass : glazing ratio</td><td>3–6 SF mass per 1 SF glazing</td></tr>
+          <tr><td>Thermal mass thickness (concrete)</td><td>4–6 in optimal</td></tr>
+          <tr><td>Overhang projection (latitude 35°)</td><td>Depth = 0.5 × window height</td></tr>
+          <tr><td>Recommended SHGC (heating)</td><td>≥ 0.40 south glazing</td></tr>
+          <tr><td>North glazing limit</td><td>&lt; 4% of floor area</td></tr>
+          <tr><td>E/W glazing limit</td><td>&lt; 4% each, use low SHGC ≤ 0.25</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / Design Integration Note</div>
+    <p>Model south-facing glazing in Revit with curtain wall system and set Analytical Surface properties: <em>SHGC_South</em>, <em>U_Value_Whole_Window</em>. Use sun path analysis in Revit or Insight 360 to validate overhang shading. Autodesk Insight can cross-reference passive solar gains against mechanical heating loads. For LEED v4 EAp2 (Energy Performance), passive solar contribution reduces heating EUI in the EnergyPlus energy model. Tag thermal mass walls as <em>Assembly_Type = ThermalMass</em> with <em>Mass_Thickness_in</em> and <em>Mass_Density_pcf</em> parameters for automated calcs.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Passive solar design integrated with energy modeling?</strong><br>
+    BIM XL delivers solar path analysis, thermal mass sizing, and shading device design in Revit — directly linked to EnergyPlus validation. Custom passive solar design packages for residential and commercial projects. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+
+<script>
+var CITIES={
+  phoenix:{lat:33.4,hdd:1350,design_temp:32},
+  losangeles:{lat:34.0,hdd:1245,design_temp:41},
+  albuquerque:{lat:35.1,hdd:4292,design_temp:16},
+  denver:{lat:39.7,hdd:5987,design_temp:1},
+  chicago:{lat:41.9,hdd:6497,design_temp:-8},
+  salt_lake:{lat:40.8,hdd:5765,design_temp:8},
+  boston:{lat:42.4,hdd:5634,design_temp:6},
+  minneapolis:{lat:44.9,hdd:7981,design_temp:-16},
+  helena:{lat:46.6,hdd:7700,design_temp:-15}
+};
+
+// Monthly solar radiation on south vertical surface (kBtu/SF·day) by latitude band
+// Approximate data for lat 35-45
+var MONTHLY_SOLAR={
+  J:[1.5,1.7,2.1,2.3,2.6,2.8,2.6,2.3,2.1,1.7,1.5,1.4],
+  F:[2.0,2.2,2.5,2.6,2.8,2.9,2.8,2.6,2.5,2.2,2.0,1.9],
+  M:[2.3,2.5,2.6,2.4,2.4,2.4,2.4,2.5,2.6,2.5,2.3,2.1],
+  A:[2.4,2.3,2.1,1.8,1.7,1.7,1.7,1.8,2.1,2.3,2.4,2.3],
+  Ma:[2.1,1.9,1.6,1.4,1.3,1.2,1.3,1.4,1.6,1.9,2.1,2.0],
+  Jn:[1.5,1.4,1.2,1.0,0.9,0.9,0.9,1.0,1.2,1.4,1.5,1.4],
+  Jl:[1.5,1.4,1.2,1.0,0.9,0.9,0.9,1.0,1.2,1.4,1.5,1.4],
+  Au:[2.1,2.0,1.7,1.5,1.4,1.3,1.4,1.5,1.7,2.0,2.1,2.0],
+  S:[2.6,2.5,2.2,2.0,1.9,1.8,1.9,2.0,2.2,2.5,2.6,2.5],
+  O:[2.8,2.8,2.6,2.5,2.4,2.3,2.4,2.5,2.6,2.8,2.8,2.7],
+  N:[2.3,2.4,2.5,2.6,2.7,2.8,2.7,2.6,2.5,2.4,2.3,2.1],
+  D:[1.5,1.7,2.1,2.3,2.6,2.8,2.6,2.3,2.1,1.7,1.5,1.3]
+};
+var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTH_DAYS=[31,28,31,30,31,30,31,31,30,31,30,31];
+var MONTH_HDD_FRAC=[0.19,0.17,0.14,0.08,0.03,0,0,0,0.02,0.06,0.13,0.18];
+
+function setCity(){
+  var c=CITIES[document.getElementById('city').value];
+  document.getElementById('lat').value=c.lat;
+  document.getElementById('hdd').value=c.hdd;
+  document.getElementById('design_temp').value=c.design_temp;
+}
+
+document.getElementById('glazing_type').addEventListener('change',function(){
+  var opt=this.options[this.selectedIndex];
+  document.getElementById('shgc').value=opt.dataset.shgc;
+  document.getElementById('u_glass').value=opt.dataset.u;
+});
+
+function calcSolar(){
+  var lat_idx=Math.min(5,Math.max(0,Math.round((parseFloat(document.getElementById('lat').value)-30)/5)));
+  var glazing=parseFloat(document.getElementById('glazing_sf').value);
+  var shgc=parseFloat(document.getElementById('shgc').value);
+  var u=parseFloat(document.getElementById('u_glass').value);
+  var hdd=parseFloat(document.getElementById('hdd').value);
+  var design_temp=parseFloat(document.getElementById('design_temp').value);
+  var floor_area=parseFloat(document.getElementById('floor_area').value);
+  var ua=parseFloat(document.getElementById('ua_bldg').value);
+  var overhang=parseFloat(document.getElementById('overhang').value);
+
+  var SOLAR_BY_MONTH=[1.7,2.2,2.4,2.2,1.8,1.2,1.2,1.7,2.3,2.7,2.3,1.7];
+
+  // Overhang shading factor (summer months Jun-Aug get shading reduction)
+  var shade_factor=[1,1,0.95,0.85,0.7,0.5,0.5,0.65,0.85,0.95,1,1];
+  if(overhang<=1) shade_factor=[1,1,1,1,1,1,1,1,1,1,1,1];
+  if(overhang>=4) shade_factor=[1,1,0.9,0.7,0.4,0.2,0.2,0.4,0.7,0.9,1,1];
+
+  var monthly_gain=[];
+  var monthly_loss=[];
+  var monthly_net=[];
+  var annual_gain=0;
+  var annual_loss=0;
+
+  for(var m=0;m<12;m++){
+    var solar=SOLAR_BY_MONTH[m]*shade_factor[m];
+    var gain=glazing*shgc*solar*MONTH_DAYS[m]*3.412; // kBtu/month
+    var hdd_m=hdd*MONTH_HDD_FRAC[m];
+    var loss=u*glazing*24*hdd_m/1000; // kBtu/month
+    monthly_gain.push(gain);
+    monthly_loss.push(loss);
+    monthly_net.push(gain-loss);
+    annual_gain+=gain;
+    annual_loss+=loss;
+  }
+
+  var net_contribution=annual_gain-annual_loss;
+  var total_heat_loss=ua*24*hdd/1000; // total building heat loss kBtu/yr
+  var passive_fraction=Math.min(0.95,Math.max(0,net_contribution/total_heat_loss));
+  var glazing_ratio=(glazing/floor_area)*100;
+  var annual_saving=net_contribution*(1/100000)*15; // rough $15/therm @ 100k btu
+  var annual_saving2=net_contribution*0.001*1.20; // $1.20/therm at 1000 BTU/therm
+
+  var maxGain=Math.max.apply(null,monthly_gain);
+
+  var html='<div class="kpi-grid">'
+    +'<div class="kpi"><div class="val">'+Math.round(annual_gain/1000)+' MBtu</div><div class="lbl">Annual Solar Heat Gain</div></div>'
+    +'<div class="kpi"><div class="val">'+(passive_fraction*100).toFixed(1)+'%</div><div class="lbl">Passive Solar Fraction</div></div>'
+    +'<div class="kpi"><div class="val">'+glazing_ratio.toFixed(1)+'%</div><div class="lbl">Glazing / Floor Ratio</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:16px">'
+    +'<div style="font-size:11px;color:#888;margin-bottom:8px">Key Metrics</div>'
+    +'<div style="font-size:13px;color:#ccc;line-height:1.8">'
+    +'Net passive solar contribution: <strong style="color:#10b981">'+Math.round(net_contribution/1000)+' MBtu/yr</strong><br>'
+    +'Glass heat loss: <strong style="color:#f59e0b">'+Math.round(annual_loss/1000)+' MBtu/yr</strong><br>'
+    +'Estimated fuel savings: <strong style="color:#10b981">$'+Math.round(annual_saving2)+'/yr</strong><br>'
+    +'Glazing/floor ratio: <span style="color:'+(glazing_ratio>=7&&glazing_ratio<=12?'#10b981':'#f59e0b')+'">'+glazing_ratio.toFixed(1)+'% ('+(glazing_ratio<7?'too low':glazing_ratio>12?'too high, overheating risk':'optimal range')+')</span>'
+    +'</div></div>'
+    +'<div class="month-chart"><h4>Monthly Solar Gain vs Heat Loss (kBtu/month)</h4>';
+
+  for(var m=0;m<12;m++){
+    var g_pct=maxGain>0?Math.round(monthly_gain[m]/maxGain*100):0;
+    var net=monthly_net[m];
+    html+='<div class="bar-row"><span class="month">'+MONTHS[m]+'</span>'
+      +'<div class="bar-bg"><div class="bar-fill" style="width:'+g_pct+'%;background:'+(net>=0?'#10b981':'#ef4444')+'"></div></div>'
+      +'<span class="bar-val" style="color:'+(net>=0?'#10b981':'#ef4444')+'">'+(net>=0?'+':'')+Math.round(net/1000)+'M</span></div>';
+  }
+  html+='</div>';
+  document.getElementById('resultsBlock').innerHTML=html;
+}
+calcSolar();
+</script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Certification Comparison — LEED vs WELL vs Passive House vs BREEAM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;border:1px solid;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1200px;margin:0 auto;padding:32px}
+.filter-row{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+.filter-btn{background:#111;border:1px solid #333;border-radius:6px;padding:8px 16px;color:#888;font-size:13px;cursor:pointer;transition:all 0.2s}
+.filter-btn.active,.filter-btn:hover{border-color:#10b981;color:#10b981;background:#10b98111}
+.cert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:28px}
+.cert-card{border-radius:8px;padding:20px;border:2px solid;transition:border-color 0.2s;cursor:default}
+.cert-card .cert-logo{font-size:24px;font-weight:800;margin-bottom:8px;letter-spacing:-1px}
+.cert-card .cert-version{font-size:11px;opacity:0.7;margin-bottom:12px}
+.cert-card .cert-desc{font-size:12px;line-height:1.6;opacity:0.85}
+.compare-table{width:100%;border-collapse:collapse;font-size:12px}
+.compare-table th{background:#111;color:#888;padding:12px;text-align:left;border-bottom:2px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.compare-table td{padding:11px 12px;border-bottom:1px solid #1a1a1a;vertical-align:top;line-height:1.5}
+.compare-table tr:hover td{background:#0d0d0d}
+.compare-table th:first-child,.compare-table td:first-child{color:#888;font-weight:600;width:160px}
+.pill{display:inline-block;border-radius:3px;font-size:10px;padding:2px 6px;margin:1px;font-weight:600}
+.section-header{font-size:14px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:0.5px;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #222}
+.cost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.cost-card{background:#111;border:1px solid #222;border-radius:6px;padding:16px}
+.cost-card .label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.cost-card .system{font-size:13px;font-weight:600;margin-bottom:10px}
+.cost-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.cost-item:last-child{border-bottom:none}
+.cost-item .key{color:#888}
+.cost-item .val{font-family:monospace;font-weight:600}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Green Certification Comparison</h1>
+  <p>LEED v4.1 — WELL v2 — Passive House (PHIUS 2021) — BREEAM 2018 — Living Building Challenge</p>
+  <span class="badge" style="background:#10b98122;color:#10b981;border-color:#10b98144">LEED v4.1</span>
+  <span class="badge" style="background:#3b82f622;color:#60a5fa;border-color:#3b82f644">WELL v2</span>
+  <span class="badge" style="background:#8b5cf622;color:#a78bfa;border-color:#8b5cf644">Passive House</span>
+  <span class="badge" style="background:#f59e0b22;color:#fbbf24;border-color:#f59e0b44">BREEAM</span>
+</div>
+<div class="container">
+
+  <div class="cert-grid">
+    <div class="cert-card" style="background:#10b98108;border-color:#10b98133">
+      <div class="cert-logo" style="color:#10b981">LEED</div>
+      <div class="cert-version" style="color:#10b981">v4.1 BD+C / ID+C / O+M</div>
+      <div class="cert-desc">World's most widely used green building rating system. Points-based across 9 categories. Four certification levels: Certified (40+), Silver (50+), Gold (60+), Platinum (80+). Strong on energy, water, materials, and indoor environment. Market-recognized for commercial real estate premium.</div>
+    </div>
+    <div class="cert-card" style="background:#3b82f608;border-color:#3b82f633">
+      <div class="cert-logo" style="color:#60a5fa">WELL</div>
+      <div class="cert-version" style="color:#60a5fa">v2 Q4 2023</div>
+      <div class="cert-desc">Focuses exclusively on occupant health and wellness — air, water, nourishment, light, movement, thermal comfort, sound, materials, mind, community, innovation. Bronze (40+), Silver (50+), Gold (60+), Platinum (80+). Often pursued alongside LEED for premium office/residential.</div>
+    </div>
+    <div class="cert-card" style="background:#8b5cf608;border-color:#8b5cf633">
+      <div class="cert-logo" style="color:#a78bfa">PHI / PHIUS</div>
+      <div class="cert-version" style="color:#a78bfa">PHIUS 2021 / PHI Classic</div>
+      <div class="cert-desc">Strict energy performance standard with quantitative thresholds: max heating demand 4.75 kBtu/SF/yr (PHIUS), airtightness ACH50 ≤ 0.6. Not a points system — pass/fail. Highest energy performance standard available. Cost premium typically 5–15%. Best in cold/mixed climates.</div>
+    </div>
+    <div class="cert-card" style="background:#f59e0b08;border-color:#f59e0b33">
+      <div class="cert-logo" style="color:#fbbf24">BREEAM</div>
+      <div class="cert-version" style="color:#fbbf24">2018 NC / In-Use</div>
+      <div class="cert-desc">UK-origin, widely used in Europe, Middle East, and emerging markets. Categories: Management, Health/Wellbeing, Energy, Transport, Water, Materials, Waste, Land Use, Pollution. Rating: Pass (30%), Good (45%), Very Good (55%), Excellent (70%), Outstanding (85%). Strong on Materials and Transport criteria.</div>
+    </div>
+  </div>
+
+  <div class="section-header">Side-by-Side Comparison</div>
+  <table class="compare-table">
+    <tr><th>Criteria</th><th style="color:#10b981">LEED v4.1</th><th style="color:#60a5fa">WELL v2</th><th style="color:#a78bfa">Passive House</th><th style="color:#fbbf24">BREEAM 2018</th></tr>
+    <tr>
+      <td>Origin / Admin</td>
+      <td>USGBC (US)</td>
+      <td>IWBI (US)</td>
+      <td>PHI (Germany) / PHIUS (US)</td>
+      <td>BRE Group (UK)</td>
+    </tr>
+    <tr>
+      <td>Primary Focus</td>
+      <td>Sustainability (energy, water, materials, IEQ)</td>
+      <td>Human health and wellness</td>
+      <td>Ultra-low energy performance</td>
+      <td>Broad sustainability + transport + materials</td>
+    </tr>
+    <tr>
+      <td>Rating System</td>
+      <td>Points (100+10 bonus)<br>Certified/Silver/Gold/Platinum</td>
+      <td>Points (110+10 innovation)<br>Bronze/Silver/Gold/Platinum</td>
+      <td>Pass/Fail — quantitative thresholds</td>
+      <td>Weighted % score<br>Pass/Good/VG/Excellent/Outstanding</td>
+    </tr>
+    <tr>
+      <td>Energy Standard</td>
+      <td>ASHRAE 90.1 baseline + % improvement<br>EUI target varies by type</td>
+      <td>No direct energy requirement<br>(WELL Energy concept optional)</td>
+      <td>Heating ≤4.75 kBtu/SF/yr (PHIUS)<br>Cooling ≤4.75 kBtu/SF/yr<br>Airtightness ≤0.06 CFM75/SF</td>
+      <td>ASHRAE 90.1 / local building code<br>ENE credits for improvement</td>
+    </tr>
+    <tr>
+      <td>Water</td>
+      <td>20–50% indoor reduction, outdoor use, meters</td>
+      <td>Water quality testing, filtration, hydration</td>
+      <td>No specific water threshold</td>
+      <td>WAT credits, BREEAM WAT01 calculations</td>
+    </tr>
+    <tr>
+      <td>Indoor Air Quality</td>
+      <td>ASHRAE 62.1, low-emitting materials, CO2 monitoring</td>
+      <td>Detailed pollutant limits, TVOC, PM2.5 monitoring required</td>
+      <td>Mechanical MVHR, airtight envelope controls IAQ</td>
+      <td>HEA credits, ventilation rates, daylight</td>
+    </tr>
+    <tr>
+      <td>Materials</td>
+      <td>EPDs, HPDs, responsible sourcing, low-emitting</td>
+      <td>Hazardous material avoidance (Red List style)</td>
+      <td>Not explicitly addressed</td>
+      <td>Responsible sourcing (Mat01-05), lifecycle impacts</td>
+    </tr>
+    <tr>
+      <td>Daylight</td>
+      <td>sDA 300/50%, ASE 1000/250 simulation</td>
+      <td>100 lux at 10% of floor + circadian lighting</td>
+      <td>Daylighting factor calculated, no threshold</td>
+      <td>Average DF ≥ 2% or sDA compliance</td>
+    </tr>
+    <tr>
+      <td>Thermal Comfort</td>
+      <td>ASHRAE 55 compliance, PMV survey</td>
+      <td>ASHRAE 55, individual comfort controls, radiant</td>
+      <td>Interior surface temps ≥ 50°F (no cold radiation)</td>
+      <td>CIBSE TM52 adaptive comfort</td>
+    </tr>
+    <tr>
+      <td>Certification Cost</td>
+      <td>$2,500–$22,500 reg + ~$0.05–0.15/SF consulting</td>
+      <td>$4,000–$22,000 reg + ~$0.10–0.20/SF consulting</td>
+      <td>$2,500–$8,000 verification + ~$0.05–0.10/SF</td>
+      <td>$3,000–$15,000 assessor + ~$0.05–0.12/SF</td>
+    </tr>
+    <tr>
+      <td>Construction Cost Premium</td>
+      <td>Certified: 0–2%<br>Gold: 1–4%<br>Platinum: 3–8%</td>
+      <td>Silver: 1–3%<br>Gold: 3–6%<br>Platinum: 5–10%</td>
+      <td>Residential: 5–15%<br>Commercial: 3–10%</td>
+      <td>Very Good: 1–3%<br>Excellent: 3–7%<br>Outstanding: 6–12%</td>
+    </tr>
+    <tr>
+      <td>Rent Premium (Research)</td>
+      <td>3–8% over market (CBRE, CoStar)</td>
+      <td>5–12% for wellness features</td>
+      <td>5–10% residential premium</td>
+      <td>2–5% (European markets)</td>
+    </tr>
+    <tr>
+      <td>Market Recognition</td>
+      <td>Global — strongest in US. Mandatory for many federal/institutional projects</td>
+      <td>Fast-growing in Class A office, multifamily, hospitality</td>
+      <td>Strong in residential/multifamily; growing in commercial</td>
+      <td>Dominant in UK/Europe/ME. Required for many UK public projects</td>
+    </tr>
+    <tr>
+      <td>Best For</td>
+      <td>Commercial office, retail, multifamily, institutional. US market premium</td>
+      <td>Premium office, residential, healthcare, hospitality</td>
+      <td>Residential, affordable housing, ultra-low operating cost</td>
+      <td>UK/Europe/International projects, social housing</td>
+    </tr>
+    <tr>
+      <td>Third-Party Verification</td>
+      <td>GBCI reviewer, LEED AP on project team</td>
+      <td>IWBI assessor, WELL AP</td>
+      <td>PHIUS verifier or PHI certifier site inspection</td>
+      <td>Licensed BREEAM Assessor</td>
+    </tr>
+    <tr>
+      <td>BIM Integration</td>
+      <td>Autodesk Insight, IES-VE, eQUEST energy models</td>
+      <td>Daylight simulations (Radiance/Velux), air quality sensors</td>
+      <td>THERM/WUFI hygrothermal + airtightness blower door</td>
+      <td>Thermal models, transport access analytics</td>
+    </tr>
+  </table>
+
+  <div class="section-header" style="margin-top:32px">Cost Summary by System</div>
+  <div class="cost-grid">
+    <div class="cost-card">
+      <div class="label" style="color:#10b981">LEED v4.1</div>
+      <div class="cost-item"><span class="key">Registration</span><span class="val" style="color:#fff">$2.5K–22.5K</span></div>
+      <div class="cost-item"><span class="key">Consulting</span><span class="val">$0.05–0.15/SF</span></div>
+      <div class="cost-item"><span class="key">Construction premium</span><span class="val">0–8%</span></div>
+      <div class="cost-item"><span class="key">Timeline</span><span class="val">12–24 months</span></div>
+      <div class="cost-item"><span class="key">Maintenance</span><span class="val">$500–2K/yr</span></div>
+    </div>
+    <div class="cost-card">
+      <div class="label" style="color:#60a5fa">WELL v2</div>
+      <div class="cost-item"><span class="key">Registration</span><span class="val" style="color:#fff">$4K–22K</span></div>
+      <div class="cost-item"><span class="key">Consulting</span><span class="val">$0.10–0.20/SF</span></div>
+      <div class="cost-item"><span class="key">Construction premium</span><span class="val">1–10%</span></div>
+      <div class="cost-item"><span class="key">Timeline</span><span class="val">12–24 months</span></div>
+      <div class="cost-item"><span class="key">Recertification</span><span class="val">Every 3 years</span></div>
+    </div>
+    <div class="cost-card">
+      <div class="label" style="color:#a78bfa">Passive House</div>
+      <div class="cost-item"><span class="key">Verification</span><span class="val" style="color:#fff">$2.5K–8K</span></div>
+      <div class="cost-item"><span class="key">Consulting</span><span class="val">$0.05–0.10/SF</span></div>
+      <div class="cost-item"><span class="key">Construction premium</span><span class="val">3–15%</span></div>
+      <div class="cost-item"><span class="key">Timeline</span><span class="val">Ongoing design + blower door test</span></div>
+      <div class="cost-item"><span class="key">Op cost savings</span><span class="val">40–80%</span></div>
+    </div>
+    <div class="cost-card">
+      <div class="label" style="color:#fbbf24">BREEAM 2018</div>
+      <div class="cost-item"><span class="key">Assessor cost</span><span class="val" style="color:#fff">$3K–15K</span></div>
+      <div class="cost-item"><span class="key">Consulting</span><span class="val">$0.05–0.12/SF</span></div>
+      <div class="cost-item"><span class="key">Construction premium</span><span class="val">1–12%</span></div>
+      <div class="cost-item"><span class="key">Timeline</span><span class="val">Design + post-construction</span></div>
+      <div class="cost-item"><span class="key">Markets</span><span class="val">UK, EU, ME, Asia</span></div>
+    </div>
+  </div>
+
+  <div class="bim-note">
+    <div class="title">BIM / Documentation Strategy</div>
+    <p>For LEED, energy model in EnergyPlus/eQUEST must be coordinated with Revit model — use Autodesk Insight or IES-VE gbXML export. All MEP system parameters must match the BIM model. For WELL, coordinate with lighting designer in Revit for sDA/ASE analysis (Radiance-based). For Passive House, run PHPP energy balance in parallel with Revit geometry — use THERM for thermal bridge PSI-value calculations at connections. BIM XL recommends a unified Revit model with LOD 350 envelope assemblies and shared parameters mapped to all certification credit calculators.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Choosing the right certification for your project?</strong><br>
+    BIM XL provides certification strategy, BIM model setup for all credit calculators, and documentation packages for LEED, WELL, Passive House, and BREEAM. We integrate certification requirements into your Revit model from day one. Contact <strong>BIM XL</strong> for a feasibility assessment.</p>
+  </div>
+</div>
+</body>
+</html>

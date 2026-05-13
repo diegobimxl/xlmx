@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heat Pump vs Gas Boiler ROI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.sys-card{border:1px solid #333;border-radius:8px;padding:20px}
+.sys-card h4{font-size:13px;font-weight:600;margin-bottom:12px}
+.sys-metric{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.sys-metric:last-child{border-bottom:none}
+.sys-metric .key{color:#888}
+.sys-metric .val{font-family:monospace;font-weight:600}
+.winner-banner{background:#10b98122;border:1px solid #10b98144;border-radius:6px;padding:14px;text-align:center;margin-bottom:16px}
+.winner-banner .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.winner-banner .main{font-size:18px;font-weight:700;color:#fff}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;font-family:monospace}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.lcca-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.lcca-table th{background:#0d0d0d;color:#888;padding:8px;text-align:right;border-bottom:1px solid #222;font-size:11px}
+.lcca-table th:first-child{text-align:left}
+.lcca-table td{padding:7px 8px;border-bottom:1px solid #1a1a1a;text-align:right;font-family:monospace;color:#ccc}
+.lcca-table td:first-child{text-align:left;font-family:system-ui;color:#888;font-size:12px}
+.lcca-table tr:hover td{background:#161616}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+.info-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px}
+.info-box{background:#111;border:1px solid #222;border-radius:6px;padding:14px}
+.info-box .title{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.info-box p{font-size:12px;color:#ccc;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Heat Pump vs. Gas Boiler ROI</h1>
+  <p>Lifecycle Cost Comparison — Heating System Electrification Analysis</p>
+  <span class="badge">Electrification</span>
+  <span class="badge">LCCA</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Building Parameters</h3>
+        <label>Conditioned Area (SF)</label>
+        <input type="number" id="area" value="20000">
+        <label>Climate Zone</label>
+        <select id="cz">
+          <option value="1">Zone 1 — Hot Humid (Miami)</option>
+          <option value="2">Zone 2 — Hot Dry (Phoenix)</option>
+          <option value="3">Zone 3 — Warm (Atlanta)</option>
+          <option value="4" selected>Zone 4 — Mixed (Chicago)</option>
+          <option value="5">Zone 5 — Cool (Minneapolis)</option>
+          <option value="6">Zone 6 — Cold (Helena, MT)</option>
+          <option value="7">Zone 7 — Very Cold (Fairbanks)</option>
+        </select>
+        <label>Annual Heating Load (kBtu/SF/yr)</label>
+        <input type="number" id="heat_load" value="40" step="5">
+        <label>Electricity Rate ($/kWh)</label>
+        <input type="number" id="elec_rate" value="0.12" step="0.01">
+        <label>Natural Gas Rate ($/therm)</label>
+        <input type="number" id="gas_rate" value="1.20" step="0.05">
+        <label>Annual Energy Cost Escalation (%)</label>
+        <input type="number" id="esc" value="3" step="0.5">
+        <label>Analysis Period (Years)</label>
+        <input type="number" id="yrs" value="20" min="5" max="40">
+        <label>Discount Rate (%)</label>
+        <input type="number" id="dr" value="6" step="0.5">
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>System Specifications</h3>
+        <div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:16px">
+          <div style="font-size:12px;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Heat Pump (Electric)</div>
+          <label style="margin-top:0">System Type</label>
+          <select id="hp_type">
+            <option value="ashp_cold" data-cop="2.5" data-cost="18">Cold-Climate ASHP (e.g. Mitsubishi Hyper Heat)</option>
+            <option value="ashp_std" data-cop="3.0" data-cost="14" selected>Standard ASHP</option>
+            <option value="gshp" data-cop="4.0" data-cost="30">Ground Source HP (GSHP)</option>
+            <option value="vrf" data-cop="3.5" data-cost="22">VRF Heat Pump System</option>
+          </select>
+          <label>Heating COP</label>
+          <input type="number" id="hp_cop" value="3.0" step="0.1" min="1">
+          <label>Installed Cost ($/SF)</label>
+          <input type="number" id="hp_cost" value="14" step="1">
+          <label>Annual Maintenance ($/SF/yr)</label>
+          <input type="number" id="hp_maint" value="0.35" step="0.05">
+          <label>Equipment Life (years)</label>
+          <input type="number" id="hp_life" value="20" min="10" max="30">
+        </div>
+        <div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px">
+          <div style="font-size:12px;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Gas Boiler (Baseline)</div>
+          <label style="margin-top:0">System Type</label>
+          <select id="gb_type">
+            <option value="condensing" data-eff="0.95" data-cost="8" selected>Condensing Boiler (95% AFUE)</option>
+            <option value="standard" data-eff="0.80" data-cost="6">Standard Boiler (80% AFUE)</option>
+            <option value="rooftop" data-eff="0.82" data-cost="7">Gas Rooftop Unit (82% AFUE)</option>
+          </select>
+          <label>AFUE / Thermal Efficiency</label>
+          <input type="number" id="gb_eff" value="0.95" step="0.01" min="0.5" max="1">
+          <label>Installed Cost ($/SF)</label>
+          <input type="number" id="gb_cost" value="8" step="1">
+          <label>Annual Maintenance ($/SF/yr)</label>
+          <input type="number" id="gb_maint" value="0.25" step="0.05">
+          <label>Equipment Life (years)</label>
+          <input type="number" id="gb_life" value="20" min="10" max="30">
+        </div>
+        <button class="btn" onclick="calcHP()">Compare Systems</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px" id="resultsCard">
+    <h3>Lifecycle Cost Comparison</h3>
+    <p style="color:#555;font-size:13px;padding:20px 0">Run comparison to see results</p>
+  </div>
+
+  <div class="info-row">
+    <div class="info-box">
+      <div class="title">COP vs. AFUE</div>
+      <p>Gas efficiency tops out at ~98% AFUE. Heat pumps move heat rather than create it — COP 3.0 means 300% effective efficiency. At COP 2.5 + $0.12/kWh vs gas at 95% AFUE + $1.20/therm, heat pump wins when gas &gt; $0.60/therm.</p>
+    </div>
+    <div class="info-box">
+      <div class="title">Cold Climate Performance</div>
+      <p>Modern cold-climate ASHPs (Mitsubishi, Bosch, LG) maintain COP 2.0+ at 0°F. Performance drops below -13°F. Resistance backup covers extreme peaks. GSHP maintains stable COP 3.5-4.5 year-round regardless of outdoor temperature.</p>
+    </div>
+    <div class="info-box">
+      <div class="title">IRA Incentives (2025)</div>
+      <p>§48C: 30% ITC for commercial heat pump projects. §25C: Up to $2,000 residential HP credit. §45L: $2,500-5,000/unit for HP-equipped new construction. HEEHRA rebates: up to $8,000 for qualified HP installation.</p>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / MEP Coordination Note</div>
+    <p>Tag heat pump systems in Revit MEP with parameters: <em>HP_HeatingCOP</em>, <em>HP_CoolingCOP</em>, <em>HP_BackupType</em>, <em>AFUE_Baseline</em>. For LEED EAc1 (Energy Performance), heat pump COP values feed directly into eQUEST/EnergyPlus baseline comparison. Ensure electrical panel capacity for heat pump loads is coordinated — typical commercial ASHP requires 3-phase 480V service. Document refrigerant type (R-410A phase-out: R-32 or R-454B replacements) in BIM model for long-term maintenance planning.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Electrification strategy for your portfolio?</strong><br>
+    BIM XL delivers heat pump feasibility studies, MEP coordination in Revit, and IRA incentive maximization packages. Full lifecycle cost models for owner presentations. Contact <strong>BIM XL</strong> for a consultation.</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('hp_type').addEventListener('change',function(){
+  var opt=this.options[this.selectedIndex];
+  document.getElementById('hp_cop').value=opt.dataset.cop;
+  document.getElementById('hp_cost').value=opt.dataset.cost;
+});
+document.getElementById('gb_type').addEventListener('change',function(){
+  var opt=this.options[this.selectedIndex];
+  document.getElementById('gb_eff').value=opt.dataset.eff;
+  document.getElementById('gb_cost').value=opt.dataset.cost;
+});
+
+function calcHP(){
+  var area=parseFloat(document.getElementById('area').value);
+  var hl=parseFloat(document.getElementById('heat_load').value); // kBtu/SF/yr
+  var elec=parseFloat(document.getElementById('elec_rate').value);
+  var gas=parseFloat(document.getElementById('gas_rate').value);
+  var esc=parseFloat(document.getElementById('esc').value)/100;
+  var yrs=parseInt(document.getElementById('yrs').value);
+  var dr=parseFloat(document.getElementById('dr').value)/100;
+
+  var hp_cop=parseFloat(document.getElementById('hp_cop').value);
+  var hp_cost_sf=parseFloat(document.getElementById('hp_cost').value);
+  var hp_maint=parseFloat(document.getElementById('hp_maint').value);
+
+  var gb_eff=parseFloat(document.getElementById('gb_eff').value);
+  var gb_cost_sf=parseFloat(document.getElementById('gb_cost').value);
+  var gb_maint=parseFloat(document.getElementById('gb_maint').value);
+
+  // kWh needed for HP: heating load in kBtu / (COP * 3.412 kBtu/kWh)
+  var hp_kwh_sf=hl/(hp_cop*3.412);
+  var hp_annual_energy=hp_kwh_sf*elec; // $/SF/yr
+
+  // therms for gas: kBtu/SF / (100 kBtu/therm * eff)
+  var gb_therms_sf=hl/(100*gb_eff);
+  var gb_annual_energy=gb_therms_sf*gas; // $/SF/yr
+
+  var hp_capex=area*hp_cost_sf;
+  var gb_capex=area*gb_cost_sf;
+  var incr_capex=hp_capex-gb_capex;
+
+  var hp_npv_op=0, gb_npv_op=0;
+  var hp_cum=0, gb_cum=0;
+  var payback_simple=null;
+  var rows=[];
+
+  for(var y=1;y<=yrs;y++){
+    var mult=Math.pow(1+esc,y-1);
+    var hp_yr=area*(hp_annual_energy*mult+hp_maint);
+    var gb_yr=area*(gb_annual_energy*mult+gb_maint);
+    hp_npv_op+=hp_yr/Math.pow(1+dr,y);
+    gb_npv_op+=gb_yr/Math.pow(1+dr,y);
+    hp_cum+=hp_yr;
+    gb_cum+=gb_yr;
+    var diff_cum=(gb_cum-hp_cum)-incr_capex;
+    if(payback_simple===null && diff_cum>=0){
+      payback_simple=y;
+    }
+    rows.push({y:y,hp:hp_yr,gb:gb_yr,save:gb_yr-hp_yr,cum_save:gb_cum-hp_cum});
+  }
+
+  var hp_total_npv=hp_capex+hp_npv_op;
+  var gb_total_npv=gb_capex+gb_npv_op;
+  var npv_advantage=gb_total_npv-hp_total_npv;
+
+  var hp_co2=hp_kwh_sf*0.386*area/1000; // tonnes CO2/yr (avg US grid 386g/kWh)
+  var gb_co2=gb_therms_sf*5.3*area/1000; // tonnes CO2/yr (natural gas 53 kgCO2/therm)
+  var co2_save=gb_co2-hp_co2;
+  var winner=npv_advantage>0?'Heat Pump':'Gas Boiler';
+  var w_color=npv_advantage>0?'#10b981':'#ef4444';
+
+  document.getElementById('resultsCard').innerHTML=
+    '<h3 style="font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px">Lifecycle Cost Comparison</h3>'
+    +'<div class="winner-banner"><div class="title">Lower Lifecycle Cost</div><div class="main" style="color:'+w_color+'">'+winner+' wins by $'+Math.round(Math.abs(npv_advantage)).toLocaleString()+'</div></div>'
+    +'<div class="kpi-row">'
+    +'<div class="kpi"><div class="val">$'+Math.round(hp_total_npv/area).toLocaleString()+'/SF</div><div class="lbl">HP Total NPV Cost</div></div>'
+    +'<div class="kpi"><div class="val">$'+Math.round(gb_total_npv/area).toLocaleString()+'/SF</div><div class="lbl">Gas Total NPV Cost</div></div>'
+    +'<div class="kpi"><div class="val">'+(payback_simple?payback_simple+' yrs':'&gt;'+yrs+' yrs')+'</div><div class="lbl">HP Incremental Payback</div></div>'
+    +'<div class="kpi"><div class="val" style="color:#10b981">'+Math.round(co2_save)+' t</div><div class="lbl">CO2 Saved/yr (tonnes)</div></div>'
+    +'</div>'
+    +'<div class="compare-grid">'
+    +'<div class="sys-card" style="border-color:#10b98144">'
+    +'<h4 style="color:#10b981">Heat Pump</h4>'
+    +'<div class="sys-metric"><span class="key">Capital Cost</span><span class="val">$'+Math.round(hp_capex).toLocaleString()+'</span></div>'
+    +'<div class="sys-metric"><span class="key">Year 1 Energy Cost</span><span class="val">$'+Math.round(area*hp_annual_energy).toLocaleString()+'/yr</span></div>'
+    +'<div class="sys-metric"><span class="key">Energy Cost/SF</span><span class="val">$'+hp_annual_energy.toFixed(2)+'/SF/yr</span></div>'
+    +'<div class="sys-metric"><span class="key">COP</span><span class="val">'+hp_cop.toFixed(1)+'</span></div>'
+    +'<div class="sys-metric"><span class="key">Annual CO2</span><span class="val">'+Math.round(hp_co2)+'t CO2/yr</span></div>'
+    +'<div class="sys-metric"><span class="key">NPV Op Cost</span><span class="val">$'+Math.round(hp_npv_op).toLocaleString()+'</span></div>'
+    +'</div>'
+    +'<div class="sys-card" style="border-color:#333">'
+    +'<h4 style="color:#888">Gas Boiler</h4>'
+    +'<div class="sys-metric"><span class="key">Capital Cost</span><span class="val">$'+Math.round(gb_capex).toLocaleString()+'</span></div>'
+    +'<div class="sys-metric"><span class="key">Year 1 Energy Cost</span><span class="val">$'+Math.round(area*gb_annual_energy).toLocaleString()+'/yr</span></div>'
+    +'<div class="sys-metric"><span class="key">Energy Cost/SF</span><span class="val">$'+gb_annual_energy.toFixed(2)+'/SF/yr</span></div>'
+    +'<div class="sys-metric"><span class="key">AFUE</span><span class="val">'+(gb_eff*100).toFixed(0)+'%</span></div>'
+    +'<div class="sys-metric"><span class="key">Annual CO2</span><span class="val">'+Math.round(gb_co2)+'t CO2/yr</span></div>'
+    +'<div class="sys-metric"><span class="key">NPV Op Cost</span><span class="val">$'+Math.round(gb_npv_op).toLocaleString()+'</span></div>'
+    +'</div>'
+    +'</div>'
+    +'<h4 style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:20px">Annual Savings (Heat Pump vs Gas) — First 15 Years</h4>'
+    +'<table class="lcca-table"><tr><th>Year</th><th>HP Op Cost ($)</th><th>Gas Op Cost ($)</th><th>Annual Saving ($)</th><th>Cumulative Saving ($)</th></tr>'
+    +rows.slice(0,15).map(function(r){
+      return '<tr><td>'+r.y+'</td><td>'+Math.round(r.hp).toLocaleString()+'</td><td>'+Math.round(r.gb).toLocaleString()+'</td>'
+        +'<td style="color:'+(r.save>=0?'#10b981':'#ef4444')+'">'+Math.round(r.save).toLocaleString()+'</td>'
+        +'<td style="color:'+(r.cum_save-incr_capex>=0?'#10b981':'#ef4444')+'">'+Math.round(r.cum_save-incr_capex).toLocaleString()+'</td></tr>';
+    }).join('')
+    +'</table>';
+}
+calcHP();
+</script>
+</body>
+</html>

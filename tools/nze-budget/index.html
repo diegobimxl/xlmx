@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Net Zero Energy Budget Planner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.badge-gold{display:inline-block;background:#c8a96e22;color:#c8a96e;border:1px solid #c8a96e44;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.balance-display{text-align:center;padding:24px;border-radius:8px;margin-bottom:16px}
+.balance-val{font-size:48px;font-weight:700;font-family:monospace;line-height:1}
+.balance-lbl{font-size:13px;margin-top:6px}
+.demand-supply-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.ds-card{border-radius:6px;padding:16px;border:1px solid}
+.ds-card .title{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+.ds-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.ds-item:last-child{border-bottom:none}
+.ds-item .key{color:#888}
+.ds-item .val{font-family:monospace;font-weight:600}
+.eui-bar-wrap{margin-top:16px}
+.eui-bar-wrap h4{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.eui-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.eui-row .label{width:130px;color:#888;text-align:right;flex-shrink:0}
+.eui-row .bar-bg{flex:1;height:16px;background:#1a1a1a;border-radius:4px;overflow:hidden}
+.eui-row .bar-fill{height:100%;border-radius:4px}
+.eui-row .val{width:80px;text-align:right;font-family:monospace;flex-shrink:0}
+.strategies-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:24px}
+.strat{background:#111;border:1px solid #222;border-radius:6px;padding:14px}
+.strat .title{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.strat p{font-size:12px;color:#ccc;line-height:1.6}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Net Zero Energy Budget Planner</h1>
+  <p>Site Energy Demand vs. Renewable Supply Balance — Path to NZE / LEED Zero</p>
+  <span class="badge">LEED Zero</span>
+  <span class="badge">DOE NZE</span>
+  <span class="badge-gold">Developer Quick-Analysis</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Building Demand</h3>
+        <label>Building Type</label>
+        <select id="btype" onchange="setEUI()">
+          <option value="office">Office (typical EUI: 90 kBtu/SF/yr)</option>
+          <option value="retail">Retail (typical EUI: 70 kBtu/SF/yr)</option>
+          <option value="multifamily">Multifamily (typical EUI: 60 kBtu/SF/yr)</option>
+          <option value="hotel">Hotel (typical EUI: 120 kBtu/SF/yr)</option>
+          <option value="school">K-12 School (typical EUI: 75 kBtu/SF/yr)</option>
+          <option value="healthcare">Healthcare (typical EUI: 250 kBtu/SF/yr)</option>
+          <option value="warehouse">Warehouse (typical EUI: 35 kBtu/SF/yr)</option>
+          <option value="lab">Lab / R&D (typical EUI: 350 kBtu/SF/yr)</option>
+        </select>
+        <label>Gross Floor Area (SF)</label>
+        <input type="number" id="gfa" value="50000">
+        <label>Heating EUI (kBtu/SF/yr)</label>
+        <input type="number" id="eui_heat" value="20" step="1">
+        <label>Cooling EUI (kBtu/SF/yr)</label>
+        <input type="number" id="eui_cool" value="18" step="1">
+        <label>Lighting EUI (kBtu/SF/yr)</label>
+        <input type="number" id="eui_light" value="15" step="1">
+        <label>Plug Loads EUI (kBtu/SF/yr)</label>
+        <input type="number" id="eui_plug" value="20" step="1">
+        <label>DHW (Domestic Hot Water) EUI (kBtu/SF/yr)</label>
+        <input type="number" id="eui_dhw" value="7" step="1">
+        <label>Misc / Elevators / Other EUI</label>
+        <input type="number" id="eui_misc" value="5" step="1">
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Renewable Supply</h3>
+        <label>Available Roof Area for PV (SF)</label>
+        <input type="number" id="roof_pv" value="12000">
+        <label>Panel Efficiency (%)</label>
+        <input type="number" id="pv_eff" value="20" step="0.5">
+        <label>Peak Sun Hours (hrs/day)</label>
+        <input type="number" id="psh" value="5.0" step="0.1">
+        <label>PV System Derate Factor</label>
+        <input type="number" id="derate" value="0.78" step="0.01" min="0.5" max="1">
+        <label>On-site Wind or Other Renewables (kWh/yr)</label>
+        <input type="number" id="other_re" value="0">
+        <label>Grid Emissions Factor (lbs CO2/kWh)</label>
+        <input type="number" id="grid_co2" value="0.82" step="0.01">
+        <label>Electricity Cost ($/kWh)</label>
+        <input type="number" id="elec_cost" value="0.12" step="0.01">
+        <button class="btn" onclick="calcNZE()">Calculate NZE Balance</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px" id="resultsCard">
+    <h3>Energy Balance</h3>
+    <p style="color:#555;font-size:13px;padding:20px 0">Run calculation to see the energy balance</p>
+  </div>
+
+  <div class="strategies-grid">
+    <div class="strat">
+      <div class="title">Reduce Heating/Cooling</div>
+      <p>High-performance envelope (R-30+ walls, triple glazing), SHGC optimization, airtightness &lt;0.4 ACH50. Each R-5 CI added to walls reduces heating EUI by ~1-2 kBtu/SF in CZ 4-6.</p>
+    </div>
+    <div class="strat">
+      <div class="title">Reduce Lighting</div>
+      <p>LED + occupancy/daylight controls can reduce lighting EUI to 3-5 kBtu/SF/yr in offices. ASHRAE 90.1-2022 LPD for office: 0.64 W/SF. Daylight-responsive controls mandatory in perimeter zones.</p>
+    </div>
+    <div class="strat">
+      <div class="title">Increase PV Supply</div>
+      <p>Ground mount, parking canopies, and facades can supplement rooftop PV. Bifacial panels add 10-20% yield. Battery storage (BESS) allows time-shifting and grid independence for LEED Zero.</p>
+    </div>
+    <div class="strat">
+      <div class="title">Reduce Plug Loads</div>
+      <p>Plug loads are often 20-30% of office EUI. ENERGY STAR equipment, smart power strips, occupancy-controlled outlets, and tenant engagement programs can cut plug loads by 20-40%.</p>
+    </div>
+    <div class="strat">
+      <div class="title">ERV / DOAS</div>
+      <p>Energy Recovery Ventilation captures 70-80% of exhaust energy. DOAS with ERV reduces HVAC EUI by 15-25% in commercial buildings. Critical path for NZE in humid climates.</p>
+    </div>
+    <div class="strat">
+      <div class="title">LEED Zero Criteria</div>
+      <p>LEED Zero Energy: 12-month net zero site energy. Requires metering, on-site generation documentation, or verified RECs. No minimum energy performance threshold — combine with LEED Platinum for full package.</p>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM Energy Model Integration</div>
+    <p>NZE requires ASHRAE 90.1 Appendix G whole-building energy model (EnergyPlus/eQUEST/IES-VE). Export Revit geometry via gbXML for energy model input. Assign all mechanical system parameters as Revit shared parameters for model accuracy. PV system output from PVWatts or SAM (NREL) must match the Revit roof geometry area and orientation. For LEED Zero, meters must be installed on all end-use categories — coordinate with MEP engineer for Revit MEP meter placement. Use Autodesk Insight for rapid EUI optimization during schematic design.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Building the business case for Net Zero?</strong><br>
+    BIM XL provides NZE feasibility studies, energy model setup, PV yield analysis, and IRA §48 incentive packaging for developers. Full LEED Zero documentation available. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+
+<script>
+var EUI_PRESETS={
+  office:{heat:20,cool:18,light:15,plug:20,dhw:7,misc:5},
+  retail:{heat:14,cool:16,light:20,plug:10,dhw:2,misc:3},
+  multifamily:{heat:18,cool:12,light:8,plug:12,dhw:15,misc:3},
+  hotel:{heat:25,cool:22,light:18,plug:25,dhw:25,misc:5},
+  school:{heat:22,cool:15,light:15,plug:12,dhw:8,misc:3},
+  healthcare:{heat:60,cool:50,light:35,plug:70,dhw:30,misc:15},
+  warehouse:{heat:8,cool:5,light:12,plug:5,dhw:2,misc:2},
+  lab:{heat:80,cool:70,light:40,plug:120,dhw:20,misc:15}
+};
+function setEUI(){
+  var t=document.getElementById('btype').value;
+  var p=EUI_PRESETS[t];
+  document.getElementById('eui_heat').value=p.heat;
+  document.getElementById('eui_cool').value=p.cool;
+  document.getElementById('eui_light').value=p.light;
+  document.getElementById('eui_plug').value=p.plug;
+  document.getElementById('eui_dhw').value=p.dhw;
+  document.getElementById('eui_misc').value=p.misc;
+}
+function calcNZE(){
+  var gfa=parseFloat(document.getElementById('gfa').value);
+  var heat=parseFloat(document.getElementById('eui_heat').value);
+  var cool=parseFloat(document.getElementById('eui_cool').value);
+  var light=parseFloat(document.getElementById('eui_light').value);
+  var plug=parseFloat(document.getElementById('eui_plug').value);
+  var dhw=parseFloat(document.getElementById('eui_dhw').value);
+  var misc=parseFloat(document.getElementById('eui_misc').value);
+  var total_eui=heat+cool+light+plug+dhw+misc;
+
+  var roof=parseFloat(document.getElementById('roof_pv').value);
+  var pv_eff=parseFloat(document.getElementById('pv_eff').value)/100;
+  var psh=parseFloat(document.getElementById('psh').value);
+  var derate=parseFloat(document.getElementById('derate').value);
+  var other_re=parseFloat(document.getElementById('other_re').value);
+  var grid_co2=parseFloat(document.getElementById('grid_co2').value);
+  var elec_cost=parseFloat(document.getElementById('elec_cost').value);
+
+  // Demand (kBtu/yr)
+  var total_kbtu=total_eui*gfa;
+  var total_kwh=total_kbtu/3.412;
+
+  // Supply
+  var pv_kw=roof*pv_eff*1000/10.764; // kWp from SF
+  var pv_kwh_yr=pv_kw*psh*365*derate;
+  var total_supply_kwh=pv_kwh_yr+other_re;
+  var total_supply_kbtu=total_supply_kwh*3.412;
+
+  var balance_kwh=total_supply_kwh-total_kwh;
+  var nze_pct=(total_supply_kwh/total_kwh)*100;
+  var nze=(balance_kwh>=0);
+  var shortage_kwh=nze?0:Math.abs(balance_kwh);
+  var shortage_roof=shortage_kwh>0?shortage_kwh/(psh*365*derate*pv_eff*1000/10.764):0;
+
+  var annual_savings=total_supply_kwh*elec_cost;
+  var co2_avoided=total_supply_kwh*grid_co2/2000; // tons
+  var balance_color=nze?'#10b981':nze_pct>70?'#f59e0b':'#ef4444';
+  var demand_breakdown=[
+    {name:'Heating',val:heat,color:'#3b82f6'},
+    {name:'Cooling',val:cool,color:'#f97316'},
+    {name:'Lighting',val:light,color:'#fbbf24'},
+    {name:'Plug Loads',val:plug,color:'#a78bfa'},
+    {name:'DHW',val:dhw,color:'#f87171'},
+    {name:'Misc',val:misc,color:'#6b7280'}
+  ];
+
+  var html='<div class="balance-display" style="background:'+(nze?'#10b98111':'#ef444411')+';border:1px solid '+(nze?'#10b98133':'#ef444433')+'">'
+    +'<div class="balance-val" style="color:'+balance_color+'">'+(nze?'+':'')+Math.round(balance_kwh/1000)+'k kWh</div>'
+    +'<div class="balance-lbl" style="color:'+balance_color+'">'+(nze?'NET ZERO ACHIEVED — Surplus energy':'NET ZERO GAP — Additional generation or demand reduction needed')+'</div>'
+    +'<div style="font-size:13px;color:#888;margin-top:8px">Coverage: '+nze_pct.toFixed(0)+'% of annual demand</div>'
+    +'</div>'
+    +'<div class="demand-supply-grid">'
+    +'<div class="ds-card" style="background:#ef444408;border-color:#ef444433">'
+    +'<div class="title" style="color:#ef4444">Demand</div>'
+    +'<div class="ds-item"><span class="key">Total Site EUI</span><span class="val">'+total_eui+' kBtu/SF/yr</span></div>'
+    +'<div class="ds-item"><span class="key">Total Annual Demand</span><span class="val">'+Math.round(total_kwh/1000).toLocaleString()+'k kWh</span></div>'
+    +'<div class="ds-item"><span class="key">Total kBtu/yr</span><span class="val">'+Math.round(total_kbtu/1000).toLocaleString()+'k kBtu</span></div>'
+    +'<div class="ds-item"><span class="key">Heating share</span><span class="val">'+Math.round(heat/total_eui*100)+'%</span></div>'
+    +'<div class="ds-item"><span class="key">Cooling share</span><span class="val">'+Math.round(cool/total_eui*100)+'%</span></div>'
+    +'</div>'
+    +'<div class="ds-card" style="background:#10b98108;border-color:#10b98133">'
+    +'<div class="title" style="color:#10b981">Supply</div>'
+    +'<div class="ds-item"><span class="key">PV System Size</span><span class="val">'+pv_kw.toFixed(0)+' kWp</span></div>'
+    +'<div class="ds-item"><span class="key">Annual PV Generation</span><span class="val">'+Math.round(pv_kwh_yr/1000).toLocaleString()+'k kWh</span></div>'
+    +'<div class="ds-item"><span class="key">Other Renewables</span><span class="val">'+Math.round(other_re/1000).toLocaleString()+'k kWh</span></div>'
+    +'<div class="ds-item"><span class="key">Annual Value Generated</span><span class="val" style="color:#10b981">$'+Math.round(annual_savings).toLocaleString()+'</span></div>'
+    +'<div class="ds-item"><span class="key">CO2 Avoided</span><span class="val" style="color:#10b981">'+co2_avoided.toFixed(0)+' tons/yr</span></div>'
+    +'</div>'
+    +'</div>';
+
+  if(!nze){
+    html+='<div style="background:#f59e0b11;border:1px solid #f59e0b33;border-radius:6px;padding:14px;margin-top:12px">'
+      +'<div style="font-size:11px;color:#f59e0b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Gap Closure Options</div>'
+      +'<p style="font-size:13px;color:#ccc;line-height:1.7">'
+      +'Additional PV needed: <strong>'+Math.round(shortage_kwh/1000)+'k kWh/yr</strong><br>'
+      +'Additional roof area needed: <strong>~'+Math.round(shortage_roof).toLocaleString()+' SF</strong> at current specs<br>'
+      +'Demand reduction needed: <strong>'+Math.round(shortage_kwh/gfa*3.412)+' kBtu/SF/yr EUI reduction</strong><br>'
+      +'Or: purchase RECs to cover gap (LEED Zero allows verified RECs)'
+      +'</p></div>';
+  }
+
+  html+='<div class="eui-bar-wrap" style="margin-top:16px"><h4>Demand Breakdown (kBtu/SF/yr)</h4>';
+  demand_breakdown.forEach(function(d){
+    var pct=Math.round(d.val/total_eui*100);
+    html+='<div class="eui-row"><span class="label">'+d.name+'</span>'
+      +'<div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:'+d.color+'44;border:1px solid '+d.color+'66"></div></div>'
+      +'<span class="val" style="color:'+d.color+'">'+d.val+' kBtu</span></div>';
+  });
+  html+='</div>';
+
+  document.getElementById('resultsCard').innerHTML='<h3 style="font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px">Energy Balance</h3>'+html;
+}
+calcNZE();
+</script>
+</body>
+</html>

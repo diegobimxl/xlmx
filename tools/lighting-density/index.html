@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lighting Power Density — ASHRAE 90.1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:360px 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;font-family:monospace}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.lpd-table{width:100%;border-collapse:collapse;font-size:12px}
+.lpd-table th{background:#0d0d0d;color:#888;padding:10px 12px;text-align:left;border-bottom:2px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.lpd-table td{padding:10px 12px;border-bottom:1px solid #1a1a1a}
+.lpd-table tr:hover td{background:#0d0d0d}
+.pass-pill{background:#10b98122;color:#10b981;border:1px solid #10b98144;display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700}
+.fail-pill{background:#ef444422;color:#ef4444;border:1px solid #ef444444;display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Lighting Power Density (LPD) Calculator</h1>
+  <p>ASHRAE 90.1-2022 Compliance Check + Energy Cost Analysis</p>
+  <span class="badge">ASHRAE 90.1-2022</span>
+  <span class="badge">IECC 2021</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Fixture Inventory</h3>
+        <div id="fixtures">
+          <div class="fixture-row" data-idx="0" style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span style="font-size:12px;color:#888">Fixture Type 1</span>
+              <button onclick="removeFixture(0)" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px">×</button>
+            </div>
+            <label style="margin-top:0">Description</label>
+            <input type="text" value="LED Panel 2x4" class="fx-desc">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
+              <div><label style="margin-top:0">Watts/fixture</label><input type="number" value="38" class="fx-w" step="1"></div>
+              <div><label style="margin-top:0">Qty</label><input type="number" value="20" class="fx-qty" step="1"></div>
+              <div><label style="margin-top:0">Area (SF)</label><input type="number" value="500" class="fx-area" step="50"></div>
+            </div>
+          </div>
+        </div>
+        <button onclick="addFixture()" style="background:#111;border:1px solid #333;color:#888;border-radius:6px;padding:8px 16px;font-size:12px;cursor:pointer;width:100%;margin-top:8px">+ Add Fixture Type</button>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>Space Parameters</h3>
+        <label>Space Type (for ASHRAE 90.1 limit)</label>
+        <select id="space_type">
+          <option value="0.64">Office — 0.64 W/SF</option>
+          <option value="1.19">Corridor — 1.19 W/SF</option>
+          <option value="0.72">Conference Room — 0.72 W/SF</option>
+          <option value="0.89">Lobby — 0.89 W/SF</option>
+          <option value="1.56">Storage — 1.56 W/SF</option>
+          <option value="0.98">Electrical/Mechanical — 0.98 W/SF</option>
+          <option value="0.89">Restroom — 0.89 W/SF</option>
+          <option value="1.26">Classroom — 1.26 W/SF</option>
+          <option value="1.14">Retail Sales — 1.14 W/SF</option>
+          <option value="1.50">Kitchen — 1.50 W/SF</option>
+          <option value="0.76">Healthcare Exam — 0.76 W/SF</option>
+          <option value="1.10">Warehouse — 1.10 W/SF</option>
+          <option value="1.28">Manufacturing — 1.28 W/SF</option>
+        </select>
+        <label>Electricity Rate ($/kWh)</label>
+        <input type="number" id="elec_rate" value="0.12" step="0.01">
+        <label>Annual Hours of Operation</label>
+        <input type="number" id="op_hours" value="2600" step="100">
+        <label>Lighting Controls Reduction Factor</label>
+        <select id="controls">
+          <option value="1.0">No controls (0% reduction)</option>
+          <option value="0.90">Occupancy sensors (10% reduction)</option>
+          <option value="0.80" selected>Occupancy + daylight dimming (20%)</option>
+          <option value="0.70">Full controls package (30% reduction)</option>
+        </select>
+        <button class="btn" onclick="calcLPD()">Check Compliance</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>LPD Compliance Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Add fixtures and calculate</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>ASHRAE 90.1-2022 LPD Limits Reference</h3>
+        <table class="lpd-table">
+          <tr><th>Space Type</th><th>90.1-2022 (W/SF)</th><th>90.1-2019 (W/SF)</th><th>Δ</th></tr>
+          <tr><td>Office</td><td>0.64</td><td>0.82</td><td style="color:#10b981">-22%</td></tr>
+          <tr><td>Classroom</td><td>1.26</td><td>1.24</td><td style="color:#f59e0b">+2%</td></tr>
+          <tr><td>Corridor</td><td>1.19</td><td>0.66</td><td style="color:#ef4444">+80%</td></tr>
+          <tr><td>Lobby</td><td>0.89</td><td>0.84</td><td style="color:#f59e0b">+6%</td></tr>
+          <tr><td>Retail Sales</td><td>1.14</td><td>1.44</td><td style="color:#10b981">-21%</td></tr>
+          <tr><td>Kitchen</td><td>1.50</td><td>1.21</td><td style="color:#ef4444">+24%</td></tr>
+          <tr><td>Healthcare Exam</td><td>0.76</td><td>0.89</td><td style="color:#10b981">-15%</td></tr>
+          <tr><td>Warehouse</td><td>1.10</td><td>0.66</td><td style="color:#ef4444">+67%</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / Revit Lighting Coordination</div>
+    <p>Assign ASHRAE 90.1 parameters in Revit lighting fixture families: <em>LPD_Watts</em>, <em>LPD_Space_Limit_W_SF</em>, <em>LPD_Compliant</em>. Schedule all lighting fixtures with calculated LPD per space. For LEED EAc1 (Energy Performance), lighting power density is a direct input to the energy model — export from Revit schedule to energy modeler. ASHRAE 90.1 §9 (Lighting) requires occupancy sensors in spaces &gt;250 SF, daylight responsive controls in daylight zones, and auto-shutoff in spaces &lt;5,000 SF. Tag non-compliant spaces in Revit with <em>LPD_Flag = OVER_LIMIT</em> for design review coordination.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Lighting design compliance and energy documentation?</strong><br>
+    BIM XL provides LPD calculations, Revit lighting schedule exports, and ASHRAE 90.1 §9 compliance packages for energy code submittals. Full LEED EQ + EA lighting documentation. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+var fixtureCount=1;
+function addFixture(){
+  var idx=fixtureCount++;
+  var div=document.createElement('div');
+  div.className='fixture-row';
+  div.setAttribute('data-idx',idx);
+  div.style.cssText='background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:10px';
+  div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:12px;color:#888">Fixture Type '+(idx+1)+'</span><button onclick="removeFixture('+idx+')" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px">×</button></div>'
+    +'<label style="margin-top:0">Description</label><input type="text" value="LED Fixture" class="fx-desc">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">'
+    +'<div><label style="margin-top:0">Watts/fixture</label><input type="number" value="40" class="fx-w" step="1"></div>'
+    +'<div><label style="margin-top:0">Qty</label><input type="number" value="10" class="fx-qty" step="1"></div>'
+    +'<div><label style="margin-top:0">Area (SF)</label><input type="number" value="300" class="fx-area" step="50"></div>'
+    +'</div>';
+  document.getElementById('fixtures').appendChild(div);
+}
+function removeFixture(idx){
+  var rows=document.querySelectorAll('.fixture-row');
+  if(rows.length<=1) return;
+  rows.forEach(function(r){if(parseInt(r.getAttribute('data-idx'))===idx) r.remove();});
+}
+function calcLPD(){
+  var lpd_limit=parseFloat(document.getElementById('space_type').value);
+  var elec=parseFloat(document.getElementById('elec_rate').value);
+  var hours=parseFloat(document.getElementById('op_hours').value);
+  var ctrl=parseFloat(document.getElementById('controls').value);
+  var rows=document.querySelectorAll('.fixture-row');
+  var total_w=0,total_area=0;
+  var fx_data=[];
+  rows.forEach(function(r){
+    var w=parseFloat(r.querySelector('.fx-w').value);
+    var qty=parseFloat(r.querySelector('.fx-qty').value);
+    var area=parseFloat(r.querySelector('.fx-area').value);
+    var desc=r.querySelector('.fx-desc').value;
+    total_w+=w*qty;
+    total_area=Math.max(total_area,area);
+    fx_data.push({desc:desc,w:w,qty:qty,area:area,lpd:(w*qty/area)});
+  });
+  var raw_lpd=total_w/total_area;
+  var eff_lpd=raw_lpd*ctrl;
+  var pass=eff_lpd<=lpd_limit;
+  var margin=lpd_limit-eff_lpd;
+  var annual_kwh=total_w*ctrl*hours/1000;
+  var annual_cost=annual_kwh*elec;
+  var lpd_color=pass?'#10b981':'#ef4444';
+
+  var html='<div class="kpi-row">'
+    +'<div class="kpi"><div class="val" style="font-family:monospace;color:'+lpd_color+'">'+eff_lpd.toFixed(2)+' W/SF</div><div class="lbl">Effective LPD</div></div>'
+    +'<div class="kpi"><div class="val" style="font-family:monospace;color:#888">'+lpd_limit.toFixed(2)+' W/SF</div><div class="lbl">ASHRAE 90.1 Limit</div></div>'
+    +'<div class="kpi"><div class="val">'+(pass?'<span class="pass-pill">PASS</span>':'<span class="fail-pill">FAIL</span>')+'</div><div class="lbl">Compliance Status</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:16px">'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px"><span style="color:#888">Total installed watts</span><span style="font-family:monospace;font-weight:600">'+Math.round(total_w)+' W</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px"><span style="color:#888">Raw LPD (before controls)</span><span style="font-family:monospace;font-weight:600">'+raw_lpd.toFixed(2)+' W/SF</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px"><span style="color:#888">Controls reduction</span><span style="font-family:monospace;font-weight:600">-'+((1-ctrl)*100).toFixed(0)+'%</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px"><span style="color:#888">Margin vs limit</span><span style="font-family:monospace;font-weight:600;color:'+lpd_color+'">'+(margin>=0?'+':'')+margin.toFixed(2)+' W/SF</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px"><span style="color:#888">Annual energy use</span><span style="font-family:monospace;font-weight:600">'+Math.round(annual_kwh).toLocaleString()+' kWh/yr</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px"><span style="color:#888">Annual lighting cost</span><span style="font-family:monospace;font-weight:600;color:#10b981">$'+Math.round(annual_cost).toLocaleString()+'/yr</span></div>'
+    +'</div>';
+
+  if(!pass){
+    var reduce_needed=eff_lpd-lpd_limit;
+    html+='<div style="background:#ef444411;border:1px solid #ef444433;border-radius:6px;padding:14px">'
+      +'<div style="font-size:11px;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Remediation Required</div>'
+      +'<p style="font-size:13px;color:#ccc;line-height:1.6">Reduce LPD by '+reduce_needed.toFixed(2)+' W/SF. Options:<br>'
+      +'1. Replace fixtures with higher-efficacy LEDs (target &lt;100 lm/W at required illuminance)<br>'
+      +'2. Add daylight dimming controls (+10-20% reduction credit)<br>'
+      +'3. Reduce fixture count — check maintained FC levels against IES standards<br>'
+      +'4. Reduce wattage per fixture — verify sufficient illuminance at task plane</p></div>';
+  }
+  document.getElementById('results').innerHTML=html;
+}
+calcLPD();
+</script>
+</body>
+</html>

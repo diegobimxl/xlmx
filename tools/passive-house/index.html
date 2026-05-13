@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passive House Criteria Checker — PHIUS 2021</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#8b5cf6;color:#fff;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#7c3aed}
+.criteria-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1a1a1a}
+.criteria-row:last-child{border-bottom:none}
+.crit-left .name{font-size:13px;font-weight:600;color:#fff}
+.crit-left .desc{font-size:11px;color:#666;margin-top:2px}
+.crit-right{text-align:right;flex-shrink:0;margin-left:16px}
+.crit-right .your{font-size:16px;font-family:monospace;font-weight:700}
+.crit-right .limit{font-size:11px;color:#888;margin-top:2px}
+.pass-pill{background:#8b5cf622;color:#a78bfa;border:1px solid #8b5cf644;display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700}
+.fail-pill{background:#ef444422;color:#ef4444;border:1px solid #ef444444;display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700}
+.close-pill{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700}
+.cert-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.cert-col{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:16px}
+.cert-col h4{font-size:12px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
+.cert-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.cert-item:last-child{border-bottom:none}
+.cert-item .key{color:#888}
+.cert-item .val{font-family:monospace;font-weight:600}
+.bim-note{background:#8b5cf611;border:1px solid #8b5cf633;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#a78bfa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Passive House Criteria Checker</h1>
+  <p>PHIUS 2021 / PHI Classic — Pass/Fail Threshold Analysis</p>
+  <span class="badge" style="background:#8b5cf622;color:#a78bfa;border:1px solid #8b5cf644">PHIUS 2021</span>
+  <span class="badge" style="background:#3b82f622;color:#60a5fa;border:1px solid #3b82f644">PHI Classic</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Project Inputs</h3>
+        <label>Standard</label>
+        <select id="standard" onchange="calcPH()">
+          <option value="phius">PHIUS 2021 (US/Canada)</option>
+          <option value="phi">PHI Classic (Germany/International)</option>
+        </select>
+        <label>Building Type</label>
+        <select id="bldg_type" onchange="calcPH()">
+          <option value="residential">Residential / Multifamily</option>
+          <option value="commercial">Commercial / Non-Residential</option>
+        </select>
+        <label>Climate Zone (PHIUS — affects targets)</label>
+        <select id="cz" onchange="calcPH()">
+          <option value="hot">Hot/Humid (CZ 1-2)</option>
+          <option value="mixed">Mixed (CZ 3-4)</option>
+          <option value="cool" selected>Cool/Cold (CZ 5-6)</option>
+          <option value="very_cold">Very Cold (CZ 7-8)</option>
+        </select>
+        <div style="margin-top:20px;border-top:1px solid #222;padding-top:20px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">Energy Performance</div>
+          <label style="margin-top:0">Annual Heating Energy Demand (kBtu/SF/yr)</label>
+          <input type="number" id="heat_demand" value="4.5" step="0.1" oninput="calcPH()">
+          <label>Annual Cooling Energy Demand (kBtu/SF/yr)</label>
+          <input type="number" id="cool_demand" value="4.5" step="0.1" oninput="calcPH()">
+          <label>Peak Heating Load (BTU/hr·SF)</label>
+          <input type="number" id="peak_heat" value="3.2" step="0.1" oninput="calcPH()">
+          <label>Peak Cooling Load (BTU/hr·SF)</label>
+          <input type="number" id="peak_cool" value="3.2" step="0.1" oninput="calcPH()">
+          <label>Annual Primary Energy Demand — Source (kBtu/SF/yr)</label>
+          <input type="number" id="pe_demand" value="38" step="1" oninput="calcPH()">
+        </div>
+        <div style="margin-top:20px;border-top:1px solid #222;padding-top:20px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">Envelope Performance</div>
+          <label style="margin-top:0">Airtightness — ACH50 (Blower Door)</label>
+          <input type="number" id="ach50" value="0.6" step="0.05" oninput="calcPH()">
+          <label>Thermal Bridge-Free Factor — ψ linear bridges (BTU/hr·ft·°F)</label>
+          <input type="number" id="psi" value="0.01" step="0.001" oninput="calcPH()">
+          <label>Interior Surface Temp Factor (min, dimensionless fRsi ≥0.80)</label>
+          <input type="number" id="frsi" value="0.80" step="0.01" oninput="calcPH()">
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Compliance Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Adjust inputs to see real-time compliance status</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3>PHIUS 2021 vs PHI Classic — Standards Comparison</h3>
+        <div class="cert-compare">
+          <div class="cert-col">
+            <h4 style="color:#a78bfa">PHIUS 2021</h4>
+            <div class="cert-item"><span class="key">Admin body</span><span class="val">PHIUS (US)</span></div>
+            <div class="cert-item"><span class="key">Heat demand</span><span class="val">Climate-specific</span></div>
+            <div class="cert-item"><span class="key">Cool demand</span><span class="val">Climate-specific</span></div>
+            <div class="cert-item"><span class="key">Airtightness</span><span class="val">≤0.06 CFM75/SF</span></div>
+            <div class="cert-item"><span class="key">Primary energy</span><span class="val">Renewable-ready</span></div>
+            <div class="cert-item"><span class="key">Verification</span><span class="val">PHIUS verifier + blower door</span></div>
+            <div class="cert-item"><span class="key">Best for</span><span class="val">US/Canada projects</span></div>
+          </div>
+          <div class="cert-col">
+            <h4 style="color:#60a5fa">PHI Classic</h4>
+            <div class="cert-item"><span class="key">Admin body</span><span class="val">PHI (Germany)</span></div>
+            <div class="cert-item"><span class="key">Heat demand</span><span class="val">≤4.75 kBtu/SF/yr</span></div>
+            <div class="cert-item"><span class="key">Cool demand</span><span class="val">≤4.75 kBtu/SF/yr</span></div>
+            <div class="cert-item"><span class="key">Airtightness</span><span class="val">≤0.6 ACH50</span></div>
+            <div class="cert-item"><span class="key">Primary energy</span><span class="val">≤38 kBtu/SF/yr</span></div>
+            <div class="cert-item"><span class="key">Verification</span><span class="val">PHI certifier + blower door</span></div>
+            <div class="cert-item"><span class="key">Best for</span><span class="val">International/European</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / PHPP Integration Strategy</div>
+    <p>Passive House certification requires PHPP (Passive House Planning Package) energy balance spreadsheet, which takes geometry directly from design drawings. Revit models should be configured with: accurate floor areas (treated floor area per PHPP definition), window areas and orientations per facade, thermal bridge ψ-values from THERM 2D calculations at all junctions. Export Revit room/space gross and net areas for PHPP input. Thermal bridge-free factor (fRsi ≥ 0.80) must be verified at all connection details using THERM — BIM XL can provide a THERM analysis library for standard connection types. Airtightness ACH50 measured via blower door at 50 Pa pressure difference.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Passive House feasibility and PHPP energy modeling?</strong><br>
+    BIM XL provides PHPP setup from Revit geometry, THERM thermal bridge analysis, and PHIUS/PHI certification coordination. Full documentation packages including blower door protocol. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+// PHIUS 2021 site-specific targets (approximated by CZ band for quick-check)
+var PHIUS_TARGETS={
+  hot:{heat:1.39,cool:4.75,peak_h:3.17,peak_c:3.17,pe:38},
+  mixed:{heat:3.17,cool:3.17,peak_h:3.17,peak_c:3.17,pe:38},
+  cool:{heat:4.75,cool:1.39,peak_h:3.17,peak_c:3.17,pe:38},
+  very_cold:{heat:4.75,cool:0.5,peak_h:3.17,peak_c:2.00,pe:38}
+};
+var PHI_TARGETS={heat:4.75,cool:4.75,peak_h:3.17,peak_c:3.17,pe:38};
+
+function calcPH(){
+  var std=document.getElementById('standard').value;
+  var cz=document.getElementById('cz').value;
+  var heat=parseFloat(document.getElementById('heat_demand').value);
+  var cool=parseFloat(document.getElementById('cool_demand').value);
+  var peak_h=parseFloat(document.getElementById('peak_heat').value);
+  var peak_c=parseFloat(document.getElementById('peak_cool').value);
+  var pe=parseFloat(document.getElementById('pe_demand').value);
+  var ach50=parseFloat(document.getElementById('ach50').value);
+  var frsi=parseFloat(document.getElementById('frsi').value);
+
+  var t=std==='phius'?PHIUS_TARGETS[cz]:PHI_TARGETS;
+  if(std==='phi') t={heat:4.75,cool:4.75,peak_h:3.17,peak_c:3.17,pe:38};
+
+  var ACH50_LIMIT=0.60;
+  var FRSI_MIN=0.80;
+
+  var criteria=[
+    {name:'Annual Heating Energy Demand',desc:'Max allowed per PHIUS 2021 climate-specific target',your:heat,limit:t.heat,unit:'kBtu/SF/yr',pass:heat<=t.heat},
+    {name:'Annual Cooling Energy Demand',desc:'Max allowed per PHIUS 2021 climate-specific target',your:cool,limit:t.cool,unit:'kBtu/SF/yr',pass:cool<=t.cool},
+    {name:'Peak Heating Load',desc:'Maximum instantaneous heating power density',your:peak_h,limit:t.peak_h,unit:'BTU/hr·SF',pass:peak_h<=t.peak_h},
+    {name:'Peak Cooling Load',desc:'Maximum instantaneous cooling power density',your:peak_c,limit:t.peak_c,unit:'BTU/hr·SF',pass:peak_c<=t.peak_c},
+    {name:'Primary / Source Energy',desc:'Total annual primary energy (site + conversion factors)',your:pe,limit:t.pe,unit:'kBtu/SF/yr',pass:pe<=t.pe},
+    {name:'Airtightness ACH50',desc:'Blower door test at 50 Pa pressure difference',your:ach50,limit:ACH50_LIMIT,unit:'ACH50',pass:ach50<=ACH50_LIMIT},
+    {name:'Interior Surface Temp Factor (fRsi)',desc:'Minimum fRsi at any thermal bridge — prevents mold risk',your:frsi,limit:FRSI_MIN,unit:'dimensionless',pass:frsi>=FRSI_MIN,higher_is_better:true}
+  ];
+
+  var all_pass=criteria.every(function(c){return c.pass;});
+  var pass_count=criteria.filter(function(c){return c.pass;}).length;
+  var main_color=all_pass?'#a78bfa':'#ef4444';
+
+  var html='<div style="background:'+(all_pass?'#8b5cf622':'#ef444411')+';border:1px solid '+(all_pass?'#8b5cf644':'#ef444433')+';border-radius:6px;padding:14px;margin-bottom:16px;text-align:center">'
+    +'<div style="font-size:15px;font-weight:700;color:'+main_color+'">'+(all_pass?'PASSIVE HOUSE CERTIFIED':'NOT YET CERTIFIED — '+pass_count+'/'+criteria.length+' criteria met')+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-top:4px">'+(document.getElementById('standard').value==='phius'?'PHIUS 2021':'PHI Classic')+' — '+(document.getElementById('cz').options[document.getElementById('cz').selectedIndex].text)+'</div>'
+    +'</div>';
+
+  criteria.forEach(function(c){
+    var pct=c.higher_is_better?c.your/c.limit*100:c.limit>0?c.your/c.limit*100:0;
+    var close=!c.pass&&(c.higher_is_better?pct>=80:pct<=110);
+    var pill=c.pass?'<span class="pass-pill">PASS</span>':(close?'<span class="close-pill">CLOSE</span>':'<span class="fail-pill">FAIL</span>');
+    var color=c.pass?'#a78bfa':close?'#f59e0b':'#ef4444';
+    html+='<div class="criteria-row">'
+      +'<div class="crit-left"><div class="name">'+c.name+'</div><div class="desc">'+c.desc+'</div></div>'
+      +'<div class="crit-right">'
+      +'<div class="your" style="color:'+color+'">'+c.your+' '+c.unit+'</div>'
+      +'<div class="limit">Limit: '+(c.higher_is_better?'≥':c.limit<=0?'N/A':'≤')+c.limit+' '+c.unit+'</div>'
+      +'<div style="margin-top:4px">'+pill+'</div>'
+      +'</div></div>';
+  });
+
+  if(!all_pass){
+    html+='<div style="background:#ef444411;border:1px solid #ef444433;border-radius:6px;padding:14px;margin-top:12px">'
+      +'<div style="font-size:11px;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Required Improvements</div>'
+      +'<p style="font-size:13px;color:#ccc;line-height:1.6">';
+    criteria.forEach(function(c){
+      if(!c.pass){
+        var gap=c.higher_is_better?c.limit-c.your:c.your-c.limit;
+        html+=c.name+': need '+(c.higher_is_better?'increase':'reduction')+' of '+Math.abs(gap).toFixed(2)+' '+c.unit+'<br>';
+      }
+    });
+    html+='</p></div>';
+  }
+  document.getElementById('results').innerHTML=html;
+}
+calcPH();
+</script>
+</body>
+</html>

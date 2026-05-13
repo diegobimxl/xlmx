@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thermal Bridging Calculator — Effective R-Value</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.result-row:last-child{border-bottom:none}
+.result-row .key{color:#888}
+.result-row .val{font-family:monospace;font-weight:600;color:#fff}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:22px;font-weight:700;font-family:monospace}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.framing-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.framing-table th{background:#0d0d0d;color:#888;padding:8px;text-align:center;border-bottom:1px solid #222;font-size:11px}
+.framing-table th:first-child{text-align:left}
+.framing-table td{padding:8px;border-bottom:1px solid #1a1a1a;text-align:center;font-family:monospace;color:#ccc}
+.framing-table td:first-child{text-align:left;font-family:system-ui;color:#888}
+.framing-table tr:hover td{background:#161616}
+.vis-wrap{margin-top:20px}
+.vis-wrap h4{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.layer-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.layer-bar .name{width:130px;color:#888;text-align:right;flex-shrink:0}
+.layer-bar .bar-bg{flex:1;height:20px;background:#1a1a1a;border-radius:4px;overflow:hidden;position:relative}
+.layer-bar .bar-fill{height:100%;border-radius:4px}
+.layer-bar .bar-val{width:60px;text-align:right;color:#ccc;font-family:monospace;flex-shrink:0}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Thermal Bridging Calculator</h1>
+  <p>Effective R-Value with Metal Framing — ASHRAE Parallel-Path / Isothermal Planes Methods</p>
+  <span class="badge">ISO 6946</span>
+  <span class="badge">ASHRAE HoF</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Wall Assembly Configuration</h3>
+        <label>Framing Type</label>
+        <select id="frame_type" onchange="setFraming()">
+          <option value="metal_16" data-ff="0.222">Metal Studs 16" o.c. — 22.2% framing fraction</option>
+          <option value="metal_24" data-ff="0.154" selected>Metal Studs 24" o.c. — 15.4% framing fraction</option>
+          <option value="wood_16" data-ff="0.148">Wood Studs 16" o.c. — 14.8% framing fraction</option>
+          <option value="wood_24" data-ff="0.127">Wood Studs 24" o.c. — 12.7% framing fraction</option>
+          <option value="custom" data-ff="">Custom framing fraction</option>
+        </select>
+        <label>Framing Fraction (%)</label>
+        <input type="number" id="ff" value="15.4" step="0.5" min="1" max="50">
+        <label>Stud Size</label>
+        <select id="stud_size" onchange="setStudR()">
+          <option value="3.5_metal" data-r="0.97">Metal 3.5" (2x4 metal)</option>
+          <option value="5.5_metal" data-r="1.16" selected>Metal 5.5" (2x6 metal)</option>
+          <option value="7.25_metal" data-r="1.38">Metal 7.25" (2x8 metal)</option>
+          <option value="3.5_wood" data-r="4.38">Wood 3.5" (2x4)</option>
+          <option value="5.5_wood" data-r="6.88">Wood 5.5" (2x6)</option>
+          <option value="7.25_wood" data-r="9.06">Wood 7.25" (2x8)</option>
+        </select>
+        <div style="margin-top:20px;border-top:1px solid #222;padding-top:20px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">Assembly Layers (inside → outside)</div>
+          <label>Interior finish R-value (drywall typical R-0.45)</label>
+          <input type="number" id="r_int" value="0.45" step="0.05">
+          <label>Cavity Insulation R-value</label>
+          <input type="number" id="r_cav" value="19" step="1">
+          <label>Stud R-value (auto-filled from selection)</label>
+          <input type="number" id="r_stud" value="1.16" step="0.01">
+          <label>Sheathing R-value (OSB: R-0.7, ZIP: R-1.4, polyiso: R-6.5/in)</label>
+          <input type="number" id="r_sheath" value="0.7" step="0.1">
+          <label>Continuous Insulation R-value (exterior)</label>
+          <input type="number" id="r_ci" value="0" step="0.5">
+          <label>Exterior finish + air film R-value (typ. R-0.68)</label>
+          <input type="number" id="r_ext" value="0.68" step="0.05">
+        </div>
+        <button class="btn" onclick="calcBridging()">Calculate Effective R-Value</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Configure assembly and calculate</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>Metal vs Wood Framing Penalty — Quick Reference</h3>
+        <table class="framing-table">
+          <tr><th>Assembly</th><th>Clear-field R</th><th>Effective R (metal)</th><th>Penalty</th></tr>
+          <tr><td>2x4 metal 16"oc + R-13</td><td>R-13</td><td>R-7.5</td><td>-42%</td></tr>
+          <tr><td>2x6 metal 24"oc + R-19</td><td>R-19</td><td>R-11.5</td><td>-39%</td></tr>
+          <tr><td>2x4 metal + R-13 + R-5 CI</td><td>R-18</td><td>R-14.8</td><td>-18%</td></tr>
+          <tr><td>2x6 metal + R-19 + R-10 CI</td><td>R-29</td><td>R-22.5</td><td>-22%</td></tr>
+          <tr><td>2x4 wood 16"oc + R-13</td><td>R-13</td><td>R-11.2</td><td>-14%</td></tr>
+          <tr><td>2x6 wood 24"oc + R-19</td><td>R-19</td><td>R-16.8</td><td>-12%</td></tr>
+          <tr><td>ICF wall</td><td>R-22+</td><td>R-22+</td><td>0%</td></tr>
+          <tr><td>Double-stud wood + R-40</td><td>R-40</td><td>R-36</td><td>-10%</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / ASHRAE 90.1 Documentation</div>
+    <p>ASHRAE 90.1 Table A3.2 provides adjustment factors (F_adj) for metal framing: 2x4 @ 16"oc = 0.50, 2x4 @ 24"oc = 0.60, 2x6 @ 16"oc = 0.55, 2x6 @ 24"oc = 0.65. Adjusted U = U_cavity × (1 - F_adj) + U_framing × F_adj. In Revit, assign <em>R_Value_ClearField</em> and <em>R_Value_Effective</em> as shared parameters on wall types. Use THERM 7 (free, LBNL) for detailed 2D thermal bridging PSI-value calculations at corners, jambs, and slab edges. Document ψ-values (linear thermal transmittance) for Passive House PHPP and LEED EAc1 energy models.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Need thermal bridging analysis for ASHRAE 90.1 compliance?</strong><br>
+    BIM XL provides THERM 2D calculations, effective U-value documentation, and Revit assembly tagging for energy code compliance. Full envelope performance packages for commercial and residential projects. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('frame_type').addEventListener('change',function(){
+  var opt=this.options[this.selectedIndex];
+  if(opt.dataset.ff) document.getElementById('ff').value=opt.dataset.ff*100;
+});
+document.getElementById('stud_size').addEventListener('change',function(){
+  var opt=this.options[this.selectedIndex];
+  document.getElementById('r_stud').value=opt.dataset.r;
+});
+
+function setFraming(){
+  var opt=document.getElementById('frame_type').options[document.getElementById('frame_type').selectedIndex];
+  if(opt.dataset.ff) document.getElementById('ff').value=(parseFloat(opt.dataset.ff)*100).toFixed(1);
+}
+function setStudR(){
+  var opt=document.getElementById('stud_size').options[document.getElementById('stud_size').selectedIndex];
+  document.getElementById('r_stud').value=opt.dataset.r;
+  // Also set cavity R based on typical
+  var sz=document.getElementById('stud_size').value;
+  if(sz.includes('3.5')) document.getElementById('r_cav').value=13;
+  else if(sz.includes('5.5')) document.getElementById('r_cav').value=21;
+  else if(sz.includes('7.25')) document.getElementById('r_cav').value=27;
+}
+
+function calcBridging(){
+  var ff=parseFloat(document.getElementById('ff').value)/100;
+  var cf=1-ff;
+  var r_int=parseFloat(document.getElementById('r_int').value);
+  var r_cav=parseFloat(document.getElementById('r_cav').value);
+  var r_stud=parseFloat(document.getElementById('r_stud').value);
+  var r_sheath=parseFloat(document.getElementById('r_sheath').value);
+  var r_ci=parseFloat(document.getElementById('r_ci').value);
+  var r_ext=parseFloat(document.getElementById('r_ext').value);
+
+  // Parallel path method (ASHRAE): combine cavity and stud paths in parallel, then add series layers
+  var r_series=r_int+r_sheath+r_ci+r_ext;
+  // Parallel portion: cavity vs stud
+  var u_cavity=1/(r_cav);
+  var u_stud=1/(r_stud);
+  var u_parallel=cf*u_cavity+ff*u_stud;
+  var r_parallel=1/u_parallel;
+  var r_total_eff=r_series+r_parallel;
+  var u_eff=1/r_total_eff;
+
+  // Clear-field (no bridging)
+  var r_clear=r_int+r_cav+r_sheath+r_ci+r_ext;
+  var u_clear=1/r_clear;
+
+  var penalty_pct=((r_clear-r_total_eff)/r_clear)*100;
+
+  // Cost of bridging: extra insulation needed to achieve same U
+  var r_ci_needed=r_total_eff-r_clear+(r_ci>0?0:0); // already included CI
+  var r_gap=r_clear-r_total_eff;
+  var ci_to_fix=Math.max(0,r_gap/(1.0)); // approx R-1 per inch of polyiso adds R-6
+
+  var u_color=u_eff>0.064?'#ef4444':'#10b981';
+  var penalty_color=penalty_pct>30?'#ef4444':penalty_pct>15?'#f59e0b':'#10b981';
+
+  var layers=[
+    {name:'Interior finish',r:r_int,clear:true},
+    {name:'Cavity insulation',r:r_cav,clear:true},
+    {name:'Stud framing',r:r_stud,clear:false},
+    {name:'Sheathing',r:r_sheath,clear:true},
+    {name:'Continuous insulation',r:r_ci,clear:true},
+    {name:'Exterior + film',r:r_ext,clear:true}
+  ];
+  var maxR=r_clear;
+
+  var html='<div class="kpi-row">'
+    +'<div class="kpi"><div class="val" style="color:#10b981">R-'+r_total_eff.toFixed(1)+'</div><div class="lbl">Effective R-Value</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+u_color+'">U-'+u_eff.toFixed(3)+'</div><div class="lbl">Effective U-Value</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+penalty_color+'">-'+penalty_pct.toFixed(0)+'%</div><div class="lbl">Bridging Penalty</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:16px">'
+    +'<div class="result-row"><span class="key">Clear-field R-value (no bridging)</span><span class="val">R-'+r_clear.toFixed(1)+'</span></div>'
+    +'<div class="result-row"><span class="key">Effective R-value (with bridging)</span><span class="val">R-'+r_total_eff.toFixed(1)+'</span></div>'
+    +'<div class="result-row"><span class="key">R-value lost to bridging</span><span class="val" style="color:#ef4444">-'+r_gap.toFixed(1)+' ('+penalty_pct.toFixed(0)+'%)</span></div>'
+    +'<div class="result-row"><span class="key">Framing fraction</span><span class="val">'+(ff*100).toFixed(1)+'%</span></div>'
+    +'<div class="result-row"><span class="key">CI needed to recover loss</span><span class="val">'+(r_gap>0?'~'+Math.ceil(r_gap/6.5)+'" polyiso or R-'+r_gap.toFixed(1)+' CI':'None needed')+'</span></div>'
+    +'</div>'
+    +'<div class="vis-wrap"><h4>Layer R-Value Visualization</h4>';
+
+  layers.forEach(function(l){
+    if(l.r<=0) return;
+    var pct=Math.round(l.r/maxR*100);
+    var color=l.clear?'#10b981':'#ef4444';
+    var label=l.clear?l.name:l.name+' (bridge)';
+    html+='<div class="layer-bar"><span class="name">'+label+'</span>'
+      +'<div class="bar-bg"><div class="bar-fill" style="width:'+Math.min(100,pct)+'%;background:'+color+'22;border:1px solid '+color+'44"></div></div>'
+      +'<span class="bar-val">R-'+l.r.toFixed(1)+'</span></div>';
+  });
+  html+='</div>';
+  document.getElementById('results').innerHTML=html;
+}
+calcBridging();
+</script>
+</body>
+</html>

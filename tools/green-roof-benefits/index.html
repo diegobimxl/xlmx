@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Roof Benefits — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:800px){.grid,.grid-3,.grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.grid,.grid-3,.grid-4{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.benefit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.benefit-item{background:#161616;border-radius:6px;padding:12px}
+.benefit-item .val{font-size:1.3rem;font-weight:700;color:#10b981}
+.benefit-item .lbl{font-size:0.75rem;color:#666;margin-top:2px}
+.bar-wrap{background:#1a1a1a;border-radius:3px;height:8px;overflow:hidden;margin-top:6px}
+.bar-fill{height:8px;border-radius:3px;background:#10b981;transition:width .3s}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Green Roof Benefits Calculator <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Stormwater retention, thermal R-value, urban heat island mitigation, and lifecycle NPV — LEED SS / WE credits · EPA Green Infrastructure</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Roof Parameters</h3>
+    <label>Roof Area (SF)</label>
+    <input type="number" id="roof_area" value="10000" oninput="calc()">
+    <label>Green Roof Type</label>
+    <select id="roof_type" onchange="calc()">
+      <option value="extensive">Extensive (2–6 in, sedum, 10–25 lb/SF)</option>
+      <option value="semi">Semi-Intensive (6–12 in, grasses, 25–40 lb/SF)</option>
+      <option value="intensive">Intensive (12–48 in, full planting, 40–120 lb/SF)</option>
+    </select>
+    <label>Climate Zone</label>
+    <select id="cz" onchange="calc()">
+      <option value="hot">Hot-Humid (Miami, Houston)</option>
+      <option value="mixed" selected>Mixed (Atlanta, Denver)</option>
+      <option value="cool">Cool-Moist (Chicago, Seattle)</option>
+      <option value="cold">Cold (Minneapolis, Boston)</option>
+    </select>
+    <label>Annual Rainfall (inches/yr)</label>
+    <input type="number" id="rain" value="36" oninput="calc()">
+    <label>Stormwater Fee ($/1,000 gal)</label>
+    <input type="number" id="sw_rate" value="4.50" step="0.50" oninput="calc()">
+    <label>Electricity Rate ($/kWh)</label>
+    <input type="number" id="elec_rate" value="0.12" step="0.01" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>Cost & Financing</h3>
+    <label>Existing Roof Replacement Cost ($/SF)</label>
+    <input type="number" id="conv_cost" value="12" oninput="calc()">
+    <label>Green Roof Premium ($/SF over conventional)</label>
+    <input type="number" id="gr_premium" value="18" oninput="calc()">
+    <label>Structural Upgrade Required ($/SF)</label>
+    <input type="number" id="struct_cost" value="5" oninput="calc()">
+    <label>Discount Rate (%)</label>
+    <input type="number" id="discount" value="6" oninput="calc()">
+    <label>Analysis Period (years)</label>
+    <input type="number" id="years" value="30" oninput="calc()">
+    <label>LEED / Green Bond Incentives ($)</label>
+    <input type="number" id="incentives" value="25000" oninput="calc()">
+  </div>
+</div>
+
+<div class="grid-4">
+  <div class="card">
+    <h3>Stormwater</h3>
+    <div class="result-big" id="sw_retain">—</div>
+    <div class="result-label">% rainfall retained</div>
+    <div class="result-sub" id="sw_gal">—</div>
+    <div class="result-label">Gallons/yr retained</div>
+    <div class="result-sub" id="sw_save">—</div>
+    <div class="result-label">Annual stormwater fee savings</div>
+  </div>
+  <div class="card">
+    <h3>Thermal / Energy</h3>
+    <div class="result-big good" id="gr_r">—</div>
+    <div class="result-label">Added R-value (saturated)</div>
+    <div class="result-sub" id="cool_save">—</div>
+    <div class="result-label">Annual cooling energy savings</div>
+    <div class="result-sub" id="energy_cost_save">—</div>
+    <div class="result-label">Annual energy cost savings</div>
+  </div>
+  <div class="card">
+    <h3>Urban Heat Island</h3>
+    <div class="result-big" id="uhi_red" style="color:#c8a96e">—</div>
+    <div class="result-label">°F surface temp reduction</div>
+    <div class="result-sub" id="albedo">—</div>
+    <div class="result-label">Effective albedo vs dark membrane</div>
+    <div class="result-sub" id="co2_seq">—</div>
+    <div class="result-label">CO₂ sequestered (lbs/yr)</div>
+  </div>
+  <div class="card">
+    <h3>Roof Lifespan</h3>
+    <div class="result-big good" id="life_ext">—</div>
+    <div class="result-label">Years of membrane life extension</div>
+    <div class="result-sub" id="membrane_save">—</div>
+    <div class="result-label">Avoided replacement cost (NPV)</div>
+    <div class="result-sub" id="total_npv_label">NPV of green roof</div>
+    <div class="result-sub" id="total_npv">—</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Benefit-Cost Summary</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Benefit Category</th>
+        <th>Annual Value</th>
+        <th>30-yr Undiscounted</th>
+        <th>30-yr NPV</th>
+        <th>% of Total Benefit</th>
+      </tr>
+    </thead>
+    <tbody id="benefit_table"></tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>LEED Credit Contributions</h3>
+  <table>
+    <thead>
+      <tr><th>Credit</th><th>Category</th><th>Points</th><th>Eligibility</th></tr>
+    </thead>
+    <tbody id="leed_table"></tbody>
+  </table>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: GROOF_TYPE, GROOF_DEPTH_IN, GROOF_AREA_SF, GROOF_R_VALUE, GROOF_SW_RETENTION_PCT</li>
+    <li>Structural loading: extensive 10–25 lb/SF (saturated); intensive up to 120 lb/SF — structural engineer confirmation required</li>
+    <li>ASTM E2399: max media density for extensive green roofs; ASTM E2397: determination of dead loads</li>
+    <li>FLL Guidelines (Germany): international green roof standard; references for growing media depth and plant selection</li>
+    <li>Green roof membrane: EPDM or TPO with root barrier; min 60-mil EPDM under intensive systems; ASTM D6366 root resistance test</li>
+    <li>CSI Spec Section 07 55 63 (Fluid-Applied Waterproofing for Vegetative Roofing), 32 93 00 (Plants)</li>
+    <li>LEED v4.1 credits: SS Credit Heat Island (Option 2), WE Prerequisite Outdoor Water Use, SS Credit Rainwater Management</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Green Roof Design & BIM Integration</h4>
+  <p>BIM XL models green roof assemblies at LOD 400 including drainage layers, root barriers, and media depths for LEED documentation.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var ROOF_TYPES={
+  extensive:{retention:0.65,r_dry:2.0,r_sat:1.0,depth:4,weight:17,life_ext:20,uhi_red:40,albedo:0.35,co2_sq:0.05},
+  semi:{retention:0.75,r_dry:3.5,r_sat:2.0,depth:9,weight:32,life_ext:25,uhi_red:50,albedo:0.38,co2_sq:0.12},
+  intensive:{retention:0.85,r_dry:6.0,r_sat:3.5,depth:24,weight:80,life_ext:40,uhi_red:60,albedo:0.42,co2_sq:0.30}
+};
+var CZ_COOL={hot:1.8,mixed:1.2,cool:0.7,cold:0.4}; // kBtu/SF/yr cooling saved per R of green roof
+
+function npvCalc(annual,rate,yrs){
+  var s=0;for(var i=1;i<=yrs;i++)s+=annual/Math.pow(1+rate/100,i);return s;
+}
+
+function calc(){
+  var area=parseFloat(document.getElementById('roof_area').value)||10000;
+  var rt=document.getElementById('roof_type').value;
+  var cz=document.getElementById('cz').value;
+  var rain=parseFloat(document.getElementById('rain').value)||36;
+  var sw_rate=parseFloat(document.getElementById('sw_rate').value)||4.5;
+  var elec=parseFloat(document.getElementById('elec_rate').value)||0.12;
+  var conv_cost=parseFloat(document.getElementById('conv_cost').value)||12;
+  var gr_prem=parseFloat(document.getElementById('gr_premium').value)||18;
+  var struct=parseFloat(document.getElementById('struct_cost').value)||5;
+  var discount=parseFloat(document.getElementById('discount').value)||6;
+  var years=parseFloat(document.getElementById('years').value)||30;
+  var incentives=parseFloat(document.getElementById('incentives').value)||25000;
+
+  var r=ROOF_TYPES[rt];
+  var capex=area*(gr_prem+struct); // incremental capex
+
+  // Stormwater
+  var rain_gal=area*rain*0.623; // 1 inch on 1 SF = 0.623 gal
+  var sw_gal=rain_gal*r.retention;
+  var sw_ann=sw_gal/1000*sw_rate;
+
+  // Thermal / energy
+  var cool_kbtu=area*r.r_sat*(CZ_COOL[cz]||1.0);
+  var cool_kwh=cool_kbtu/3.412;
+  var energy_save=cool_kwh*elec;
+
+  // UHI
+  var uhi_red=r.uhi_red; // surface temp reduction °F
+  var co2_seq=area*r.co2_sq; // lbs/yr
+
+  // Lifespan
+  var life_ext=r.life_ext; // years
+  var mem_val_per_yr=area*conv_cost/20; // conventional roof cost amortized over 20yr life
+  var membrane_ann=mem_val_per_yr*(life_ext/20); // annualized value of life extension
+  var membrane_npv=membrane_ann*years/2; // simplified NPV of deferred replacement
+
+  // Noise / insulation marketing benefit (qualitative — show as $0 but note)
+
+  // NPV calculations
+  var sw_npv=npvCalc(sw_ann,discount,years);
+  var energy_npv=npvCalc(energy_save,discount,years);
+  var mem_npv=membrane_npv;
+  var total_benefit_npv=sw_npv+energy_npv+mem_npv+incentives;
+  var total_benefit_ann=sw_ann+energy_save+membrane_ann;
+
+  document.getElementById('sw_retain').textContent=Math.round(r.retention*100)+'%';
+  document.getElementById('sw_gal').textContent=Math.round(sw_gal).toLocaleString()+' gal/yr';
+  document.getElementById('sw_save').textContent='$'+Math.round(sw_ann).toLocaleString()+'/yr';
+  document.getElementById('gr_r').textContent='R-'+r.r_sat.toFixed(1)+' (saturated)';
+  document.getElementById('cool_save').textContent=Math.round(cool_kwh).toLocaleString()+' kWh/yr';
+  document.getElementById('energy_cost_save').textContent='$'+Math.round(energy_save).toLocaleString()+'/yr';
+  document.getElementById('uhi_red').textContent=uhi_red+'°F';
+  document.getElementById('albedo').textContent=r.albedo.toFixed(2)+' (vs 0.05 dark membrane)';
+  document.getElementById('co2_seq').textContent=Math.round(co2_seq).toLocaleString()+' lbs/yr';
+  document.getElementById('life_ext').textContent=life_ext+' years';
+  document.getElementById('membrane_save').textContent='$'+Math.round(membrane_npv).toLocaleString();
+  document.getElementById('total_npv').textContent=(total_benefit_npv>capex?'+':'')+'$'+Math.round(total_benefit_npv-capex).toLocaleString();
+  document.getElementById('total_npv').className='result-sub '+(total_benefit_npv>capex?'good':'warn');
+
+  // Benefit table
+  var tbody=document.getElementById('benefit_table');
+  var benefits=[
+    {cat:'Stormwater fee savings',ann:sw_ann,npv:sw_npv},
+    {cat:'Cooling energy savings',ann:energy_save,npv:energy_npv},
+    {cat:'Membrane life extension',ann:membrane_ann,npv:mem_npv},
+    {cat:'LEED/Incentives (one-time)',ann:0,npv:incentives}
+  ];
+  var total_ann=benefits.reduce(function(a,b){return a+b.ann;},0)+incentives/years;
+  var total_npv_val=benefits.reduce(function(a,b){return a+b.npv;},0);
+  tbody.innerHTML='';
+  benefits.forEach(function(b){
+    var pct=total_npv_val>0?b.npv/total_npv_val*100:0;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+b.cat+'</td><td class="good">$'+Math.round(b.ann).toLocaleString()+'</td><td>$'+Math.round(b.ann*years).toLocaleString()+'</td><td class="good">$'+Math.round(b.npv).toLocaleString()+'</td><td>'+pct.toFixed(1)+'%</td>';
+    tbody.appendChild(tr);
+  });
+  var tr2=document.createElement('tr');
+  tr2.innerHTML='<td>TOTAL BENEFITS</td><td class="good">$'+Math.round(total_ann).toLocaleString()+'</td><td>—</td><td class="good">$'+Math.round(total_npv_val).toLocaleString()+'</td><td>100%</td>';
+  tbody.appendChild(tr2);
+  var tr3=document.createElement('tr');
+  tr3.innerHTML='<td>INCREMENTAL CAPEX</td><td class="bad">—</td><td class="bad">—</td><td class="bad">-$'+Math.round(capex).toLocaleString()+'</td><td>—</td>';
+  tbody.appendChild(tr3);
+  var tr4=document.createElement('tr');
+  var net=total_npv_val-capex;
+  tr4.innerHTML='<td>NET NPV</td><td>—</td><td>—</td><td class="'+(net>0?'good':'bad')+'">$'+Math.round(net).toLocaleString()+'</td><td>—</td>';
+  tbody.appendChild(tr4);
+
+  // LEED table
+  var leed_credits=[
+    {credit:'SS — Heat Island Reduction',cat:'Sustainable Sites',pts:1,elig:'Meets Option 2 (vegetated roof >50% of non-roof hardscape)'},
+    {credit:'WE — Rainwater Management',cat:'Water Efficiency',pts:2,elig:'Tier 2 if 95th percentile event retained on-site'},
+    {credit:'SS — Open Space',cat:'Sustainable Sites',pts:1,elig:'Intensive roof counts as open space if publicly accessible'},
+    {credit:'EA — Optimize Energy',cat:'Energy & Atmosphere',pts:1,elig:'If thermal savings contribute to ≥6% energy improvement'},
+    {credit:'MR — Recycled Content',cat:'Materials & Resources',pts:1,elig:'Growing media with ≥10% post-consumer recycled content'}
+  ];
+  var ltbody=document.getElementById('leed_table');
+  ltbody.innerHTML='';
+  leed_credits.forEach(function(c){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+c.credit+'</td><td>'+c.cat+'</td><td class="good">'+c.pts+'</td><td>'+c.elig+'</td>';
+    ltbody.appendChild(tr);
+  });
+}
+
+calc();
+</script>
+</body>
+</html>

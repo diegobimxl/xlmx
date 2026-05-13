@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glass Performance Selector | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.tb a{color:#10b981;text-decoration:none;font-size:13px}
+.tb h1{font-size:15px;font-weight:600;flex:1}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px}
+.sub{color:#888;font-size:13px;margin-bottom:20px;line-height:1.6}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters select,.filters input{background:#111;border:1px solid #333;color:#e8e8e8;padding:7px 12px;border-radius:5px;font-size:12px}
+.filters select:focus,.filters input:focus{outline:none;border-color:#10b981}
+.cnt-badge{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#10b981;font-size:11px;padding:3px 10px;border-radius:20px;font-family:monospace}
+.tbl-wrap{overflow-x:auto;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#111;color:#888;font-weight:600;padding:9px 12px;text-align:left;border-bottom:1px solid #2a2a2a;cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:#e8e8e8}
+th .arrow{margin-left:4px;color:#555}
+td{padding:9px 12px;border-bottom:1px solid #1a1a1a;color:#ccc;vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:#e8e8e8;font-weight:500}
+.tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.t-exc{background:rgba(16,185,129,.12);color:#10b981}
+.t-good{background:rgba(96,165,250,.12);color:#60a5fa}
+.t-fair{background:rgba(251,191,36,.12);color:#fbbf24}
+.t-poor{background:rgba(248,113,113,.12);color:#f87171}
+.t-spec{background:rgba(200,169,110,.12);color:#c8a96e}
+.metric{font-family:monospace;font-size:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:12px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:16px}
+.btn:hover{background:#34d399}
+.cmp-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.cmp-row:last-child{border-bottom:none}
+.cmp-val{font-family:monospace;font-weight:600}
+.good{color:#4ade80}.mid{color:#c8a96e}.bad{color:#f87171}
+.callout{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:14px;margin-bottom:14px}
+.callout h3{font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.callout p{font-size:12px;color:#aaa;line-height:1.7}
+.note{font-size:11px;color:#555;font-style:italic;margin-top:10px;line-height:1.6}
+.lsg-bar{display:inline-block;width:60px;height:8px;border-radius:3px;background:#1a1a1a;vertical-align:middle;margin-left:4px;overflow:hidden}
+.lsg-fill{height:100%;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="tb"><a href="/tools/">&#8592; Tools</a><h1>Glass Performance Selector</h1><span class="cnt-badge" id="gcnt">20 types</span></div>
+<div class="wrap">
+<p class="sub">Comprehensive glazing database with NFRC-aligned performance metrics. Sort any column. Filter by application. Calculator compares two glass selections on annual energy cost and carbon. U-values for full window unit; SHGC and VLT per NFRC 100.</p>
+<div class="filters">
+  <input type="text" id="gsrch" placeholder="Search glass type..." oninput="filterGlass()" style="min-width:200px">
+  <select id="gcat" onchange="filterGlass()">
+    <option value="">All Categories</option>
+    <option value="standard">Standard</option>
+    <option value="performance">High Performance</option>
+    <option value="passive">Passive Solar</option>
+    <option value="solar-control">Solar Control</option>
+    <option value="specialty">Specialty / Premium</option>
+  </select>
+  <select id="gclimate" onchange="filterGlass()">
+    <option value="">All Climates</option>
+    <option value="cold">Cold (Zones 5-8)</option>
+    <option value="mixed">Mixed (Zones 3-5)</option>
+    <option value="hot">Hot (Zones 1-2)</option>
+  </select>
+</div>
+<div class="tbl-wrap">
+<table id="gtable">
+<thead><tr>
+  <th onclick="sortBy('name')">Glass Type <span class="arrow">↕</span></th>
+  <th onclick="sortBy('u')">U-Value <span class="arrow">↕</span></th>
+  <th onclick="sortBy('shgc')">SHGC <span class="arrow">↕</span></th>
+  <th onclick="sortBy('vlt')">VLT% <span class="arrow">↕</span></th>
+  <th onclick="sortBy('lsg')">LSG <span class="arrow">↕</span></th>
+  <th onclick="sortBy('stc')">STC <span class="arrow">↕</span></th>
+  <th onclick="sortBy('cr')">CR <span class="arrow">↕</span></th>
+  <th onclick="sortBy('cost_lo')">$/SF <span class="arrow">↕</span></th>
+  <th>Best For</th>
+  <th>Climate</th>
+</tr></thead>
+<tbody id="gbody"></tbody>
+</table>
+</div>
+<div class="callout">
+  <h3>Developer ROI Quick Guide</h3>
+  <p>Double Low-E argon (#3 passive, U=0.28) vs. clear double: ~$8-12/SF premium → typical 4-7 yr payback in climate zone 5+. Triple glazing adds $20-30/SF vs. standard double but cuts infiltration losses 60%. Electrochromic: $100-180/SF premium but eliminates roller shades, reduces HVAC tonnage 8-12%, qualifies for §179D deduction.</p>
+</div>
+<div class="grid2">
+  <div class="card">
+    <h2>Energy Cost Comparison Calculator</h2>
+    <label>Select Baseline Glass</label>
+    <select id="base_g"><option value="">— select —</option></select>
+    <label>Select Alternative Glass</label>
+    <select id="alt_g"><option value="">— select —</option></select>
+    <label>Total Glazing Area (SF)</label>
+    <input id="garea" type="number" value="5000" step="500">
+    <label>Climate Zone</label>
+    <select id="gcz">
+      <option value="1">Zone 1 — Very Hot Humid (Miami)</option>
+      <option value="2">Zone 2 — Hot Humid (Houston)</option>
+      <option value="3">Zone 3 — Warm (Atlanta)</option>
+      <option value="4">Zone 4 — Mixed (New York, Portland)</option>
+      <option value="5" selected>Zone 5 — Cool (Chicago, Denver)</option>
+      <option value="6">Zone 6 — Cold (Minneapolis)</option>
+      <option value="7">Zone 7 — Very Cold (Fairbanks)</option>
+    </select>
+    <label>Energy Cost ($/kBtu)</label>
+    <input id="ecost" type="number" value="0.025" step="0.005">
+    <button class="btn" onclick="compareGlass()">Compare Performance</button>
+  </div>
+  <div class="card">
+    <h2>Comparison Results</h2>
+    <div id="cmp-out"><p style="color:#555;font-size:13px">Select two glass types and calculate.</p></div>
+  </div>
+</div>
+<div class="grid2">
+  <div class="callout">
+    <h3>BIM / Drafting Note</h3>
+    <p>In Revit: use the Glass material parameter to assign U-value and SHGC to curtain wall panels. Map SHGC to the Solar Heat Gain Coefficient parameter; U-Value maps to Thermal Resistance (R = 1/U). For energy analysis in Insight or eQUEST, export SHGC per orientation as the system defines orientation-specific gains. In IES-VE, assign glazing construction directly from the manufacturer database (e.g., Guardian SunGuard, Vitro Solarban).</p>
+  </div>
+  <div class="callout">
+    <h3>Code Reference</h3>
+    <p>ASHRAE 90.1-2022: glazing U-value and SHGC limits by climate zone in Table 5.5-1 through 5.5-8. ENERGY STAR Residential: U ≤ 0.27 north, U ≤ 0.30 south. IECC 2021: prescriptive path Table R402.1.2. LEED v4 EQc8 (Quality Views): minimum VLT ≥ 0.27 for view glazing. Section 179D deduction: envelope must beat ASHRAE 90.1 baseline by 25%+ for full deduction.</p>
+  </div>
+</div>
+<p class="note">Data based on NFRC 100/200 simulation methodology and manufacturer published data (Guardian, Vitro, AGC, Cardinal, Saint-Gobain). U-values are whole-window unit values including frame. Center-of-glass values are typically 15-25% better. Costs are rough order-of-magnitude installed (supply + install, continental US). Always verify with current manufacturer NFRC certification labels.</p>
+</div>
+<script>
+var GLASS=[
+  {name:'Single Pane Clear (3mm)',cat:'standard',u:1.04,shgc:0.86,vlt:90,stc:27,cr:5,cost_lo:4,cost_hi:7,climate:'hot',best:'Historic preservation, unheated spaces',panes:1,gas:'air'},
+  {name:'Double Pane Clear (air)',cat:'standard',u:0.49,shgc:0.76,vlt:82,stc:30,cr:32,cost_lo:12,cost_hi:18,climate:'mixed',best:'Budget residential, mild climates',panes:2,gas:'air'},
+  {name:'Double Low-E #2 (air)',cat:'performance',u:0.35,shgc:0.40,vlt:70,stc:31,cr:45,cost_lo:16,cost_hi:24,climate:'mixed',best:'General commercial, code-minimum',panes:2,gas:'air'},
+  {name:'Double Low-E #2 (argon)',cat:'performance',u:0.30,shgc:0.38,vlt:70,stc:31,cr:50,cost_lo:19,cost_hi:28,climate:'mixed',best:'Standard commercial, mild-cool climates',panes:2,gas:'argon'},
+  {name:'Double Low-E #3 Passive (argon)',cat:'passive',u:0.28,shgc:0.44,vlt:68,stc:31,cr:52,cost_lo:21,cost_hi:30,climate:'cold',best:'North facades, passive solar, cold climates',panes:2,gas:'argon'},
+  {name:'Double Spectrally Selective (argon)',cat:'solar-control',u:0.29,shgc:0.22,vlt:68,stc:32,cr:55,cost_lo:24,cost_hi:36,climate:'hot',best:'South/west facades, hot climates, LEED EQc8',panes:2,gas:'argon'},
+  {name:'Double Reflective Low-E (commercial)',cat:'solar-control',u:0.30,shgc:0.19,vlt:20,stc:32,cr:48,cost_lo:18,cost_hi:28,climate:'hot',best:'High-rise commercial, max solar control',panes:2,gas:'argon'},
+  {name:'Triple Low-E (argon)',cat:'performance',u:0.22,shgc:0.25,vlt:60,stc:35,cr:68,cost_lo:38,cost_hi:58,climate:'cold',best:'Climate zone 5-6, Passive House adjacent',panes:3,gas:'argon'},
+  {name:'Triple Low-E Passive (krypton)',cat:'passive',u:0.17,shgc:0.42,vlt:62,stc:36,cr:74,cost_lo:48,cost_hi:72,climate:'cold',best:'Passive House south glazing, zone 6-7',panes:3,gas:'krypton'},
+  {name:'Triple High-Performance (krypton)',cat:'performance',u:0.15,shgc:0.22,vlt:56,stc:36,cr:78,cost_lo:55,cost_hi:80,climate:'cold',best:'Passive House, net zero, zone 7-8',panes:3,gas:'krypton'},
+  {name:'Vacuum Insulated Glazing (VIG)',cat:'specialty',u:0.11,shgc:0.38,vlt:72,stc:31,cr:85,cost_lo:90,cost_hi:160,climate:'cold',best:'Historic slimline retrofit, high-U walls',panes:2,gas:'vacuum'},
+  {name:'Electrochromic / Dynamic Tint',cat:'specialty',u:0.20,shgc:0.06,vlt:3,stc:34,cr:65,cost_lo:100,cost_hi:185,climate:'mixed',best:'LEED, Bldgs needing glare control + view',panes:2,gas:'argon',note:'SHGC/VLT shown at max tint; clear state: SHGC 0.36, VLT 60%'},
+  {name:'BIPV Glass (semi-transparent)',cat:'specialty',u:0.30,shgc:0.12,vlt:12,stc:33,cr:52,cost_lo:85,cost_hi:145,climate:'mixed',best:'Atriums, facades with generation potential',panes:2,gas:'argon'},
+  {name:'Laminated Safety Low-E (argon)',cat:'performance',u:0.31,shgc:0.33,vlt:64,stc:38,cr:50,cost_lo:28,cost_hi:42,climate:'mixed',best:'Hurricane zones, crime-prone, high-security',panes:2,gas:'argon'},
+  {name:'Double Tinted Bronze (solar)',cat:'solar-control',u:0.46,shgc:0.28,vlt:36,stc:30,cr:35,cost_lo:14,cost_hi:22,climate:'hot',best:'Economical solar control, older buildings',panes:2,gas:'air'},
+  {name:'Acoustic Laminated (4-2-6mm)',cat:'specialty',u:0.35,shgc:0.40,vlt:68,stc:45,cr:46,cost_lo:32,cost_hi:50,climate:'mixed',best:'Urban, airports, hotels, hospital rooms',panes:2,gas:'air'},
+  {name:'Fire-Rated (30-min, single pane equiv)',cat:'specialty',u:0.85,shgc:0.65,vlt:80,stc:30,cr:10,cost_lo:55,cost_hi:120,climate:'mixed',best:'Stairwells, fire corridors, atria',panes:1,gas:'air'},
+  {name:'Structural Silicone Laminate (SSG)',cat:'specialty',u:0.29,shgc:0.35,vlt:66,stc:33,cr:52,cost_lo:35,cost_hi:60,climate:'mixed',best:'Frameless facades, artistic all-glass',panes:2,gas:'argon'},
+  {name:'Insulated Translucent Panel (multiwall PC)',cat:'specialty',u:0.20,shgc:0.55,vlt:40,stc:24,cr:60,cost_lo:22,cost_hi:40,climate:'cold',best:'Skylights, canopies, diffuse daylighting',panes:3,gas:'air'},
+  {name:'Double Low-E Switchable Privacy',cat:'specialty',u:0.30,shgc:0.35,vlt:68,stc:32,cr:50,cost_lo:75,cost_hi:130,climate:'mixed',best:'Conference rooms, medical, hospitality',panes:2,gas:'argon'}
+];
+var sortKey='u',sortAsc=true,filtered=GLASS.slice();
+function lsgClass(l){return l>=2.0?'t-exc':l>=1.4?'t-good':l>=1.0?'t-fair':'t-poor';}
+function uClass(u){return u<=0.20?'t-exc':u<=0.30?'t-good':u<=0.40?'t-fair':'t-poor';}
+function shgcLabel(s,cat){
+  if(cat==='passive')return'<span class="tag t-exc">High Solar</span>';
+  if(s<=0.22)return'<span class="tag t-exc">Very Low</span>';
+  if(s<=0.35)return'<span class="tag t-good">Low</span>';
+  if(s<=0.50)return'<span class="tag t-fair">Moderate</span>';
+  return'<span class="tag t-poor">High</span>';
+}
+function climateTag(c){
+  if(c==='cold')return'<span class="tag t-good">Cold</span>';
+  if(c==='hot')return'<span class="tag t-exc">Hot</span>';
+  return'<span class="tag t-fair">Mixed</span>';
+}
+function renderTable(){
+  var s=filtered.slice().sort(function(a,b){
+    var av=a[sortKey]||0,bv=b[sortKey]||0;
+    return sortAsc?(typeof av==='string'?av.localeCompare(bv):av-bv):(typeof av==='string'?bv.localeCompare(av):bv-av);
+  });
+  var html='';
+  s.forEach(function(g){
+    var lsg=(g.vlt/100/g.shgc);
+    var lsgPct=Math.min(100,lsg/3*100);
+    html+='<tr>';
+    html+='<td>'+g.name+(g.note?'<div style="font-size:10px;color:#555;margin-top:2px">'+g.note+'</div>':'')+'</td>';
+    html+='<td class="metric '+uClass(g.u)+'">'+g.u.toFixed(2)+'</td>';
+    html+='<td>'+shgcLabel(g.shgc,g.cat)+'<span class="metric" style="margin-left:4px">'+g.shgc.toFixed(2)+'</span></td>';
+    html+='<td class="metric">'+(g.vlt)+'%</td>';
+    html+='<td class="metric '+lsgClass(lsg)+'">'+lsg.toFixed(2)+'<span class="lsg-bar"><span class="lsg-fill" style="width:'+lsgPct.toFixed(0)+'%;background:currentColor"></span></span></td>';
+    html+='<td class="metric">'+g.stc+'</td>';
+    html+='<td class="metric">'+g.cr+'</td>';
+    html+='<td class="metric">$'+g.cost_lo+'-'+g.cost_hi+'</td>';
+    html+='<td style="font-size:11px;color:#888;max-width:180px">'+g.best+'</td>';
+    html+='<td>'+climateTag(g.climate)+'</td>';
+    html+='</tr>';
+  });
+  document.getElementById('gbody').innerHTML=html||'<tr><td colspan="10" style="color:#555;padding:20px">No matching glass types.</td></tr>';
+  document.getElementById('gcnt').textContent=s.length+' types';
+  populateSelects();
+}
+function sortBy(k){
+  if(sortKey===k)sortAsc=!sortAsc;
+  else{sortKey=k;sortAsc=true;}
+  renderTable();
+}
+function filterGlass(){
+  var q=document.getElementById('gsrch').value.toLowerCase();
+  var cat=document.getElementById('gcat').value;
+  var clim=document.getElementById('gclimate').value;
+  filtered=GLASS.filter(function(g){
+    var match=true;
+    if(q&&!(g.name+g.best).toLowerCase().includes(q))match=false;
+    if(cat&&g.cat!==cat)match=false;
+    if(clim&&g.climate!==clim)match=false;
+    return match;
+  });
+  renderTable();
+}
+function populateSelects(){
+  ['base_g','alt_g'].forEach(function(id){
+    var sel=document.getElementById(id),cur=sel.value;
+    sel.innerHTML='<option value="">— select —</option>';
+    GLASS.forEach(function(g,i){sel.innerHTML+='<option value="'+i+'"'+((cur==i)?' selected':'')+'>'+g.name+'</option>';});
+  });
+}
+var CZ_FACTORS={
+  1:{hdd:200,cdd:4000,hf:0.3,cf:0.7},
+  2:{hdd:1200,cdd:2800,hf:0.4,cf:0.6},
+  3:{hdd:2500,cdd:1800,hf:0.55,cf:0.45},
+  4:{hdd:4500,cdd:800,hf:0.65,cf:0.35},
+  5:{hdd:6500,cdd:400,hf:0.75,cf:0.25},
+  6:{hdd:8500,cdd:150,hf:0.85,cf:0.15},
+  7:{hdd:11000,cdd:50,hf:0.92,cf:0.08}
+};
+function compareGlass(){
+  var bi=parseInt(document.getElementById('base_g').value);
+  var ai=parseInt(document.getElementById('alt_g').value);
+  if(isNaN(bi)||isNaN(ai)){document.getElementById('cmp-out').innerHTML='<p style="color:#f87171;font-size:12px">Select both glass types.</p>';return;}
+  var bg=GLASS[bi],ag=GLASS[ai];
+  var area=parseFloat(document.getElementById('garea').value)||5000;
+  var cz=parseInt(document.getElementById('gcz').value)||5;
+  var ecost=parseFloat(document.getElementById('ecost').value)||0.025;
+  var f=CZ_FACTORS[cz];
+  var area_m2=area*0.0929;
+  var dU=bg.u-ag.u;
+  var dShgc=bg.shgc-ag.shgc;
+  var heat_save_kbtu=dU*area_m2*3.412*f.hdd*24/1000;
+  var cool_save_kbtu=dShgc*area_m2*0.85*f.cdd*8/1000;
+  var total_save_kbtu=(heat_save_kbtu*f.hf)+(cool_save_kbtu*f.cf);
+  var annual_save=total_save_kbtu*ecost;
+  var cost_prem=(ag.cost_lo+ag.cost_hi)/2*area-(bg.cost_lo+bg.cost_hi)/2*area;
+  var payback=cost_prem>0?cost_prem/annual_save:0;
+  var co2_save=total_save_kbtu*0.0532;
+  var lsg_b=bg.vlt/100/bg.shgc,lsg_a=ag.vlt/100/ag.shgc;
+  var rows=[
+    ['U-Value (whole window)',bg.u.toFixed(2),ag.u.toFixed(2),dU>0?'good':'bad'],
+    ['SHGC',bg.shgc.toFixed(2),ag.shgc.toFixed(2),'mid'],
+    ['VLT',bg.vlt+'%',ag.vlt+'%','mid'],
+    ['LSG Ratio',lsg_b.toFixed(2),lsg_a.toFixed(2),lsg_a>lsg_b?'good':'bad'],
+    ['STC',bg.stc,ag.stc,ag.stc>bg.stc?'good':'mid'],
+    ['CR Rating',bg.cr,ag.cr,ag.cr>bg.cr?'good':'mid'],
+    ['Installed Cost/SF','$'+(bg.cost_lo+bg.cost_hi)/2,'$'+(ag.cost_lo+ag.cost_hi)/2,'mid'],
+    ['Total Cost ('+area.toLocaleString()+' SF)','$'+(((bg.cost_lo+bg.cost_hi)/2)*area).toLocaleString(),'$'+(((ag.cost_lo+ag.cost_hi)/2)*area).toLocaleString(),'mid'],
+    ['Cost Premium','—','$'+Math.round(cost_prem).toLocaleString(),cost_prem<0?'good':'bad'],
+    ['Est. Annual Energy Savings','—','$'+Math.round(annual_save).toLocaleString()+'/yr','good'],
+    ['CO2 Avoided','—',co2_save.toFixed(0)+' kgCO2e/yr','good'],
+    ['Simple Payback','—',payback>0?payback.toFixed(1)+' yrs':cost_prem<=0?'Immediate':'N/A',payback<8?'good':payback<15?'mid':'bad']
+  ];
+  var html='<div style="font-size:11px;color:#888;margin-bottom:8px"><b style="color:#e8e8e8">'+bg.name+'</b> vs. <b style="color:#10b981">'+ag.name+'</b> &mdash; CZ '+cz+'</div>';
+  rows.forEach(function(r){html+='<div class="cmp-row"><span>'+r[0]+'</span><div style="display:flex;gap:12px"><span class="cmp-val" style="color:#555">'+r[1]+'</span><span class="cmp-val '+r[3]+'">'+r[2]+'</span></div></div>';});
+  document.getElementById('cmp-out').innerHTML=html;
+}
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thermal Mass Calculator — Lag & Damping</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:24px;font-weight:700;font-family:monospace;color:#10b981}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.result-row .key{color:#888}
+.result-row .val{font-family:monospace;font-weight:600;color:#fff}
+.mat-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.mat-table th{background:#0d0d0d;color:#888;padding:8px;text-align:center;border-bottom:1px solid #222;font-size:11px}
+.mat-table th:first-child{text-align:left}
+.mat-table td{padding:8px;border-bottom:1px solid #1a1a1a;text-align:center;font-family:monospace;color:#ccc}
+.mat-table td:first-child{text-align:left;font-family:system-ui;color:#888}
+.mat-table tr:hover td{background:#161616}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Thermal Mass Calculator</h1>
+  <p>Thermal Lag, Decrement Factor, and Temperature Damping Analysis</p>
+  <span class="badge">ISO 13786</span>
+  <span class="badge">Passive Design</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Material Selection</h3>
+        <label>Material</label>
+        <select id="material" onchange="setMaterial()">
+          <option value="concrete_200" data-k="0.92" data-rho="144" data-cp="0.20">Concrete — 8" (200mm)</option>
+          <option value="concrete_100" data-k="0.92" data-rho="144" data-cp="0.20">Concrete — 4" (100mm)</option>
+          <option value="brick_200" data-k="0.42" data-rho="112" data-cp="0.19">Brick — 8" (200mm)</option>
+          <option value="brick_100" data-k="0.42" data-rho="112" data-cp="0.19">Brick — 4" (100mm)</option>
+          <option value="rammed_earth" data-k="0.65" data-rho="120" data-cp="0.22">Rammed Earth — 12"</option>
+          <option value="adobe" data-k="0.30" data-rho="100" data-cp="0.20">Adobe — 12"</option>
+          <option value="cmu" data-k="0.65" data-rho="116" data-cp="0.19">CMU — 8" (200mm)</option>
+          <option value="pcm" data-k="0.30" data-rho="75" data-cp="0.45">PCM (Phase Change Material)</option>
+          <option value="wood" data-k="0.08" data-rho="31" data-cp="0.45">Wood Frame (2x6 stud)</option>
+          <option value="custom">Custom material</option>
+        </select>
+        <label>Thermal Conductivity k (BTU/hr·ft·°F)</label>
+        <input type="number" id="k" value="0.92" step="0.01">
+        <label>Density ρ (lb/ft³)</label>
+        <input type="number" id="rho" value="144" step="1">
+        <label>Specific Heat Cp (BTU/lb·°F)</label>
+        <input type="number" id="cp" value="0.20" step="0.01">
+        <label>Thickness d (inches)</label>
+        <input type="number" id="thick" value="8" step="0.5">
+        <div style="margin-top:20px;border-top:1px solid #222;padding-top:20px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">Exposure Conditions</div>
+          <label>Outdoor Temp Swing (°F peak-to-peak daily)</label>
+          <input type="number" id="swing" value="30" step="1">
+          <label>Outdoor Peak Temperature (°F)</label>
+          <input type="number" id="t_peak" value="95" step="1">
+          <label>Interior Area (SF) for thermal storage</label>
+          <input type="number" id="area" value="500" step="50">
+        </div>
+        <button class="btn" onclick="calcMass()">Calculate Thermal Mass</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Select material and calculate</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>Material Properties Reference</h3>
+        <table class="mat-table">
+          <tr><th>Material</th><th>k (BTU/hr·ft·°F)</th><th>ρ (lb/ft³)</th><th>Cp</th><th>Diffusivity</th></tr>
+          <tr><td>Concrete (normal wt)</td><td>0.92</td><td>144</td><td>0.20</td><td>0.032</td></tr>
+          <tr><td>Brick (common)</td><td>0.42</td><td>112</td><td>0.19</td><td>0.020</td></tr>
+          <tr><td>CMU (medium wt)</td><td>0.65</td><td>116</td><td>0.19</td><td>0.030</td></tr>
+          <tr><td>Rammed Earth</td><td>0.65</td><td>120</td><td>0.22</td><td>0.025</td></tr>
+          <tr><td>Adobe</td><td>0.30</td><td>100</td><td>0.20</td><td>0.015</td></tr>
+          <tr><td>Gypsum board</td><td>0.097</td><td>50</td><td>0.26</td><td>0.007</td></tr>
+          <tr><td>Wood (softwood)</td><td>0.080</td><td>31</td><td>0.45</td><td>0.006</td></tr>
+          <tr><td>Stone (granite)</td><td>1.27</td><td>165</td><td>0.19</td><td>0.040</td></tr>
+          <tr><td>PCM (paraffin)</td><td>0.10</td><td>53</td><td>0.50+</td><td>—</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / Thermal Mass Integration</div>
+    <p>Assign thermal mass parameters in Revit as shared parameters on floor/wall types: <em>ThermalMass_Lag_Hours</em>, <em>ThermalMass_Decrement_Factor</em>, <em>ThermalMass_kJ_per_K</em>. For ASHRAE 90.1 energy models in EnergyPlus, exposed thermal mass directly affects HVAC peak sizing — a high decrement factor reduces peak cooling load, allowing equipment downsizing. Document exposed thermal mass area and depth for energy modelers. For Passive House PHPP, dynamic thermal mass is accounted for via the PHPP internal heat capacity input (kJ/K per floor area).</p>
+  </div>
+  <div class="cta">
+    <p><strong>Thermal mass optimization for your passive design strategy?</strong><br>
+    BIM XL delivers thermal mass analysis integrated with EnergyPlus and PHPP models, Revit material library setup, and peak load reduction documentation. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+var MATS={
+  concrete_200:{k:0.92,rho:144,cp:0.20,d:8},
+  concrete_100:{k:0.92,rho:144,cp:0.20,d:4},
+  brick_200:{k:0.42,rho:112,cp:0.19,d:8},
+  brick_100:{k:0.42,rho:112,cp:0.19,d:4},
+  rammed_earth:{k:0.65,rho:120,cp:0.22,d:12},
+  adobe:{k:0.30,rho:100,cp:0.20,d:12},
+  cmu:{k:0.65,rho:116,cp:0.19,d:8},
+  pcm:{k:0.30,rho:75,cp:0.45,d:2},
+  wood:{k:0.08,rho:31,cp:0.45,d:5.5}
+};
+function setMaterial(){
+  var t=document.getElementById('material').value;
+  if(!MATS[t]) return;
+  var m=MATS[t];
+  document.getElementById('k').value=m.k;
+  document.getElementById('rho').value=m.rho;
+  document.getElementById('cp').value=m.cp;
+  document.getElementById('thick').value=m.d;
+}
+function calcMass(){
+  var k=parseFloat(document.getElementById('k').value);
+  var rho=parseFloat(document.getElementById('rho').value);
+  var cp=parseFloat(document.getElementById('cp').value);
+  var d_in=parseFloat(document.getElementById('thick').value);
+  var swing=parseFloat(document.getElementById('swing').value);
+  var t_peak=parseFloat(document.getElementById('t_peak').value);
+  var area=parseFloat(document.getElementById('area').value);
+
+  var d_ft=d_in/12;
+  // Thermal diffusivity α = k / (ρ * Cp)
+  var alpha=k/(rho*cp); // ft²/hr
+  // Thermal time constant τ = d² / (π² * α)
+  var tau=d_ft*d_ft/(Math.PI*Math.PI*alpha);
+  // For sinusoidal daily (24hr) cycle:
+  // Lag time = d / √(π * alpha / period) * period / (2π) simplified
+  var period=24; // hours (daily cycle)
+  var mu=d_ft*Math.sqrt(Math.PI/(alpha*period));
+  var lag_hrs=mu*period/(2*Math.PI);
+  lag_hrs=Math.min(lag_hrs,12);
+  // Decrement factor f = exp(-mu) (amplitude reduction)
+  var f=Math.exp(-mu);
+  f=Math.max(0.01,Math.min(1,f));
+  // Damped swing = outdoor swing * f
+  var damped_swing=swing*f;
+  // Interior peak temperature
+  var t_avg=t_peak-swing/2;
+  var interior_peak=t_avg+damped_swing/2;
+  // Thermal capacitance
+  var cap_btu_F=rho*cp*(d_ft/2)*area; // BTU/°F (half thickness for interior-exposed)
+  var cap_kj_K=cap_btu_F*1.899; // kJ/K
+
+  var lag_color=lag_hrs>6?'#10b981':lag_hrs>3?'#f59e0b':'#ef4444';
+  var f_color=f<0.3?'#10b981':f<0.6?'#f59e0b':'#ef4444';
+
+  document.getElementById('results').innerHTML=
+    '<div class="kpi-grid">'
+    +'<div class="kpi"><div class="val" style="color:'+lag_color+'">'+lag_hrs.toFixed(1)+'h</div><div class="lbl">Thermal Lag</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+f_color+'">'+(f*100).toFixed(0)+'%</div><div class="lbl">Decrement Factor</div></div>'
+    +'<div class="kpi"><div class="val">'+damped_swing.toFixed(1)+'°F</div><div class="lbl">Damped Temp Swing</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:16px">'
+    +'<div class="result-row"><span class="key">Thermal diffusivity α</span><span class="val">'+alpha.toFixed(4)+' ft²/hr</span></div>'
+    +'<div class="result-row"><span class="key">Outdoor peak temp</span><span class="val">'+t_peak+'°F</span></div>'
+    +'<div class="result-row"><span class="key">Interior peak temp (damped)</span><span class="val">'+interior_peak.toFixed(1)+'°F ('+swing+'°F → '+damped_swing.toFixed(1)+'°F swing)</span></div>'
+    +'<div class="result-row"><span class="key">Thermal capacitance</span><span class="val">'+Math.round(cap_btu_F).toLocaleString()+' BTU/°F</span></div>'
+    +'<div class="result-row"><span class="key">Capacitance (SI)</span><span class="val">'+Math.round(cap_kj_K).toLocaleString()+' kJ/K</span></div>'
+    +'<div class="result-row"><span class="key">PHPP Cm (per SF)</span><span class="val">'+(cap_kj_K/area*10.764).toFixed(0)+' kJ/m²K</span></div>'
+    +'</div>'
+    +'<div style="background:'+(f<0.4?'#10b98111':'#f59e0b11')+';border:1px solid '+(f<0.4?'#10b98133':'#f59e0b33')+';border-radius:6px;padding:12px;margin-top:4px">'
+    +'<p style="font-size:13px;color:#ccc;line-height:1.6">'
+    +(f<0.2?'Excellent thermal mass — absorbs '+Math.round((1-f)*100)+'% of outdoor temperature swing. Suitable for passive cooling in hot climates. Consider exposed interior surfaces for maximum effectiveness.':
+      f<0.5?'Good thermal mass — reduces temperature swings by '+Math.round((1-f)*100)+'%. Effective for diurnal temperature control in mixed climates.':
+      'Limited thermal mass effect — only '+Math.round((1-f)*100)+'% damping. Consider increasing thickness or using higher-density materials for better performance.')
+    +'</p></div>';
+}
+setMaterial();
+calcMass();
+</script>
+</body>
+</html>

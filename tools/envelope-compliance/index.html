@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envelope Compliance — ASHRAE 90.1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:360px 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px}
+.comp-table th{background:#0d0d0d;color:#888;padding:10px 12px;text-align:left;border-bottom:2px solid #222;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.comp-table td{padding:10px 12px;border-bottom:1px solid #1a1a1a;vertical-align:middle}
+.comp-table tr:hover td{background:#0d0d0d}
+.pass{color:#10b981;font-weight:700}
+.fail{color:#ef4444;font-weight:700}
+.warn{color:#f59e0b;font-weight:700}
+.status-pill{display:inline-block;border-radius:4px;padding:3px 10px;font-size:11px;font-weight:700}
+.pass-pill{background:#10b98122;color:#10b981;border:1px solid #10b98144}
+.fail-pill{background:#ef444422;color:#ef4444;border:1px solid #ef444444}
+.na-pill{background:#33333344;color:#666;border:1px solid #333}
+.req-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.req-table th{background:#0d0d0d;color:#888;padding:8px;text-align:center;border-bottom:1px solid #222;font-size:11px}
+.req-table th:first-child{text-align:left}
+.req-table td{padding:8px;border-bottom:1px solid #1a1a1a;text-align:center;font-family:monospace;color:#ccc}
+.req-table td:first-child{text-align:left;font-family:system-ui;color:#888}
+.req-table tr:hover td{background:#161616}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Envelope Compliance Checker</h1>
+  <p>ASHRAE 90.1-2022 Prescriptive Envelope Requirements by Climate Zone</p>
+  <span class="badge">ASHRAE 90.1-2022</span>
+  <span class="badge">IECC 2021</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Project Parameters</h3>
+        <label>Climate Zone</label>
+        <select id="cz" onchange="updateReqs()">
+          <option value="1">1A / 1B — Very Hot (Miami, Honolulu)</option>
+          <option value="2">2A / 2B — Hot (Houston, Phoenix)</option>
+          <option value="3">3A / 3B / 3C — Warm (Atlanta, LA)</option>
+          <option value="4" selected>4A / 4B / 4C — Mixed (Baltimore, Seattle)</option>
+          <option value="5">5A / 5B / 5C — Cool (Chicago, Denver)</option>
+          <option value="6">6A / 6B — Cold (Minneapolis, Helena)</option>
+          <option value="7">7 — Very Cold (Fairbanks)</option>
+          <option value="8">8 — Subarctic (Anchorage)</option>
+        </select>
+        <label>Building Type</label>
+        <select id="btype">
+          <option value="commercial" selected>Nonresidential (Commercial)</option>
+          <option value="residential">Residential (3+ stories)</option>
+          <option value="semi">Semi-Heated</option>
+        </select>
+        <label>Glazing % (WWR — Window-to-Wall Ratio)</label>
+        <input type="number" id="wwr" value="35" min="0" max="100">
+        <div style="margin-top:20px;border-top:1px solid #222;padding-top:20px">
+          <div style="font-size:12px;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">Your Assembly Values</div>
+          <label>Roof U-Value (BTU/hr·SF·°F)</label>
+          <input type="number" id="u_roof" value="0.027" step="0.001">
+          <label>Above-Grade Wall U-Value</label>
+          <input type="number" id="u_wall" value="0.064" step="0.001">
+          <label>Floor U-Value (over unconditioned space)</label>
+          <input type="number" id="u_floor" value="0.033" step="0.001">
+          <label>Window U-Value (whole window, NFRC)</label>
+          <input type="number" id="u_window" value="0.29" step="0.01">
+          <label>Window SHGC (south/east/west)</label>
+          <input type="number" id="shgc" value="0.25" step="0.01">
+          <label>Skylight U-Value</label>
+          <input type="number" id="u_sky" value="0.50" step="0.01">
+          <label>Skylight SHGC</label>
+          <input type="number" id="shgc_sky" value="0.30" step="0.01">
+        </div>
+        <button class="btn" onclick="checkCompliance()">Check Compliance</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Compliance Results</h3>
+        <div id="compResults">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Select climate zone and enter assembly values to check compliance</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>ASHRAE 90.1-2022 Requirements Reference</h3>
+        <div id="reqTable">
+          <p style="color:#555;font-size:13px">Select a climate zone to see requirements</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM Envelope Compliance Workflow</div>
+    <p>Assign ASHRAE 90.1 parameters as Revit shared parameters on wall, roof, and floor types: <em>U_Value_Effective</em>, <em>R_Value_CI</em>, <em>Assembly_ASHRAE_Compliant</em>. Use Revit Energy Settings to export gbXML with correct assembly U-values to EnergyPlus or eQUEST for whole-building compliance path (ASHRAE 90.1 Appendix G). For prescriptive path, these exact U-values must match the 90.1 tables. Continuous insulation (CI) U-values must be calculated separately from clear-field values using ASHRAE Handbook fundamentals metal-stud correction factors (20–45% reduction for metal framing).</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Need a full ASHRAE 90.1 envelope compliance package?</strong><br>
+    BIM XL delivers assembly U-value calculations, thermal bridging analysis, and Revit model compliance documentation ready for energy code review. Contact <strong>BIM XL</strong> for project-specific support.</p>
+  </div>
+</div>
+
+<script>
+// ASHRAE 90.1-2022 nonresidential prescriptive limits [roof_u, wall_u, floor_u, window_u, window_shgc, sky_u, sky_shgc]
+var REQS={
+  1:[0.048,0.124,0.322,0.50,0.25,0.90,0.19],
+  2:[0.048,0.084,0.051,0.40,0.25,0.90,0.19],
+  3:[0.048,0.084,0.051,0.35,0.25,0.90,0.19],
+  4:[0.027,0.064,0.033,0.29,0.25,0.50,0.19],
+  5:[0.027,0.042,0.033,0.29,0.25,0.50,0.19],
+  6:[0.027,0.030,0.033,0.29,0.25,0.50,0.19],
+  7:[0.027,0.030,0.033,0.29,null,0.50,null],
+  8:[0.027,0.030,0.033,0.29,null,0.50,null]
+};
+var CZ_NAMES={1:'1A/1B Very Hot',2:'2A/2B Hot',3:'3A/3B/3C Warm',4:'4A/4B Mixed',5:'5A/5B Cool',6:'6A/6B Cold',7:'7 Very Cold',8:'8 Subarctic'};
+var LABELS=['Roof U-Value','Above-Grade Wall U-Value','Floor U-Value (over unconditioned)','Window U-Value (NFRC whole window)','Window SHGC','Skylight U-Value','Skylight SHGC'];
+
+function updateReqs(){
+  var cz=parseInt(document.getElementById('cz').value);
+  var r=REQS[cz];
+  var html='<table class="req-table"><tr><th>Assembly</th><th>Max Allowed</th><th>Equivalent R</th></tr>';
+  var asmNames=['Roof','Above-Grade Wall','Floor/Slab','Windows','Window SHGC','Skylights','Skylight SHGC'];
+  r.forEach(function(v,i){
+    var eq=v&&i<3?'R-'+Math.round(1/v):'—';
+    html+='<tr><td>'+asmNames[i]+'</td><td>'+(v?'≤'+v:'No limit CZ'+cz)+'</td><td>'+eq+'</td></tr>';
+  });
+  html+='</table>';
+  document.getElementById('reqTable').innerHTML=html;
+}
+
+function checkCompliance(){
+  var cz=parseInt(document.getElementById('cz').value);
+  var r=REQS[cz];
+  var inputs=[
+    parseFloat(document.getElementById('u_roof').value),
+    parseFloat(document.getElementById('u_wall').value),
+    parseFloat(document.getElementById('u_floor').value),
+    parseFloat(document.getElementById('u_window').value),
+    parseFloat(document.getElementById('shgc').value),
+    parseFloat(document.getElementById('u_sky').value),
+    parseFloat(document.getElementById('shgc_sky').value)
+  ];
+  var labels=LABELS;
+  var passes=[];
+  var all_pass=true;
+
+  var html='<table class="comp-table"><tr><th>Assembly</th><th>Your Value</th><th>Max Allowed</th><th>Status</th><th>Margin</th></tr>';
+  inputs.forEach(function(v,i){
+    var req=r[i];
+    var pass=!req||v<=req;
+    if(!pass) all_pass=false;
+    passes.push(pass);
+    var margin=req?(req-v).toFixed(3):'—';
+    var marginColor=!req?'#555':parseFloat(margin)>=0?'#10b981':'#ef4444';
+    html+='<tr>'
+      +'<td style="color:#ccc">'+labels[i]+'</td>'
+      +'<td style="font-family:monospace;font-weight:600;color:#fff">'+v+'</td>'
+      +'<td style="font-family:monospace;color:#888">'+(req?'≤'+req:'No limit')+'</td>'
+      +'<td>'+(req?'<span class="status-pill '+(pass?'pass-pill':'fail-pill')+'">'+(pass?'PASS':'FAIL')+'</span>':'<span class="status-pill na-pill">N/A</span>')+'</td>'
+      +'<td style="color:'+marginColor+';font-family:monospace">'+(req?margin:'—')+'</td>'
+      +'</tr>';
+  });
+  html+='</table>';
+
+  var overall_color=all_pass?'#10b981':'#ef4444';
+  var overall_label=all_pass?'ALL ASSEMBLIES COMPLIANT':'NON-COMPLIANT — CORRECTIONS REQUIRED';
+
+  html='<div style="background:'+overall_color+'22;border:1px solid '+overall_color+'44;border-radius:6px;padding:14px;margin-bottom:16px;text-align:center">'
+    +'<div style="font-size:13px;font-weight:700;color:'+overall_color+'">'+overall_label+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-top:4px">ASHRAE 90.1-2022 — Climate Zone '+cz+' ('+CZ_NAMES[cz]+')</div>'
+    +'</div>'
+    +html;
+
+  if(!all_pass){
+    html+='<div style="background:#ef444411;border:1px solid #ef444433;border-radius:6px;padding:14px;margin-top:16px">'
+      +'<div style="font-size:11px;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Remediation Required</div>'
+      +'<p style="font-size:13px;color:#ccc;line-height:1.6">';
+    inputs.forEach(function(v,i){
+      if(r[i]&&v>r[i]){
+        var rVal=Math.round(1/r[i]);
+        html+=LABELS[i]+': reduce from '+v+' to ≤'+r[i]+' (add R-'+Math.round((v-r[i])/(r[i]*v))+' continuous insulation approx.)<br>';
+      }
+    });
+    html+='</p></div>';
+  }
+
+  document.getElementById('compResults').innerHTML=html;
+  updateReqs();
+}
+updateReqs();
+checkCompliance();
+</script>
+</body>
+</html>

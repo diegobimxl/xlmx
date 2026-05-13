@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facade System Cost-Benefit — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.score-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700}
+.score-a{background:#064e3b;color:#10b981}
+.score-b{background:#1c3d5a;color:#60a5fa}
+.score-c{background:#3d2c0a;color:#f59e0b}
+.score-d{background:#3d0a0a;color:#ef4444}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Facade System Cost-Benefit <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Capital cost, energy performance, lifecycle, and sustainability score comparison across 6 facade systems — ASHRAE 90.1 · LEED v4.1</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Project Parameters</h3>
+    <label>Facade Area (SF)</label>
+    <input type="number" id="facade_area" value="15000" oninput="calc()">
+    <label>WWR — Window-to-Wall Ratio (%)</label>
+    <input type="number" id="wwr" value="40" min="10" max="90" oninput="calc()">
+    <label>Climate Zone</label>
+    <select id="cz" onchange="calc()">
+      <option value="1">CZ 1 — Very Hot (Miami)</option>
+      <option value="2">CZ 2 — Hot (Houston)</option>
+      <option value="3" selected>CZ 3 — Mixed (Atlanta)</option>
+      <option value="4">CZ 4 — Mixed-Cool (Baltimore)</option>
+      <option value="5">CZ 5 — Cool (Chicago)</option>
+      <option value="6">CZ 6 — Cold (Minneapolis)</option>
+    </select>
+    <label>Orientation (primary)</label>
+    <select id="orient" onchange="calc()">
+      <option value="S">South</option>
+      <option value="N">North</option>
+      <option value="E">East</option>
+      <option value="W" selected>West</option>
+    </select>
+    <label>Analysis Period (years)</label>
+    <input type="number" id="years" value="30" oninput="calc()">
+    <label>Discount Rate (%)</label>
+    <input type="number" id="discount" value="6" oninput="calc()">
+    <label>Energy Cost ($/kBtu)</label>
+    <input type="number" id="energy_cost" value="0.035" step="0.005" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>Facade System Comparison</h3>
+    <p style="font-size:0.78rem;color:#666;margin-bottom:10px">Comparing 6 systems. Select your baseline vs. upgrade options below.</p>
+    <label>Baseline System</label>
+    <select id="baseline" onchange="calc()">
+      <option value="0">Single-pane + EIFS (Code Minimum)</option>
+      <option value="1" selected>Double-pane curtain wall (Standard)</option>
+      <option value="2">Double-pane + CI (Enhanced)</option>
+    </select>
+    <label>Proposed Upgrade System</label>
+    <select id="upgrade" onchange="calc()">
+      <option value="2">Double-pane + CI (Enhanced)</option>
+      <option value="3" selected>Triple-pane High-Performance</option>
+      <option value="4">BIPV Facade (solar integrated)</option>
+      <option value="5">Dynamic / Electrochromic Glazing</option>
+    </select>
+    <div style="margin-top:16px;padding:12px;background:#161616;border-radius:6px;font-size:0.78rem;color:#888">
+      Costs include installed material, framing, sealants, and typical mock-up allowance. Exclude design fees.
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Full System Comparison Matrix</h3>
+  <table id="compare_table">
+    <thead>
+      <tr>
+        <th>System</th>
+        <th>U-value</th>
+        <th>SHGC</th>
+        <th>VT</th>
+        <th>$/SF installed</th>
+        <th>Total Capex</th>
+        <th>Ann. Energy Save</th>
+        <th>30yr NPV</th>
+        <th>Lifespan</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody id="system_table"></tbody>
+  </table>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Baseline vs Upgrade</h3>
+    <div class="result-big" id="capex_diff">—</div>
+    <div class="result-label">Incremental capex (upgrade over baseline)</div>
+    <div class="result-sub" id="energy_delta">—</div>
+    <div class="result-label">Annual energy savings (upgrade vs baseline)</div>
+    <div class="result-sub" id="simple_pb">—</div>
+    <div class="result-label">Simple payback on premium</div>
+  </div>
+  <div class="card">
+    <h3>30-Year NPV Delta</h3>
+    <div class="result-big good" id="npv_delta">—</div>
+    <div class="result-label">NPV advantage of upgrade over baseline</div>
+    <div class="result-sub" id="lcca_winner">—</div>
+    <div class="result-label">LCCA (lifecycle cost) recommendation</div>
+    <div class="result-sub" id="leed_pts">—</div>
+    <div class="result-label">Estimated LEED EA points contribution</div>
+  </div>
+  <div class="card">
+    <h3>Envelope Performance</h3>
+    <div class="result-big" id="u_upgrade">—</div>
+    <div class="result-label">Upgrade assembly U-value</div>
+    <div class="result-sub" id="ashrae_req">—</div>
+    <div class="result-label">ASHRAE 90.1 requirement for CZ</div>
+    <div class="result-sub" id="compliance">—</div>
+    <div class="result-label">Compliance status</div>
+  </div>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: FACADE_SYSTEM, FACADE_UVAL, FACADE_SHGC, FACADE_VT, FACADE_COST_SF, FACADE_AREA_SF</li>
+    <li>NFRC 100: U-factor and SHGC whole-window ratings (not center-of-glass) — specify in window schedule with NFRC label</li>
+    <li>Curtain wall CSI Spec Section 08 44 13 (Glazed Aluminum Curtain Walls); BIPV Section 08 44 26 (Building Integrated Photovoltaic Panels)</li>
+    <li>CI (Continuous Insulation) eliminates thermal bridging through stud framing — required per ASHRAE 90.1-2022 in CZ 3+ for non-residential</li>
+    <li>ASHRAE 90.1-2022 Appendix A: assembly U-factors and C-factors for compliance path; alternatively use Table 5.5 for prescriptive envelope</li>
+    <li>Dynamic glazing (electrochromic): SHGC variable from 0.09 to 0.36 on demand — maximize daylight while controlling solar gain; premium $80-120/SF</li>
+    <li>BIPV note: PV-integrated spandrel panels generate 12-18W/SF peak DC; include electrical design scope for grid-tie inverter and code compliance</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Facade Engineering & BIM Coordination</h4>
+  <p>BIM XL delivers LOD 400 curtain wall models, clash coordination with structural, NFRC compliance schedules, and energy model inputs.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var SYSTEMS=[
+  {name:'Single-pane + EIFS',u:0.55,shgc:0.70,vt:0.70,cost_sf:28,life:15,ec:8,maint_sf:0.15},
+  {name:'Double-pane Curtain Wall',u:0.38,shgc:0.35,vt:0.55,cost_sf:55,life:25,ec:15,maint_sf:0.25},
+  {name:'Double-pane + CI',u:0.25,shgc:0.25,vt:0.52,cost_sf:68,life:30,ec:18,maint_sf:0.22},
+  {name:'Triple-pane High-Perf',u:0.15,shgc:0.20,vt:0.48,cost_sf:88,life:40,ec:22,maint_sf:0.20},
+  {name:'BIPV Facade',u:0.20,shgc:0.15,vt:0.20,cost_sf:135,life:30,ec:25,maint_sf:0.30,pv_sf:15},
+  {name:'Dynamic / Electrochromic',u:0.22,shgc:0.18,vt:0.50,cost_sf:145,life:20,ec:30,maint_sf:0.45}
+];
+
+// ASHRAE 90.1-2022 window U-value (commercial) by CZ
+var ASHRAE_U=[0.50,0.45,0.40,0.35,0.32,0.28];
+
+// Annual energy impact factor kBtu/SF/yr per U-value delta and SHGC delta
+// simplified: dE_heat=1.2*deltaU*HDD/65; dE_cool=0.8*deltaSHGC*CDD/65
+var CZ_HDD=[400,1000,2000,4500,6300,7900];
+var CZ_CDD=[4000,2800,1500,800,400,200];
+
+function npvAnn(a,r,n){var s=0;for(var i=1;i<=n;i++)s+=a/Math.pow(1+r/100,i);return s;}
+
+function calc(){
+  var fa=parseFloat(document.getElementById('facade_area').value)||15000;
+  var wwr=parseFloat(document.getElementById('wwr').value)/100||0.4;
+  var cz=parseInt(document.getElementById('cz').value)-1;
+  var yrs=parseFloat(document.getElementById('years').value)||30;
+  var disc=parseFloat(document.getElementById('discount').value)||6;
+  var ec=parseFloat(document.getElementById('energy_cost').value)||0.035;
+  var base_idx=parseInt(document.getElementById('baseline').value);
+  var upg_idx=parseInt(document.getElementById('upgrade').value);
+
+  var glass_area=fa*wwr;
+  var wall_area=fa*(1-wwr);
+  var hdd=CZ_HDD[cz];
+  var cdd=CZ_CDD[cz];
+  var ashrae_u=ASHRAE_U[cz];
+
+  // Reference system = system 1 (double-pane standard)
+  var ref=SYSTEMS[1];
+  var ref_energy=ref.u*glass_area*hdd*24/12000+ref.shgc*glass_area*cdd*24/12000;
+
+  var tbody=document.getElementById('system_table');
+  tbody.innerHTML='';
+
+  var results=[];
+  SYSTEMS.forEach(function(s,i){
+    var capex=s.cost_sf*fa;
+    // Annual energy relative to reference
+    var heat_save=(ref.u-s.u)*glass_area*hdd*24/12000;
+    var cool_save=(ref.shgc-s.shgc)*glass_area*cdd*24/12000;
+    var pv_gen=s.pv_sf?s.pv_sf*glass_area*0.0001:0; // rough MWh
+    var total_save_kbtu=(heat_save+cool_save+pv_gen*3412);
+    var ann_save=total_save_kbtu*ec;
+    var maint_ann=s.maint_sf*fa;
+    var net_ann=ann_save-maint_ann;
+    var npv30=npvAnn(net_ann,disc,yrs)+(i>0?(fa*SYSTEMS[0].cost_sf-capex)*Math.pow(1/(1+disc/100),yrs):0);
+    var score_pts=0;
+    if(s.u<=ashrae_u*0.8)score_pts+=30;else if(s.u<=ashrae_u)score_pts+=20;else score_pts+=5;
+    if(s.shgc<=0.20)score_pts+=25;else if(s.shgc<=0.30)score_pts+=15;else score_pts+=5;
+    if(s.life>=35)score_pts+=20;else if(s.life>=25)score_pts+=13;else score_pts+=5;
+    if(s.ec<=18)score_pts+=10;else score_pts+=5;
+    if(net_ann>0)score_pts+=15;
+    var grade=score_pts>=85?'A':score_pts>=70?'B':score_pts>=50?'C':'D';
+    var cl=score_pts>=85?'score-a':score_pts>=70?'score-b':score_pts>=50?'score-c':'score-d';
+    results.push({sys:s,capex:capex,ann_save:ann_save,net_ann:net_ann,npv30:npv30,grade:grade,cl:cl,is_base:i===base_idx,is_upg:i===upg_idx,u:s.u,ashrae_u:ashrae_u});
+
+    var tr=document.createElement('tr');
+    var hl=i===base_idx?'border-left:3px solid #f59e0b;':i===upg_idx?'border-left:3px solid #10b981;':'border-left:3px solid transparent;';
+    tr.setAttribute('style',hl);
+    tr.innerHTML='<td>'+(i===base_idx?'[B] ':i===upg_idx?'[U] ':'')+s.name+'</td><td>'+s.u.toFixed(2)+'</td><td>'+s.shgc.toFixed(2)+'</td><td>'+s.vt.toFixed(2)+'</td><td>$'+s.cost_sf+'</td><td>$'+Math.round(capex).toLocaleString()+'</td><td class="good">$'+Math.round(ann_save).toLocaleString()+'</td><td class="'+(npv30>0?'good':'bad')+'">$'+Math.round(npv30).toLocaleString()+'</td><td>'+s.life+' yr</td><td><span class="score-pill '+cl+'">'+grade+'</span></td>';
+    tbody.appendChild(tr);
+  });
+
+  // Delta analysis
+  var base=results[base_idx];
+  var upg=results[upg_idx];
+  var capex_delta=upg.capex-base.capex;
+  var save_delta=upg.ann_save-base.ann_save;
+  var pb=save_delta>0?(capex_delta/save_delta).toFixed(1)+' yrs':'N/A';
+  var npv_delta=upg.npv30-base.npv30;
+
+  document.getElementById('capex_diff').textContent='$'+Math.round(capex_delta).toLocaleString();
+  document.getElementById('capex_diff').className='result-big '+(capex_delta<0?'good':'warn');
+  document.getElementById('energy_delta').textContent='$'+Math.round(save_delta).toLocaleString()+'/yr';
+  document.getElementById('simple_pb').textContent=pb;
+  document.getElementById('npv_delta').textContent='$'+Math.round(npv_delta).toLocaleString();
+  document.getElementById('npv_delta').className='result-big '+(npv_delta>0?'good':'bad');
+  document.getElementById('lcca_winner').textContent=npv_delta>0?SYSTEMS[upg_idx].name+' wins LCCA':SYSTEMS[base_idx].name+' wins LCCA';
+  document.getElementById('leed_pts').textContent=upg.u<=ashrae_u*0.8?'~2 pts (Optimize Energy)':upg.u<=ashrae_u?'~1 pt':'0 pts — improve U-value';
+
+  document.getElementById('u_upgrade').textContent=SYSTEMS[upg_idx].u.toFixed(2);
+  document.getElementById('u_upgrade').className='result-big '+(SYSTEMS[upg_idx].u<=ashrae_u?'good':'bad');
+  document.getElementById('ashrae_req').textContent='U-'+ashrae_u.toFixed(2)+' max (CZ '+(cz+1)+')';
+  document.getElementById('compliance').textContent=SYSTEMS[upg_idx].u<=ashrae_u?'COMPLIANT':'NON-COMPLIANT — improve glazing';
+  document.getElementById('compliance').className='result-sub '+(SYSTEMS[upg_idx].u<=ashrae_u?'good':'bad');
+}
+
+calc();
+</script>
+</body>
+</html>

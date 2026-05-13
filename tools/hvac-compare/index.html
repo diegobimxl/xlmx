@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC System Comparator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif}
+.tb{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.tb a{color:#10b981;text-decoration:none;font-size:13px}.tb h1{font-size:15px;font-weight:600;flex:1}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 20px}
+.sub{color:#888;font-size:13px;margin-bottom:20px;line-height:1.6}
+.tbl-wrap{overflow-x:auto;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#111;color:#888;font-weight:600;padding:9px 12px;text-align:left;border-bottom:1px solid #2a2a2a;white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:#e8e8e8}
+td{padding:9px 12px;border-bottom:1px solid #1a1a1a;color:#ccc;vertical-align:top;font-size:12px}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:#e8e8e8;font-weight:500}
+.tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.t-exc{background:rgba(16,185,129,.12);color:#10b981}
+.t-good{background:rgba(96,165,250,.12);color:#60a5fa}
+.t-fair{background:rgba(251,191,36,.12);color:#fbbf24}
+.t-poor{background:rgba(248,113,113,.12);color:#f87171}
+.metric{font-family:monospace}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:12px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+label{display:block;font-size:12px;color:#aaa;margin-bottom:4px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:8px 10px;color:#e8e8e8;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#0d0d0d;border:none;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:16px}
+.cmp-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.cmp-row:last-child{border-bottom:none}
+.cmp-val{font-family:monospace;font-weight:600}
+.good{color:#4ade80}.mid{color:#c8a96e}.bad{color:#f87171}.neutral{color:#aaa}
+.callout{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:14px;margin-bottom:14px}
+.callout h3{font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.callout p{font-size:12px;color:#aaa;line-height:1.7}
+.note{font-size:11px;color:#555;font-style:italic;margin-top:10px;line-height:1.6}
+.star{color:#fbbf24}
+</style>
+</head>
+<body>
+<div class="tb"><a href="/tools/">&#8592; Tools</a><h1>HVAC System Comparator</h1></div>
+<div class="wrap">
+<p class="sub">Compare 12 HVAC systems on EUI impact, COP/efficiency, first cost, maintenance, carbon intensity, and fit. Calculator estimates annual energy cost and 20-year lifecycle cost for two systems on your project.</p>
+<div class="tbl-wrap">
+<table>
+<thead><tr>
+  <th>System</th>
+  <th>Cooling COP</th>
+  <th>Heating COP</th>
+  <th>EUI Impact<br><span style="font-weight:400;font-size:10px">kBtu/SF/yr</span></th>
+  <th>First Cost<br><span style="font-weight:400;font-size:10px">$/SF</span></th>
+  <th>Maint.<br><span style="font-weight:400;font-size:10px">$/SF/yr</span></th>
+  <th>Carbon<br><span style="font-weight:400;font-size:10px">kgCO2e/kBtu</span></th>
+  <th>Zones</th>
+  <th>Best Application</th>
+  <th>Climate Fit</th>
+</tr></thead>
+<tbody id="hvac-body"></tbody>
+</table>
+</div>
+<div class="callout">
+  <h3>Developer ROI Framework — HVAC Upgrade Scenarios</h3>
+  <p>VRF vs. standard packaged DX: +$8-15/SF first cost, saves 20-35% energy, 5-8 yr payback. Ground Source HP vs. standard: +$25-40/SF, saves 40-60% energy, 10-15 yr payback (qualifies for §48 ITC 30% credit through 2032). Chilled beam + DOAS vs. VAV: similar first cost, reduces duct chase space 30%, saves 15-25% energy. All-electric heat pump (any type) qualifies for IRA §48 Commercial Tax Credit at 30%.</p>
+</div>
+<div class="grid2">
+  <div class="card">
+    <h2>Lifecycle Cost Comparison</h2>
+    <label>System A</label>
+    <select id="sys_a"><option value="">— select —</option></select>
+    <label>System B</label>
+    <select id="sys_b"><option value="">— select —</option></select>
+    <label>Gross Floor Area (SF)</label>
+    <input id="harea" type="number" value="40000" step="1000">
+    <label>Electricity Rate ($/kWh)</label>
+    <input id="helec" type="number" value="0.12" step="0.01">
+    <label>Natural Gas Rate ($/therm)</label>
+    <input id="hgas" type="number" value="1.10" step="0.10">
+    <label>Analysis Period (years)</label>
+    <input id="hlife" type="number" value="20" step="5">
+    <label>Grid Carbon Intensity (kgCO2e/kWh)</label>
+    <input id="hgrid" type="number" value="0.45" step="0.05">
+    <button class="btn" onclick="compareHVAC()">Compare Lifecycle Cost</button>
+  </div>
+  <div class="card">
+    <h2>Lifecycle Cost Results</h2>
+    <div id="hcmp-out"><p style="color:#555;font-size:13px">Select two systems and calculate.</p></div>
+  </div>
+</div>
+<div class="grid2">
+  <div class="callout">
+    <h3>BIM / Drafting Note</h3>
+    <p>In Revit MEP: use HVAC Zones to aggregate spaces for each AHU/FCU served. Assign Cooling Load and Heating Load parameters from energy model output. VRF systems: model as split system families with outdoor unit and indoor unit types — use manufacturer-provided Revit families (Daikin, Mitsubishi, LG). For DOAS + chilled beams, model beam units as air terminals with supplemental heating/cooling parameters. Link IFC model to EnergyPlus for detailed EUI validation.</p>
+  </div>
+  <div class="callout">
+    <h3>Code + Incentive Reference</h3>
+    <p>ASHRAE 90.1-2022: minimum efficiency requirements by equipment type (Table 6.8). All heat pumps (air, water, ground source) qualify for IRA §48 Commercial Clean Energy Credit (30%). Ground source: additional §45 credit potential. §179D Energy Efficient Commercial Building Deduction: $0.50-$5.00/SF for HVAC that exceeds ASHRAE baseline 25-50%. California Title 24 / IECC 2021: heat pump water heaters mandatory in new residential (most states).</p>
+  </div>
+</div>
+<p class="note">EUI impacts are representative ranges for commercial office in climate zone 4-5. Actual values depend on envelope, internal gains, occupancy, controls, and climate. COP values at rated conditions (AHRI 210/240, 340/360). Costs are rough order of magnitude for commercial projects; residential costs 20-30% higher per SF. Always validate with mechanical engineer and manufacturer quotes.</p>
+</div>
+<script>
+var HVAC=[
+  {id:0,name:'Packaged DX (Standard SEER 14/HSPF 8)',cop_c:3.3,cop_h:2.2,eui_lo:28,eui_hi:38,cost_lo:8,cost_hi:14,maint:0.35,co2:0.095,zones:'Any',best:'Small commercial, retail, low-rise',climate:'Mixed-Cold'},
+  {id:1,name:'High-Eff Split / Mini-Split (SEER 20+)',cop_c:5.0,cop_h:3.2,eui_lo:20,eui_hi:28,cost_lo:12,cost_hi:18,maint:0.30,co2:0.068,zones:'Many',best:'Small-medium, multifamily, office retrofit',climate:'All'},
+  {id:2,name:'Variable Refrigerant Flow (VRF/VRV)',cop_c:4.8,cop_h:3.5,eui_lo:18,eui_hi:26,cost_lo:20,cost_hi:32,maint:0.32,co2:0.060,zones:'100+',best:'Office, hospitality, mixed-use mid-rise',climate:'All'},
+  {id:3,name:'VAV with Central AHU (ASHRAE 90.1)',cop_c:4.5,cop_h:0.92,eui_lo:30,eui_hi:45,cost_lo:18,cost_hi:28,maint:0.45,co2:0.120,zones:'Open flr',best:'Large office, university, mixed-occupancy',climate:'Mixed-Cold'},
+  {id:4,name:'High-Eff VAV + EC Fans + Economizer',cop_c:5.0,cop_h:0.95,eui_lo:22,eui_hi:34,cost_lo:22,cost_hi:34,maint:0.42,co2:0.095,zones:'Open flr',best:'High-rise commercial, LEED Gold target',climate:'Mixed-Cold'},
+  {id:5,name:'Active Chilled Beams + DOAS',cop_c:5.5,cop_h:4.0,eui_lo:16,eui_hi:24,cost_lo:24,cost_hi:36,maint:0.25,co2:0.055,zones:'Individual',best:'Office, lab, healthcare — excellent comfort',climate:'Mixed'},
+  {id:6,name:'Water Source Heat Pump (WSHP) Loop',cop_c:4.5,cop_h:4.0,eui_lo:16,eui_hi:25,cost_lo:20,cost_hi:30,maint:0.38,co2:0.060,zones:'Individual',best:'Mixed-use, hotels — heat sharing between zones',climate:'All'},
+  {id:7,name:'Ground Source Heat Pump (GSHP)',cop_c:4.5,cop_h:4.8,eui_lo:14,eui_hi:22,cost_lo:35,cost_hi:55,maint:0.28,co2:0.042,zones:'Individual',best:'NZE, institutional, long-term ownership',climate:'All'},
+  {id:8,name:'Chilled Water Plant + Hot Water AHU',cop_c:4.8,cop_h:0.90,eui_lo:24,eui_hi:38,cost_lo:25,cost_hi:40,maint:0.55,co2:0.110,zones:'Unlimited',best:'Large campus, hospital, high-rise tower',climate:'Mixed-Hot'},
+  {id:9,name:'Radiant + DOAS (Passive/NZE projects)',cop_c:5.5,cop_h:5.0,eui_lo:10,eui_hi:18,cost_lo:28,cost_hi:44,maint:0.22,co2:0.038,zones:'Individual',best:'Passive House, NZE, high-end residential',climate:'Mixed-Cold'},
+  {id:10,name:'Evaporative + DOAS (indirect/direct)',cop_c:15,cop_h:1.0,eui_lo:8,eui_hi:16,cost_lo:10,cost_hi:18,maint:0.30,co2:0.025,zones:'Open flr',best:'Dry climates (zones 2B, 3B) — very low cost',climate:'Hot-Dry'},
+  {id:11,name:'Fan Coil Units (FCU) + Central Plant',cop_c:4.8,cop_h:0.92,eui_lo:20,eui_hi:32,cost_lo:22,cost_hi:34,maint:0.40,co2:0.095,zones:'Individual',best:'Hotels, multifamily — good zone control',climate:'Mixed'}
+];
+function copTag(c){return c>=5?'<span class="tag t-exc">'+c+'</span>':c>=4?'<span class="tag t-good">'+c+'</span>':c>=3?'<span class="tag t-fair">'+c+'</span>':'<span class="tag t-poor">'+c+'</span>';}
+function euiTag(lo,hi){var avg=(lo+hi)/2;return(avg<=18?'<span class="tag t-exc">':avg<=26?'<span class="tag t-good">':avg<=36?'<span class="tag t-fair">':'<span class="tag t-poor">')+lo+'-'+hi+'</span>';}
+var html='';
+HVAC.forEach(function(s){
+  html+='<tr>';
+  html+='<td>'+s.name+'</td>';
+  html+='<td>'+copTag(s.cop_c)+'</td>';
+  html+='<td>'+copTag(s.cop_h)+'</td>';
+  html+='<td>'+euiTag(s.eui_lo,s.eui_hi)+'</td>';
+  html+='<td class="metric">$'+s.cost_lo+'-'+s.cost_hi+'</td>';
+  html+='<td class="metric">$'+s.maint.toFixed(2)+'</td>';
+  html+='<td class="metric">'+(s.co2).toFixed(3)+'</td>';
+  html+='<td style="font-size:11px">'+s.zones+'</td>';
+  html+='<td style="font-size:11px;color:#888;max-width:160px">'+s.best+'</td>';
+  html+='<td style="font-size:11px">'+s.climate+'</td>';
+  html+='</tr>';
+});
+document.getElementById('hvac-body').innerHTML=html;
+function populateSys(){
+  ['sys_a','sys_b'].forEach(function(id){
+    var sel=document.getElementById(id),cur=sel.value;
+    sel.innerHTML='<option value="">— select —</option>';
+    HVAC.forEach(function(s){sel.innerHTML+='<option value="'+s.id+'"'+(cur==s.id?' selected':'')+'>'+s.name+'</option>';});
+  });
+}
+populateSys();
+function compareHVAC(){
+  var ai=parseInt(document.getElementById('sys_a').value);
+  var bi=parseInt(document.getElementById('sys_b').value);
+  if(isNaN(ai)||isNaN(bi)){document.getElementById('hcmp-out').innerHTML='<p style="color:#f87171;font-size:12px">Select both systems.</p>';return;}
+  var sa=HVAC[ai],sb=HVAC[bi];
+  var area=parseFloat(document.getElementById('harea').value)||40000;
+  var elec=parseFloat(document.getElementById('helec').value)||0.12;
+  var gas=parseFloat(document.getElementById('hgas').value)||1.10;
+  var life=parseFloat(document.getElementById('hlife').value)||20;
+  var grid=parseFloat(document.getElementById('hgrid').value)||0.45;
+  var eui_a=(sa.eui_lo+sa.eui_hi)/2,eui_b=(sb.eui_lo+sb.eui_hi)/2;
+  var ann_kbtu_a=eui_a*area;
+  var ann_kbtu_b=eui_b*area;
+  var ann_cost_a=ann_kbtu_a*0.003412*elec+ann_kbtu_a*sa.co2*grid*elec*0.3;
+  var ann_cost_b=ann_kbtu_b*0.003412*elec+ann_kbtu_b*sb.co2*grid*elec*0.3;
+  var maint_a=sa.maint*area;
+  var maint_b=sb.maint*area;
+  var first_a=(sa.cost_lo+sa.cost_hi)/2*area;
+  var first_b=(sb.cost_lo+sb.cost_hi)/2*area;
+  var total_a=first_a+(ann_cost_a+maint_a)*life;
+  var total_b=first_b+(ann_cost_b+maint_b)*life;
+  var co2_a=eui_a*area*sb.co2*0.2931;
+  var co2_b=eui_b*area*sb.co2*0.2931;
+  var simple_save=(ann_cost_a+maint_a)-(ann_cost_b+maint_b);
+  var payback=(first_b-first_a)/simple_save;
+  var rows=[
+    ['Avg EUI',eui_a.toFixed(0)+' kBtu/SF/yr',eui_b.toFixed(0)+' kBtu/SF/yr',eui_b<eui_a?'good':'bad'],
+    ['Annual Energy Cost','$'+Math.round(ann_cost_a).toLocaleString(),'$'+Math.round(ann_cost_b).toLocaleString(),ann_cost_b<ann_cost_a?'good':'bad'],
+    ['Annual Maintenance','$'+Math.round(maint_a).toLocaleString(),'$'+Math.round(maint_b).toLocaleString(),maint_b<maint_a?'good':'bad'],
+    ['First Cost','$'+(first_a/1000).toFixed(0)+'k','$'+(first_b/1000).toFixed(0)+'k','neutral'],
+    ['Annual CO2e (kg)',Math.round(co2_a/area*10)/10+' kg/SF',Math.round(co2_b/area*10)/10+' kg/SF',co2_b<co2_a?'good':'bad'],
+    [life+'-Year Lifecycle Cost','$'+(total_a/1000000).toFixed(2)+'M','$'+(total_b/1000000).toFixed(2)+'M',total_b<total_a?'good':'bad'],
+    ['Lifecycle Savings vs A','—','$'+(Math.round(total_a-total_b)/1000).toFixed(0)+'k',total_b<total_a?'good':'bad'],
+    ['Simple Payback (if B costs more)','—',payback>0&&payback<999?payback.toFixed(1)+' yrs':'N/A',payback>0&&payback<12?'good':payback<20?'mid':'bad']
+  ];
+  var html='<div style="font-size:11px;color:#888;margin-bottom:8px"><b style="color:#e8e8e8">'+sa.name+'</b> vs. <b style="color:#10b981">'+sb.name+'</b></div>';
+  rows.forEach(function(r){html+='<div class="cmp-row"><span>'+r[0]+'</span><div style="display:flex;gap:12px"><span class="cmp-val neutral">'+r[1]+'</span><span class="cmp-val '+r[3]+'">'+r[2]+'</span></div></div>';});
+  document.getElementById('hcmp-out').innerHTML=html;
+}
+</script>
+</body>
+</html>

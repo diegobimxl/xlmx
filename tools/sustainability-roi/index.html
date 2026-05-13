@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sustainability ROI Calculator — NPV / IRR</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.badge-gold{display:inline-block;background:#c8a96e22;color:#c8a96e;border:1px solid #c8a96e44;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:16px;text-align:center}
+.kpi .val{font-size:28px;font-weight:700;font-family:monospace}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.chart-wrap{margin-top:20px}
+.chart-wrap h4{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+svg.chart{width:100%;overflow:visible}
+.cashflow-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:16px}
+.cashflow-table th{background:#0d0d0d;color:#888;padding:8px;text-align:right;border-bottom:1px solid #222}
+.cashflow-table th:first-child{text-align:left}
+.cashflow-table td{padding:7px 8px;border-bottom:1px solid #1a1a1a;text-align:right;font-family:monospace;color:#ccc}
+.cashflow-table td:first-child{text-align:left;font-family:system-ui;color:#888}
+.cashflow-table tr:hover td{background:#161616}
+.positive{color:#10b981}
+.negative{color:#ef4444}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Sustainability ROI Calculator</h1>
+  <p>NPV / IRR / Simple Payback for Green Building Upgrades</p>
+  <span class="badge">NPV Analysis</span>
+  <span class="badge">IRR</span>
+  <span class="badge-gold">Developer Quick-Analysis</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Investment Parameters</h3>
+        <label>Upgrade Description</label>
+        <select id="upgradeType" onchange="prefill()">
+          <option value="custom">Custom / Manual Entry</option>
+          <option value="hvac">High-Efficiency HVAC (VRF)</option>
+          <option value="envelope">High-Performance Envelope + Windows</option>
+          <option value="solar">Rooftop Solar PV</option>
+          <option value="led">LED Lighting + Controls</option>
+          <option value="erv">ERV / DOAS System</option>
+          <option value="green_roof">Green Roof</option>
+          <option value="chiller">High-Efficiency Chiller Plant</option>
+        </select>
+        <label>Project Gross Floor Area (SF)</label>
+        <input type="number" id="gfa" value="50000">
+        <label>Incremental Capital Cost ($/SF)</label>
+        <input type="number" id="capex_sf" value="8" step="0.5">
+        <label>Annual Energy / Utility Savings ($/SF/yr)</label>
+        <input type="number" id="savings_sf" value="1.20" step="0.1">
+        <label>Annual O&M Savings / Reduction ($/SF/yr)</label>
+        <input type="number" id="om_sf" value="0.10" step="0.05">
+        <label>Annual Revenue Premium ($/SF/yr) <span style="color:#555;font-size:11px">rent uplift, etc.</span></label>
+        <input type="number" id="revenue_sf" value="0.50" step="0.1">
+        <label>Annual Cost Escalation Rate (%)</label>
+        <input type="number" id="escalation" value="3" step="0.5">
+        <label>Discount Rate / Required IRR (%)</label>
+        <input type="number" id="discount" value="7" step="0.5">
+        <label>Analysis Period (Years)</label>
+        <input type="number" id="years" value="20" min="1" max="40">
+        <label>Tax Incentive / Grant (one-time $)</label>
+        <input type="number" id="incentive" value="0">
+        <button class="btn" onclick="calcROI()">Calculate ROI</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Financial Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Enter parameters and calculate to see results</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>Annual Cash Flow Projection</h3>
+    <div id="cashFlowTable">
+      <p style="color:#555;font-size:13px;padding:20px 0">Run calculation to see cash flow table</p>
+    </div>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">Developer / Owner Perspective</div>
+    <p>This tool produces Capex/Opex ROI numbers ready for investment committee review. For LEED certification, NPV analysis supports MRc2 (Building Life-Cycle Impact Reduction) and EAc2 (Advanced Energy Metering) narratives. Map incremental costs to Revit model cost parameters for owner-facing BIM deliverables. §179D commercial building deduction can offset up to $5.00/SF of project cost for HVAC, envelope, or lighting upgrades meeting 25%+ energy savings threshold — enter this as the Incentive field above.</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Need a full investment-grade sustainability analysis?</strong><br>
+    BIM XL delivers lifecycle cost models, LCCA documentation, and IRA incentive maximization strategies integrated with your project BIM model. Custom pro formas and owner presentation decks available. Contact <strong>BIM XL</strong> for a project consultation.</p>
+  </div>
+</div>
+
+<script>
+var PRESETS={
+  hvac:{capex:12,savings:1.80,om:0.20,revenue:0.30},
+  envelope:{capex:18,savings:1.40,om:0.05,revenue:0.50},
+  solar:{capex:6,savings:1.50,om:-0.05,revenue:0.10},
+  led:{capex:3,savings:0.80,om:0.15,revenue:0.0},
+  erv:{capex:5,savings:0.60,om:0.10,revenue:0.20},
+  green_roof:{capex:15,savings:0.20,om:-0.10,revenue:0.80},
+  chiller:{capex:10,savings:1.60,om:0.25,revenue:0.20}
+};
+function prefill(){
+  var t=document.getElementById('upgradeType').value;
+  if(t==='custom') return;
+  var p=PRESETS[t];
+  document.getElementById('capex_sf').value=p.capex;
+  document.getElementById('savings_sf').value=p.savings;
+  document.getElementById('om_sf').value=p.om;
+  document.getElementById('revenue_sf').value=p.revenue;
+}
+function calcROI(){
+  var gfa=parseFloat(document.getElementById('gfa').value);
+  var capex_sf=parseFloat(document.getElementById('capex_sf').value);
+  var savings_sf=parseFloat(document.getElementById('savings_sf').value);
+  var om_sf=parseFloat(document.getElementById('om_sf').value);
+  var revenue_sf=parseFloat(document.getElementById('revenue_sf').value);
+  var esc=parseFloat(document.getElementById('escalation').value)/100;
+  var dr=parseFloat(document.getElementById('discount').value)/100;
+  var yrs=parseInt(document.getElementById('years').value);
+  var incentive=parseFloat(document.getElementById('incentive').value);
+
+  var total_capex=gfa*capex_sf-incentive;
+  var base_annual=gfa*(savings_sf+om_sf+revenue_sf);
+
+  var npv=-total_capex;
+  var cumulative=-total_capex;
+  var payback=null;
+  var rows=[];
+  var cashflows=[-total_capex];
+
+  for(var y=1;y<=yrs;y++){
+    var annual=base_annual*Math.pow(1+esc,y-1);
+    var disc_cf=annual/Math.pow(1+dr,y);
+    npv+=disc_cf;
+    cumulative+=annual;
+    if(payback===null && cumulative>=0) payback=y-(cumulative-annual)/(annual);
+    rows.push({yr:y,annual:annual,disc_cf:disc_cf,cum:cumulative});
+    cashflows.push(annual);
+  }
+
+  // IRR via Newton-Raphson
+  var irr=null;
+  var r=0.10;
+  for(var i=0;i<200;i++){
+    var f=0,df=0;
+    for(var j=0;j<cashflows.length;j++){
+      f+=cashflows[j]/Math.pow(1+r,j);
+      df+=-j*cashflows[j]/Math.pow(1+r,j+1);
+    }
+    if(Math.abs(df)<1e-10) break;
+    var rn=r-f/df;
+    if(Math.abs(rn-r)<1e-8){r=rn;break;}
+    r=rn;
+    if(r<-0.99) r=-0.5;
+  }
+  irr=r*100;
+
+  var roi_pct=(npv/total_capex)*100;
+  var npv_color=npv>=0?'#10b981':'#ef4444';
+  var irr_color=irr>=parseFloat(document.getElementById('discount').value)?'#10b981':'#ef4444';
+
+  document.getElementById('results').innerHTML=
+    '<div class="kpi-grid">'
+    +'<div class="kpi"><div class="val" style="color:'+npv_color+'">$'+fmt(npv)+'</div><div class="lbl">Net Present Value (NPV)</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+irr_color+'">'+irr.toFixed(1)+'%</div><div class="lbl">Internal Rate of Return</div></div>'
+    +'<div class="kpi"><div class="val">'+(payback?payback.toFixed(1):'&gt;'+yrs)+' yrs</div><div class="lbl">Simple Payback</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+npv_color+'">'+roi_pct.toFixed(0)+'%</div><div class="lbl">ROI on Investment</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-top:4px">'
+    +'<div style="font-size:11px;color:#888;margin-bottom:8px">Summary</div>'
+    +'<p style="font-size:13px;color:#ccc;line-height:1.7">'
+    +'Total capital cost: <strong style="color:#fff">$'+fmt(total_capex)+'</strong> ($'+capex_sf.toFixed(2)+'/SF)<br>'
+    +'Year 1 savings: <strong style="color:#10b981">$'+fmt(base_annual)+'</strong> ($'+(base_annual/gfa).toFixed(2)+'/SF/yr)<br>'
+    +'Total undiscounted savings: <strong style="color:#fff">$'+fmt(rows[rows.length-1].cum+total_capex)+'</strong> over '+yrs+' years<br>'
+    +'Incentive/grant applied: <strong style="color:#c8a96e">$'+fmt(incentive)+'</strong>'
+    +'</p></div>';
+
+  // Cash flow table (show first 20 years max)
+  var showRows=rows.slice(0,Math.min(20,rows.length));
+  var tHtml='<table class="cashflow-table"><tr><th>Year</th><th>Annual Benefit ($)</th><th>Discounted CF ($)</th><th>Cumulative ($)</th></tr>';
+  showRows.forEach(function(r){
+    tHtml+='<tr><td>Year '+r.yr+'</td>'
+      +'<td class="positive">'+fmt(r.annual)+'</td>'
+      +'<td>'+fmt(r.disc_cf)+'</td>'
+      +'<td class="'+(r.cum>=0?'positive':'negative')+'">'+fmt(r.cum)+'</td></tr>';
+  });
+  tHtml+='</table>';
+  document.getElementById('cashFlowTable').innerHTML=tHtml;
+}
+function fmt(n){
+  if(n===null||isNaN(n)) return '—';
+  var sign=n<0?'-':'';
+  return sign+'$'+Math.abs(Math.round(n)).toLocaleString();
+}
+calcROI();
+</script>
+</body>
+</html>

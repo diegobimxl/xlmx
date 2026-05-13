@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRF Quick Sizing — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.zone-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:0.82rem}
+.zone-row:last-child{border-bottom:none}
+.zone-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;padding:6px 0;border-bottom:1px solid #333;font-size:0.72rem;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.add-btn{background:#10b981;color:#000;border:none;padding:8px 16px;border-radius:6px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:12px}
+.rm-btn{background:#1a1a1a;color:#ef4444;border:1px solid #2a2a2a;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.divider{border-top:1px solid #222;margin:16px 0}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>VRF Quick Sizing <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Variable Refrigerant Flow preliminary capacity, diversity, and pipe run sizing — ASHRAE 90.1 · AHRI 1230 · ACCA Manual N</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>System Parameters</h3>
+    <label>Climate Zone</label>
+    <select id="cz" onchange="calc()">
+      <option value="1">CZ 1 — Very Hot (Miami, Phoenix)</option>
+      <option value="2">CZ 2 — Hot (Houston, Tampa)</option>
+      <option value="3" selected>CZ 3 — Mixed (Atlanta, LA)</option>
+      <option value="4">CZ 4 — Mixed-Cool (Baltimore, Seattle)</option>
+      <option value="5">CZ 5 — Cool (Chicago, Denver)</option>
+      <option value="6">CZ 6 — Cold (Minneapolis, Burlington)</option>
+      <option value="7">CZ 7 — Very Cold (Duluth, Fairbanks)</option>
+    </select>
+    <label>VRF System Type</label>
+    <select id="sys_type" onchange="calc()">
+      <option value="cooling_only">Cooling Only</option>
+      <option value="heat_pump" selected>Heat Pump (2-pipe)</option>
+      <option value="heat_recovery">Heat Recovery (3-pipe)</option>
+    </select>
+    <label>Outdoor Unit Target Inverter COP (Cooling)</label>
+    <input type="number" id="cop_c" value="3.8" step="0.1" oninput="calc()">
+    <label>Outdoor Unit Target Inverter COP (Heating)</label>
+    <input type="number" id="cop_h" value="3.5" step="0.1" oninput="calc()">
+    <label>Design Cooling OAT (°F)</label>
+    <input type="number" id="oat_c" value="95" oninput="calc()">
+    <label>Design Heating OAT (°F)</label>
+    <input type="number" id="oat_h" value="17" oninput="calc()">
+    <label>Equivalent Pipe Run — Longest (ft)</label>
+    <input type="number" id="pipe_run" value="100" oninput="calc()">
+    <label>Max Pipe Elevation Diff (ft)</label>
+    <input type="number" id="elev" value="30" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>Zone Load Entry</h3>
+    <div class="zone-header">
+      <span>Zone Name</span>
+      <span style="text-align:right">Cool (MBH)</span>
+      <span style="text-align:right">Heat (MBH)</span>
+      <span style="text-align:right">CFM</span>
+      <span></span>
+    </div>
+    <div id="zones"></div>
+    <button class="add-btn" onclick="addZone()">+ Add Zone</button>
+    <div class="divider"></div>
+    <p style="font-size:0.78rem;color:#666">Enter peak cooling and heating loads per indoor unit zone. VRF allows simultaneous heating and cooling in heat recovery mode.</p>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Outdoor Unit Sizing</h3>
+    <div class="result-big" id="ou_cool">—</div>
+    <div class="result-label">Required cooling capacity (MBH)</div>
+    <div class="result-sub" id="ou_heat">—</div>
+    <div class="result-label">Required heating capacity (MBH)</div>
+    <div class="result-sub" id="diversity">—</div>
+    <div class="result-label">Diversity factor (sum loads / OU size)</div>
+    <div class="result-sub" id="ou_tons">—</div>
+    <div class="result-label">Nominal outdoor unit (tons)</div>
+  </div>
+  <div class="card">
+    <h3>Pipe Capacity Check</h3>
+    <div class="result-big" id="pipe_factor" style="color:#f59e0b">—</div>
+    <div class="result-label">Pipe length correction factor</div>
+    <div class="result-sub" id="adj_cool">—</div>
+    <div class="result-label">Adjusted cooling capacity (MBH)</div>
+    <div class="result-sub" id="adj_heat">—</div>
+    <div class="result-label">Adjusted heating capacity (MBH)</div>
+    <div class="result-sub" id="pipe_status">—</div>
+    <div class="result-label">Pipe run compliance</div>
+  </div>
+  <div class="card">
+    <h3>Energy & Cost</h3>
+    <div class="result-big good" id="kw_input">—</div>
+    <div class="result-label">Estimated peak power input (kW)</div>
+    <div class="result-sub" id="vs_pkg">—</div>
+    <div class="result-label">vs. packaged RTU (COP 2.5) at same load</div>
+    <div class="result-sub" id="ann_save">—</div>
+    <div class="result-label">Estimated annual energy savings vs RTU</div>
+    <div class="result-sub" id="capex_est">—</div>
+    <div class="result-label">Rough installed cost estimate</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Zone Summary</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Zone</th>
+        <th>Cool Load (MBH)</th>
+        <th>Heat Load (MBH)</th>
+        <th>IU Nominal (tons)</th>
+        <th>CFM</th>
+        <th>% of OU Capacity</th>
+      </tr>
+    </thead>
+    <tbody id="zone_table"></tbody>
+  </table>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: VRF_ZONE_COOLING_MBH, VRF_ZONE_HEATING_MBH, VRF_IU_CFM, VRF_PIPE_RUN_FT, VRF_OU_TONS</li>
+    <li>AHRI 1230: standard rating conditions — cooling at 95°F OAT, heating at 47°F OAT; derate per manufacturer for design conditions</li>
+    <li>Pipe length correction: most manufacturers allow up to 300 ft equivalent; capacity derates ~1% per 10 ft beyond 100 ft</li>
+    <li>Diversity factor 0.8-1.0 is typical for commercial office; hotel/multifamily can be 0.6-0.75 due to occupancy diversity</li>
+    <li>Heat recovery systems recover rejected heat from cooling zones to satisfy simultaneous heating — net system COP can exceed 5.0</li>
+    <li>ASHRAE 90.1-2022 minimum EER for VRF: EER ≥ 12.5 for split system &gt;65 kBtu/hr cooling — verify equipment schedules</li>
+    <li>CSI Spec Section 23 81 26 (VRF Multi-Split Heat Pump) or 23 81 27 (Variable Refrigerant Flow HVAC Systems)</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>VRF System Design & BIM Coordination</h4>
+  <p>BIM XL delivers VRF layout modeling, pipe routing in Revit MEP, clash coordination, and LOD 400 fabrication models for VRF systems.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var zoneData=[];
+var PIPE_DERATE=0.001; // 0.1% per ft beyond 100ft
+var CZ_HEAT_MULT={1:1.0,2:1.05,3:1.1,4:1.15,5:1.2,6:1.25,7:1.3}; // heating capacity multiplier for colder climates
+var VRF_COST_PER_TON=2200; // rough $/ton installed
+
+function addZone(name,cool,heat,cfm){
+  var idx=zoneData.length;
+  zoneData.push({name:name||'Zone '+(idx+1),cool:cool||6,heat:heat||5,cfm:cfm||400});
+  renderZones();
+  calc();
+}
+
+function removeZone(idx){
+  zoneData.splice(idx,1);
+  renderZones();
+  calc();
+}
+
+function updateZone(idx,field,val){
+  zoneData[idx][field]=parseFloat(val)||0;
+  if(field==='name')zoneData[idx][field]=val;
+  calc();
+}
+
+function renderZones(){
+  var container=document.getElementById('zones');
+  container.innerHTML='';
+  zoneData.forEach(function(z,i){
+    var row=document.createElement('div');
+    row.className='zone-row';
+    row.innerHTML='<input type="text" value="'+z.name+'" oninput="updateZone('+i+',\'name\',this.value)" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;color:#e5e5e5;padding:5px 7px;font-size:0.8rem;width:100%">'
+      +'<input type="number" value="'+z.cool+'" oninput="updateZone('+i+',\'cool\',this.value)" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;color:#e5e5e5;padding:5px 7px;font-size:0.8rem;width:100%;text-align:right">'
+      +'<input type="number" value="'+z.heat+'" oninput="updateZone('+i+',\'heat\',this.value)" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;color:#e5e5e5;padding:5px 7px;font-size:0.8rem;width:100%;text-align:right">'
+      +'<input type="number" value="'+z.cfm+'" oninput="updateZone('+i+',\'cfm\',this.value)" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;color:#e5e5e5;padding:5px 7px;font-size:0.8rem;width:100%;text-align:right">'
+      +'<button class="rm-btn" onclick="removeZone('+i+')">✕</button>';
+    container.appendChild(row);
+  });
+}
+
+function calc(){
+  var cz=parseInt(document.getElementById('cz').value)||3;
+  var sys=document.getElementById('sys_type').value;
+  var cop_c=parseFloat(document.getElementById('cop_c').value)||3.8;
+  var cop_h=parseFloat(document.getElementById('cop_h').value)||3.5;
+  var pipe=parseFloat(document.getElementById('pipe_run').value)||100;
+  var elev=parseFloat(document.getElementById('elev').value)||30;
+
+  var total_cool=0,total_heat=0,total_cfm=0;
+  zoneData.forEach(function(z){total_cool+=z.cool;total_heat+=z.heat;total_cfm+=z.cfm;});
+
+  if(total_cool===0){
+    ['ou_cool','ou_heat','diversity','ou_tons','pipe_factor','adj_cool','adj_heat','pipe_status','kw_input','vs_pkg','ann_save','capex_est'].forEach(function(id){document.getElementById(id).textContent='—';});
+    document.getElementById('zone_table').innerHTML='';
+    return;
+  }
+
+  // Pipe factor
+  var extra_pipe=Math.max(0,pipe-100);
+  var elev_factor=Math.max(0,elev-30)*0.002;
+  var pf=Math.max(0.80,1-extra_pipe*PIPE_DERATE-elev_factor);
+  var pipe_ok=pipe<=300&&elev<=165;
+
+  var adj_cool=total_cool*pf;
+  var adj_heat=total_heat*pf;
+
+  // OU sizing — use sum of zone loads / diversity
+  var div_factor=sys==='heat_recovery'?0.75:0.85;
+  var ou_cool=total_cool*div_factor;
+  var ou_heat=total_heat*(sys==='cooling_only'?0:CZ_HEAT_MULT[cz]||1.1)*div_factor;
+  var ou_size_mbh=Math.max(ou_cool,ou_heat);
+  var ou_tons=ou_size_mbh/12;
+
+  // Power
+  var kw_cool=adj_cool*0.29307/cop_c; // MBH to kW: 1 MBH=0.29307 kW
+  var kw_rtu=adj_cool*0.29307/2.5;
+  var save_kw=kw_rtu-kw_cool;
+  var ann_hrs_cool=800; // rough FLH
+  var ann_save_kwh=save_kw*ann_hrs_cool;
+  var ann_save_cost=ann_save_kwh*0.12; // $0.12/kWh
+
+  // Capex
+  var capex=ou_tons*VRF_COST_PER_TON;
+
+  document.getElementById('ou_cool').textContent=ou_cool.toFixed(1)+' MBH';
+  document.getElementById('ou_heat').textContent=ou_heat.toFixed(1)+' MBH';
+  document.getElementById('diversity').textContent=(div_factor*100).toFixed(0)+'% diversity';
+  document.getElementById('ou_tons').textContent=ou_tons.toFixed(1)+' tons';
+  document.getElementById('pipe_factor').textContent=pf.toFixed(3);
+  document.getElementById('pipe_factor').className='result-sub '+(pf>0.95?'good':pf>0.88?'warn':'bad');
+  document.getElementById('adj_cool').textContent=adj_cool.toFixed(1)+' MBH';
+  document.getElementById('adj_heat').textContent=adj_heat.toFixed(1)+' MBH';
+  document.getElementById('pipe_status').textContent=pipe_ok?'Within limits':'EXCEEDS max run';
+  document.getElementById('pipe_status').className='result-sub '+(pipe_ok?'good':'bad');
+  document.getElementById('kw_input').textContent=kw_cool.toFixed(1)+' kW';
+  document.getElementById('vs_pkg').textContent='RTU needs '+kw_rtu.toFixed(1)+' kW — save '+save_kw.toFixed(1)+' kW';
+  document.getElementById('ann_save').textContent='~$'+Math.round(ann_save_cost).toLocaleString()+'/yr ('+Math.round(ann_save_kwh).toLocaleString()+' kWh)';
+  document.getElementById('capex_est').textContent='$'+Math.round(capex).toLocaleString()+' (±30%)';
+
+  // Zone table
+  var tbody=document.getElementById('zone_table');
+  tbody.innerHTML='';
+  zoneData.forEach(function(z){
+    var iu_tons=(z.cool/12);
+    var pct_ou=ou_size_mbh>0?z.cool/ou_size_mbh*100:0;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+z.name+'</td><td>'+z.cool.toFixed(1)+'</td><td>'+z.heat.toFixed(1)+'</td><td>'+iu_tons.toFixed(1)+'</td><td>'+z.cfm+'</td><td>'+(pct_ou).toFixed(1)+'%</td>';
+    tbody.appendChild(tr);
+  });
+  // Totals row
+  var tr2=document.createElement('tr');
+  var total_iu=total_cool/12;
+  tr2.innerHTML='<td>TOTAL</td><td>'+total_cool.toFixed(1)+'</td><td>'+total_heat.toFixed(1)+'</td><td>'+total_iu.toFixed(1)+'</td><td>'+total_cfm+'</td><td>100%</td>';
+  tbody.appendChild(tr2);
+}
+
+// Default zones
+addZone('Open Office',12,10,800);
+addZone('Conference Room',8,6,500);
+addZone('Private Office',4,3,300);
+addZone('Server Room',6,0,400);
+</script>
+</body>
+</html>

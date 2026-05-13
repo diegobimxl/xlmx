@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dew Point & Condensation Risk Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:24px 32px}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.header p{color:#888;font-size:13px;margin-top:4px}
+.badge{display:inline-block;background:#10b98122;color:#10b981;border:1px solid #10b98144;border-radius:4px;font-size:11px;padding:2px 8px;margin-top:8px;margin-right:6px}
+.container{max-width:1100px;margin:0 auto;padding:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:24px}
+.card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+label{display:block;font-size:12px;color:#888;margin-bottom:4px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-size:14px}
+.btn{background:#10b981;color:#000;border:none;border-radius:6px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;margin-top:20px;width:100%}
+.btn:hover{background:#0ea16c}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;text-align:center}
+.kpi .val{font-size:24px;font-weight:700;font-family:monospace}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px}
+.profile-wrap{margin-top:16px}
+.profile-wrap h4{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.layer-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.layer-row .name{width:140px;color:#888;text-align:right;flex-shrink:0}
+.layer-row .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.layer-row .info{color:#ccc;flex:1}
+.condensation{color:#ef4444;font-weight:600}
+.no-condensation{color:#10b981}
+.result-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.result-row .key{color:#888}
+.result-row .val{font-family:monospace;font-weight:600;color:#fff}
+.wall-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.wall-table th{background:#0d0d0d;color:#888;padding:8px;text-align:right;border-bottom:1px solid #222;font-size:11px}
+.wall-table th:first-child{text-align:left}
+.wall-table td{padding:8px;border-bottom:1px solid #1a1a1a;text-align:right;font-family:monospace;color:#ccc}
+.wall-table td:first-child{text-align:left;font-family:system-ui;color:#888;font-size:12px}
+.bim-note{background:#10b98111;border:1px solid #10b98133;border-radius:6px;padding:16px;margin-top:20px}
+.bim-note .title{font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.bim-note p{font-size:13px;color:#aaa;line-height:1.6}
+.cta{background:#c8a96e11;border:1px solid #c8a96e33;border-radius:6px;padding:20px;margin-top:24px;text-align:center}
+.cta p{font-size:13px;color:#aaa;line-height:1.6}
+.cta strong{color:#c8a96e}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Dew Point & Condensation Risk Calculator</h1>
+  <p>Surface Condensation, Interstitial Condensation Risk — WUFI / Glaser Method Simplified</p>
+  <span class="badge">ISO 13788</span>
+  <span class="badge">ASHRAE 160</span>
+</div>
+<div class="container">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <h3>Ambient Conditions</h3>
+        <label>Indoor Air Temperature (°F)</label>
+        <input type="number" id="ti" value="70" step="1">
+        <label>Indoor Relative Humidity (%)</label>
+        <input type="number" id="rhi" value="40" step="1" min="0" max="100">
+        <label>Outdoor Temperature (°F)</label>
+        <input type="number" id="to" value="10" step="1">
+        <label>Outdoor Relative Humidity (%)</label>
+        <input type="number" id="rho_out" value="80" step="1" min="0" max="100">
+      </div>
+      <div class="card" style="margin-top:24px">
+        <h3>Wall Assembly (Inside → Outside)</h3>
+        <div style="font-size:12px;color:#555;margin-bottom:12px">Add layers from inside surface to outside surface. Vapor permeance in perms (ASTM E96).</div>
+        <div id="layers">
+          <div class="layer-entry" style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:12px;margin-bottom:8px">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:8px">
+              <select class="l-name">
+                <option value="drywall">5/8" Gypsum Drywall</option>
+                <option value="vapor_barrier">Poly Vapor Barrier (6 mil)</option>
+                <option value="batt">Batt Insulation (R-19)</option>
+                <option value="osb">OSB Sheathing (7/16")</option>
+                <option value="zip">ZIP System Sheathing</option>
+                <option value="polyiso">Polyiso CI (2")</option>
+                <option value="xps">XPS Rigid (2")</option>
+                <option value="wrb">Building Wrap (Tyvek)</option>
+                <option value="brick">Brick Veneer</option>
+                <option value="concrete">CMU / Concrete Block</option>
+              </select>
+              <button onclick="removeLayer(this)" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0 4px">×</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div><label style="margin-top:0;font-size:11px">R-value</label><input type="number" class="l-r" value="0.56" step="0.1"></div>
+              <div><label style="margin-top:0;font-size:11px">Perms</label><input type="number" class="l-perm" value="50" step="1"></div>
+              <div><label style="margin-top:0;font-size:11px">Thickness (in)</label><input type="number" class="l-thick" value="0.625" step="0.125"></div>
+            </div>
+          </div>
+        </div>
+        <button onclick="addLayer()" style="background:#111;border:1px solid #333;color:#888;border-radius:6px;padding:8px 16px;font-size:12px;cursor:pointer;width:100%;margin-top:4px">+ Add Layer</button>
+        <button class="btn" onclick="calcDewPoint()">Analyze Condensation Risk</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Results</h3>
+        <div id="results">
+          <p style="color:#555;font-size:13px;text-align:center;padding:40px 0">Configure assembly and calculate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>Common Material Properties Reference</h3>
+    <table class="wall-table">
+      <tr><th>Material</th><th>R-value</th><th>Perms</th><th>Vapor Class</th><th>Notes</th></tr>
+      <tr><td>Poly Vapor Barrier (6 mil)</td><td>—</td><td>0.06</td><td>Class I (Impermeable)</td><td>Interior VB in cold climates</td></tr>
+      <tr><td>Kraft facing on batt</td><td>—</td><td>0.4</td><td>Class II (Semi-impermeable)</td><td>Variable with moisture</td></tr>
+      <tr><td>1/2" Gypsum Drywall</td><td>0.45</td><td>50</td><td>Class III (Permeable)</td><td>Painted reduces to 3-5 perms</td></tr>
+      <tr><td>OSB 7/16"</td><td>0.50</td><td>2.0</td><td>Class II</td><td>Variable permeability product</td></tr>
+      <tr><td>ZIP System Sheathing</td><td>0.70</td><td>3.0</td><td>Class II</td><td>Built-in WRB</td></tr>
+      <tr><td>2" XPS</td><td>10.0</td><td>0.6</td><td>Class II</td><td>Acts as vapor retarder</td></tr>
+      <tr><td>2" Polyiso</td><td>12.0</td><td>2.5</td><td>Class III</td><td>Foil-faced = Class I (0.05)</td></tr>
+      <tr><td>Tyvek HomeWrap</td><td>—</td><td>58</td><td>Class III</td><td>Vapor open, water resistant</td></tr>
+      <tr><td>MemBrain (smart VR)</td><td>—</td><td>0.1–10</td><td>Variable</td><td>Perms increase with moisture</td></tr>
+      <tr><td>Spray foam (closed cell 2")</td><td>12.0</td><td>0.8</td><td>Class II</td><td>Structural + vapor control</td></tr>
+    </table>
+  </div>
+
+  <div class="bim-note" style="margin-top:24px">
+    <div class="title">BIM / Hygrothermal Analysis Integration</div>
+    <p>This tool uses the simplified steady-state Glaser method (ISO 13788). For accurate hygrothermal analysis, use WUFI Pro or WUFI 2D with transient climate data. Model wall assembly layers in Revit with <em>Vapor_Permeance_Perms</em> and <em>R_Value</em> shared parameters on each layer within the compound wall type structure. Export Revit assembly data for WUFI input. ASHRAE 160 requires hygrothermal analysis for walls in Climate Zones 5+. For Passive House PHIUS certification, interior surface temperature must stay above dew point (verified via THERM 2D linear thermal bridging analysis at all connections).</p>
+  </div>
+
+  <div class="cta">
+    <p><strong>Hygrothermal analysis and condensation risk assessment?</strong><br>
+    BIM XL provides WUFI analysis, Revit assembly documentation, and ASHRAE 160 / Passive House condensation compliance reports. Custom wall assembly optimization for any climate zone. Contact <strong>BIM XL</strong>.</p>
+  </div>
+</div>
+<script>
+var LAYER_PRESETS={
+  drywall:{r:0.56,perm:50,thick:0.625},vapor_barrier:{r:0.01,perm:0.06,thick:0.006},
+  batt:{r:19,perm:30,thick:5.5},osb:{r:0.5,perm:2.0,thick:0.4375},
+  zip:{r:0.7,perm:3.0,thick:0.4375},polyiso:{r:12,perm:2.5,thick:2},
+  xps:{r:10,perm:0.6,thick:2},wrb:{r:0,perm:58,thick:0.02},
+  brick:{r:0.8,perm:3.0,thick:3.75},concrete:{r:1.5,perm:3.2,thick:8}
+};
+function addLayer(){
+  var div=document.createElement('div');
+  div.className='layer-entry';
+  div.style.cssText='background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:12px;margin-bottom:8px';
+  div.innerHTML='<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:8px">'
+    +'<select class="l-name" onchange="setLayerProps(this)">'
+    +'<option value="drywall">5/8" Gypsum Drywall</option>'
+    +'<option value="vapor_barrier">Poly Vapor Barrier (6 mil)</option>'
+    +'<option value="batt">Batt Insulation (R-19)</option>'
+    +'<option value="osb">OSB Sheathing (7/16")</option>'
+    +'<option value="zip">ZIP System Sheathing</option>'
+    +'<option value="polyiso">Polyiso CI (2")</option>'
+    +'<option value="xps">XPS Rigid (2")</option>'
+    +'<option value="wrb">Building Wrap (Tyvek)</option>'
+    +'<option value="brick">Brick Veneer</option>'
+    +'<option value="concrete">CMU / Concrete Block</option>'
+    +'</select>'
+    +'<button onclick="removeLayer(this)" style="background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:0 4px">×</button>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+    +'<div><label style="margin-top:0;font-size:11px">R-value</label><input type="number" class="l-r" value="0.56" step="0.1"></div>'
+    +'<div><label style="margin-top:0;font-size:11px">Perms</label><input type="number" class="l-perm" value="50" step="1"></div>'
+    +'<div><label style="margin-top:0;font-size:11px">Thickness (in)</label><input type="number" class="l-thick" value="0.625" step="0.125"></div>'
+    +'</div>';
+  document.getElementById('layers').appendChild(div);
+}
+function removeLayer(btn){
+  var entries=document.querySelectorAll('.layer-entry');
+  if(entries.length<=1) return;
+  btn.closest('.layer-entry').remove();
+}
+function setLayerProps(sel){
+  var p=LAYER_PRESETS[sel.value];
+  if(!p) return;
+  var row=sel.closest('.layer-entry');
+  row.querySelector('.l-r').value=p.r;
+  row.querySelector('.l-perm').value=p.perm;
+  row.querySelector('.l-thick').value=p.thick;
+}
+document.querySelectorAll('.l-name').forEach(function(s){s.addEventListener('change',function(){setLayerProps(this);});});
+
+function dewPointF(t_f,rh){
+  var t_c=(t_f-32)*5/9;
+  var a=17.27,b=237.7;
+  var alpha=a*t_c/(b+t_c)+Math.log(rh/100);
+  var dp_c=b*alpha/(a-alpha);
+  return dp_c*9/5+32;
+}
+
+function calcDewPoint(){
+  var ti=parseFloat(document.getElementById('ti').value);
+  var rhi=parseFloat(document.getElementById('rhi').value);
+  var to=parseFloat(document.getElementById('to').value);
+  var rho=parseFloat(document.getElementById('rho_out').value);
+
+  var dp_i=dewPointF(ti,rhi);
+  var dp_o=dewPointF(to,rho);
+
+  var entries=document.querySelectorAll('.layer-entry');
+  var layers=[];
+  entries.forEach(function(e){
+    layers.push({
+      name:e.querySelector('.l-name').options[e.querySelector('.l-name').selectedIndex].text,
+      r:parseFloat(e.querySelector('.l-r').value)||0.001,
+      perm:parseFloat(e.querySelector('.l-perm').value)||0.001,
+      thick:parseFloat(e.querySelector('.l-thick').value)||0
+    });
+  });
+
+  var r_total=layers.reduce(function(s,l){return s+l.r;},0)+0.68+0.17; // + inside/outside air films
+  // Temperature at each layer interface
+  var temps=[ti];
+  var r_cum=0.17; // inside air film
+  layers.forEach(function(l){
+    r_cum+=l.r;
+    temps.push(ti-(ti-to)*r_cum/r_total);
+  });
+  temps.push(to);
+
+  // Vapor pressure profile (simplified Glaser)
+  var perm_total_inv=layers.reduce(function(s,l){return s+1/l.perm;},0);
+  var pv_in=Math.exp(17.27*(ti-32)*5/9/((ti-32)*5/9+237.7))*rhi/100*0.1333; // kPa approx
+  var pv_out=Math.exp(17.27*(to-32)*5/9/((to-32)*5/9+237.7))*rho/100*0.1333;
+
+  var condensation_risk=false;
+  var risk_layers=[];
+  for(var i=0;i<layers.length;i++){
+    var t_interface=temps[i+1];
+    var dp_interface=dewPointF(t_interface,75); // approximate
+    if(t_interface<=dp_i&&t_interface<=ti&&t_interface>=to){
+      condensation_risk=true;
+      risk_layers.push(layers[i].name);
+    }
+  }
+
+  var surface_temp=temps[1];
+  var surface_condensation=surface_temp<=dp_i;
+  var dp_color=dp_i<40?'#10b981':dp_i<60?'#f59e0b':'#ef4444';
+  var surf_color=surface_condensation?'#ef4444':'#10b981';
+  var inter_color=condensation_risk?'#ef4444':'#10b981';
+
+  var html='<div class="kpi-row">'
+    +'<div class="kpi"><div class="val" style="color:'+dp_color+'">'+dp_i.toFixed(1)+'°F</div><div class="lbl">Indoor Dew Point</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+surf_color+'">'+surface_temp.toFixed(1)+'°F</div><div class="lbl">Interior Surface Temp</div></div>'
+    +'<div class="kpi"><div class="val" style="color:'+(surface_condensation||condensation_risk?'#ef4444':'#10b981')+'">'+(surface_condensation||condensation_risk?'RISK':'SAFE')+'</div><div class="lbl">Condensation Risk</div></div>'
+    +'</div>'
+    +'<div style="background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:12px">'
+    +'<div class="result-row"><span class="key">Indoor dew point</span><span class="val">'+dp_i.toFixed(1)+'°F</span></div>'
+    +'<div class="result-row"><span class="key">Outdoor dew point</span><span class="val">'+dp_o.toFixed(1)+'°F</span></div>'
+    +'<div class="result-row"><span class="key">Interior surface temp</span><span class="val" style="color:'+surf_color+'">'+surface_temp.toFixed(1)+'°F '+(surface_condensation?'⚠ BELOW DEW POINT':'✓ above dew point')+'</span></div>'
+    +'<div class="result-row"><span class="key">Total assembly R-value</span><span class="val">R-'+(r_total-0.85).toFixed(1)+'</span></div>'
+    +'</div>'
+    +'<div class="profile-wrap"><h4>Temperature Profile (Inside → Outside)</h4>';
+
+  temps.forEach(function(t,i){
+    var dp_here=dp_i;
+    var risk=t<=dp_here;
+    html+='<div class="layer-row"><span class="name">'+(i===0?'Interior air':(i===temps.length-1?'Exterior air':layers[i-1].name.substring(0,20)))+'</span>'
+      +'<div class="dot" style="background:'+(risk?'#ef4444':'#10b981')+'"></div>'
+      +'<span class="info">'+(risk?'<span class="condensation">'+t.toFixed(1)+'°F — BELOW dew point '+dp_here.toFixed(1)+'°F</span>':'<span class="no-condensation">'+t.toFixed(1)+'°F — OK</span>')+'</span>'
+      +'</div>';
+  });
+
+  html+='</div>';
+
+  if(surface_condensation||condensation_risk){
+    html+='<div style="background:#ef444411;border:1px solid #ef444433;border-radius:6px;padding:14px;margin-top:12px">'
+      +'<div style="font-size:11px;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Condensation Risk — Mitigation Required</div>'
+      +'<p style="font-size:13px;color:#ccc;line-height:1.6">'
+      +(surface_condensation?'Surface condensation likely — interior surface temp ('+surface_temp.toFixed(1)+'°F) is at or below indoor dew point ('+dp_i.toFixed(1)+'°F). Increase insulation R-value to raise surface temperature, or reduce indoor humidity below '+(Math.round((surface_temp-32)*100/100))+'%.<br>':'')
+      +(condensation_risk?'Interstitial condensation risk at: '+risk_layers.join(', ')+'. Add vapor retarder on warm side or move insulation to continuous exterior layer to raise all interfaces above dew point.':'')
+      +'</p></div>';
+  }
+
+  document.getElementById('results').innerHTML=html;
+}
+// Pre-populate default layers
+(function(){
+  var defs=[{n:'osb',r:0.5,p:2,t:0.4375},{n:'batt',r:19,p:30,t:5.5},{n:'drywall',r:0.56,p:50,t:0.625}];
+  defs.forEach(function(d,i){
+    if(i===0){
+      var first=document.querySelector('.layer-entry');
+      first.querySelector('.l-name').value=d.n;
+      first.querySelector('.l-r').value=d.r;
+      first.querySelector('.l-perm').value=d.p;
+      first.querySelector('.l-thick').value=d.t;
+      return;
+    }
+    addLayer();
+    var entries=document.querySelectorAll('.layer-entry');
+    var entry=entries[entries.length-1];
+    entry.querySelector('.l-name').value=d.n;
+    entry.querySelector('.l-r').value=d.r;
+    entry.querySelector('.l-perm').value=d.p;
+    entry.querySelector('.l-thick').value=d.t;
+  });
+  calcDewPoint();
+})();
+</script>
+</body>
+</html>

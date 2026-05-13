@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plug Load Benchmarking — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.eq-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 40px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:0.8rem}
+.eq-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 40px;gap:6px;padding:6px 0;border-bottom:1px solid #333;font-size:0.72rem;color:#666;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.add-btn{background:#10b981;color:#000;border:none;padding:8px 16px;border-radius:6px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:12px}
+.rm-btn{background:#1a1a1a;color:#ef4444;border:1px solid #2a2a2a;padding:4px 8px;border-radius:4px;font-size:0.72rem;cursor:pointer}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.bar-wrap{background:#1a1a1a;border-radius:3px;height:8px;overflow:hidden;margin:4px 0}
+.bar-fill{height:8px;border-radius:3px;background:#10b981;transition:width .3s}
+.bar-fill.warn{background:#f59e0b}
+.bar-fill.bad{background:#ef4444}
+.inp-sm{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;color:#e5e5e5;padding:4px 6px;font-size:0.78rem;width:100%}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Plug Load Benchmarking <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Equipment power density, annual energy, and cost versus ASHRAE 90.1 plug load targets — ENERGY STAR · CBECs 2018</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Building Parameters</h3>
+    <label>Building Type</label>
+    <select id="btype" onchange="calc()">
+      <option value="office">Office</option>
+      <option value="retail">Retail</option>
+      <option value="multifamily">Multifamily</option>
+      <option value="hotel">Hotel</option>
+      <option value="school">School</option>
+      <option value="lab">Laboratory</option>
+      <option value="healthcare">Healthcare</option>
+      <option value="warehouse">Warehouse</option>
+    </select>
+    <label>Gross Floor Area (SF)</label>
+    <input type="number" id="area" value="20000" oninput="calc()">
+    <label>Operating Hours/Week</label>
+    <input type="number" id="hrs_wk" value="55" oninput="calc()">
+    <label>Occupancy Weeks/Year</label>
+    <input type="number" id="wks_yr" value="50" oninput="calc()">
+    <label>Electricity Rate ($/kWh)</label>
+    <input type="number" id="elec_rate" value="0.12" step="0.01" oninput="calc()">
+    <label>Standby / Off-Hours Factor (%)</label>
+    <input type="number" id="standby" value="15" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>Equipment Inventory</h3>
+    <div class="eq-header">
+      <span>Equipment</span>
+      <span style="text-align:right">Qty</span>
+      <span style="text-align:right">W/unit</span>
+      <span style="text-align:right">Duty %</span>
+      <span style="text-align:right">W total</span>
+      <span style="text-align:right">kWh/yr</span>
+      <span></span>
+    </div>
+    <div id="eq_rows"></div>
+    <button class="add-btn" onclick="addEquip()">+ Add Equipment</button>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Plug Load Density</h3>
+    <div class="result-big" id="epd">—</div>
+    <div class="result-label">W/SF installed (Equipment Power Density)</div>
+    <div class="result-sub" id="benchmark">—</div>
+    <div class="result-label">ASHRAE 90.1 / CBECs benchmark for building type</div>
+    <div class="result-sub" id="vs_bench">—</div>
+    <div class="result-label">vs. benchmark</div>
+  </div>
+  <div class="card">
+    <h3>Annual Energy & Cost</h3>
+    <div class="result-big good" id="ann_kwh">—</div>
+    <div class="result-label">kWh/year (operating + standby)</div>
+    <div class="result-sub" id="ann_cost">—</div>
+    <div class="result-label">Annual electricity cost</div>
+    <div class="result-sub" id="eui_contrib">—</div>
+    <div class="result-label">Plug load EUI contribution (kBtu/SF/yr)</div>
+  </div>
+  <div class="card">
+    <h3>Reduction Potential</h3>
+    <div class="result-big warn" id="save_pot">—</div>
+    <div class="result-label">Potential annual savings if at benchmark</div>
+    <div class="result-sub" id="co2_ann">—</div>
+    <div class="result-label">Annual CO₂ emissions from plug loads</div>
+    <div class="result-sub" id="co2_save">—</div>
+    <div class="result-label">CO₂ reduction potential at benchmark</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Equipment Breakdown by Category</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Equipment</th>
+        <th>Watts</th>
+        <th>kWh/yr</th>
+        <th>Annual Cost</th>
+        <th>% of Total</th>
+        <th>ENERGY STAR Available</th>
+      </tr>
+    </thead>
+    <tbody id="eq_table"></tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Plug Load Benchmarks by Building Type (CBECs 2018 / ASHRAE 90.1)</h3>
+  <table>
+    <thead>
+      <tr><th>Building Type</th><th>Median EPD (W/SF)</th><th>25th Pct</th><th>Best-in-Class</th><th>LEED v4 Target</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Office</td><td>1.0</td><td>0.7</td><td>0.5</td><td>0.75</td></tr>
+      <tr><td>Retail</td><td>1.5</td><td>1.0</td><td>0.6</td><td>1.0</td></tr>
+      <tr><td>Multifamily</td><td>0.8</td><td>0.5</td><td>0.3</td><td>0.6</td></tr>
+      <tr><td>Hotel</td><td>1.2</td><td>0.8</td><td>0.5</td><td>0.9</td></tr>
+      <tr><td>School/Education</td><td>0.9</td><td>0.6</td><td>0.4</td><td>0.7</td></tr>
+      <tr><td>Laboratory</td><td>4.5</td><td>3.0</td><td>2.0</td><td>3.5</td></tr>
+      <tr><td>Healthcare</td><td>2.0</td><td>1.4</td><td>0.9</td><td>1.5</td></tr>
+      <tr><td>Warehouse</td><td>0.4</td><td>0.25</td><td>0.15</td><td>0.3</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: PLUGLOAD_EPD_WSF, PLUGLOAD_ANN_KWH, PLUGLOAD_EUI_CONTRIB for energy modeling handoff</li>
+    <li>ASHRAE 90.1-2022 §12 Receptacle Controls: occupancy-sensor controlled receptacles required in open offices, private offices, conference rooms ≥50 SF</li>
+    <li>ENERGY STAR Most Efficient 2024: computers, monitors, servers, refrigerators, dishwashers — typically 30-50% less than standard equipment</li>
+    <li>DOE CBECS 2018: plug and process loads represent 35-44% of total commercial building EUI — largest single load category after HVAC in offices</li>
+    <li>Smart PDU (Power Distribution Unit) + occupancy-sensing controls can reduce plug loads 20-30% vs uncontrolled</li>
+    <li>LEED EA Credit 2 (Optimize Energy Performance): plug load reduction strategies count toward energy improvement %</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Plug Load Analysis & Energy Modeling</h4>
+  <p>BIM XL delivers equipment power density studies, Revit MEP panel schedules, and plug load inputs for EnergyPlus / OpenStudio energy models.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var BENCHMARKS={office:1.0,retail:1.5,multifamily:0.8,hotel:1.2,school:0.9,lab:4.5,healthcare:2.0,warehouse:0.4};
+var ES_AVAIL={
+  'Desktop Computer':true,'Laptop':true,'Monitor':true,'Server':true,
+  'Printer/Copier':true,'Refrigerator':true,'Dishwasher':true,'Washer/Dryer':true,
+  'Coffee Maker':false,'POS Terminal':false,'Medical Equipment':false,'Lab Equipment':false
+};
+var equip=[];
+
+function addEquip(name,qty,watts,duty){
+  equip.push({name:name||'Equipment',qty:qty||1,watts:watts||100,duty:duty||0.5});
+  renderEquip();
+  calc();
+}
+
+function removeEquip(i){equip.splice(i,1);renderEquip();calc();}
+function updateEquip(i,f,v){equip[i][f]=(f==='name'?v:(parseFloat(v)||0));calc();}
+
+function renderEquip(){
+  var c=document.getElementById('eq_rows');c.innerHTML='';
+  equip.forEach(function(e,i){
+    var wtotal=e.qty*e.watts*(e.duty/100);
+    var div=document.createElement('div');div.className='eq-row';
+    div.innerHTML='<input class="inp-sm" type="text" value="'+e.name+'" oninput="updateEquip('+i+',\'name\',this.value)">'
+      +'<input class="inp-sm" type="number" value="'+e.qty+'" oninput="updateEquip('+i+',\'qty\',this.value)">'
+      +'<input class="inp-sm" type="number" value="'+e.watts+'" oninput="updateEquip('+i+',\'watts\',this.value)">'
+      +'<input class="inp-sm" type="number" value="'+e.duty+'" oninput="updateEquip('+i+',\'duty\',this.value)">'
+      +'<span style="text-align:right;font-size:0.78rem;color:#10b981">'+Math.round(wtotal)+'</span>'
+      +'<span id="kwh_'+i+'" style="text-align:right;font-size:0.78rem;color:#aaa">—</span>'
+      +'<button class="rm-btn" onclick="removeEquip('+i+')">✕</button>';
+    c.appendChild(div);
+  });
+}
+
+function calc(){
+  var area=parseFloat(document.getElementById('area').value)||20000;
+  var hrs_wk=parseFloat(document.getElementById('hrs_wk').value)||55;
+  var wks_yr=parseFloat(document.getElementById('wks_yr').value)||50;
+  var elec=parseFloat(document.getElementById('elec_rate').value)||0.12;
+  var standby_pct=parseFloat(document.getElementById('standby').value)||15;
+  var btype=document.getElementById('btype').value;
+  var bench=BENCHMARKS[btype]||1.0;
+  var ann_hrs=hrs_wk*wks_yr;
+  var standby_hrs=8760-ann_hrs;
+
+  var total_w=0;
+  equip.forEach(function(e,i){
+    var w=e.qty*e.watts*(e.duty/100);
+    total_w+=w;
+    var kwh_op=w*ann_hrs/1000;
+    var kwh_sb=w*(standby_pct/100)*standby_hrs/1000;
+    var kwh=kwh_op+kwh_sb;
+    var el=document.getElementById('kwh_'+i);
+    if(el)el.textContent=Math.round(kwh).toLocaleString();
+  });
+
+  var epd=total_w/area;
+  var bench_w=bench*area;
+  var diff_w=total_w-bench_w;
+  var diff_pct=bench_w>0?diff_w/bench_w*100:0;
+
+  // Annual energy
+  var kwh_op=total_w*ann_hrs/1000;
+  var kwh_sb=total_w*(standby_pct/100)*standby_hrs/1000;
+  var kwh_total=kwh_op+kwh_sb;
+  var ann_cost=kwh_total*elec;
+  var eui_contrib=kwh_total*3.412/area;
+
+  // Benchmark energy
+  var kwh_bench=(bench_w*ann_hrs/1000)+(bench_w*(standby_pct/100)*standby_hrs/1000);
+  var save_pot=(kwh_total-kwh_bench)*elec;
+
+  var co2=kwh_total*0.000386; // tCO2e
+  var co2_save=(kwh_total-kwh_bench)*0.000386;
+
+  document.getElementById('epd').textContent=epd.toFixed(2)+' W/SF';
+  document.getElementById('epd').className='result-big '+(epd<=bench?'good':epd<=bench*1.3?'warn':'bad');
+  document.getElementById('benchmark').textContent=bench.toFixed(1)+' W/SF median for '+document.getElementById('btype').options[document.getElementById('btype').selectedIndex].text.split(' ')[0];
+  document.getElementById('vs_bench').textContent=(diff_pct>0?'+':'')+diff_pct.toFixed(0)+'% vs benchmark';
+  document.getElementById('vs_bench').className='result-sub '+(diff_pct<=0?'good':diff_pct<=30?'warn':'bad');
+  document.getElementById('ann_kwh').textContent=Math.round(kwh_total).toLocaleString()+' kWh/yr';
+  document.getElementById('ann_cost').textContent='$'+Math.round(ann_cost).toLocaleString()+'/yr';
+  document.getElementById('eui_contrib').textContent=eui_contrib.toFixed(1)+' kBtu/SF/yr';
+  document.getElementById('save_pot').textContent='$'+Math.round(Math.max(0,save_pot)).toLocaleString()+'/yr';
+  document.getElementById('co2_ann').textContent=co2.toFixed(1)+' tCO₂e/yr';
+  document.getElementById('co2_save').textContent=co2_save.toFixed(1)+' tCO₂e/yr potential';
+
+  // Equipment table
+  var tbody=document.getElementById('eq_table');
+  tbody.innerHTML='';
+  var total_kwh_all=0;
+  equip.forEach(function(e){
+    var w=e.qty*e.watts*(e.duty/100);
+    var kwh=(w*ann_hrs/1000)+(w*(standby_pct/100)*standby_hrs/1000);
+    total_kwh_all+=kwh;
+  });
+  equip.forEach(function(e,i){
+    var w=e.qty*e.watts*(e.duty/100);
+    var kwh=(w*ann_hrs/1000)+(w*(standby_pct/100)*standby_hrs/1000);
+    var cost=kwh*elec;
+    var pct=total_kwh_all>0?kwh/total_kwh_all*100:0;
+    var es=ES_AVAIL[e.name]?'Yes':'—';
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+e.name+'</td><td>'+Math.round(w)+'</td><td>'+Math.round(kwh).toLocaleString()+'</td><td class="good">$'+Math.round(cost).toLocaleString()+'</td><td>'+pct.toFixed(1)+'%</td><td class="good">'+es+'</td>';
+    tbody.appendChild(tr);
+  });
+  var tr2=document.createElement('tr');
+  tr2.innerHTML='<td>TOTAL</td><td>'+Math.round(total_w)+'</td><td>'+Math.round(kwh_total).toLocaleString()+'</td><td>$'+Math.round(ann_cost).toLocaleString()+'</td><td>100%</td><td>—</td>';
+  tbody.appendChild(tr2);
+}
+
+// Defaults
+addEquip('Desktop Computer',30,120,60);
+addEquip('Monitor',30,35,65);
+addEquip('Laptop',20,45,55);
+addEquip('Printer/Copier',4,500,5);
+addEquip('Coffee Maker',2,1200,3);
+addEquip('Refrigerator',2,150,100);
+addEquip('Server/Network',2,400,90);
+</script>
+</body>
+</html>

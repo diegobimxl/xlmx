@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embodied Carbon Reduction — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:nth-child(even) td{background:#131313}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.bar-wrap{background:#1a1a1a;border-radius:3px;height:10px;overflow:hidden}
+.bar-fill{height:10px;border-radius:3px;background:#10b981;transition:width .4s}
+.bar-fill.warn{background:#f59e0b}
+.bar-fill.bad{background:#ef4444}
+.strategy-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:0.82rem}
+.strategy-row:last-child{border-bottom:none}
+.strategy-check{font-size:1.1rem;line-height:1}
+.strategy-body{flex:1}
+.strategy-title{color:#e5e5e5;font-weight:600}
+.strategy-detail{color:#888;font-size:0.77rem;margin-top:2px}
+.strategy-impact{color:#10b981;font-weight:600;font-size:0.8rem}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Embodied Carbon Reduction Roadmap <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Whole-life carbon by material category, reduction strategies, and LEED MR / SE credit alignment — ISO 14044 · EN 15978 · EC3 benchmarks</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Project Profile</h3>
+    <label>Building Type</label>
+    <select id="btype" onchange="setDefaults()">
+      <option value="office_mid">Office — Mid-Rise (5–10 stories)</option>
+      <option value="office_high">Office — High-Rise (10+ stories)</option>
+      <option value="residential">Residential — Mid-Rise</option>
+      <option value="warehouse">Warehouse / Industrial</option>
+      <option value="school">School / Education</option>
+      <option value="healthcare">Healthcare</option>
+    </select>
+    <label>Gross Floor Area (SF)</label>
+    <input type="number" id="area" value="100000" oninput="calc()">
+    <label>Primary Structure Type</label>
+    <select id="struct" onchange="calc()">
+      <option value="steel_conc">Steel + Concrete Core</option>
+      <option value="concrete">Cast-in-Place Concrete</option>
+      <option value="mass_timber">Mass Timber (CLT/Glulam)</option>
+      <option value="steel_only">Structural Steel</option>
+      <option value="wood_frame">Light Wood Frame</option>
+    </select>
+    <label>Target Carbon Reduction (%)</label>
+    <input type="number" id="target_pct" value="30" min="10" max="80" oninput="calc()">
+    <label>Location (for grid intensity)</label>
+    <select id="region" onchange="calc()">
+      <option value="US_avg">US Average</option>
+      <option value="CA">California (low-carbon grid)</option>
+      <option value="TX">Texas / ERCOT</option>
+      <option value="NE">Northeast</option>
+      <option value="MX">Mexico / CFE</option>
+    </select>
+  </div>
+  <div class="card">
+    <h3>Material Quantities (Estimated)</h3>
+    <label>Concrete (CY)</label>
+    <input type="number" id="qty_conc" value="2000" oninput="calc()">
+    <label>Structural Steel (tons)</label>
+    <input type="number" id="qty_steel" value="400" oninput="calc()">
+    <label>Rebar / Reinforcing Steel (tons)</label>
+    <input type="number" id="qty_rebar" value="200" oninput="calc()">
+    <label>Exterior Glazing (SF)</label>
+    <input type="number" id="qty_glass" value="20000" oninput="calc()">
+    <label>Exterior Wall Insulation (SF)</label>
+    <input type="number" id="qty_ins" value="25000" oninput="calc()">
+    <label>Gypsum Board (SF)</label>
+    <input type="number" id="qty_gyp" value="80000" oninput="calc()">
+    <label>Roofing Membrane (SF)</label>
+    <input type="number" id="qty_roof" value="15000" oninput="calc()">
+    <p style="font-size:0.75rem;color:#555;margin-top:10px">Use Revit QTO or rough SF×factor for early estimates. Accuracy ±40% without full QTO.</p>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Total Upfront EC (A1–A5)</h3>
+    <div class="result-big bad" id="total_ec">—</div>
+    <div class="result-label">kgCO₂e total (A1–A3 product stage)</div>
+    <div class="result-sub" id="ec_per_sf">—</div>
+    <div class="result-label">kgCO₂e/SF (WBLCA intensity)</div>
+    <div class="result-sub" id="vs_benchmark">—</div>
+    <div class="result-label">vs. EC3 benchmark for building type</div>
+  </div>
+  <div class="card">
+    <h3>Reduction Potential</h3>
+    <div class="result-big good" id="ec_save">—</div>
+    <div class="result-label">kgCO₂e achievable savings</div>
+    <div class="result-sub" id="ec_after">—</div>
+    <div class="result-label">kgCO₂e after reduction strategies</div>
+    <div class="result-sub" id="target_status">—</div>
+    <div class="result-label">Target achievement</div>
+  </div>
+  <div class="card">
+    <h3>Carbon Cost (optional)</h3>
+    <div class="result-big" id="carbon_val" style="color:#c8a96e">—</div>
+    <div class="result-label">Value at $50/tCO₂e (internal carbon price)</div>
+    <div class="result-sub" id="carbon_val_save">—</div>
+    <div class="result-label">Carbon value saved by strategies</div>
+    <div class="result-sub" id="leed_pts">—</div>
+    <div class="result-label">Estimated LEED MR credit points</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Embodied Carbon by Material Category</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th>Quantity</th>
+        <th>Unit EC Factor</th>
+        <th>Baseline EC (kgCO₂e)</th>
+        <th>% of Total</th>
+        <th>Low-Carbon Option EC</th>
+        <th>Reduction</th>
+      </tr>
+    </thead>
+    <tbody id="material_table"></tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Reduction Strategy Roadmap</h3>
+  <div id="strategies"></div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>EC by Building Category — EC3 Benchmarks (kgCO₂e/SF)</h3>
+  <table>
+    <thead>
+      <tr><th>Building Type</th><th>80th Pct (high)</th><th>Median</th><th>20th Pct (low)</th><th>Best in Class</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Office Mid-Rise</td><td>110</td><td>80</td><td>55</td><td>35</td></tr>
+      <tr><td>Office High-Rise</td><td>140</td><td>100</td><td>70</td><td>45</td></tr>
+      <tr><td>Residential Mid-Rise</td><td>90</td><td>65</td><td>45</td><td>28</td></tr>
+      <tr><td>Warehouse</td><td>50</td><td>35</td><td>22</td><td>15</td></tr>
+      <tr><td>School</td><td>85</td><td>60</td><td>40</td><td>25</td></tr>
+      <tr><td>Healthcare</td><td>150</td><td>110</td><td>75</td><td>50</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: MAT_EC_KGCO2E, MAT_EC_PER_SF, MAT_EPD_LINK for EC3 cloud integration via Revit EC3 Plugin</li>
+    <li>ISO 14044 / EN 15978: lifecycle stages A1-A3 (product), A4-A5 (construction), B1-B7 (use), C1-C4 (end of life), D (beyond boundary)</li>
+    <li>Concrete: specify 30-50% fly ash or GGBS (slag) cement replacement — reduces A1-A3 carbon 30-50% with no structural compromise</li>
+    <li>Steel: specify minimum 90% recycled content EAF (electric arc furnace) steel — EC factor 0.5-0.9 tCO2e/ton vs 1.8-2.2 BF-BOF</li>
+    <li>Mass timber (CLT/NLT): biogenic carbon sequestration credited at -550 kgCO2e/m³ (EN 16485) — significant structural carbon benefit</li>
+    <li>EC3 Tool (Building Transparency): free cloud database of 240k EPDs; filters by product category, distance, and declared unit</li>
+    <li>LEED v4.1 MR Credit: Building Product Disclosure — EPDs for 20 different products = 1 pt; MR Optimization — 10 products with low-carbon = 1 pt</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Embodied Carbon Analysis & BIM Material Tracking</h4>
+  <p>BIM XL delivers whole-building LCA using EC3 + Revit QTO, EPD selection guidance, and LEED MR documentation packages.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+// EC factors: kgCO2e per unit (baseline and low-carbon)
+var MATS=[
+  {id:'conc',name:'Concrete',unit:'CY',ec_base:400,ec_low:200,unit_label:'kgCO2e/CY',strategy:'30-50% SCM replacement (fly ash/slag), low-carbon cement, reduce overdesign'},
+  {id:'steel',name:'Structural Steel',unit:'ton',ec_base:1800,ec_low:700,unit_label:'kgCO2e/ton',strategy:'Specify EAF (recycled) steel min 90% SCR; US mills: Nucor, CMC Steel'},
+  {id:'rebar',name:'Reinforcing Steel',unit:'ton',ec_base:1200,ec_low:500,unit_label:'kgCO2e/ton',strategy:'EAF rebar widely available at no premium; specify in structural drawings'},
+  {id:'glass',name:'Exterior Glazing',unit:'SF',ec_base:12,ec_low:8,unit_label:'kgCO2e/SF',strategy:'Specify low-iron glass; float glass lower EC than tempered by 15%; source regionally'},
+  {id:'ins',name:'Exterior Insulation',unit:'SF',ec_base:3.5,ec_low:1.5,unit_label:'kgCO2e/SF',strategy:'Mineral wool or cellulose CI vs XPS/foil-face polyiso; avoid HFC-blown foam'},
+  {id:'gyp',name:'Gypsum Board',unit:'SF',ec_base:1.5,ec_low:0.8,unit_label:'kgCO2e/SF',strategy:'Specify min 95% recycled content synthetic gypsum; regional plant preferred'},
+  {id:'roof',name:'Roofing Membrane',unit:'SF',ec_base:4.0,ec_low:2.5,unit_label:'kgCO2e/SF',strategy:'TPO lower EC than EPDM; specify recycled content; avoid adhered systems where possible'}
+];
+
+var BENCHMARKS={office_mid:{median:80,low:55},office_high:{median:100,low:70},residential:{median:65,low:45},warehouse:{median:35,low:22},school:{median:60,low:40},healthcare:{median:110,low:75}};
+
+function setDefaults(){calc();}
+
+function calc(){
+  var area=parseFloat(document.getElementById('area').value)||100000;
+  var target_pct=parseFloat(document.getElementById('target_pct').value)||30;
+  var btype=document.getElementById('btype').value;
+  var bench=BENCHMARKS[btype]||BENCHMARKS.office_mid;
+
+  var qtys={conc:parseFloat(document.getElementById('qty_conc').value)||0,
+    steel:parseFloat(document.getElementById('qty_steel').value)||0,
+    rebar:parseFloat(document.getElementById('qty_rebar').value)||0,
+    glass:parseFloat(document.getElementById('qty_glass').value)||0,
+    ins:parseFloat(document.getElementById('qty_ins').value)||0,
+    gyp:parseFloat(document.getElementById('qty_gyp').value)||0,
+    roof:parseFloat(document.getElementById('qty_roof').value)||0};
+
+  var total_base=0,total_low=0;
+  var mat_results=[];
+  MATS.forEach(function(m){
+    var qty=qtys[m.id]||0;
+    var ec_b=qty*m.ec_base;
+    var ec_l=qty*m.ec_low;
+    total_base+=ec_b;
+    total_low+=ec_l;
+    mat_results.push({m:m,qty:qty,ec_b:ec_b,ec_l:ec_l,red:ec_b-ec_l});
+  });
+
+  var ec_per_sf=area>0?total_base/area:0;
+  var ec_save=total_base-total_low;
+  var ec_after=total_base*(1-target_pct/100);
+  var target_met=ec_after>=total_low;
+  var vs_bench=ec_per_sf/bench.median-1;
+  var leed_pts=target_pct>=40?2:target_pct>=30?1:0;
+
+  document.getElementById('total_ec').textContent=Math.round(total_base/1000)+'k kgCO₂e';
+  document.getElementById('total_ec').className='result-big '+(ec_per_sf<bench.low?'good':ec_per_sf<bench.median?'warn':'bad');
+  document.getElementById('ec_per_sf').textContent=ec_per_sf.toFixed(0)+' kgCO₂e/SF';
+  document.getElementById('vs_benchmark').textContent=(vs_bench>0?'+':'')+Math.round(vs_bench*100)+'% vs median';
+  document.getElementById('vs_benchmark').className='result-sub '+(vs_bench<-0.2?'good':vs_bench<0?'warn':'bad');
+  document.getElementById('ec_save').textContent=Math.round(ec_save/1000)+'k kgCO₂e';
+  document.getElementById('ec_after').textContent=Math.round(ec_after/1000)+'k kgCO₂e (at '+target_pct+'% reduction)';
+  document.getElementById('target_status').textContent=ec_after/area<bench.low?'Below benchmark — excellent':ec_after/area<bench.median?'Below median — good':'Above median — continue reducing';
+  document.getElementById('target_status').className='result-sub '+(ec_after/area<bench.low?'good':ec_after/area<bench.median?'warn':'bad');
+  document.getElementById('carbon_val').textContent='$'+Math.round(total_base/1000*50).toLocaleString();
+  document.getElementById('carbon_val_save').textContent='$'+Math.round(ec_save/1000*50).toLocaleString()+' saved';
+  document.getElementById('leed_pts').textContent=leed_pts+' pt'+(leed_pts===1?'':'s')+' (MR Optimization)';
+
+  // Material table
+  var tbody=document.getElementById('material_table');
+  tbody.innerHTML='';
+  var max_ec=Math.max.apply(null,mat_results.map(function(r){return r.ec_b;}));
+  mat_results.forEach(function(r){
+    var pct=total_base>0?r.ec_b/total_base*100:0;
+    var red_pct=r.ec_b>0?r.red/r.ec_b*100:0;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+r.m.name+'</td><td>'+r.qty.toLocaleString()+' '+r.m.unit+'</td><td>'+r.m.ec_base.toLocaleString()+' '+r.m.unit_label+'</td><td class="bad">'+Math.round(r.ec_b).toLocaleString()+'</td><td>'+pct.toFixed(1)+'%</td><td class="good">'+Math.round(r.ec_l).toLocaleString()+'</td><td class="good">-'+red_pct.toFixed(0)+'%</td>';
+    tbody.appendChild(tr);
+  });
+  var tr2=document.createElement('tr');
+  tr2.innerHTML='<td>TOTAL A1–A3</td><td>—</td><td>—</td><td class="bad">'+Math.round(total_base).toLocaleString()+'</td><td>100%</td><td class="good">'+Math.round(total_low).toLocaleString()+'</td><td class="good">-'+Math.round((1-total_low/total_base)*100)+'%</td>';
+  tbody.appendChild(tr2);
+
+  // Strategies
+  var sc=document.getElementById('strategies');
+  sc.innerHTML='';
+  var strat_list=[
+    {title:'Whole-Building Life Cycle Assessment (WBLCA)',detail:'Run EC3 + Revit QTO to baseline A1-A3 carbon. Identify top 3 contributors by mass and EC factor — typically concrete, steel, and insulation. Impact: enables specification decisions with carbon data.',impact:'Foundation step — all other strategies depend on this',icon:'📊'},
+    {title:'Low-Carbon Concrete Specification',detail:'Request EPD from ready-mix supplier. Specify 30-50% fly ash or GGBS replacement. Require mix design with declared A1-A3 GWP < 250 kgCO2e/m³ (vs. typical 350-450).',impact:'Typically largest single reduction opportunity — 15-25% of total EC',icon:'🏗️'},
+    {title:'EAF Steel Specification',detail:'Add to structural drawings: "All structural steel and rebar shall be electric arc furnace (EAF) with minimum 90% recycled content. Provide EPD per AISC."',impact:'Reduces steel EC 50-65% vs BF-BOF. No cost premium in US market.',icon:'⚙️'},
+    {title:'Mass Timber Structural System',detail:'CLT floor plates + glulam framing sequesters biogenic carbon (negative A1-A3 EC) and reduces foundation loads. Adds 3-8% structural cost premium but delivers 30-50% structural EC reduction.',impact:'Best option for 4-10 story residential and office — growing supply chain',icon:'🌲'},
+    {title:'EPD-Driven Material Procurement',detail:'Require EPDs for top 20 materials by mass in specifications. Use EC3 Revit plugin for product substitution with carbon comparison. Target manufacturers with Environmental Product Declarations (ISO 14044).',impact:'2-5% cost reduction from value engineering carbon-intensive materials',icon:'📋'},
+    {title:'Design for Reduced Material Intensity',detail:'Right-size structural members through structural optimization. Reduce concrete slab thickness using post-tensioning. Optimize glazing area to functional need. Avoid over-specification.',impact:'5-15% material reduction possible at no extra cost with early collaboration',icon:'📐'}
+  ];
+  strat_list.forEach(function(s){
+    var div=document.createElement('div');
+    div.className='strategy-row';
+    div.innerHTML='<span class="strategy-check">'+s.icon+'</span><div class="strategy-body"><div class="strategy-title">'+s.title+'</div><div class="strategy-detail">'+s.detail+'</div><div class="strategy-impact">'+s.impact+'</div></div>';
+    sc.appendChild(div);
+  });
+}
+
+calc();
+</script>
+</body>
+</html>

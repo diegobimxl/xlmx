@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EUI Reduction Planner — XL Sustainability Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}
+.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:600;color:#fff}
+.header p{color:#888;font-size:0.85rem;margin-top:4px}
+.badge{display:inline-block;background:#10b981;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}
+.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.result-big{font-size:2rem;font-weight:700;color:#10b981;margin:4px 0}
+.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}
+.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}
+.warn{color:#f59e0b}
+.bad{color:#ef4444}
+.good{color:#10b981}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#ccc}
+tr:last-child td{border-bottom:none;font-weight:700;background:#161616}
+tr:nth-child(even) td{background:#131313}
+.bim-box{background:#0a1a0f;border:1px solid #14532d;border-radius:8px;padding:16px;margin-top:16px}
+.bim-box h4{color:#10b981;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bim-box p,.bim-box li{font-size:0.8rem;color:#86efac;line-height:1.6}
+.bim-box ul{padding-left:16px}
+.cta{background:linear-gradient(135deg,#0a2a1a,#0d0d0d);border:1px solid #10b981;border-radius:8px;padding:20px;margin-top:16px;text-align:center}
+.cta h4{color:#10b981;font-size:1rem;font-weight:700;margin-bottom:6px}
+.cta p{color:#888;font-size:0.82rem}
+.cta a{color:#10b981;text-decoration:none;font-weight:600}
+.measure-row{display:grid;grid-template-columns:24px 2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:0.82rem}
+.measure-row:last-child{border-bottom:none}
+.measure-header{display:grid;grid-template-columns:24px 2fr 1fr 1fr 1fr 1fr;gap:8px;padding:6px 0;border-bottom:1px solid #333;font-size:0.72rem;color:#666;text-transform:uppercase;letter-spacing:.04em}
+.bar-wrap{background:#1a1a1a;border-radius:3px;height:10px;overflow:hidden}
+.bar-fill{height:10px;border-radius:3px;background:#10b981;transition:width .4s}
+.bar-fill.warn{background:#f59e0b}
+.bar-fill.bad{background:#ef4444}
+.target-line{border-left:3px solid #10b981;padding-left:8px;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>EUI Reduction Strategy Planner <span class="badge">DEVELOPER TOOL</span></h1>
+  <p>Sequence and stack energy conservation measures to hit LEED, ASHRAE 90.1, NZE, or custom EUI targets — CBECs · EPA ENERGY STAR</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Building Baseline</h3>
+    <label>Building Type</label>
+    <select id="btype" onchange="setDefaults()">
+      <option value="office">Office</option>
+      <option value="retail">Retail</option>
+      <option value="multifamily">Multifamily</option>
+      <option value="hotel">Hotel</option>
+      <option value="school">School</option>
+      <option value="healthcare">Healthcare</option>
+      <option value="lab">Laboratory</option>
+      <option value="warehouse">Warehouse</option>
+    </select>
+    <label>Gross Floor Area (SF)</label>
+    <input type="number" id="area" value="50000" oninput="calc()">
+    <label>Baseline EUI (kBtu/SF/yr)</label>
+    <input type="number" id="eui_base" value="65" oninput="calc()">
+    <label>EUI Target</label>
+    <select id="eui_target_type" onchange="calc()">
+      <option value="leed6">LEED v4.1 — 6% better than 90.1</option>
+      <option value="leed12">LEED v4.1 — 12% better (3 pts)</option>
+      <option value="leed18">LEED v4.1 — 18% better (5 pts)</option>
+      <option value="leed24">LEED v4.1 — 24% better (7 pts)</option>
+      <option value="leed30">LEED v4.1 — 30% better (9 pts)</option>
+      <option value="nze">Net Zero Energy (NZE)</option>
+      <option value="custom">Custom Target</option>
+    </select>
+    <label>Custom EUI Target (kBtu/SF/yr)</label>
+    <input type="number" id="eui_custom" value="35" oninput="calc()">
+    <label>Electricity Rate ($/kWh)</label>
+    <input type="number" id="elec_rate" value="0.12" step="0.01" oninput="calc()">
+    <label>Gas Rate ($/therm)</label>
+    <input type="number" id="gas_rate" value="1.20" step="0.10" oninput="calc()">
+  </div>
+  <div class="card">
+    <h3>EUI Breakdown by End Use</h3>
+    <label>HVAC Heating (kBtu/SF/yr)</label>
+    <input type="number" id="eu_heat" value="16" oninput="calc()">
+    <label>HVAC Cooling (kBtu/SF/yr)</label>
+    <input type="number" id="eu_cool" value="12" oninput="calc()">
+    <label>Fans & Pumps (kBtu/SF/yr)</label>
+    <input type="number" id="eu_fans" value="8" oninput="calc()">
+    <label>Lighting (kBtu/SF/yr)</label>
+    <input type="number" id="eu_ltg" value="14" oninput="calc()">
+    <label>Plug Loads (kBtu/SF/yr)</label>
+    <input type="number" id="eu_plug" value="10" oninput="calc()">
+    <label>Water Heating (kBtu/SF/yr)</label>
+    <input type="number" id="eu_dhw" value="3" oninput="calc()">
+    <label>Other / Process (kBtu/SF/yr)</label>
+    <input type="number" id="eu_other" value="2" oninput="calc()">
+    <p style="font-size:0.75rem;color:#555;margin-top:10px">Sum of end uses will override Baseline EUI input when non-zero.</p>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>Gap to Target</h3>
+    <div class="result-big" id="eui_cur">—</div>
+    <div class="result-label">Current EUI (kBtu/SF/yr)</div>
+    <div class="result-sub" id="eui_tgt_display">—</div>
+    <div class="result-label">EUI Target</div>
+    <div class="result-sub" id="eui_gap">—</div>
+    <div class="result-label">Gap to close (kBtu/SF/yr)</div>
+  </div>
+  <div class="card">
+    <h3>ECM Stack Result</h3>
+    <div class="result-big good" id="eui_after">—</div>
+    <div class="result-label">EUI after selected measures</div>
+    <div class="result-sub" id="reduction_pct">—</div>
+    <div class="result-label">% reduction from baseline</div>
+    <div class="result-sub" id="target_status">—</div>
+    <div class="result-label">Target achievement</div>
+  </div>
+  <div class="card">
+    <h3>Total ECM Investment</h3>
+    <div class="result-big warn" id="total_capex">—</div>
+    <div class="result-label">Estimated total ECM capex</div>
+    <div class="result-sub" id="total_ann_save">—</div>
+    <div class="result-label">Annual energy cost savings</div>
+    <div class="result-sub" id="blended_pb">—</div>
+    <div class="result-label">Blended simple payback</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>Energy Conservation Measures — Check to Include</h3>
+  <div class="measure-header">
+    <span></span>
+    <span>Measure</span>
+    <span style="text-align:right">EUI Save</span>
+    <span style="text-align:right">Capex/SF</span>
+    <span style="text-align:right">Payback</span>
+    <span style="text-align:right">Difficulty</span>
+  </div>
+  <div id="measure_list"></div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h3>EUI Waterfall — Baseline to Target</h3>
+  <div id="waterfall"></div>
+</div>
+
+<div class="bim-box">
+  <h4>BIM / Specification Notes</h4>
+  <ul>
+    <li>Revit shared parameters: EUI_BASELINE, EUI_TARGET, EUI_AFTER_ECM, ECM_CAPEX_TOTAL for energy model handoff to EnergyPlus/OpenStudio</li>
+    <li>ASHRAE 90.1 Appendix G: Performance Rating Method uses energy cost budget (ECB) — EUI reduction % maps to EA points in LEED v4.1</li>
+    <li>DOE CBECS 2018 median office EUI: 65 kBtu/SF/yr. ENERGY STAR Office score 75 ≈ 45 kBtu/SF/yr. Net Zero ≈ 25-35 kBtu/SF/yr</li>
+    <li>ASHRAE 50% Advanced Energy Design Guides (AEDG): free prescriptive pathways to 50% EUI reduction by building type</li>
+    <li>Passive House (PHIUS 2021): space conditioning ≤4.75 kBtu/SF/yr — requires comprehensive envelope + mechanical overhaul</li>
+    <li>IRA 2022 §179D: $2.50-5.00/SF deduction for commercial buildings achieving 25-50%+ energy cost reduction vs ASHRAE 90.1 baseline</li>
+  </ul>
+</div>
+
+<div class="cta">
+  <h4>Energy Modeling & ECM Sequencing</h4>
+  <p>BIM XL delivers ASHRAE Appendix G energy models, ECM analysis, and LEED EA documentation packages.<br>
+  <a href="mailto:diego@bimxl.com">diego@bimxl.com</a> · <a href="https://bimxl.com" target="_blank">bimxl.com</a></p>
+</div>
+
+<script>
+var EUI_DEFAULTS={office:65,retail:75,multifamily:52,hotel:90,school:48,healthcare:180,lab:220,warehouse:28};
+var EU_DEFAULTS={
+  office:{heat:16,cool:12,fans:8,ltg:14,plug:10,dhw:3,other:2},
+  retail:{heat:14,cool:18,fans:8,ltg:22,plug:8,dhw:3,other:2},
+  multifamily:{heat:18,cool:10,fans:4,ltg:8,plug:8,dhw:3,other:1},
+  hotel:{heat:22,cool:16,fans:12,ltg:16,plug:12,dhw:8,other:4},
+  school:{heat:14,cool:8,fans:8,ltg:12,plug:4,dhw:1,other:1},
+  healthcare:{heat:40,cool:35,fans:30,ltg:25,plug:30,dhw:15,other:5},
+  lab:{heat:50,cool:60,fans:50,ltg:25,plug:25,dhw:5,other:5},
+  warehouse:{heat:10,cool:3,fans:2,ltg:10,plug:2,dhw:1,other:0}
+};
+
+var MEASURES=[
+  {id:'led',name:'LED Lighting + Controls',end:'ltg',pct:0.60,cost_sf:2.5,diff:'Low'},
+  {id:'bms',name:'BAS/BMS Controls Upgrade',end:'fans',pct:0.25,cost_sf:1.5,diff:'Low'},
+  {id:'vfd',name:'VFDs on Fans & Pumps',end:'fans',pct:0.30,cost_sf:1.2,diff:'Low'},
+  {id:'envelope',name:'Envelope Upgrade (CI + High-Perf Glazing)',end:'heat',pct:0.30,cost_sf:12,diff:'High'},
+  {id:'plug_ctrl',name:'Plug Load Controls (Smart PDU + Occ)',end:'plug',pct:0.25,cost_sf:0.8,diff:'Low'},
+  {id:'erv',name:'ERV/HRV on DOAS',end:'fans',pct:0.20,cost_sf:3.5,diff:'Medium'},
+  {id:'hp_hvac',name:'Heat Pump HVAC (replace gas heating)',end:'heat',pct:0.50,cost_sf:8,diff:'High'},
+  {id:'dcv',name:'Demand Controlled Ventilation (CO₂)',end:'fans',pct:0.15,cost_sf:1.0,diff:'Low'},
+  {id:'wshp',name:'Water Source Heat Pump / VRF',end:'cool',pct:0.25,cost_sf:10,diff:'High'},
+  {id:'dhw_hp',name:'Heat Pump Water Heater',end:'dhw',pct:0.55,cost_sf:1.5,diff:'Medium'},
+  {id:'daylight',name:'Daylighting + Daylight Dimming',end:'ltg',pct:0.25,cost_sf:1.8,diff:'Medium'},
+  {id:'pv',name:'On-Site PV Solar (site EUI offset)',end:'other',pct:0.90,cost_sf:6,diff:'Low'}
+];
+var checked={};
+MEASURES.forEach(function(m){checked[m.id]=false;});
+
+function setDefaults(){
+  var bt=document.getElementById('btype').value;
+  document.getElementById('eui_base').value=EUI_DEFAULTS[bt]||65;
+  var eu=EU_DEFAULTS[bt]||EU_DEFAULTS.office;
+  document.getElementById('eu_heat').value=eu.heat;
+  document.getElementById('eu_cool').value=eu.cool;
+  document.getElementById('eu_fans').value=eu.fans;
+  document.getElementById('eu_ltg').value=eu.ltg;
+  document.getElementById('eu_plug').value=eu.plug;
+  document.getElementById('eu_dhw').value=eu.dhw;
+  document.getElementById('eu_other').value=eu.other;
+  renderMeasures();
+  calc();
+}
+
+function toggleMeasure(id){checked[id]=!checked[id];calc();}
+
+function renderMeasures(){
+  var area=parseFloat(document.getElementById('area').value)||50000;
+  var elec=parseFloat(document.getElementById('elec_rate').value)||0.12;
+  var gas=parseFloat(document.getElementById('gas_rate').value)||1.20;
+  var eu={
+    heat:parseFloat(document.getElementById('eu_heat').value)||0,
+    cool:parseFloat(document.getElementById('eu_cool').value)||0,
+    fans:parseFloat(document.getElementById('eu_fans').value)||0,
+    ltg:parseFloat(document.getElementById('eu_ltg').value)||0,
+    plug:parseFloat(document.getElementById('eu_plug').value)||0,
+    dhw:parseFloat(document.getElementById('eu_dhw').value)||0,
+    other:parseFloat(document.getElementById('eu_other').value)||0
+  };
+  var container=document.getElementById('measure_list');
+  container.innerHTML='';
+  MEASURES.forEach(function(m){
+    var end_val=eu[m.end]||0;
+    var eui_save=end_val*m.pct;
+    var ann_kwh=eui_save*area/3.412;
+    var ann_cost=ann_kwh*elec;
+    var capex=m.cost_sf*area;
+    var pb=ann_cost>0?(capex/ann_cost).toFixed(1)+' yr':'—';
+    var row=document.createElement('div');
+    row.className='measure-row';
+    var diff_cl=m.diff==='Low'?'good':m.diff==='Medium'?'warn':'bad';
+    row.innerHTML='<input type="checkbox" '+(checked[m.id]?'checked':'')
+      +' onchange="toggleMeasure(\''+m.id+'\')" style="accent-color:#10b981;cursor:pointer">'
+      +'<span>'+m.name+'</span>'
+      +'<span style="text-align:right;color:#10b981">-'+eui_save.toFixed(1)+'</span>'
+      +'<span style="text-align:right;color:#ccc">$'+m.cost_sf.toFixed(1)+'/SF</span>'
+      +'<span style="text-align:right;color:#f59e0b">'+pb+'</span>'
+      +'<span style="text-align:right" class="'+diff_cl+'">'+m.diff+'</span>';
+    container.appendChild(row);
+  });
+}
+
+function calc(){
+  var area=parseFloat(document.getElementById('area').value)||50000;
+  var eu={
+    heat:parseFloat(document.getElementById('eu_heat').value)||0,
+    cool:parseFloat(document.getElementById('eu_cool').value)||0,
+    fans:parseFloat(document.getElementById('eu_fans').value)||0,
+    ltg:parseFloat(document.getElementById('eu_ltg').value)||0,
+    plug:parseFloat(document.getElementById('eu_plug').value)||0,
+    dhw:parseFloat(document.getElementById('eu_dhw').value)||0,
+    other:parseFloat(document.getElementById('eu_other').value)||0
+  };
+  var eui_sum=Object.values(eu).reduce(function(a,b){return a+b;},0);
+  var eui_base=eui_sum>0?eui_sum:(parseFloat(document.getElementById('eui_base').value)||65);
+
+  var ttype=document.getElementById('eui_target_type').value;
+  var pct_map={leed6:0.06,leed12:0.12,leed18:0.18,leed24:0.24,leed30:0.30,nze:1.0,custom:0};
+  var eui_tgt;
+  if(ttype==='custom'){
+    eui_tgt=parseFloat(document.getElementById('eui_custom').value)||35;
+  } else if(ttype==='nze'){
+    eui_tgt=0;
+  } else {
+    eui_tgt=eui_base*(1-pct_map[ttype]);
+  }
+  var gap=eui_base-eui_tgt;
+
+  var elec=parseFloat(document.getElementById('elec_rate').value)||0.12;
+  var gas=parseFloat(document.getElementById('gas_rate').value)||1.20;
+
+  // Apply ECMs
+  var eu_mod=Object.assign({},eu);
+  var total_capex=0;
+  var total_ann_save=0;
+  var waterfall_items=[{label:'Baseline',eui:eui_base,type:'base'}];
+
+  MEASURES.forEach(function(m){
+    if(!checked[m.id])return;
+    var end_val=eu_mod[m.end]||0;
+    var eui_save=end_val*m.pct;
+    eu_mod[m.end]-=eui_save;
+    var capex=m.cost_sf*area;
+    var ann_kwh=eui_save*area/3.412;
+    var ann_cost=ann_kwh*elec;
+    total_capex+=capex;
+    total_ann_save+=ann_cost;
+    waterfall_items.push({label:m.name,eui:Object.values(eu_mod).reduce(function(a,b){return a+b;},0),save:eui_save,type:'ecm'});
+  });
+
+  var eui_after=Object.values(eu_mod).reduce(function(a,b){return a+b;},0);
+  var pct_red=eui_base>0?(eui_base-eui_after)/eui_base*100:0;
+  var target_met=eui_after<=eui_tgt+0.5;
+  var pb=total_ann_save>0?(total_capex/total_ann_save).toFixed(1)+' yrs':'N/A';
+
+  document.getElementById('eui_cur').textContent=eui_base.toFixed(1);
+  document.getElementById('eui_cur').className='result-big '+(eui_base<60?'good':eui_base<80?'warn':'bad');
+  document.getElementById('eui_tgt_display').textContent=eui_tgt.toFixed(1)+' kBtu/SF/yr ('+ttype.toUpperCase().replace('LEED','LEED ')+')';
+  document.getElementById('eui_gap').textContent=gap.toFixed(1)+' kBtu/SF/yr';
+  document.getElementById('eui_gap').className='result-sub '+(gap<10?'good':gap<20?'warn':'bad');
+  document.getElementById('eui_after').textContent=eui_after.toFixed(1);
+  document.getElementById('eui_after').className='result-big '+(eui_after<=eui_tgt?'good':eui_after<=eui_tgt*1.1?'warn':'bad');
+  document.getElementById('reduction_pct').textContent=pct_red.toFixed(1)+'% reduction';
+  document.getElementById('target_status').textContent=target_met?'TARGET MET':''+((eui_after-eui_tgt).toFixed(1))+' kBtu above target';
+  document.getElementById('target_status').className='result-sub '+(target_met?'good':'bad');
+  document.getElementById('total_capex').textContent='$'+Math.round(total_capex).toLocaleString();
+  document.getElementById('total_ann_save').textContent='$'+Math.round(total_ann_save).toLocaleString()+'/yr';
+  document.getElementById('blended_pb').textContent=pb;
+
+  // Waterfall
+  var wf=document.getElementById('waterfall');
+  wf.innerHTML='';
+  waterfall_items.push({label:'After ECMs',eui:eui_after,type:'result'});
+  waterfall_items.push({label:'EUI Target',eui:eui_tgt,type:'target'});
+  var max_eui=eui_base*1.05;
+  waterfall_items.forEach(function(w){
+    var pct=max_eui>0?Math.max(0,w.eui/max_eui*100):0;
+    var cl=w.type==='base'?'bar-fill warn':w.type==='result'?(w.eui<=eui_tgt?'bar-fill good':'bar-fill bad'):w.type==='target'?'bar-fill':w.type==='ecm'?'bar-fill good':'bar-fill';
+    var color=w.type==='target'?'border:2px dashed #10b981;background:transparent':'';
+    wf.innerHTML+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:0.8rem">'
+      +'<span style="width:220px;color:#aaa;flex-shrink:0">'+w.label+'</span>'
+      +'<div style="flex:1"><div class="bar-wrap" style="'+color+'"><div class="'+cl+'" style="width:'+pct+'%"></div></div></div>'
+      +'<span style="width:60px;text-align:right;font-weight:600;color:'+(w.eui<=eui_tgt?'#10b981':w.eui<=eui_base?'#f59e0b':'#ef4444')+'">'+w.eui.toFixed(1)+'</span>'
+      +'</div>';
+  });
+
+  renderMeasures();
+}
+
+setDefaults();
+</script>
+</body>
+</html>
