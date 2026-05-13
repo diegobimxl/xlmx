@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOI Builder — XLMX</title>
+<style>
+:root{--bg:#070b0f;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e2e8f0;--mu:#8892a4;--gold:#c8a96e;--gold2:rgba(200,169,110,.15);--red:#ef4444;--grn:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 28px;height:52px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold);font-family:"JetBrains Mono",monospace;}
+.logo span{color:var(--mu);font-weight:400;}
+.back{color:var(--mu);font-size:12px;text-decoration:none;margin-left:auto;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.back:hover{color:var(--tx);}
+.wrap{max-width:820px;margin:0 auto;padding:40px 28px 100px;position:relative;z-index:1;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:32px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px 24px;margin-bottom:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:6px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,110,.1);}
+select option{background:#0f1419;}
+.btn{background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));border:1px solid rgba(200,169,110,.3);color:var(--gold);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(200,169,110,.15);}
+.btn-sm{padding:6px 14px;font-size:11px;}
+.btn-ghost{background:transparent;border:1px solid var(--bd2);color:var(--mu);}
+.btn-ghost:hover{border-color:var(--bd2);color:var(--tx);box-shadow:none;}
+.btn-danger{border-color:rgba(239,68,68,.3);color:var(--red);background:rgba(239,68,68,.06);}
+.btn-danger:hover{border-color:var(--red);box-shadow:none;}
+.results{display:none;}
+.results.show{display:block;}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px;}
+.res-item{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.18);border-radius:8px;padding:14px 16px;}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
+.res-val{font-size:18px;font-weight:800;color:var(--gold);font-family:"JetBrains Mono",monospace;line-height:1.2;}
+.res-note{font-size:11px;color:var(--mu);margin-top:3px;}
+.res-neg .res-val{color:var(--red);}
+.info{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--mu);line-height:1.7;}
+.info b{color:var(--tx);font-weight:600;}
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--tx);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl .hi{color:var(--gold);font-weight:700;font-family:"JetBrains Mono",monospace;}
+.tbl .mu{color:var(--mu);}
+.tbl input{padding:6px 10px;font-size:12px;min-width:80px;}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mu);text-transform:uppercase;margin-bottom:10px;}
+.add-row{display:flex;align-items:center;gap:8px;padding:10px 0 4px;}
+.chip{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;border:1px solid var(--bd2);background:var(--sf);color:var(--mu);}
+.chip:hover{border-color:var(--gold);color:var(--gold);}
+.chip.r{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--red);}
+.chip.a{background:rgba(200,169,110,.15);border-color:rgba(200,169,110,.3);color:var(--gold);}
+.chip.c{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--grn);}
+.chip.i{background:rgba(167,139,250,.12);border-color:rgba(167,139,250,.3);color:#a78bfa;}
+.chip.active-r{background:rgba(239,68,68,.25);border-color:var(--red);color:var(--red);}
+.chip.active-a{background:rgba(200,169,110,.3);border-color:var(--gold);color:var(--gold);}
+.chip.active-c{background:rgba(34,197,94,.2);border-color:var(--grn);color:var(--grn);}
+.chip.active-i{background:rgba(167,139,250,.2);border-color:#a78bfa;color:#a78bfa;}
+</style>
+</head>
+<body>
+<nav><span class="logo">XLMX <span>/ UTILITY LIBRARY</span></span><a class="back" href="/">&#8592; All Tools</a></nav>
+<div class="wrap">
+<h1>NOI Builder</h1>
+<p class="sub">Build Net Operating Income from revenue and operating expense line items. Includes vacancy, cap rate.</p>
+<div class="card">
+  <p class="sec-lbl">Revenue</p>
+  <div class="tbl-wrap"><table class="tbl" id="revTbl">
+    <thead><tr><th style="width:50%">Income Item</th><th>Annual ($)</th><th></th></tr></thead>
+    <tbody id="revBody"></tbody>
+  </table></div>
+  <div class="add-row"><button class="btn btn-sm btn-ghost" onclick="addRev()">+ Add Revenue Item</button></div>
+</div>
+<div class="card">
+  <p class="sec-lbl">Operating Expenses</p>
+  <div class="tbl-wrap"><table class="tbl" id="expTbl">
+    <thead><tr><th style="width:50%">Expense Item</th><th>Annual ($)</th><th></th></tr></thead>
+    <tbody id="expBody"></tbody>
+  </table></div>
+  <div class="add-row"><button class="btn btn-sm btn-ghost" onclick="addExp()">+ Add Expense Item</button></div>
+</div>
+<div class="card" style="margin-bottom:0;">
+  <div class="row2">
+    <div class="field"><label>Vacancy & Credit Loss %</label><input id="vacRate" type="number" step="any" value="5" oninput="calc()"></div>
+    <div class="field"><label>Asset Value (optional)</label><input id="assetVal" type="number" step="any" placeholder="for cap rate" oninput="calc()"></div>
+  </div>
+  <button class="btn" style="width:100%;margin-top:4px;" onclick="calc()">Calculate NOI</button>
+</div>
+<div class="results" id="res">
+  <div class="card">
+    <div class="res-grid" id="resGrid"></div>
+    <div class="tbl-wrap" style="margin-top:4px;"><table class="tbl">
+      <tbody id="sumBody"></tbody>
+    </table></div>
+  </div>
+</div>
+<script>
+function fmt(n){return'$'+Math.round(n).toLocaleString();}
+function fmtp(n){return n.toFixed(2)+'%';}
+var revDef=[['Base Rent','120000'],['Parking Income','8400'],['Other Income','3600']];
+var expDef=[['Property Tax','12000'],['Insurance','4800'],['Property Management (5%)','6000'],['Maintenance & Repairs','6000'],['Utilities (common)','3600'],['Reserves','4000']];
+function makeRow(tbodyId,label,val){
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td><input type="text" value="'+label+'" oninput="calc()" style="background:transparent;border:none;padding:4px 6px;font-size:13px;color:var(--tx);" /></td><td><input type="number" step="any" value="'+val+'" oninput="calc()" style="width:130px;" /></td><td><button class="btn btn-sm btn-danger" onclick="this.closest(\'tr\').remove();calc()">&#10005;</button></td>';
+  document.getElementById(tbodyId).appendChild(tr);
+}
+function addRev(){makeRow('revBody','',0);document.querySelector('#revBody tr:last-child input').focus();}
+function addExp(){makeRow('expBody','',0);document.querySelector('#expBody tr:last-child input').focus();}
+function sumRows(tbodyId){var s=0;document.querySelectorAll('#'+tbodyId+' tr').forEach(function(r){var v=parseFloat(r.querySelectorAll('input')[1].value)||0;s+=v;});return s;}
+function calc(){
+  var pgr=sumRows('revBody');
+  var vac=(parseFloat(document.getElementById('vacRate').value)||0)/100;
+  var egi=pgr*(1-vac);
+  var opex=sumRows('expBody');
+  var noi=egi-opex;
+  var margin=egi>0?noi/egi*100:0;
+  var av=parseFloat(document.getElementById('assetVal').value)||0;
+  var cap=av>0?noi/av*100:null;
+  var g=document.getElementById('resGrid');
+  g.innerHTML=
+    '<div class="res-item"><div class="res-lbl">Potential Gross Revenue</div><div class="res-val">'+fmt(pgr)+'</div></div>'+
+    '<div class="res-item"><div class="res-lbl">Effective Gross Income</div><div class="res-val">'+fmt(egi)+'</div><div class="res-note">after '+fmtp(vac*100)+' vacancy</div></div>'+
+    '<div class="res-item"><div class="res-lbl">Total OpEx</div><div class="res-val" style="color:var(--red)">'+fmt(opex)+'</div></div>'+
+    '<div class="res-item"><div class="res-lbl">NOI</div><div class="res-val" style="color:'+(noi>=0?'var(--gold)':'var(--red)')+'">'+fmt(noi)+'</div><div class="res-note">NOI Margin '+fmtp(margin)+'</div></div>'+
+    (cap!==null?'<div class="res-item"><div class="res-lbl">Cap Rate</div><div class="res-val">'+fmtp(cap)+'</div></div>':'');
+  document.getElementById('res').classList.add('show');
+}
+revDef.forEach(function(r){makeRow('revBody',r[0],r[1]);});
+expDef.forEach(function(r){makeRow('expBody',r[0],r[1]);});
+calc();
+</script>
+</div>
+</body>
+</html>
