@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triangle Solver</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f59e0b;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.input-group{background:#1a1a1a;border-radius:8px;padding:12px}
+.input-group .title{font-size:.82rem;color:#f59e0b;font-weight:600;margin-bottom:8px}
+.stat{text-align:center;padding:12px;background:#1a1a1a;border-radius:8px}
+.stat .v{font-size:1.1rem;font-weight:700;color:#f59e0b}
+.stat .l{font-size:.72rem;color:#888;margin-top:3px}
+canvas{width:100%;border-radius:8px;background:#0a0a0a;margin-top:8px}
+.formula{font-family:monospace;font-size:.82rem;background:#1a1a1a;padding:8px;border-radius:6px;color:#888;margin-top:8px}
+.error{color:#ef4444;font-size:.82rem;background:#1a1a1a;padding:8px;border-radius:6px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+</style>
+</head>
+<body>
+<h1>Triangle Solver</h1>
+<p class="sub">Solve any triangle from SSS, SAS, ASA, AAS, or SSA</p>
+
+<div class="card">
+  <h2>Known Values (leave unknown blank)</h2>
+  <div class="row3">
+    <div class="input-group">
+      <div class="title">Side a</div>
+      <input type="number" id="sa" placeholder="side a" step="any" min="0" oninput="solve()">
+    </div>
+    <div class="input-group">
+      <div class="title">Side b</div>
+      <input type="number" id="sb" placeholder="side b" step="any" min="0" oninput="solve()">
+    </div>
+    <div class="input-group">
+      <div class="title">Side c</div>
+      <input type="number" id="sc" placeholder="side c" step="any" min="0" oninput="solve()">
+    </div>
+  </div>
+  <div class="row3" style="margin-top:8px">
+    <div class="input-group">
+      <div class="title">Angle A (°)</div>
+      <input type="number" id="aa" placeholder="angle A" step="any" min="0" max="180" oninput="solve()">
+    </div>
+    <div class="input-group">
+      <div class="title">Angle B (°)</div>
+      <input type="number" id="ab" placeholder="angle B" step="any" min="0" max="180" oninput="solve()">
+    </div>
+    <div class="input-group">
+      <div class="title">Angle C (°)</div>
+      <input type="number" id="ac" placeholder="angle C" step="any" min="0" max="180" oninput="solve()">
+    </div>
+  </div>
+  <button onclick="clearAll()" style="background:#1a1a1a;border:1px solid #555;color:#aaa;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:.82rem;margin-top:10px">Clear All</button>
+  <div id="errorMsg" class="error" style="display:none"></div>
+</div>
+
+<div class="card">
+  <h2>Solution</h2>
+  <div class="row3">
+    <div class="stat"><div class="v" id="r_a">--</div><div class="l">Side a</div></div>
+    <div class="stat"><div class="v" id="r_b">--</div><div class="l">Side b</div></div>
+    <div class="stat"><div class="v" id="r_c">--</div><div class="l">Side c</div></div>
+  </div>
+  <div class="row3" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_A">--</div><div class="l">Angle A</div></div>
+    <div class="stat"><div class="v" id="r_B">--</div><div class="l">Angle B</div></div>
+    <div class="stat"><div class="v" id="r_C">--</div><div class="l">Angle C</div></div>
+  </div>
+  <div class="row2" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_area">--</div><div class="l">Area</div></div>
+    <div class="stat"><div class="v" id="r_perim">--</div><div class="l">Perimeter</div></div>
+  </div>
+  <canvas id="canvas" height="220"></canvas>
+</div>
+
+<div class="card">
+  <h2>Additional Properties</h2>
+  <table id="props">
+    <tr><th>Property</th><th>Value</th></tr>
+  </table>
+</div>
+
+<script>
+const R2D=180/Math.PI,D2R=Math.PI/180;
+function v(id){const e=document.getElementById(id).value;return e===''?null:parseFloat(e);}
+function clearAll(){['sa','sb','sc','aa','ab','ac'].forEach(id=>document.getElementById(id).value='');solve();}
+function solve(){
+  document.getElementById('errorMsg').style.display='none';
+  let a=v('sa'),b=v('sb'),c=v('sc'),A=v('aa'),B=v('ab'),C=v('ac');
+  let solved=false;
+  try{
+    // Complete angles if possible
+    if(A!==null&&B!==null&&C===null){C=180-A-B;}
+    if(A!==null&&C!==null&&B===null){B=180-A-C;}
+    if(B!==null&&C!==null&&A===null){A=180-B-C;}
+
+    // SSS
+    if(a!==null&&b!==null&&c!==null&&A===null&&B===null&&C===null){
+      const cosA=(b*b+c*c-a*a)/(2*b*c);
+      A=Math.acos(cosA)*R2D;B=Math.asin(b*Math.sin(A*D2R)/a)*R2D;C=180-A-B;solved=true;
+    }
+    // SAS: a,b,C known
+    if(a!==null&&b!==null&&C!==null&&c===null){
+      c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(C*D2R));
+      A=Math.asin(a*Math.sin(C*D2R)/c)*R2D;B=180-A-C;solved=true;
+    }
+    if(a!==null&&c!==null&&B!==null&&b===null){
+      b=Math.sqrt(a*a+c*c-2*a*c*Math.cos(B*D2R));
+      A=Math.asin(a*Math.sin(B*D2R)/b)*R2D;C=180-A-B;solved=true;
+    }
+    if(b!==null&&c!==null&&A!==null&&a===null){
+      a=Math.sqrt(b*b+c*c-2*b*c*Math.cos(A*D2R));
+      B=Math.asin(b*Math.sin(A*D2R)/a)*R2D;C=180-A-B;solved=true;
+    }
+    // ASA / AAS — two angles + one side
+    if(A!==null&&B!==null&&C!==null){
+      if(a!==null){b=a*Math.sin(B*D2R)/Math.sin(A*D2R);c=a*Math.sin(C*D2R)/Math.sin(A*D2R);solved=true;}
+      else if(b!==null){a=b*Math.sin(A*D2R)/Math.sin(B*D2R);c=b*Math.sin(C*D2R)/Math.sin(B*D2R);solved=true;}
+      else if(c!==null){a=c*Math.sin(A*D2R)/Math.sin(C*D2R);b=c*Math.sin(B*D2R)/Math.sin(C*D2R);solved=true;}
+    }
+    if(!solved)return;
+    if([a,b,c,A,B,C].some(v=>!isFinite(v)||v<=0)){throw new Error('Invalid triangle — check inputs');}
+    if(Math.abs(A+B+C-180)>0.01){throw new Error('Angles do not sum to 180°');}
+
+    const area=0.5*a*b*Math.sin(C*D2R);
+    const perim=a+b+c;
+    const s=perim/2;
+    const inrad=area/s;
+    const circrad=(a*b*c)/(4*area);
+    const ha=2*area/a,hb=2*area/b,hc=2*area/c;
+    const ma=0.5*Math.sqrt(2*b*b+2*c*c-a*a);
+    const mb=0.5*Math.sqrt(2*a*a+2*c*c-b*b);
+    const mc=0.5*Math.sqrt(2*a*a+2*b*b-c*c);
+    const type=A>90||B>90||C>90?'Obtuse':A===90||B===90||C===90?'Right':'Acute';
+    const stype=Math.abs(a-b)<1e-9&&Math.abs(b-c)<1e-9?'Equilateral':(Math.abs(a-b)<1e-9||Math.abs(b-c)<1e-9||Math.abs(a-c)<1e-9)?'Isosceles':'Scalene';
+
+    // Update fields
+    document.getElementById('sa').value=a.toFixed(6);document.getElementById('sb').value=b.toFixed(6);document.getElementById('sc').value=c.toFixed(6);
+    document.getElementById('aa').value=A.toFixed(6);document.getElementById('ab').value=B.toFixed(6);document.getElementById('ac').value=C.toFixed(6);
+    document.getElementById('r_a').textContent=a.toFixed(4);document.getElementById('r_b').textContent=b.toFixed(4);document.getElementById('r_c').textContent=c.toFixed(4);
+    document.getElementById('r_A').textContent=A.toFixed(2)+'°';document.getElementById('r_B').textContent=B.toFixed(2)+'°';document.getElementById('r_C').textContent=C.toFixed(2)+'°';
+    document.getElementById('r_area').textContent=area.toFixed(4);document.getElementById('r_perim').textContent=perim.toFixed(4);
+    document.getElementById('props').innerHTML=`<tr><th>Property</th><th>Value</th></tr>
+      <tr><td>Type</td><td style="color:#f59e0b">${type} ${stype}</td></tr>
+      <tr><td>Inradius (r)</td><td>${inrad.toFixed(4)}</td></tr>
+      <tr><td>Circumradius (R)</td><td>${circrad.toFixed(4)}</td></tr>
+      <tr><td>Height h_a</td><td>${ha.toFixed(4)}</td></tr>
+      <tr><td>Height h_b</td><td>${hb.toFixed(4)}</td></tr>
+      <tr><td>Height h_c</td><td>${hc.toFixed(4)}</td></tr>
+      <tr><td>Median m_a</td><td>${ma.toFixed(4)}</td></tr>
+      <tr><td>Median m_b</td><td>${mb.toFixed(4)}</td></tr>
+      <tr><td>Median m_c</td><td>${mc.toFixed(4)}</td></tr>
+    `;
+    drawTriangle(a,b,c,A,B,C);
+  }catch(e){document.getElementById('errorMsg').textContent=e.message;document.getElementById('errorMsg').style.display='block';}
+}
+function drawTriangle(a,b,c,A,B,C){
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth*2||400,H=440;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  // Place A at origin, B at (c,0)
+  const pad=60;
+  const px=[0,c,b*Math.cos(A*D2R)];
+  const py=[0,0,-b*Math.sin(A*D2R)];
+  const minX=Math.min(...px),maxX=Math.max(...px),minY=Math.min(...py),maxY=Math.max(...py);
+  const scaleX=(W-2*pad)/(maxX-minX||1),scaleY=(H-2*pad)/(maxY-minY||1),scale=Math.min(scaleX,scaleY);
+  const tx=x=>pad+(x-minX)*scale,ty=y=>H-pad-(y-minY)*scale;
+  ctx.beginPath();ctx.moveTo(tx(px[0]),ty(py[0]));ctx.lineTo(tx(px[1]),ty(py[1]));ctx.lineTo(tx(px[2]),ty(py[2]));ctx.closePath();
+  ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='rgba(245,158,11,.07)';ctx.fill();
+  const labels=['A','B','C'];const offs=[[-20,15],[10,15],[0,-15]];
+  [0,1,2].forEach(i=>{ctx.fillStyle='#f59e0b';ctx.font='bold 26px sans-serif';ctx.fillText(labels[i],tx(px[i])+offs[i][0],ty(py[i])+offs[i][1]);});
+  const sides=['a','b','c'];
+  const smid=[[px[1]+px[2])/2,(py[1]+py[2])/2],[px[0]+px[2])/2,(py[0]+py[2])/2],[px[0]+px[1])/2,(py[0]+py[1])/2]];
+  // Fix array syntax
+}
+// Redo draw without syntax errors
+function drawTriangle(a,b,c,A,B,C){
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth*2||400,H=440;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const pad=60;
+  const px=[0,c,b*Math.cos(A*D2R)];
+  const py=[0,0,-b*Math.sin(A*D2R)];
+  const minX=Math.min(...px),maxX=Math.max(...px),minY=Math.min(...py),maxY=Math.max(...py);
+  const scaleX=(W-2*pad)/((maxX-minX)||1),scaleY=(H-2*pad)/((maxY-minY)||1),scale=Math.min(scaleX,scaleY);
+  const tx=x=>pad+(x-minX)*scale,ty=y=>H-pad-(y-minY)*scale;
+  ctx.beginPath();ctx.moveTo(tx(px[0]),ty(py[0]));ctx.lineTo(tx(px[1]),ty(py[1]));ctx.lineTo(tx(px[2]),ty(py[2]));ctx.closePath();
+  ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='rgba(245,158,11,.07)';ctx.fill();
+  [0,1,2].forEach(i=>{
+    ctx.fillStyle='#f59e0b';ctx.font='bold 26px sans-serif';
+    const os=[[-30,20],[15,20],[0,-15]];
+    ctx.fillText(['A','B','C'][i],tx(px[i])+os[i][0],ty(py[i])+os[i][1]);
+    ctx.beginPath();ctx.arc(tx(px[i]),ty(py[i]),5,0,Math.PI*2);ctx.fillStyle='#f59e0b';ctx.fill();
+  });
+  ctx.fillStyle='#888';ctx.font='22px sans-serif';
+  ctx.fillText('a='+a.toFixed(2),(tx(px[1])+tx(px[2]))/2+5,(ty(py[1])+ty(py[2]))/2);
+  ctx.fillText('b='+b.toFixed(2),(tx(px[0])+tx(px[2]))/2-40,(ty(py[0])+ty(py[2]))/2);
+  ctx.fillText('c='+c.toFixed(2),(tx(px[0])+tx(px[1]))/2,(ty(py[0])+ty(py[1]))/2+18);
+}
+// Initialize with a 3-4-5 right triangle
+document.getElementById('sa').value=3;document.getElementById('sb').value=4;document.getElementById('sc').value=5;
+solve();
+</script>
+</body>
+</html>

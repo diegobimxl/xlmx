@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regex Tester</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#3b82f6;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+textarea,input{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem;font-family:monospace}
+textarea{resize:vertical;min-height:100px}
+.flag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.flag{display:flex;align-items:center;gap:4px;background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:.82rem;user-select:none}
+.flag.active{border-color:#3b82f6;color:#3b82f6}
+.flag input[type=checkbox]{accent-color:#3b82f6}
+.regex-input-row{display:flex;gap:6px;align-items:center}
+.slash{font-size:1.4rem;color:#555;font-family:monospace;padding:0 4px}
+.test-area{position:relative}
+#highlighted{position:absolute;top:0;left:0;width:100%;min-height:100px;padding:8px 10px;font-size:.9rem;font-family:monospace;background:transparent;color:transparent;border:1px solid transparent;border-radius:6px;pointer-events:none;white-space:pre-wrap;word-wrap:break-word}
+mark{background:rgba(59,130,246,.4);color:transparent;border-radius:2px}
+mark.group{background:rgba(139,92,246,.3)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.stat{background:#1a1a1a;border-radius:8px;padding:8px 14px;font-size:.82rem;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700;color:#3b82f6}
+.match-list{max-height:200px;overflow-y:auto;margin-top:8px}
+.match-item{background:#1a1a1a;border-radius:6px;padding:8px 10px;margin-bottom:4px;font-family:monospace;font-size:.82rem}
+.match-item .idx{color:#888;font-size:.75rem;margin-bottom:2px}
+.match-item .val{color:#3b82f6}
+.group-item{color:#8b5cf6;font-size:.78rem}
+.error{color:#ef4444;font-size:.82rem;margin-top:6px;background:#1a1a1a;padding:8px 10px;border-radius:6px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.preset{background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.78rem}
+.preset:hover{border-color:#3b82f6;color:#3b82f6}
+</style>
+</head>
+<body>
+<h1>Regex Tester</h1>
+<p class="sub">Live regular expression testing with match highlighting</p>
+
+<div class="card">
+  <h2>Pattern</h2>
+  <div class="regex-input-row">
+    <span class="slash">/</span>
+    <input type="text" id="pattern" placeholder="[A-Z][a-z]+" value="\b[A-Z][a-z]+\b" oninput="test()">
+    <span class="slash">/</span>
+  </div>
+  <div class="flag-row" id="flagRow">
+    <label class="flag active" onclick="toggleFlag('g')"><input type="checkbox" checked id="fg"> g — global</label>
+    <label class="flag" onclick="toggleFlag('i')"><input type="checkbox" id="fi"> i — case insensitive</label>
+    <label class="flag" onclick="toggleFlag('m')"><input type="checkbox" id="fm"> m — multiline</label>
+    <label class="flag" onclick="toggleFlag('s')"><input type="checkbox" id="fs"> s — dot-all</label>
+  </div>
+  <div class="presets">
+    <button class="preset" onclick="setPreset('email')">Email</button>
+    <button class="preset" onclick="setPreset('url')">URL</button>
+    <button class="preset" onclick="setPreset('ipv4')">IPv4</button>
+    <button class="preset" onclick="setPreset('phone')">Phone</button>
+    <button class="preset" onclick="setPreset('date')">Date</button>
+    <button class="preset" onclick="setPreset('hex')">Hex color</button>
+    <button class="preset" onclick="setPreset('uuid')">UUID</button>
+    <button class="preset" onclick="setPreset('slug')">URL slug</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Test String</h2>
+  <div class="test-area">
+    <div id="highlighted"></div>
+    <textarea id="testStr" oninput="test()" spellcheck="false">The quick Brown Fox jumped over 3 lazy dogs. Contact: alice@example.com or https://example.com for more. IP: 192.168.1.1</textarea>
+  </div>
+  <div id="error" style="display:none" class="error"></div>
+</div>
+
+<div class="card">
+  <h2>Matches</h2>
+  <div class="stats" id="stats"></div>
+  <div class="match-list" id="matchList"></div>
+</div>
+
+<script>
+const FLAGS=['g','i','m','s'];
+let activeFlags=new Set(['g']);
+const PRESETS={
+  email:[String.raw`[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`,'gi'],
+  url:[String.raw`https?:\/\/[^\s/$.?#].[^\s]*`,'gi'],
+  ipv4:[String.raw`\b(?:\d{1,3}\.){3}\d{1,3}\b`,'g'],
+  phone:[String.raw`[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}`,'g'],
+  date:[String.raw`\b\d{4}[-/]\d{2}[-/]\d{2}\b`,'g'],
+  hex:[String.raw`#(?:[0-9a-fA-F]{3}){1,2}\b`,'gi'],
+  uuid:[String.raw`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`,'gi'],
+  slug:[String.raw`[a-z0-9]+(?:-[a-z0-9]+)*`,'g'],
+};
+function setPreset(name){
+  const [pat,flags]=PRESETS[name];
+  document.getElementById('pattern').value=pat;
+  activeFlags=new Set(flags.split(''));
+  FLAGS.forEach(f=>{
+    const el=document.getElementById('f'+f);
+    if(el){el.checked=activeFlags.has(f);el.closest('.flag').classList.toggle('active',activeFlags.has(f));}
+  });
+  test();
+}
+function toggleFlag(f){
+  const el=document.getElementById('f'+f);
+  if(!el)return;
+  el.checked=!el.checked;
+  if(el.checked)activeFlags.add(f);else activeFlags.delete(f);
+  el.closest('.flag').classList.toggle('active',el.checked);
+  test();
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function test(){
+  const pat=document.getElementById('pattern').value;
+  const str=document.getElementById('testStr').value;
+  const errEl=document.getElementById('error');
+  if(!pat){
+    document.getElementById('highlighted').innerHTML=esc(str);
+    document.getElementById('matchList').innerHTML='';
+    document.getElementById('stats').innerHTML='';
+    errEl.style.display='none';return;
+  }
+  let re;
+  try{
+    const flags=[...activeFlags].join('');
+    re=new RegExp(pat,flags.includes('g')?flags:flags+'g');
+    errEl.style.display='none';
+  }catch(e){
+    errEl.textContent='Error: '+e.message;errEl.style.display='block';
+    document.getElementById('highlighted').innerHTML=esc(str);return;
+  }
+  // Find matches
+  const matches=[];
+  let m;
+  re.lastIndex=0;
+  while((m=re.exec(str))!==null){
+    matches.push({index:m.index,value:m[0],groups:m.slice(1)});
+    if(!activeFlags.has('g'))break;
+    if(re.lastIndex===m.index){re.lastIndex++;} // avoid infinite loop on zero-length
+    if(matches.length>500)break;
+  }
+  // Highlight
+  let highlighted='',last=0;
+  matches.forEach(m=>{
+    highlighted+=esc(str.slice(last,m.index));
+    highlighted+=`<mark>${esc(m.value)}</mark>`;
+    last=m.index+m.value.length;
+  });
+  highlighted+=esc(str.slice(last));
+  document.getElementById('highlighted').innerHTML=highlighted;
+  // Stats
+  const charsCovered=matches.reduce((a,m)=>a+m.value.length,0);
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="v" style="color:${matches.length>0?'#22c55e':'#ef4444'}">${matches.length}</div><div>Matches</div></div>
+    <div class="stat"><div class="v">${charsCovered}</div><div>Chars matched</div></div>
+    <div class="stat"><div class="v">${str.length}</div><div>Total chars</div></div>
+    <div class="stat"><div class="v">${str.split('\n').length}</div><div>Lines</div></div>
+  `;
+  // Match list
+  let ml='';
+  if(matches.length===0){ml='<div style="color:#555;font-size:.82rem;padding:8px">No matches found.</div>';}
+  matches.slice(0,50).forEach((m,i)=>{
+    ml+=`<div class="match-item">
+      <div class="idx">Match ${i+1} · index ${m.index}–${m.index+m.value.length-1}</div>
+      <div class="val">${esc(JSON.stringify(m.value))}</div>
+      ${m.groups.filter(g=>g!==undefined).map((g,gi)=>`<div class="group-item">Group ${gi+1}: ${esc(JSON.stringify(g))}</div>`).join('')}
+    </div>`;
+  });
+  if(matches.length>50)ml+=`<div style="color:#555;font-size:.78rem;padding:8px">... and ${matches.length-50} more</div>`;
+  document.getElementById('matchList').innerHTML=ml;
+}
+test();
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crop Yield Estimator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#84cc16;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#1a1a1a;border-radius:8px;padding:14px;text-align:center}
+.stat .val{font-size:1.5rem;font-weight:700;color:#84cc16}
+.stat .lbl{font-size:.78rem;color:#888;margin-top:4px}
+.factor-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+.factor-table th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+.factor-table td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.bar-wrap{background:#222;border-radius:3px;height:8px;overflow:hidden;margin-top:4px}
+.bar-fill{height:100%;border-radius:3px;background:#84cc16;transition:width .4s}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>Crop Yield Estimator</h1>
+<p class="sub">FAO-based potential yield adjusted for local conditions</p>
+
+<div class="card">
+  <h2>Crop & Field</h2>
+  <label>Crop type</label>
+  <select id="crop" onchange="calc()">
+    <option value="corn">Corn / Maize</option>
+    <option value="wheat">Wheat</option>
+    <option value="rice">Rice (irrigated)</option>
+    <option value="soybean">Soybean</option>
+    <option value="potato">Potato</option>
+    <option value="tomato">Tomato (field)</option>
+    <option value="cotton">Cotton</option>
+    <option value="sugarcane">Sugarcane</option>
+  </select>
+  <div class="row2">
+    <div>
+      <label>Field area (ha)</label>
+      <input type="number" id="area" value="10" min="0.1" step="0.1" oninput="calc()">
+    </div>
+    <div>
+      <label>Irrigation type</label>
+      <select id="irrig" onchange="calc()">
+        <option value="1.0">Full irrigation</option>
+        <option value="0.85">Deficit irrigation</option>
+        <option value="0.6" selected>Rain-fed (avg)</option>
+        <option value="0.4">Rain-fed (dry)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Growing Conditions (% of optimal)</h2>
+  <label>Soil fertility: <span id="soilV">75</span>%</label>
+  <input type="range" id="soil" min="20" max="100" value="75" oninput="document.getElementById('soilV').textContent=this.value;calc()">
+  <label>Pest / disease pressure: <span id="pestV">80</span>% (100 = no loss)</label>
+  <input type="range" id="pest" min="40" max="100" value="80" oninput="document.getElementById('pestV').textContent=this.value;calc()">
+  <label>Climate suitability: <span id="climV">85</span>%</label>
+  <input type="range" id="clim" min="30" max="100" value="85" oninput="document.getElementById('climV').textContent=this.value;calc()">
+  <label>Management level: <span id="mgmtV">70</span>%</label>
+  <input type="range" id="mgmt" min="20" max="100" value="70" oninput="document.getElementById('mgmtV').textContent=this.value;calc()">
+</div>
+
+<div class="card">
+  <h2>Economic Parameters</h2>
+  <div class="row2">
+    <div>
+      <label>Market price ($/tonne)</label>
+      <input type="number" id="price" value="200" min="1" oninput="calc()">
+    </div>
+    <div>
+      <label>Production cost ($/ha)</label>
+      <input type="number" id="cost" value="800" min="0" oninput="calc()">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <div class="row2">
+    <div class="stat"><div class="val" id="r_yield">--</div><div class="lbl">t/ha actual yield</div></div>
+    <div class="stat"><div class="val" id="r_total">--</div><div class="lbl">Total tonnes</div></div>
+  </div>
+  <div class="row2" style="margin-top:10px">
+    <div class="stat"><div class="val" id="r_rev">--</div><div class="lbl">Gross revenue $</div></div>
+    <div class="stat"><div class="val" id="r_margin">--</div><div class="lbl">Net profit $</div></div>
+  </div>
+
+  <table class="factor-table" style="margin-top:16px">
+    <tr><th>Factor</th><th>Multiplier</th><th>Impact</th></tr>
+    <tr><td>Irrigation</td><td id="f_irrig">-</td><td><div class="bar-wrap"><div class="bar-fill" id="b_irrig"></div></div></td></tr>
+    <tr><td>Soil fertility</td><td id="f_soil">-</td><td><div class="bar-wrap"><div class="bar-fill" id="b_soil"></div></div></td></tr>
+    <tr><td>Pest control</td><td id="f_pest">-</td><td><div class="bar-wrap"><div class="bar-fill" id="b_pest"></div></div></td></tr>
+    <tr><td>Climate</td><td id="f_clim">-</td><td><div class="bar-wrap"><div class="bar-fill" id="b_clim"></div></div></td></tr>
+    <tr><td>Management</td><td id="f_mgmt">-</td><td><div class="bar-wrap"><div class="bar-fill" id="b_mgmt"></div></div></td></tr>
+  </table>
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+const CROPS={
+  corn:     {name:'Corn',       pot:12.0, unit:'t/ha'},
+  wheat:    {name:'Wheat',      pot:8.5,  unit:'t/ha'},
+  rice:     {name:'Rice',       pot:10.0, unit:'t/ha'},
+  soybean:  {name:'Soybean',    pot:4.5,  unit:'t/ha'},
+  potato:   {name:'Potato',     pot:55.0, unit:'t/ha'},
+  tomato:   {name:'Tomato',     pot:80.0, unit:'t/ha'},
+  cotton:   {name:'Cotton',     pot:4.0,  unit:'t/ha'},
+  sugarcane:{name:'Sugarcane',  pot:120.0,unit:'t/ha'},
+};
+function calc(){
+  const crop=CROPS[document.getElementById('crop').value];
+  const area=parseFloat(document.getElementById('area').value)||1;
+  const irrig=parseFloat(document.getElementById('irrig').value);
+  const soil=parseInt(document.getElementById('soil').value)/100;
+  const pest=parseInt(document.getElementById('pest').value)/100;
+  const clim=parseInt(document.getElementById('clim').value)/100;
+  const mgmt=parseInt(document.getElementById('mgmt').value)/100;
+  const price=parseFloat(document.getElementById('price').value)||200;
+  const cost=parseFloat(document.getElementById('cost').value)||800;
+
+  const actual=crop.pot*irrig*soil*pest*clim*mgmt;
+  const total=actual*area;
+  const rev=total*price;
+  const profit=rev-cost*area;
+
+  document.getElementById('r_yield').textContent=actual.toFixed(2);
+  document.getElementById('r_total').textContent=total.toFixed(1);
+  document.getElementById('r_rev').textContent='$'+Math.round(rev).toLocaleString();
+  document.getElementById('r_margin').style.color=profit>=0?'#84cc16':'#ef4444';
+  document.getElementById('r_margin').textContent=(profit>=0?'$':'-$')+Math.abs(Math.round(profit)).toLocaleString();
+
+  const factors=[
+    {id:'irrig',v:irrig},{id:'soil',v:soil},{id:'pest',v:pest},
+    {id:'clim',v:clim},{id:'mgmt',v:mgmt}
+  ];
+  factors.forEach(f=>{
+    document.getElementById('f_'+f.id).textContent=(f.v*100).toFixed(0)+'%';
+    document.getElementById('b_'+f.id).style.width=(f.v*100)+'%';
+    document.getElementById('b_'+f.id).style.background=f.v>=0.8?'#84cc16':f.v>=0.6?'#eab308':'#ef4444';
+  });
+
+  const pct=Math.round(actual/crop.pot*100);
+  document.getElementById('note').innerHTML=
+    `Potential yield (${crop.name}): <strong style="color:#84cc16">${crop.pot} t/ha</strong>. `+
+    `Combined efficiency: <strong>${pct}%</strong>. `+
+    `Actual: <strong>${actual.toFixed(2)} t/ha</strong> · ${total.toFixed(1)} t total. `+
+    `Break-even price: <strong>$${total>0?(cost*area/total).toFixed(0):'-'}/t</strong>.`;
+}
+calc();
+</script>
+</body>
+</html>

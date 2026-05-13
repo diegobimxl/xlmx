@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sample Size Calculator — XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}.header h1{font-size:1.4rem;font-weight:600;color:#fff}.header p{color:#888;font-size:0.85rem;margin-top:4px}.badge{display:inline-block;background:#8b5cf6;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}label:first-of-type{margin-top:0}input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}input:focus,select:focus{outline:none;border-color:#8b5cf6}.result-big{font-size:3rem;font-weight:900;color:#8b5cf6;margin:4px 0}.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}table{width:100%;border-collapse:collapse;font-size:0.82rem}th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;padding:8px 10px;text-align:right;border-bottom:1px solid #222}th:first-child{text-align:left}td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}td:first-child{text-align:left;color:#ccc}tr:last-child td{border-bottom:none;font-weight:700;background:#161616}.formula-box{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;font-family:monospace;font-size:0.8rem;color:#a78bfa;margin:10px 0}</style></head>
+<body>
+<div class="header"><h1>Sample Size Calculator <span class="badge">STATISTICS</span></h1><p>Required sample size for proportions and means — z-distribution, t-distribution, finite population correction</p></div>
+<div class="grid">
+<div class="card">
+<h3>Parameters</h3>
+<label>Study Type</label>
+<select id="stype" onchange="calc()">
+<option value="proportion">Proportion (yes/no, %, rate)</option>
+<option value="mean">Continuous Mean (height, cost, score)</option>
+</select>
+<label>Confidence Level</label>
+<select id="cl" onchange="calc()">
+<option value="1.645">90% (z = 1.645)</option>
+<option value="1.960" selected>95% (z = 1.960)</option>
+<option value="2.326">98% (z = 2.326)</option>
+<option value="2.576">99% (z = 2.576)</option>
+</select>
+<label>Margin of Error (proportion: %; mean: units)</label>
+<input type="number" id="moe" value="5" step="0.5" oninput="calc()">
+<label>Expected Proportion p (% — for proportion study)</label>
+<input type="number" id="p_est" value="50" min="1" max="99" oninput="calc()">
+<label>Population Std Dev σ (for mean study)</label>
+<input type="number" id="sigma" value="15" oninput="calc()">
+<label>Population Size N (enter 0 for infinite)</label>
+<input type="number" id="pop" value="0" oninput="calc()">
+</div>
+<div class="card">
+<h3>Result</h3>
+<div class="result-big" id="n_result">—</div>
+<div class="result-label" id="n_label">Required sample size</div>
+<div class="result-sub" id="n_fpc">—</div>
+<div class="result-label">After finite population correction (if N given)</div>
+<div class="result-sub" id="actual_moe">—</div>
+<div class="result-label">Actual margin of error at this n</div>
+<div style="margin-top:16px">
+<div class="formula-box" id="formula">n = z²·p·(1-p) / e²</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-bottom:16px">
+<h3>Sample Size Quick Reference Table</h3>
+<table><thead><tr><th>Margin of Error</th><th>90% CI</th><th>95% CI</th><th>99% CI</th><th>Note</th></tr></thead>
+<tbody id="ref_table"></tbody></table>
+</div>
+<script>
+function calcN(z,moe,p,sigma,stype){
+  var n;
+  if(stype==='proportion'){
+    var e=moe/100;var pp=p/100;
+    n=Math.ceil(z*z*pp*(1-pp)/(e*e));
+  } else {
+    n=Math.ceil(z*z*sigma*sigma/(moe*moe));
+  }
+  return n;
+}
+function fpc(n,N){return N>0?Math.ceil(n*N/(n+N-1)):n;}
+function calc(){
+  var z=parseFloat(document.getElementById('cl').value)||1.96;
+  var moe=parseFloat(document.getElementById('moe').value)||5;
+  var p=parseFloat(document.getElementById('p_est').value)||50;
+  var sigma=parseFloat(document.getElementById('sigma').value)||15;
+  var N=parseFloat(document.getElementById('pop').value)||0;
+  var stype=document.getElementById('stype').value;
+  var n=calcN(z,moe,p,sigma,stype);
+  var nfpc=fpc(n,N);
+  var actual_moe=stype==='proportion'?z*Math.sqrt(p/100*(1-p/100)/n)*100:z*sigma/Math.sqrt(n);
+  document.getElementById('n_result').textContent=n.toLocaleString();
+  document.getElementById('n_fpc').textContent=N>0?nfpc.toLocaleString()+' (finite pop corrected)':'—';
+  document.getElementById('actual_moe').textContent='± '+actual_moe.toFixed(2)+(stype==='proportion'?'%':' units');
+  document.getElementById('formula').textContent=stype==='proportion'?'n = z²·p·(1-p) / e²':'n = z²·σ² / e²';
+  // ref table
+  var moes=[1,2,3,5,10],z90=1.645,z95=1.96,z99=2.576;
+  var rows='';
+  moes.forEach(function(m){
+    var n90=calcN(z90,m,p,sigma,stype);
+    var n95=calcN(z95,m,p,sigma,stype);
+    var n99=calcN(z99,m,p,sigma,stype);
+    rows+='<tr><td>± '+m+(stype==='proportion'?'%':' units')+'</td><td>'+n90.toLocaleString()+'</td><td>'+n95.toLocaleString()+'</td><td>'+n99.toLocaleString()+'</td><td>'+(m<=2?'High precision':m<=5?'Typical survey':m<=10?'Exploratory':'')+'</td></tr>';
+  });
+  document.getElementById('ref_table').innerHTML=rows;
+}
+calc();
+</script></body></html>

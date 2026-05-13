@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash Flow Ratios</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#22c55e;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ratio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.ratio{background:#1a1a1a;border-radius:10px;padding:14px}
+.ratio .name{font-size:.78rem;color:#888;margin-bottom:4px}
+.ratio .val{font-size:1.4rem;font-weight:800}
+.ratio .bench{font-size:.72rem;margin-top:4px}
+.ratio .bar{height:6px;background:#222;border-radius:3px;overflow:hidden;margin-top:6px}
+.ratio .fill{height:100%;border-radius:3px;transition:width .4s}
+.formula{font-size:.75rem;color:#555;font-family:monospace;margin-top:3px}
+.waterfall{margin-top:12px}
+.wf-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.82rem}
+.wf-label{width:140px;color:#aaa;flex-shrink:0}
+.wf-bar{flex:1;height:20px;background:#222;border-radius:3px;overflow:hidden;position:relative}
+.wf-fill{height:100%;border-radius:3px;transition:width .4s;position:absolute;top:0}
+.wf-val{width:80px;text-align:right;flex-shrink:0}
+</style>
+</head>
+<body>
+<h1>Cash Flow Ratios</h1>
+<p class="sub">Liquidity, solvency and quality metrics from financial statements</p>
+
+<div class="card">
+  <h2>Income Statement</h2>
+  <div class="row2">
+    <div><label>Revenue ($)</label><input type="number" id="rev" value="5000000" oninput="calc()"></div>
+    <div><label>COGS ($)</label><input type="number" id="cogs" value="3000000" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div><label>Operating Expenses ($)</label><input type="number" id="opex" value="800000" oninput="calc()"></div>
+    <div><label>Interest Expense ($)</label><input type="number" id="int" value="120000" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div><label>Taxes ($)</label><input type="number" id="tax" value="270000" oninput="calc()"></div>
+    <div><label>Depreciation & Amort. ($)</label><input type="number" id="da" value="200000" oninput="calc()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Balance Sheet Highlights</h2>
+  <div class="row2">
+    <div><label>Current Assets ($)</label><input type="number" id="ca" value="1200000" oninput="calc()"></div>
+    <div><label>Current Liabilities ($)</label><input type="number" id="cl" value="700000" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div><label>Total Debt ($)</label><input type="number" id="debt" value="1500000" oninput="calc()"></div>
+    <div><label>Total Assets ($)</label><input type="number" id="assets" value="4000000" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div><label>CapEx ($)</label><input type="number" id="capex" value="150000" oninput="calc()"></div>
+    <div><label>Change in Working Capital ($)</label><input type="number" id="wc" value="-50000" oninput="calc()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Key Ratios</h2>
+  <div class="ratio-grid" id="ratioGrid"></div>
+  <div class="waterfall" id="waterfall"></div>
+</div>
+
+<script>
+function fmt(v,dec=2){return isFinite(v)?v.toFixed(dec):'N/A'}
+function color(v,lo,hi){return v>=hi?'#22c55e':v>=lo?'#eab308':'#ef4444'}
+function bar(v,lo,hi){
+  const pct=Math.min(100,Math.max(0,(v-0)/(hi*1.5)*100));
+  return{pct,col:color(v,lo,hi)};
+}
+function calc(){
+  const rev=+document.getElementById('rev').value||1;
+  const cogs=+document.getElementById('cogs').value||0;
+  const opex=+document.getElementById('opex').value||0;
+  const intexp=+document.getElementById('int').value||0;
+  const tax=+document.getElementById('tax').value||0;
+  const da=+document.getElementById('da').value||0;
+  const ca=+document.getElementById('ca').value||0;
+  const cl=+document.getElementById('cl').value||1;
+  const debt=+document.getElementById('debt').value||0;
+  const assets=+document.getElementById('assets').value||1;
+  const capex=+document.getElementById('capex').value||0;
+  const wc=+document.getElementById('wc').value||0;
+
+  const gp=rev-cogs;
+  const ebitda=gp-opex+da;
+  const ebit=gp-opex;
+  const ni=ebit-intexp-tax;
+  const ocf=ni+da-wc;
+  const fcf=ocf-capex;
+
+  const ratios=[
+    {name:'Operating CF Margin',val:ocf/rev*100,suf:'%',lo:10,hi:20,formula:'OCF / Revenue'},
+    {name:'FCF Margin',val:fcf/rev*100,suf:'%',lo:5,hi:15,formula:'FCF / Revenue'},
+    {name:'CF to Debt',val:ocf/debt,suf:'x',lo:0.2,hi:0.5,formula:'OCF / Total Debt'},
+    {name:'CF Coverage',val:ebitda/intexp,suf:'x',lo:2,hi:4,formula:'EBITDA / Interest'},
+    {name:'Current Ratio',val:ca/cl,suf:'x',lo:1.2,hi:2,formula:'Current Assets / CL'},
+    {name:'Accrual Ratio',val:(ni-fcf)/assets,suf:'',lo:-0.1,hi:0.05,formula:'(NI−FCF) / Assets'},
+    {name:'EBITDA Margin',val:ebitda/rev*100,suf:'%',lo:10,hi:25,formula:'EBITDA / Revenue'},
+    {name:'Asset Efficiency',val:rev/assets,suf:'x',lo:0.8,hi:1.5,formula:'Revenue / Assets'},
+  ];
+
+  let html='';
+  ratios.forEach(r=>{
+    const b=bar(r.val,r.lo,r.hi);
+    const c=color(r.val,r.lo,r.hi);
+    html+=`<div class="ratio">
+      <div class="name">${r.name}</div>
+      <div class="val" style="color:${c}">${isFinite(r.val)?r.val.toFixed(2):'N/A'}${isFinite(r.val)?r.suf:''}</div>
+      <div class="formula">${r.formula}</div>
+      <div class="bar"><div class="fill" style="width:${b.pct}%;background:${c}"></div></div>
+      <div class="bench" style="color:${c}">Benchmark: >${r.lo}${r.suf} good, >${r.hi}${r.suf} great</div>
+    </div>`;
+  });
+  document.getElementById('ratioGrid').innerHTML=html;
+
+  // Waterfall
+  const wfItems=[
+    {label:'Net Income',val:ni},
+    {label:'+ D&A',val:da},
+    {label:'± Working Capital',val:-wc},
+    {label:'= Operating CF',val:ocf,bold:true},
+    {label:'− CapEx',val:-capex},
+    {label:'= Free Cash Flow',val:fcf,bold:true},
+  ];
+  const maxAbs=Math.max(...wfItems.map(w=>Math.abs(w.val)));
+  let wfHtml='<div style="font-size:.78rem;color:#888;margin-bottom:6px">Cash Flow Waterfall ($)</div>';
+  wfItems.forEach(w=>{
+    const pct=Math.abs(w.val)/maxAbs*90;
+    const col=w.val>=0?'#22c55e':'#ef4444';
+    const left=w.val>=0?0:Math.min(50-pct/2,50);
+    wfHtml+=`<div class="wf-row">
+      <div class="wf-label" style="${w.bold?'color:#fff;font-weight:600':''}">${w.label}</div>
+      <div class="wf-bar"><div class="wf-fill" style="left:${left}%;width:${pct}%;background:${col}"></div></div>
+      <div class="wf-val" style="color:${col}">${w.val>=0?'':'−'}$${Math.abs(w.val).toLocaleString()}</div>
+    </div>`;
+  });
+  document.getElementById('waterfall').innerHTML=wfHtml;
+}
+calc();
+</script>
+</body>
+</html>

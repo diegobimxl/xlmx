@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ohm's Law Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#eab308;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.var-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.var-card{background:#1a1a1a;border-radius:10px;padding:14px;text-align:center;border:2px solid transparent;transition:border-color .2s;cursor:pointer}
+.var-card.active{border-color:#eab308}
+.var-card .sym{font-size:1.6rem;font-weight:800;color:#eab308}
+.var-card .name{font-size:.75rem;color:#888;margin-top:2px}
+.var-card .unit{font-size:.72rem;color:#555}
+.var-card input{background:#111;margin-top:8px;text-align:center;font-size:1rem;border:1px solid #333}
+.result-big{background:#1a1a1a;border-radius:10px;padding:20px;text-align:center;margin-bottom:12px}
+.result-big .val{font-size:2rem;font-weight:800;color:#eab308}
+.result-big .lbl{font-size:.85rem;color:#888;margin-top:4px}
+.ohm-triangle{display:flex;flex-direction:column;align-items:center;margin:10px auto;width:160px}
+.tri-row{display:flex;gap:4px}
+.tri-cell{width:70px;height:50px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700;color:#eab308}
+.stat .l{font-size:.72rem;color:#888;margin-top:3px}
+</style>
+</head>
+<body>
+<h1>Ohm's Law Calculator</h1>
+<p class="sub">V = I × R — voltage, current, resistance, and power</p>
+
+<div class="card">
+  <h2>Enter Any Two Values</h2>
+  <div class="var-grid">
+    <div class="var-card">
+      <div class="sym">V</div>
+      <div class="name">Voltage</div>
+      <div class="unit">Volts (V)</div>
+      <input type="number" id="vV" placeholder="?" step="any" oninput="calc()">
+    </div>
+    <div class="var-card">
+      <div class="sym">I</div>
+      <div class="name">Current</div>
+      <div class="unit">Amps (A)</div>
+      <input type="number" id="vI" placeholder="?" step="any" oninput="calc()">
+    </div>
+    <div class="var-card">
+      <div class="sym">R</div>
+      <div class="name">Resistance</div>
+      <div class="unit">Ohms (Ω)</div>
+      <input type="number" id="vR" placeholder="?" step="any" oninput="calc()">
+    </div>
+    <div class="var-card">
+      <div class="sym">P</div>
+      <div class="name">Power</div>
+      <div class="unit">Watts (W)</div>
+      <input type="number" id="vP" placeholder="?" step="any" oninput="calc()">
+    </div>
+  </div>
+  <button onclick="clearAll()" style="width:100%;background:#1a1a1a;border:1px solid #555;color:#aaa;border-radius:6px;padding:8px;cursor:pointer;font-size:.82rem;margin-top:10px">Clear All</button>
+  <div id="errMsg" style="color:#ef4444;font-size:.82rem;margin-top:6px;display:none"></div>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <div class="row2">
+    <div class="result-big"><div class="val" id="r_V">--</div><div class="lbl">V — Volts</div></div>
+    <div class="result-big"><div class="val" id="r_I">--</div><div class="lbl">I — Amps</div></div>
+  </div>
+  <div class="row2">
+    <div class="result-big"><div class="val" id="r_R">--</div><div class="lbl">R — Ohms</div></div>
+    <div class="result-big"><div class="val" id="r_P">--</div><div class="lbl">P — Watts</div></div>
+  </div>
+  <div class="row3" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_energy">--</div><div class="l">Energy/hour (Wh)</div></div>
+    <div class="stat"><div class="v" id="r_kw">--</div><div class="l">Power (kW)</div></div>
+    <div class="stat"><div class="v" id="r_cost">--</div><div class="l">$/yr @ $0.12/kWh</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>All 12 Formulas</h2>
+  <table>
+    <tr><th>Find</th><th colspan="3">From</th></tr>
+    <tr><td><strong>V</strong></td><td>I × R</td><td>P / I</td><td>√(P × R)</td></tr>
+    <tr><td><strong>I</strong></td><td>V / R</td><td>P / V</td><td>√(P / R)</td></tr>
+    <tr><td><strong>R</strong></td><td>V / I</td><td>V² / P</td><td>P / I²</td></tr>
+    <tr><td><strong>P</strong></td><td>V × I</td><td>I² × R</td><td>V² / R</td></tr>
+  </table>
+</div>
+
+<script>
+function getV(id){const v=document.getElementById(id).value;return v===''?null:parseFloat(v);}
+function setV(id,val){if(val!==null&&isFinite(val))document.getElementById(id).value=val.toFixed(6);}
+function clearAll(){['vV','vI','vR','vP'].forEach(id=>document.getElementById(id).value='');['r_V','r_I','r_R','r_P'].forEach(id=>document.getElementById(id).textContent='--');document.getElementById('errMsg').style.display='none';}
+function calc(){
+  let V=getV('vV'),I=getV('vI'),R=getV('vR'),P=getV('vP');
+  const known=[V,I,R,P].filter(v=>v!==null).length;
+  if(known<2){document.getElementById('errMsg').style.display='none';return;}
+  try{
+    // Solve for missing
+    if(V===null&&I!==null&&R!==null)V=I*R;
+    if(V===null&&P!==null&&I!==null)V=P/I;
+    if(V===null&&P!==null&&R!==null)V=Math.sqrt(P*R);
+    if(I===null&&V!==null&&R!==null)I=V/R;
+    if(I===null&&P!==null&&V!==null)I=P/V;
+    if(I===null&&P!==null&&R!==null)I=Math.sqrt(P/R);
+    if(R===null&&V!==null&&I!==null)R=V/I;
+    if(R===null&&V!==null&&P!==null)R=V*V/P;
+    if(R===null&&P!==null&&I!==null)R=P/(I*I);
+    if(P===null&&V!==null&&I!==null)P=V*I;
+    if(P===null&&I!==null&&R!==null)P=I*I*R;
+    if(P===null&&V!==null&&R!==null)P=V*V/R;
+    if(![V,I,R,P].every(v=>v!==null&&isFinite(v)&&v>=0)){throw new Error('Cannot solve — check inputs');}
+    document.getElementById('r_V').textContent=V.toFixed(4)+' V';
+    document.getElementById('r_I').textContent=I<1?(I*1000).toFixed(3)+' mA':I.toFixed(4)+' A';
+    document.getElementById('r_R').textContent=R>=1000?(R/1000).toFixed(3)+' kΩ':R.toFixed(4)+' Ω';
+    document.getElementById('r_P').textContent=P>=1000?(P/1000).toFixed(3)+' kW':P.toFixed(4)+' W';
+    document.getElementById('r_energy').textContent=P.toFixed(2);
+    document.getElementById('r_kw').textContent=(P/1000).toFixed(4);
+    document.getElementById('r_cost').textContent='$'+(P/1000*0.12*8760).toFixed(2);
+    document.getElementById('errMsg').style.display='none';
+    setV('vV',V);setV('vI',I);setV('vR',R);setV('vP',P);
+  }catch(e){document.getElementById('errMsg').textContent=e.message;document.getElementById('errMsg').style.display='block';}
+}
+document.getElementById('vV').value=120;document.getElementById('vR').value=60;calc();
+</script>
+</body>
+</html>

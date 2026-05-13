@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Map Scale Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:14px;text-align:center}
+.stat .v{font-size:1.2rem;font-weight:700;color:#06b6d4}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.scale-bar{display:flex;align-items:center;gap:8px;margin-top:12px}
+.bar-outer{flex:1;height:20px;background:#1a1a1a;border:1px solid #333;border-radius:4px;overflow:hidden;position:relative}
+.bar-inner{height:100%;background:repeating-linear-gradient(90deg,#06b6d4 0,#06b6d4 10%,#1a1a1a 10%,#1a1a1a 20%);transition:width .4s}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:10px}
+</style>
+</head>
+<body>
+<h1>Map Scale Calculator</h1>
+<p class="sub">Convert between map measurements and real-world distances</p>
+
+<div class="card">
+  <h2>Scale & Measurement</h2>
+  <label>Map scale (1 : ___)</label>
+  <select id="scale" onchange="setScale()">
+    <option value="1000">1:1,000 (architectural site)</option>
+    <option value="2500">1:2,500 (urban detail)</option>
+    <option value="5000">1:5,000 (urban)</option>
+    <option value="10000" selected>1:10,000 (city)</option>
+    <option value="25000">1:25,000 (topo detail)</option>
+    <option value="50000">1:50,000 (USGS topo)</option>
+    <option value="100000">1:100,000 (regional)</option>
+    <option value="250000">1:250,000 (state)</option>
+    <option value="custom">Custom</option>
+  </select>
+  <input type="number" id="customScale" value="10000" min="1" placeholder="Custom denominator" oninput="calc()" style="margin-top:6px;display:none">
+
+  <div class="row2">
+    <div>
+      <label>Map distance (cm)</label>
+      <input type="number" id="mapDist" value="5.0" step="0.1" min="0" oninput="calc()">
+    </div>
+    <div>
+      <label>Map distance (inches)</label>
+      <input type="number" id="mapIn" value="1.97" step="0.01" min="0" oninput="calcFromInch()">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Real-World Distance</h2>
+  <div class="row3">
+    <div class="stat"><div class="v" id="r_m">--</div><div class="l">meters</div></div>
+    <div class="stat"><div class="v" id="r_km">--</div><div class="l">kilometers</div></div>
+    <div class="stat"><div class="v" id="r_ft">--</div><div class="l">feet</div></div>
+  </div>
+  <div class="row2" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_mi">--</div><div class="l">miles</div></div>
+    <div class="stat"><div class="v" id="r_nm">--</div><div class="l">nautical miles</div></div>
+  </div>
+
+  <div class="scale-bar">
+    <div style="font-size:.72rem;color:#888;width:20px">0</div>
+    <div class="bar-outer"><div class="bar-inner" id="scaleBarFill" style="width:80%"></div></div>
+    <div style="font-size:.72rem;color:#888;width:50px;text-align:right" id="scaleBarLabel">500m</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Area Conversion</h2>
+  <div class="row2">
+    <div>
+      <label>Map area width (cm)</label>
+      <input type="number" id="aW" value="10" step="0.1" min="0" oninput="calcArea()">
+    </div>
+    <div>
+      <label>Map area height (cm)</label>
+      <input type="number" id="aH" value="8" step="0.1" min="0" oninput="calcArea()">
+    </div>
+  </div>
+  <div class="row3" style="margin-top:10px">
+    <div class="stat"><div class="v" id="a_m2">--</div><div class="l">m²</div></div>
+    <div class="stat"><div class="v" id="a_ha">--</div><div class="l">hectares</div></div>
+    <div class="stat"><div class="v" id="a_km2">--</div><div class="l">km²</div></div>
+  </div>
+
+  <table style="margin-top:16px">
+    <tr><th>Common Scale</th><th>1cm on map =</th><th>1in on map =</th><th>1cm² =</th></tr>
+    <tbody id="refTable"></tbody>
+  </table>
+</div>
+
+<script>
+let denom=10000;
+function setScale(){
+  const v=document.getElementById('scale').value;
+  const inp=document.getElementById('customScale');
+  if(v==='custom'){inp.style.display='block';denom=parseFloat(inp.value)||10000;}
+  else{inp.style.display='none';denom=parseInt(v);}
+  calc();calcArea();
+}
+function calc(){
+  const cm=parseFloat(document.getElementById('mapDist').value)||0;
+  const realCm=cm*denom;
+  const m=realCm/100;
+  document.getElementById('r_m').textContent=m.toFixed(1);
+  document.getElementById('r_km').textContent=(m/1000).toFixed(3);
+  document.getElementById('r_ft').textContent=(m*3.28084).toFixed(1);
+  document.getElementById('r_mi').textContent=(m/1609.34).toFixed(4);
+  document.getElementById('r_nm').textContent=(m/1852).toFixed(4);
+  document.getElementById('scaleBarLabel').textContent=m>=1000?(m/1000).toFixed(2)+'km':m.toFixed(0)+'m';
+  // Sync inches
+  document.getElementById('mapIn').value=(cm/2.54).toFixed(3);
+  calcArea();buildRefTable();
+}
+function calcFromInch(){
+  const inch=parseFloat(document.getElementById('mapIn').value)||0;
+  document.getElementById('mapDist').value=(inch*2.54).toFixed(3);
+  calc();
+}
+function calcArea(){
+  const w=(parseFloat(document.getElementById('aW').value)||0)*denom/100;
+  const h=(parseFloat(document.getElementById('aH').value)||0)*denom/100;
+  const m2=w*h;
+  document.getElementById('a_m2').textContent=m2.toFixed(0);
+  document.getElementById('a_ha').textContent=(m2/10000).toFixed(4);
+  document.getElementById('a_km2').textContent=(m2/1e6).toFixed(6);
+}
+function buildRefTable(){
+  const scales=[1000,2500,5000,10000,25000,50000,100000,250000];
+  const tbody=document.getElementById('refTable');
+  tbody.innerHTML=scales.map(s=>{
+    const mPerCm=s/100;
+    const mPerIn=s*0.0254;
+    const haPerCm2=s*s/1e8;
+    const c=s===denom?'color:#06b6d4;font-weight:700':'';
+    return`<tr style="${c}">
+      <td>1:${s.toLocaleString()}</td>
+      <td>${mPerCm>=1000?(mPerCm/1000).toFixed(2)+' km':mPerCm+' m'}</td>
+      <td>${mPerIn>=1000?(mPerIn/1000).toFixed(3)+' km':mPerIn.toFixed(1)+' m'}</td>
+      <td>${haPerCm2.toFixed(4)} ha</td>
+    </tr>`;
+  }).join('');
+}
+calc();
+</script>
+</body>
+</html>

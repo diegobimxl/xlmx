@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Descriptive Statistics — XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}.header h1{font-size:1.4rem;font-weight:600;color:#fff}.header p{color:#888;font-size:0.85rem;margin-top:4px}.badge{display:inline-block;background:#8b5cf6;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}textarea{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:10px;font-size:0.88rem;resize:vertical;min-height:120px}textarea:focus{outline:none;border-color:#8b5cf6}input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}input:focus{outline:none;border-color:#8b5cf6}.result-big{font-size:2rem;font-weight:700;color:#8b5cf6;margin:4px 0}.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}.stat-item{background:#161616;border-radius:6px;padding:10px}.stat-val{font-size:1.2rem;font-weight:700;color:#8b5cf6}.stat-lbl{font-size:0.72rem;color:#666;margin-top:2px}table{width:100%;border-collapse:collapse;font-size:0.82rem}th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}th:first-child{text-align:left}td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}td:first-child{text-align:left;color:#ccc}tr:last-child td{border-bottom:none;background:#161616}#error{color:#ef4444;font-size:0.82rem;margin-top:8px;display:none}.btn{background:#8b5cf6;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:0.88rem;font-weight:600;cursor:pointer;margin-top:10px;width:100%}.btn:hover{background:#7c3aed}</style></head>
+<body>
+<div class="header"><h1>Descriptive Statistics <span class="badge">STATISTICS</span></h1><p>Mean, median, mode, variance, std dev, skewness, and percentiles from any dataset</p></div>
+<div class="grid">
+<div class="card">
+<h3>Data Input</h3>
+<p style="font-size:0.78rem;color:#666;margin-bottom:8px">Paste numbers separated by commas, spaces, or new lines:</p>
+<textarea id="data_input" placeholder="e.g. 12, 45, 67, 23, 89, 34, 56, 78, 90, 11">12, 45, 67, 23, 89, 34, 56, 78, 90, 11, 43, 65, 32, 87, 54, 29, 71, 48, 96, 37</textarea>
+<div id="error">Invalid input — numbers only</div>
+<button class="btn" onclick="calc()">Calculate Statistics</button>
+<p style="font-size:0.75rem;color:#555;margin-top:8px" id="n_label"></p>
+</div>
+<div class="card">
+<h3>Central Tendency</h3>
+<div class="stat-grid">
+<div class="stat-item"><div class="stat-val" id="mean">—</div><div class="stat-lbl">Mean (avg)</div></div>
+<div class="stat-item"><div class="stat-val" id="median">—</div><div class="stat-lbl">Median (50th %)</div></div>
+<div class="stat-item"><div class="stat-val" id="mode">—</div><div class="stat-lbl">Mode</div></div>
+<div class="stat-item"><div class="stat-val" id="range_v">—</div><div class="stat-lbl">Range (max–min)</div></div>
+<div class="stat-item"><div class="stat-val" id="min_v">—</div><div class="stat-lbl">Minimum</div></div>
+<div class="stat-item"><div class="stat-val" id="max_v">—</div><div class="stat-lbl">Maximum</div></div>
+</div>
+</div>
+</div>
+<div class="grid">
+<div class="card">
+<h3>Dispersion</h3>
+<div class="stat-grid">
+<div class="stat-item"><div class="stat-val" id="variance">—</div><div class="stat-lbl">Variance (s²)</div></div>
+<div class="stat-item"><div class="stat-val" id="std_dev">—</div><div class="stat-lbl">Std Dev (s)</div></div>
+<div class="stat-item"><div class="stat-val" id="cv">—</div><div class="stat-lbl">CV (%)</div></div>
+<div class="stat-item"><div class="stat-val" id="iqr">—</div><div class="stat-lbl">IQR (Q3–Q1)</div></div>
+<div class="stat-item"><div class="stat-val" id="skew">—</div><div class="stat-lbl">Skewness</div></div>
+<div class="stat-item"><div class="stat-val" id="kurtosis">—</div><div class="stat-lbl">Kurtosis</div></div>
+</div>
+</div>
+<div class="card">
+<h3>Percentiles</h3>
+<table><thead><tr><th>Percentile</th><th>Value</th><th>Description</th></tr></thead>
+<tbody id="pct_table"></tbody></table>
+</div>
+</div>
+<script>
+function parseData(){
+  var raw=document.getElementById('data_input').value;
+  var nums=raw.split(/[\s,;]+/).filter(function(s){return s.trim()!=='';}).map(Number);
+  if(nums.some(isNaN))return null;
+  return nums.sort(function(a,b){return a-b;});
+}
+function percentile(arr,p){
+  var n=arr.length,i=(p/100)*(n-1),lo=Math.floor(i),hi=Math.ceil(i);
+  if(lo===hi)return arr[lo];
+  return arr[lo]+(arr[hi]-arr[lo])*(i-lo);
+}
+function calc(){
+  var data=parseData();
+  var err=document.getElementById('error');
+  if(!data){err.style.display='block';return;}
+  err.style.display='none';
+  var n=data.length;
+  document.getElementById('n_label').textContent='n = '+n+' values';
+  var sum=data.reduce(function(a,b){return a+b;},0);
+  var mean=sum/n;
+  var med=percentile(data,50);
+  // mode
+  var freq={};data.forEach(function(v){freq[v]=(freq[v]||0)+1;});
+  var maxf=Math.max.apply(null,Object.values(freq));
+  var modes=Object.keys(freq).filter(function(k){return freq[k]===maxf;}).map(Number);
+  var mode=modes.length>3?'multimodal':modes.join(', ');
+  var min=data[0],max=data[n-1];
+  // variance (sample)
+  var sse=data.reduce(function(a,v){return a+(v-mean)*(v-mean);},0);
+  var variance=n>1?sse/(n-1):0;
+  var std=Math.sqrt(variance);
+  var cv=mean!==0?std/Math.abs(mean)*100:0;
+  var q1=percentile(data,25),q3=percentile(data,75),iqr=q3-q1;
+  // skewness (Pearson's)
+  var skew=n>2?data.reduce(function(a,v){return a+Math.pow((v-mean)/std,3);},0)*n/((n-1)*(n-2)):0;
+  // excess kurtosis
+  var kurt=n>3?(n*(n+1)/((n-1)*(n-2)*(n-3)))*data.reduce(function(a,v){return a+Math.pow((v-mean)/std,4);},0)-3*(n-1)*(n-1)/((n-2)*(n-3)):0;
+  function fmt(v){return isNaN(v)?'—':Math.abs(v)<0.01?v.toExponential(2):(v).toFixed(3);}
+  document.getElementById('mean').textContent=fmt(mean);
+  document.getElementById('median').textContent=fmt(med);
+  document.getElementById('mode').textContent=mode;
+  document.getElementById('range_v').textContent=fmt(max-min);
+  document.getElementById('min_v').textContent=fmt(min);
+  document.getElementById('max_v').textContent=fmt(max);
+  document.getElementById('variance').textContent=fmt(variance);
+  document.getElementById('std_dev').textContent=fmt(std);
+  document.getElementById('cv').textContent=fmt(cv)+'%';
+  document.getElementById('iqr').textContent=fmt(iqr);
+  document.getElementById('skew').textContent=fmt(skew);
+  document.getElementById('kurtosis').textContent=fmt(kurt);
+  var pcts=[5,10,25,50,75,90,95,99];
+  var pnames=['5th','10th','25th (Q1)','50th (median)','75th (Q3)','90th','95th','99th'];
+  var tbody='';
+  pcts.forEach(function(p,i){tbody+='<tr><td>'+pnames[i]+'</td><td>'+fmt(percentile(data,p))+'</td><td>'+(p===25?'Lower quartile':p===75?'Upper quartile':p===50?'Median':'')+'</td></tr>';});
+  document.getElementById('pct_table').innerHTML=tbody;
+}
+calc();
+</script></body></html>

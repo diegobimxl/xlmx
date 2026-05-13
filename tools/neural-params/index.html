@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neural Network Parameters — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#a855f7;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#a855f7}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #2d1a4a;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.3rem;font-weight:700;color:#a855f7}
+.res-lbl{font-size:.75rem;color:#888;margin-top:2px}
+.layer-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.layer-input{flex:1}
+.remove-btn{background:none;border:1px solid #333;color:#888;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.8rem}
+.remove-btn:hover{color:#f87171;border-color:#f87171}
+.add-btn{background:#0d0d0d;border:1px dashed #333;color:#888;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;margin-top:4px}
+.add-btn:hover{color:#a855f7;border-color:#a855f7}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.arch-vis{width:100%;height:120px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;margin-top:10px}
+.model-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.model-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.model-table td{padding:6px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.model-table tr:last-child td{border-bottom:none}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Neural Network Parameters</h1>
+  <p>Count weights, biases, memory, and FLOPs for dense networks</p>
+</div>
+
+<div class="card">
+  <h2>Network Architecture</h2>
+  <div style="margin-bottom:10px;font-size:.8rem;color:#888">Define layers (neurons per layer):</div>
+  <div id="layers-container"></div>
+  <button class="add-btn" onclick="addLayer()">+ Add Layer</button>
+
+  <canvas id="archVis" class="arch-vis" width="600" height="120"></canvas>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="total-params">—</div><div class="res-lbl">Total Parameters</div></div>
+    <div class="res-card"><div class="res-num" id="total-weights">—</div><div class="res-lbl">Weights</div></div>
+    <div class="res-card"><div class="res-num" id="total-biases">—</div><div class="res-lbl">Biases</div></div>
+    <div class="res-card"><div class="res-num" id="total-flops">—</div><div class="res-lbl">FLOPs / forward pass</div></div>
+  </div>
+
+  <div style="margin-top:14px">
+    <div class="grid2">
+      <div><label>Precision</label>
+        <select id="precision" onchange="calcNet()">
+          <option value="4">float32 (4 bytes)</option>
+          <option value="2" selected>float16 (2 bytes)</option>
+          <option value="1">int8 (1 byte)</option>
+          <option value="0.5">4-bit quant (0.5 bytes)</option>
+        </select>
+      </div>
+      <div><label>Batch size</label>
+        <input type="number" id="batch" value="32" min="1" oninput="calcNet()">
+      </div>
+    </div>
+    <div class="info-row" style="margin-top:10px"><span class="info-label">Model size (MB)</span><span class="info-val" id="model-mb">—</span></div>
+    <div class="info-row"><span class="info-label">Activation memory per batch (MB)</span><span class="info-val" id="act-mb">—</span></div>
+    <div class="info-row"><span class="info-label">Training memory estimate (3× model)</span><span class="info-val" id="train-mb">—</span></div>
+    <div class="info-row"><span class="info-label">Layers</span><span class="info-val" id="layer-count">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Famous Model Reference</h2>
+  <table class="model-table">
+    <thead><tr><th>Model</th><th>Params</th><th>Type</th><th>Memory (fp16)</th></tr></thead>
+    <tbody>
+      <tr><td>GPT-2 small</td><td>117M</td><td>Transformer</td><td>~234 MB</td></tr>
+      <tr><td>GPT-2 XL</td><td>1.5B</td><td>Transformer</td><td>~3 GB</td></tr>
+      <tr><td>GPT-3</td><td>175B</td><td>Transformer</td><td>~350 GB</td></tr>
+      <tr><td>LLaMA-3 8B</td><td>8B</td><td>Transformer</td><td>~16 GB</td></tr>
+      <tr><td>LLaMA-3 70B</td><td>70B</td><td>Transformer</td><td>~140 GB</td></tr>
+      <tr><td>ResNet-50</td><td>25.6M</td><td>CNN</td><td>~51 MB</td></tr>
+      <tr><td>BERT-base</td><td>110M</td><td>Transformer</td><td>~220 MB</td></tr>
+      <tr><td>ViT-B/16</td><td>86M</td><td>Transformer</td><td>~172 MB</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Layer-by-Layer Breakdown</h2>
+  <div id="layer-breakdown"></div>
+</div>
+
+<script>
+let layerSizes = [784, 256, 128, 10];
+
+function renderLayers() {
+  const c = document.getElementById('layers-container');
+  c.innerHTML = '';
+  layerSizes.forEach((size, i) => {
+    const row = document.createElement('div');
+    row.className = 'layer-row';
+    const isFirst = i === 0, isLast = i === layerSizes.length-1;
+    row.innerHTML = `
+      <div class="layer-input">
+        <label>${isFirst ? 'Input Layer' : isLast ? 'Output Layer' : 'Hidden Layer '+i}</label>
+        <input type="number" value="${size}" min="1" max="100000" oninput="layerChange(${i},this.value)">
+      </div>
+      ${layerSizes.length > 2 && !isFirst && !isLast ? `<button class="remove-btn" onclick="removeLayer(${i})">✕</button>` : ''}
+    `;
+    c.appendChild(row);
+  });
+  calcNet();
+}
+
+function addLayer() {
+  if(layerSizes.length >= 10) return;
+  layerSizes.splice(layerSizes.length-1, 0, 64);
+  renderLayers();
+}
+
+function removeLayer(i) {
+  layerSizes.splice(i, 1);
+  renderLayers();
+}
+
+function layerChange(i, val) {
+  layerSizes[i] = parseInt(val)||1;
+  calcNet();
+}
+
+function fmtNum(n) {
+  if(n >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if(n >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if(n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+
+function calcNet() {
+  const bytes = parseFloat(document.getElementById('precision').value)||2;
+  const batch = parseInt(document.getElementById('batch').value)||1;
+
+  let totalWeights=0, totalBiases=0, totalFlops=0, totalAct=0;
+  const breakdown = [];
+
+  for(let i=1; i<layerSizes.length; i++){
+    const w = layerSizes[i-1] * layerSizes[i];
+    const b = layerSizes[i];
+    const flops = 2*layerSizes[i-1]*layerSizes[i]; // multiply-accumulate
+    totalWeights += w;
+    totalBiases += b;
+    totalFlops += flops;
+    totalAct += layerSizes[i] * batch;
+    breakdown.push({from:layerSizes[i-1], to:layerSizes[i], w, b, flops});
+  }
+
+  const total = totalWeights + totalBiases;
+  const modelMB = (total * bytes) / (1024*1024);
+  const actMB = (totalAct * bytes) / (1024*1024);
+
+  document.getElementById('total-params').textContent = fmtNum(total);
+  document.getElementById('total-weights').textContent = fmtNum(totalWeights);
+  document.getElementById('total-biases').textContent = fmtNum(totalBiases);
+  document.getElementById('total-flops').textContent = fmtNum(totalFlops);
+  document.getElementById('model-mb').textContent = modelMB.toFixed(2)+' MB';
+  document.getElementById('act-mb').textContent = actMB.toFixed(4)+' MB';
+  document.getElementById('train-mb').textContent = (modelMB*3).toFixed(2)+' MB (est.)';
+  document.getElementById('layer-count').textContent = layerSizes.length;
+
+  const bd = document.getElementById('layer-breakdown');
+  bd.innerHTML = breakdown.map((l,i)=>
+    `<div class="info-row"><span class="info-label">Layer ${i+1}: ${l.from}→${l.to}</span><span class="info-val">${fmtNum(l.w+l.b)} params (${fmtNum(l.flops)} FLOPs)</span></div>`
+  ).join('');
+
+  drawArch();
+}
+
+function drawArch() {
+  const canvas = document.getElementById('archVis');
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const n = layerSizes.length;
+  const maxNodes = 8;
+  const nodeR = 8, xStep = W/(n+1);
+
+  for(let i=0; i<n; i++){
+    const x = xStep*(i+1);
+    const showN = Math.min(layerSizes[i], maxNodes);
+    const yStep = H/(showN+1);
+    const color = i===0 ? '#06b6d4' : i===n-1 ? '#f97316' : '#a855f7';
+
+    // Draw connections to next layer
+    if(i<n-1){
+      const x2 = xStep*(i+2);
+      const showN2 = Math.min(layerSizes[i+1], maxNodes);
+      const yStep2 = H/(showN2+1);
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 0.5;
+      for(let j=0;j<Math.min(showN,4);j++){
+        const y1 = yStep*(j+1);
+        for(let k=0;k<Math.min(showN2,4);k++){
+          const y2 = yStep2*(k+1);
+          ctx.beginPath();
+          ctx.moveTo(x,y1);
+          ctx.lineTo(x2,y2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw nodes
+    for(let j=0;j<showN;j++){
+      const y = yStep*(j+1);
+      ctx.beginPath();
+      ctx.arc(x,y,nodeR,0,Math.PI*2);
+      ctx.fillStyle=color+'33';
+      ctx.fill();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+    }
+    if(layerSizes[i]>maxNodes){
+      ctx.fillStyle='#888';
+      ctx.font='9px Segoe UI';
+      ctx.textAlign='center';
+      ctx.fillText('...', x, H-4);
+    }
+    ctx.fillStyle='#888';
+    ctx.font='9px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(layerSizes[i], x, H-4);
+  }
+}
+
+renderLayers();
+</script>
+</body></html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Base Converter</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem;font-family:monospace}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.base-card{background:#1a1a1a;border-radius:8px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.base-card .label{font-size:.78rem;color:#888;width:100px;flex-shrink:0}
+.base-card .val{font-family:monospace;font-size:.95rem;color:#06b6d4;word-break:break-all;flex:1;margin:0 8px}
+.base-card .copy{background:none;border:1px solid #333;color:#888;border-radius:4px;padding:2px 8px;font-size:.72rem;cursor:pointer;flex-shrink:0}
+.base-card .copy:hover{border-color:#06b6d4;color:#06b6d4}
+.bit-visual{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px}
+.bit{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;font-family:monospace}
+.bit.one{background:#06b6d4;color:#000}
+.bit.zero{background:#1a1a1a;color:#555;border:1px solid #222}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a;font-family:monospace}
+</style>
+</head>
+<body>
+<h1>Number Base Converter</h1>
+<p class="sub">Convert between binary, octal, decimal, hex, and any custom base 2–36</p>
+
+<div class="card">
+  <h2>Input</h2>
+  <div class="row2">
+    <div>
+      <label>From base</label>
+      <select id="fromBase" onchange="convert()">
+        <option value="2">Base 2 — Binary</option>
+        <option value="8">Base 8 — Octal</option>
+        <option value="10" selected>Base 10 — Decimal</option>
+        <option value="16">Base 16 — Hexadecimal</option>
+        <option value="32">Base 32</option>
+        <option value="36">Base 36</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <div id="customWrap" style="display:none">
+      <label>Custom base (2–36)</label>
+      <input type="number" id="customFrom" value="7" min="2" max="36" oninput="convert()">
+    </div>
+  </div>
+  <label>Number</label>
+  <input type="text" id="inputNum" value="255" oninput="convert()">
+</div>
+
+<div class="card">
+  <h2>Conversions</h2>
+  <div id="results"></div>
+</div>
+
+<div class="card">
+  <h2>Bit Pattern (32-bit unsigned)</h2>
+  <div class="bit-visual" id="bits"></div>
+  <div style="font-size:.75rem;color:#666;margin-top:6px">MSB → LSB (bits 31–0)</div>
+</div>
+
+<div class="card">
+  <h2>Reference Table (0–15)</h2>
+  <table>
+    <tr><th>Dec</th><th>Bin</th><th>Oct</th><th>Hex</th><th>ASCII</th></tr>
+    <tbody id="refTable"></tbody>
+  </table>
+</div>
+
+<script>
+document.getElementById('fromBase').onchange=function(){
+  document.getElementById('customWrap').style.display=this.value==='custom'?'block':'none';
+  convert();
+};
+function getFromBase(){
+  const sel=document.getElementById('fromBase').value;
+  if(sel==='custom')return parseInt(document.getElementById('customFrom').value)||10;
+  return parseInt(sel);
+}
+function convert(){
+  const raw=document.getElementById('inputNum').value.trim().toUpperCase();
+  const fromBase=getFromBase();
+  const decimal=parseInt(raw,fromBase);
+  if(isNaN(decimal)){document.getElementById('results').innerHTML='<div style="color:#ef4444;font-size:.82rem">Invalid number for base '+fromBase+'</div>';return;}
+  const bases=[
+    {base:2,name:'Binary (Base 2)'},
+    {base:8,name:'Octal (Base 8)'},
+    {base:10,name:'Decimal (Base 10)'},
+    {base:16,name:'Hex (Base 16)'},
+    {base:32,name:'Base 32'},
+    {base:36,name:'Base 36'},
+  ];
+  let html='';
+  bases.forEach(b=>{
+    const val=decimal.toString(b.base).toUpperCase();
+    html+=`<div class="base-card">
+      <div class="label">${b.name}</div>
+      <div class="val">${val}</div>
+      <button class="copy" onclick="navigator.clipboard.writeText('${val}')">Copy</button>
+    </div>`;
+  });
+  document.getElementById('results').innerHTML=html;
+  // Bits
+  const bits=[];
+  for(let i=31;i>=0;i--)bits.push((decimal>>>i)&1);
+  document.getElementById('bits').innerHTML=bits.map(b=>`<div class="bit ${b?'one':'zero'}">${b}</div>`).join('');
+}
+// Reference table
+const tbody=document.getElementById('refTable');
+for(let i=0;i<16;i++){
+  tbody.innerHTML+=`<tr>
+    <td>${i}</td><td>${i.toString(2).padStart(4,'0')}</td>
+    <td>${i.toString(8)}</td><td>${i.toString(16).toUpperCase()}</td>
+    <td>${i>=32&&i<127?String.fromCharCode(i):i>=32?'&nbsp;':'ctrl'}</td>
+  </tr>`;
+}
+convert();
+</script>
+</body>
+</html>

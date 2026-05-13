@@ -1,0 +1,220 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fuel Cost Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f97316;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#f97316}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #2a1200;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.3rem;font-weight:700;color:#f97316}
+.res-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.trip-row{display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;align-items:end;margin-bottom:6px;font-size:.82rem}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Fuel Cost Calculator</h1>
+  <p>Road trip cost, fuel efficiency, CO₂ emissions, and multi-vehicle comparison</p>
+</div>
+
+<div class="card">
+  <h2>Single Trip</h2>
+  <div class="grid2">
+    <div>
+      <label>Distance</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="dist" value="500" step="any" oninput="calcTrip()">
+        <select id="dist-unit" onchange="calcTrip()" style="width:80px">
+          <option value="km" selected>km</option>
+          <option value="mi">mi</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label>Fuel efficiency</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="eff" value="12" step="any" oninput="calcTrip()">
+        <select id="eff-unit" onchange="calcTrip()" style="width:120px">
+          <option value="L/100km" selected>L/100 km</option>
+          <option value="km/L">km/L</option>
+          <option value="mpg">MPG (US)</option>
+          <option value="mpg-uk">MPG (UK)</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label>Fuel price</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="fuel-price" value="22" step="any" oninput="calcTrip()">
+        <select id="price-unit" onchange="calcTrip()" style="width:90px">
+          <option value="MXN/L" selected>MXN/L</option>
+          <option value="USD/gal">USD/gal</option>
+          <option value="USD/L">USD/L</option>
+          <option value="EUR/L">EUR/L</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label>Passengers</label>
+      <input type="number" id="pax" value="2" min="1" max="10" oninput="calcTrip()">
+    </div>
+  </div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="total-fuel">—</div><div class="res-lbl">Fuel used (L)</div></div>
+    <div class="res-card"><div class="res-num" id="total-cost">—</div><div class="res-lbl">Total fuel cost</div></div>
+    <div class="res-card"><div class="res-num" id="cost-per-pax">—</div><div class="res-lbl">Cost per passenger</div></div>
+    <div class="res-card"><div class="res-num" id="co2">—</div><div class="res-lbl">CO₂ emitted (kg)</div></div>
+  </div>
+
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">Cost per km/mi</span><span class="info-val" id="cost-per-km">—</span></div>
+    <div class="info-row"><span class="info-label">Efficiency in L/100km</span><span class="info-val" id="eff-norm">—</span></div>
+    <div class="info-row"><span class="info-label">CO₂ per 100 km</span><span class="info-val" id="co2-norm">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Annual Cost</h2>
+  <div class="grid2">
+    <div><label>Daily km/mi driven</label><input type="number" id="daily-dist" value="80" step="any" oninput="calcAnnual()"></div>
+    <div><label>Driving days per year</label><input type="number" id="drive-days" value="300" min="1" max="365" oninput="calcAnnual()"></div>
+  </div>
+  <div style="margin-top:10px">
+    <div class="info-row"><span class="info-label">Annual distance</span><span class="info-val" id="ann-dist">—</span></div>
+    <div class="info-row"><span class="info-label">Annual fuel cost</span><span class="info-val" id="ann-cost">—</span></div>
+    <div class="info-row"><span class="info-label">Monthly fuel cost</span><span class="info-val" id="mon-cost">—</span></div>
+    <div class="info-row"><span class="info-label">Annual CO₂ (kg)</span><span class="info-val" id="ann-co2">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Multi-Vehicle Comparison</h2>
+  <div id="vehicle-rows"></div>
+  <button onclick="addVehicle()" style="background:#0d0d0d;border:1px dashed #333;color:#888;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;margin-top:6px">+ Add vehicle</button>
+  <div id="veh-compare" style="margin-top:12px"></div>
+</div>
+
+<script>
+const vehicles = [
+  {name:'Current car', eff:12},
+  {name:'Compact sedan', eff:8},
+  {name:'Hybrid', eff:5},
+];
+
+function toL100km(val, unit) {
+  switch(unit){
+    case 'L/100km': return val;
+    case 'km/L': return 100/val;
+    case 'mpg': return 235.214/val;
+    case 'mpg-uk': return 282.481/val;
+  }
+  return val;
+}
+
+function distanceKm(){
+  const d=parseFloat(document.getElementById('dist').value)||0;
+  return document.getElementById('dist-unit').value==='mi' ? d*1.60934 : d;
+}
+
+function pricePerLiter(){
+  const p=parseFloat(document.getElementById('fuel-price').value)||0;
+  const u=document.getElementById('price-unit').value;
+  if(u==='USD/gal') return p/3.78541;
+  if(u==='EUR/L') return p*1.1; // approx EUR→USD
+  return p; // MXN/L or USD/L as-is
+}
+
+function calcTrip(){
+  const dkm=distanceKm();
+  const effRaw=parseFloat(document.getElementById('eff').value)||12;
+  const effUnit=document.getElementById('eff-unit').value;
+  const L100=toL100km(effRaw,effUnit);
+  const ppu=document.getElementById('price-unit');
+  const price=parseFloat(document.getElementById('fuel-price').value)||0;
+  const currency=document.getElementById('price-unit').value.split('/')[0];
+  const pax=parseInt(document.getElementById('pax').value)||1;
+
+  const fuelL=(dkm/100)*L100;
+  const priceL=pricePerLiter();
+  const totalCost=fuelL*priceL;
+  const co2=fuelL*2.31; // kg CO2 per liter gasoline
+  const distLabel=document.getElementById('dist-unit').value;
+
+  document.getElementById('total-fuel').textContent=fuelL.toFixed(1)+' L';
+  document.getElementById('total-cost').textContent=currency+' '+totalCost.toFixed(0);
+  document.getElementById('cost-per-pax').textContent=currency+' '+(totalCost/pax).toFixed(0);
+  document.getElementById('co2').textContent=co2.toFixed(1)+' kg';
+  document.getElementById('cost-per-km').textContent=currency+' '+(totalCost/dkm).toFixed(2)+'/km';
+  document.getElementById('eff-norm').textContent=L100.toFixed(2)+' L/100km';
+  document.getElementById('co2-norm').textContent=(L100*2.31).toFixed(1)+' kg/100km';
+
+  calcAnnual();
+  calcCompare();
+}
+
+function calcAnnual(){
+  const dailyRaw=parseFloat(document.getElementById('daily-dist').value)||80;
+  const days=parseInt(document.getElementById('drive-days').value)||300;
+  const distUnit=document.getElementById('dist-unit').value;
+  const dailyKm=distUnit==='mi'?dailyRaw*1.60934:dailyRaw;
+  const annKm=dailyKm*days;
+  const effRaw=parseFloat(document.getElementById('eff').value)||12;
+  const L100=toL100km(effRaw,document.getElementById('eff-unit').value);
+  const priceL=pricePerLiter();
+  const currency=document.getElementById('price-unit').value.split('/')[0];
+
+  const annFuel=(annKm/100)*L100;
+  const annCost=annFuel*priceL;
+  const annCO2=annFuel*2.31;
+
+  document.getElementById('ann-dist').textContent=Math.round(annKm).toLocaleString()+' km';
+  document.getElementById('ann-cost').textContent=currency+' '+Math.round(annCost).toLocaleString();
+  document.getElementById('mon-cost').textContent=currency+' '+Math.round(annCost/12).toLocaleString();
+  document.getElementById('ann-co2').textContent=Math.round(annCO2).toLocaleString()+' kg';
+}
+
+function addVehicle(){
+  if(vehicles.length>=5) return;
+  vehicles.push({name:'Vehicle '+vehicles.length, eff:10});
+  renderVehicles();
+}
+
+function renderVehicles(){
+  const c=document.getElementById('vehicle-rows');
+  c.innerHTML=vehicles.map((v,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+      <div><label>Name</label><input type="text" value="${v.name}" oninput="vehicles[${i}].name=this.value;calcCompare()"></div>
+      <div><label>L/100km</label><input type="number" value="${v.eff}" step="any" oninput="vehicles[${i}].eff=parseFloat(this.value)||1;calcCompare()"></div>
+    </div>`).join('');
+  calcCompare();
+}
+
+function calcCompare(){
+  const dkm=distanceKm();
+  const priceL=pricePerLiter();
+  const currency=document.getElementById('price-unit').value.split('/')[0];
+  const c=document.getElementById('veh-compare');
+  c.innerHTML=vehicles.map(v=>{
+    const cost=(dkm/100)*v.eff*priceL;
+    return `<div class="info-row"><span class="info-label">${v.name} (${v.eff} L/100km)</span><span class="info-val">${currency} ${cost.toFixed(0)}</span></div>`;
+  }).join('');
+}
+
+renderVehicles();
+calcTrip();
+</script>
+</body></html>

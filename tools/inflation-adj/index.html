@@ -1,0 +1,155 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inflation Adjuster — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#eab308;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#eab308}
+.result-box{background:#0d0d0d;border:1px solid #eab308;border-radius:8px;padding:20px;margin-top:14px;text-align:center}
+.result-val{font-size:2rem;font-weight:700;color:#eab308}
+.result-sub{font-size:.85rem;color:#888;margin-top:4px}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.chart-area{width:100%;height:160px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;margin-top:12px}
+.cpi-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.cpi-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.cpi-table td{padding:6px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.cpi-table tr:last-child td{border-bottom:none}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Inflation Adjuster</h1>
+  <p>Real vs nominal values, purchasing power, and CPI-based conversion</p>
+</div>
+
+<div class="card">
+  <h2>Adjust for Inflation</h2>
+  <div class="grid2">
+    <div>
+      <label>Original amount ($)</label>
+      <input type="number" id="amount" value="100000" step="any" oninput="calcInfl()">
+      <label style="margin-top:8px">Base year</label>
+      <input type="number" id="base-yr" value="2010" min="1800" max="2030" oninput="calcInfl()">
+    </div>
+    <div>
+      <label>Target year</label>
+      <input type="number" id="target-yr" value="2024" min="1800" max="2030" oninput="calcInfl()">
+      <label style="margin-top:8px">Annual inflation rate (%)</label>
+      <input type="number" id="avg-infl" value="3.0" step="0.01" oninput="calcInfl()">
+    </div>
+  </div>
+
+  <div class="result-box">
+    <div class="result-val" id="adj-val">—</div>
+    <div class="result-sub" id="adj-sub">—</div>
+  </div>
+
+  <div style="margin-top:14px">
+    <div class="info-row"><span class="info-label">Years elapsed</span><span class="info-val" id="years-el">—</span></div>
+    <div class="info-row"><span class="info-label">Cumulative inflation</span><span class="info-val" id="cum-infl">—</span></div>
+    <div class="info-row"><span class="info-label">Purchasing power erosion</span><span class="info-val" id="pp-erosion">—</span></div>
+    <div class="info-row"><span class="info-label">What $1 then buys now</span><span class="info-val" id="dollar-then">—</span></div>
+    <div class="info-row"><span class="info-label">Real return needed to break even</span><span class="info-val" id="break-even">—</span></div>
+  </div>
+
+  <canvas id="inflChart" class="chart-area" width="600" height="160"></canvas>
+</div>
+
+<div class="card">
+  <h2>Multi-Rate Comparison</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:10px">How different inflation rates affect $<span id="cmp-amount">100,000</span> over <span id="cmp-years">14</span> years:</p>
+  <div id="rate-compare"></div>
+</div>
+
+<div class="card">
+  <h2>Historical US Inflation Reference</h2>
+  <table class="cpi-table">
+    <thead><tr><th>Period</th><th>Avg Annual CPI</th><th>Key driver</th></tr></thead>
+    <tbody>
+      <tr><td>1970s</td><td>7.1%</td><td>Oil shock, wage-price spiral</td></tr>
+      <tr><td>1980s</td><td>5.1%</td><td>Volcker disinflation</td></tr>
+      <tr><td>1990s</td><td>3.0%</td><td>Globalization, productivity</td></tr>
+      <tr><td>2000s</td><td>2.6%</td><td>Housing bubble, recession</td></tr>
+      <tr><td>2010s</td><td>1.8%</td><td>Low-interest era</td></tr>
+      <tr><td>2020</td><td>1.2%</td><td>Pandemic demand collapse</td></tr>
+      <tr><td>2021</td><td>4.7%</td><td>Supply chain, stimulus</td></tr>
+      <tr><td>2022</td><td>8.0%</td><td>Energy, post-COVID peak</td></tr>
+      <tr><td>2023</td><td>4.1%</td><td>Cooling but still elevated</td></tr>
+      <tr><td>2024 est.</td><td>~3.0%</td><td>Fed tightening effects</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function calcInfl(){
+  const amt=parseFloat(document.getElementById('amount').value)||0;
+  const baseYr=parseInt(document.getElementById('base-yr').value)||2010;
+  const targYr=parseInt(document.getElementById('target-yr').value)||2024;
+  const r=(parseFloat(document.getElementById('avg-infl').value)||3)/100;
+
+  const n=targYr-baseYr;
+  const factor=Math.pow(1+r,n);
+  const adjVal=amt*factor;
+  const cumInfl=(factor-1)*100;
+  const ppErosion=((1-1/factor)*100);
+  const dollarThen=factor.toFixed(2);
+
+  document.getElementById('adj-val').textContent='$'+Math.round(adjVal).toLocaleString();
+  document.getElementById('adj-sub').textContent=`$${amt.toLocaleString()} in ${baseYr} = $${Math.round(adjVal).toLocaleString()} in ${targYr} at ${(r*100).toFixed(1)}%/yr`;
+  document.getElementById('years-el').textContent=Math.abs(n)+' years';
+  document.getElementById('cum-infl').textContent=cumInfl.toFixed(1)+'%';
+  document.getElementById('pp-erosion').textContent=ppErosion.toFixed(1)+'%';
+  document.getElementById('dollar-then').textContent='$'+dollarThen;
+  document.getElementById('break-even').textContent=(r*100).toFixed(2)+'% nominal return/yr';
+
+  // Chart
+  const yrs=Math.abs(n);
+  const canvas=document.getElementById('inflChart');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const pts=[];
+  for(let i=0;i<=yrs;i++) pts.push(amt*Math.pow(1+r,n>=0?i:-i));
+  const minV=Math.min(...pts),maxV=Math.max(...pts);
+
+  ctx.strokeStyle='#eab308';ctx.lineWidth=2;
+  ctx.beginPath();
+  pts.forEach((v,i)=>{
+    const x=20+(W-40)*(i/Math.max(yrs,1));
+    const y=H-20-(H-40)*((v-minV)/(maxV-minV||1));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });ctx.stroke();
+
+  ctx.strokeStyle='#333';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(20,H-20-(H-40)*((amt-minV)/(maxV-minV||1)));ctx.lineTo(W-20,H-20-(H-40)*((amt-minV)/(maxV-minV||1)));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#888';ctx.font='10px Segoe UI';
+  ctx.textAlign='left';ctx.fillText(baseYr+': $'+Math.round(pts[0]).toLocaleString(),22,H-5);
+  ctx.textAlign='right';ctx.fillText(targYr+': $'+Math.round(pts[pts.length-1]).toLocaleString(),W-22,H-5);
+
+  // Compare
+  document.getElementById('cmp-amount').textContent=amt.toLocaleString();
+  document.getElementById('cmp-years').textContent=Math.abs(n);
+  const rates=[1,2,3,5,7,10];
+  const container=document.getElementById('rate-compare');
+  container.innerHTML=rates.map(rr=>{
+    const v=amt*Math.pow(1+rr/100,Math.abs(n));
+    const pct=((v-amt)/amt*100).toFixed(0);
+    const w=Math.min(100,(rr/10)*100);
+    return `<div class="info-row"><span class="info-label">${rr}%/yr</span><span class="info-val">$${Math.round(v).toLocaleString()} (+${pct}%)</span></div>`;
+  }).join('');
+}
+calcInfl();
+</script>
+</body></html>

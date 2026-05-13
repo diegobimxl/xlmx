@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Polygon Solver</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f59e0b;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700;color:#f59e0b}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+canvas{width:100%;border-radius:8px;background:#0a0a0a;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{flex:1;padding:8px;background:#1a1a1a;border:1px solid #333;border-radius:6px;text-align:center;cursor:pointer;font-size:.82rem}
+.tab.active{background:#f59e0b;border-color:#f59e0b;color:#000;font-weight:700}
+.pane{display:none}.pane.active{display:block}
+</style>
+</head>
+<body>
+<h1>Polygon Solver</h1>
+<p class="sub">Regular polygons, irregular polygon area (Shoelace), and coordinate geometry</p>
+
+<div class="card">
+  <h2>Mode</h2>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('regular')">Regular Polygon</div>
+    <div class="tab" onclick="switchTab('coords')">Coordinates</div>
+  </div>
+
+  <div class="pane active" id="pane-regular">
+    <label>Number of sides (n)</label>
+    <input type="number" id="sides" value="6" min="3" max="100" oninput="calcRegular()">
+    <div class="row2">
+      <div><label>Side length (s)</label><input type="number" id="sLen" value="5" step="any" min="0" oninput="calcRegular()"></div>
+      <div><label>Unit</label><select id="unit" onchange="calcRegular()"><option>m</option><option>cm</option><option>ft</option><option>in</option></select></div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-coords">
+    <label>Vertices (one per line: x, y)</label>
+    <textarea id="coords" style="width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px;font-family:monospace;font-size:.88rem;min-height:120px;resize:vertical" oninput="calcCoords()">0, 0
+5, 0
+5, 3
+2, 5
+0, 3</textarea>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Properties</h2>
+  <div class="row3">
+    <div class="stat"><div class="v" id="r_area">--</div><div class="l">Area</div></div>
+    <div class="stat"><div class="v" id="r_perim">--</div><div class="l">Perimeter</div></div>
+    <div class="stat"><div class="v" id="r_angle">--</div><div class="l">Interior angle</div></div>
+  </div>
+  <div class="row3" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_inrad">--</div><div class="l">Inradius (r)</div></div>
+    <div class="stat"><div class="v" id="r_circrad">--</div><div class="l">Circumradius (R)</div></div>
+    <div class="stat"><div class="v" id="r_diag">--</div><div class="l">Diagonals</div></div>
+  </div>
+  <canvas id="canvas" height="250"></canvas>
+</div>
+
+<div class="card">
+  <h2>Regular Polygon Reference</h2>
+  <table id="refTable">
+    <tr><th>n</th><th>Name</th><th>Int. Angle</th><th>Area (s=1)</th><th>Perim (s=1)</th></tr>
+  </table>
+</div>
+
+<script>
+const NAMES={3:'Triangle',4:'Square/Rhombus',5:'Pentagon',6:'Hexagon',7:'Heptagon',8:'Octagon',9:'Nonagon',10:'Decagon',12:'Dodecagon',16:'Hexadecagon',20:'Icosagon'};
+let mode='regular';
+document.querySelectorAll('.tab').forEach((el,i)=>{
+  const tabs=['regular','coords'];
+  el.onclick=()=>{mode=tabs[i];document.querySelectorAll('.tab').forEach((t,ti)=>t.classList.toggle('active',ti===i));document.querySelectorAll('.pane').forEach((p,pi)=>p.classList.toggle('active',pi===i));if(mode==='regular')calcRegular();else calcCoords();};
+});
+function calcRegular(){
+  const n=parseInt(document.getElementById('sides').value)||6;
+  const s=parseFloat(document.getElementById('sLen').value)||1;
+  const u=document.getElementById('unit').value;
+  const area=(n*s*s)/(4*Math.tan(Math.PI/n));
+  const perim=n*s;
+  const angle=(n-2)*180/n;
+  const inrad=s/(2*Math.tan(Math.PI/n));
+  const circrad=s/(2*Math.sin(Math.PI/n));
+  const diag=n*(n-3)/2;
+  document.getElementById('r_area').textContent=area.toFixed(4)+' '+u+'²';
+  document.getElementById('r_perim').textContent=perim.toFixed(4)+' '+u;
+  document.getElementById('r_angle').textContent=angle.toFixed(4)+'°';
+  document.getElementById('r_inrad').textContent=inrad.toFixed(4)+' '+u;
+  document.getElementById('r_circrad').textContent=circrad.toFixed(4)+' '+u;
+  document.getElementById('r_diag').textContent=diag;
+  // Draw
+  drawRegular(n,circrad);
+  buildRefTable();
+}
+function calcCoords(){
+  const raw=document.getElementById('coords').value;
+  const pts=raw.trim().split('\n').map(l=>{const p=l.split(',').map(Number);return{x:p[0]||0,y:p[1]||0};}).filter(p=>isFinite(p.x)&&isFinite(p.y));
+  if(pts.length<3)return;
+  // Shoelace
+  let area=0;
+  for(let i=0;i<pts.length;i++){const j=(i+1)%pts.length;area+=pts[i].x*pts[j].y-pts[j].x*pts[i].y;}
+  area=Math.abs(area)/2;
+  let perim=0;
+  for(let i=0;i<pts.length;i++){const j=(i+1)%pts.length;perim+=Math.sqrt((pts[j].x-pts[i].x)**2+(pts[j].y-pts[i].y)**2);}
+  const cx=pts.reduce((a,p)=>a+p.x,0)/pts.length;
+  const cy=pts.reduce((a,p)=>a+p.y,0)/pts.length;
+  document.getElementById('r_area').textContent=area.toFixed(4)+' u²';
+  document.getElementById('r_perim').textContent=perim.toFixed(4)+' u';
+  document.getElementById('r_angle').textContent='N/A';
+  document.getElementById('r_inrad').textContent='N/A';
+  document.getElementById('r_circrad').textContent='N/A';
+  document.getElementById('r_diag').textContent=pts.length*(pts.length-3)/2;
+  drawCoords(pts,cx,cy);
+}
+function drawRegular(n,R){
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth*2||400;canvas.width=W;canvas.height=W*0.6;
+  const cx=W/2,cy=W*0.3,r=W*0.25;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,W);
+  ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const a=2*Math.PI*i/n-Math.PI/2;
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath();ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='rgba(245,158,11,.08)';ctx.fill();
+  // Center
+  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='#f59e0b';ctx.fill();
+}
+function drawCoords(pts,cx,cy){
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth*2||400;canvas.width=W;canvas.height=W*0.6;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,W);
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const pad=40;
+  const scaleX=(W-2*pad)/(maxX-minX||1);
+  const scaleY=(W*0.6-2*pad)/(maxY-minY||1);
+  const scale=Math.min(scaleX,scaleY);
+  const tx=p=>pad+(p.x-minX)*scale;
+  const ty=p=>W*0.6-pad-(p.y-minY)*scale;
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(tx(p),ty(p)):ctx.lineTo(tx(p),ty(p)));
+  ctx.closePath();ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='rgba(245,158,11,.08)';ctx.fill();
+  pts.forEach((p,i)=>{
+    ctx.beginPath();ctx.arc(tx(p),ty(p),5,0,Math.PI*2);ctx.fillStyle='#f59e0b';ctx.fill();
+    ctx.fillStyle='#aaa';ctx.font='22px sans-serif';ctx.fillText(`P${i+1}(${p.x},${p.y})`,tx(p)+8,ty(p)-6);
+  });
+}
+function buildRefTable(){
+  const tbody=document.getElementById('refTable');
+  const ns=[3,4,5,6,7,8,9,10,12,15,20];
+  tbody.innerHTML=ns.map(n=>{
+    const a=(n*1)/(4*Math.tan(Math.PI/n));
+    const angle=(n-2)*180/n;
+    return`<tr><td>${n}</td><td>${NAMES[n]||n+'-gon'}</td><td>${angle.toFixed(2)}°</td><td>${a.toFixed(4)}</td><td>${n}</td></tr>`;
+  }).join('');
+}
+calcRegular();
+</script>
+</body>
+</html>

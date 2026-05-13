@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Python Package Size Explorer — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#3b82f6;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select,textarea{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#3b82f6}
+textarea{resize:vertical;font-family:'Courier New',monospace;font-size:.85rem;min-height:80px}
+.pkg-bar{height:22px;background:#1e3a6a;border-radius:4px;margin:3px 0;position:relative;overflow:hidden}
+.pkg-fill{height:100%;background:#3b82f6;border-radius:4px;transition:width .3s}
+.pkg-label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:.75rem;color:#e0e0e0;white-space:nowrap;z-index:1}
+.pkg-size{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:.75rem;color:#93c5fd;z-index:1}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.code-block{background:#0a0a16;border:1px solid #1e2a4a;border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:.82rem;color:#93c5fd;white-space:pre;overflow-x:auto;margin-top:8px}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.72rem;font-weight:600}
+.tag-heavy{background:#3b1515;color:#f87171}
+.tag-medium{background:#1c3a1c;color:#86efac}
+.tag-light{background:#1e3a6a;color:#93c5fd}
+.alt-row{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:.82rem}
+.alt-name{color:#3b82f6;font-weight:600}
+.alt-size{color:#888;float:right}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Python Package Size Explorer</h1>
+  <p>Install sizes, lightweight alternatives, and requirements.txt analyzer</p>
+</div>
+
+<div class="card">
+  <h2>Common Package Sizes</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:10px">Approximate installed size (MB). Varies by platform and dependencies.</p>
+  <div id="pkg-bars"></div>
+  <div style="margin-top:10px;font-size:.75rem;color:#555">Sizes are typical values — actual install may differ with optional deps</div>
+</div>
+
+<div class="card">
+  <h2>requirements.txt Analyzer</h2>
+  <label>Paste requirements.txt contents</label>
+  <textarea id="req-txt" rows="6" placeholder="numpy==1.26.0&#10;pandas>=2.0&#10;requests&#10;flask&#10;..."></textarea>
+  <button onclick="analyzeReqs()" style="background:#1e3a6a;border:1px solid #3b82f6;color:#93c5fd;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.85rem;margin-top:8px;width:100%">Analyze</button>
+  <div id="req-results" style="margin-top:12px"></div>
+</div>
+
+<div class="card">
+  <h2>Lightweight Alternatives</h2>
+  <div id="alternatives"></div>
+</div>
+
+<div class="card">
+  <h2>Size Reduction Tips</h2>
+  <div class="code-block"># Virtual environment only (no global packages)
+python -m venv .venv
+source .venv/bin/activate   # or .venv\Scripts\activate
+
+# Check installed package sizes
+pip list | pip show &lt;pkg&gt;
+pip-tree                    # pip install pipdeptree
+
+# Install without deps (careful!)
+pip install --no-deps package
+
+# Audit with pip-audit
+pip install pip-audit &amp;&amp; pip-audit
+
+# Generate minimal requirements
+pip install pipreqs
+pipreqs ./ --force          # scans imports, not full env</div>
+</div>
+
+<script>
+const PACKAGES=[
+  {name:'PyTorch (CPU)',size:800,tag:'heavy',cat:'ML'},
+  {name:'TensorFlow',size:500,tag:'heavy',cat:'ML'},
+  {name:'numpy',size:25,tag:'medium',cat:'Scientific'},
+  {name:'pandas',size:45,tag:'medium',cat:'Data'},
+  {name:'matplotlib',size:50,tag:'medium',cat:'Viz'},
+  {name:'scikit-learn',size:35,tag:'medium',cat:'ML'},
+  {name:'scipy',size:85,tag:'medium',cat:'Scientific'},
+  {name:'Pillow',size:12,tag:'light',cat:'Image'},
+  {name:'requests',size:0.4,tag:'light',cat:'HTTP'},
+  {name:'flask',size:0.8,tag:'light',cat:'Web'},
+  {name:'fastapi',size:2,tag:'light',cat:'Web'},
+  {name:'sqlalchemy',size:6,tag:'light',cat:'DB'},
+  {name:'pydantic',size:3,tag:'light',cat:'Validation'},
+  {name:'boto3',size:15,tag:'medium',cat:'Cloud'},
+  {name:'opencv-python',size:55,tag:'medium',cat:'Image'},
+];
+
+const ALTS=[
+  {heavy:'requests',light:'httpx',note:'async-first, similar API',saved:'~0 MB but modern'},
+  {heavy:'flask',light:'fastapi',note:'auto-docs, async, 3× faster',saved:'~1 MB'},
+  {heavy:'PyMongo',light:'motor',note:'async MongoDB driver',saved:'similar size'},
+  {heavy:'Pillow',light:'wand / imageio',note:'lighter for simple ops',saved:'~8 MB'},
+  {heavy:'PyTorch (full)',light:'ONNX Runtime',note:'inference only, no training',saved:'~750 MB'},
+  {heavy:'matplotlib',light:'plotly / altair',note:'interactive, web-friendly',saved:'similar'},
+  {heavy:'boto3',light:'botocore (direct)',note:'lower-level, no wrappers',saved:'~5 MB'},
+  {heavy:'pandas',light:'polars',note:'10-100× faster, less memory',saved:'~10 MB'},
+];
+
+// Render bars
+const maxSize=Math.max(...PACKAGES.map(p=>p.size));
+const barsEl=document.getElementById('pkg-bars');
+barsEl.innerHTML=PACKAGES.map(p=>`
+  <div style="margin-bottom:4px">
+    <div class="pkg-bar">
+      <div class="pkg-fill" style="width:${(p.size/maxSize)*100}%"></div>
+      <span class="pkg-label"><span class="tag tag-${p.tag}" style="margin-right:6px">${p.tag}</span>${p.name} <span style="color:#555">[${p.cat}]</span></span>
+      <span class="pkg-size">${p.size >= 1 ? p.size+'MB' : (p.size*1000).toFixed(0)+'KB'}</span>
+    </div>
+  </div>`).join('');
+
+// Alternatives
+const altEl=document.getElementById('alternatives');
+altEl.innerHTML=ALTS.map(a=>`
+  <div class="alt-row">
+    <div><span class="alt-name">Instead of ${a.heavy}</span> → <span style="color:#4ade80">${a.light}</span><span class="alt-size">${a.saved}</span></div>
+    <div style="color:#888;font-size:.78rem;margin-top:2px">${a.note}</div>
+  </div>`).join('');
+
+function analyzeReqs(){
+  const txt=document.getElementById('req-txt').value;
+  if(!txt.trim()){document.getElementById('req-results').innerHTML='<p style="color:#888;font-size:.85rem">Nothing to analyze.</p>';return;}
+  const lines=txt.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
+  const pkgNames=lines.map(l=>l.replace(/[>=<!].*/,'').replace(/\[.*\]/,'').toLowerCase().trim());
+  
+  let totalEst=0;
+  const matched=[];
+  const unrecognized=[];
+  
+  pkgNames.forEach((name,i)=>{
+    const found=PACKAGES.find(p=>p.name.toLowerCase().includes(name)||name.includes(p.name.toLowerCase().split(' ')[0]));
+    if(found){matched.push({...found,req:lines[i]});totalEst+=found.size;}
+    else{unrecognized.push(lines[i]);}
+  });
+
+  const r=document.getElementById('req-results');
+  r.innerHTML=`
+    <div class="info-row"><span class="info-label">Packages found</span><span class="info-val">${pkgNames.length}</span></div>
+    <div class="info-row"><span class="info-label">Recognized</span><span class="info-val">${matched.length}</span></div>
+    <div class="info-row"><span class="info-label">Est. install size</span><span class="info-val">${totalEst>=1000?(totalEst/1000).toFixed(1)+' GB':totalEst.toFixed(0)+' MB'}</span></div>
+    ${matched.length?`<div style="margin-top:10px;font-size:.78rem;color:#888">Recognized packages:</div>`+matched.map(p=>`<div class="info-row"><span class="info-label">${p.req}</span><span class="info-val">${p.size>=1?p.size+'MB':(p.size*1000).toFixed(0)+'KB'} <span class="tag tag-${p.tag}">${p.tag}</span></span></div>`).join(''):''}
+    ${unrecognized.length?`<div style="margin-top:8px;font-size:.78rem;color:#888">Unknown (not in local DB):</div><div style="font-family:monospace;font-size:.78rem;color:#555;padding:4px 0">${unrecognized.join(', ')}</div>`:''}`;
+}
+</script>
+</body></html>

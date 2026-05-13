@@ -1,0 +1,282 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Search Algorithm Comparator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#22c55e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#22c55e}
+.run-btn{width:100%;background:#22c55e;color:#000;border:none;border-radius:6px;padding:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px}
+.run-btn:hover{background:#4ade80}
+.algo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.algo-card{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;padding:12px}
+.algo-name{font-size:.85rem;font-weight:600;color:#22c55e;margin-bottom:6px}
+.algo-stat{display:flex;justify-content:space-between;font-size:.78rem;padding:3px 0;border-bottom:1px solid #1a1a1a}
+.algo-stat:last-child{border-bottom:none}
+.algo-stat .lbl{color:#888}
+.algo-stat .val{color:#e0e0e0;font-weight:600}
+.vis-area{width:100%;height:60px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden;position:relative;margin-top:6px}
+.vis-bar{position:absolute;bottom:0;width:0;background:#22c55e33;border-top:2px solid #22c55e;transition:width .3s}
+.complexity-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.complexity-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.complexity-table td{padding:6px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.complexity-table tr:last-child td{border-bottom:none}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.72rem;font-weight:600}
+.tag-good{background:#14532d;color:#4ade80}
+.tag-ok{background:#1c3a1c;color:#86efac}
+.tag-bad{background:#3b1515;color:#f87171}
+.step-list{max-height:200px;overflow-y:auto;font-size:.8rem;line-height:1.7}
+.step-list div{padding:2px 0;border-bottom:1px solid #1a1a1a;color:#aaa}
+.step-list .found{color:#22c55e;font-weight:600}
+.step-list .miss{color:#888}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Search Algorithm Comparator</h1>
+  <p>Linear, Binary, Jump, Interpolation — step counts and complexity</p>
+</div>
+
+<div class="card">
+  <h2>Live Search Demo</h2>
+  <div class="grid2">
+    <div>
+      <label>Array size (n)</label>
+      <input type="number" id="arr-size" value="100" min="2" max="100000" oninput="runSearch()">
+      <label style="margin-top:8px">Target (1 – n)</label>
+      <input type="number" id="target" value="73" min="1" oninput="runSearch()">
+    </div>
+    <div>
+      <label>Distribution</label>
+      <select id="distrib" onchange="runSearch()">
+        <option value="uniform">Uniform 1..n</option>
+        <option value="dense">Dense (random, sorted)</option>
+        <option value="sparse">Sparse (large gaps)</option>
+      </select>
+      <label style="margin-top:8px">Runs for average (k)</label>
+      <input type="number" id="runs" value="1000" min="1" max="10000" oninput="runSearch()">
+    </div>
+  </div>
+  <div class="algo-grid" id="algo-grid"></div>
+</div>
+
+<div class="card">
+  <h2>Step-by-Step Trace</h2>
+  <div class="grid2" style="margin-bottom:10px">
+    <div>
+      <label>Algorithm</label>
+      <select id="trace-algo">
+        <option value="linear">Linear Search</option>
+        <option value="binary" selected>Binary Search</option>
+        <option value="jump">Jump Search</option>
+        <option value="interp">Interpolation Search</option>
+      </select>
+    </div>
+    <div>
+      <label>Small array (space-separated)</label>
+      <input type="text" id="trace-arr" value="2 5 8 12 16 23 38 56 72 91">
+    </div>
+  </div>
+  <div><label>Target value</label><input type="number" id="trace-target" value="23" oninput="traceSearch()"></div>
+  <div class="step-list" id="step-output" style="margin-top:10px"></div>
+</div>
+
+<div class="card">
+  <h2>Algorithm Complexity Reference</h2>
+  <table class="complexity-table">
+    <thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Requires</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Linear Search</td>
+        <td><span class="tag tag-good">O(1)</span></td>
+        <td><span class="tag tag-ok">O(n/2)</span></td>
+        <td><span class="tag tag-bad">O(n)</span></td>
+        <td>O(1)</td>
+        <td>Nothing</td>
+      </tr>
+      <tr>
+        <td>Binary Search</td>
+        <td><span class="tag tag-good">O(1)</span></td>
+        <td><span class="tag tag-good">O(log n)</span></td>
+        <td><span class="tag tag-good">O(log n)</span></td>
+        <td>O(1)</td>
+        <td>Sorted array</td>
+      </tr>
+      <tr>
+        <td>Jump Search</td>
+        <td><span class="tag tag-good">O(1)</span></td>
+        <td><span class="tag tag-ok">O(√n)</span></td>
+        <td><span class="tag tag-ok">O(√n)</span></td>
+        <td>O(1)</td>
+        <td>Sorted array</td>
+      </tr>
+      <tr>
+        <td>Interpolation</td>
+        <td><span class="tag tag-good">O(1)</span></td>
+        <td><span class="tag tag-good">O(log log n)</span></td>
+        <td><span class="tag tag-bad">O(n)</span></td>
+        <td>O(1)</td>
+        <td>Sorted, uniform</td>
+      </tr>
+      <tr>
+        <td>Hash Lookup</td>
+        <td><span class="tag tag-good">O(1)</span></td>
+        <td><span class="tag tag-good">O(1)</span></td>
+        <td><span class="tag tag-bad">O(n)</span></td>
+        <td>O(n)</td>
+        <td>Hash table built</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function buildArray(n, distrib) {
+  const arr = [];
+  if(distrib==='uniform') { for(let i=1;i<=n;i++) arr.push(i); return arr; }
+  if(distrib==='dense') {
+    let v=0;
+    for(let i=0;i<n;i++){v+=Math.floor(Math.random()*3)+1;arr.push(v);}
+    return arr;
+  }
+  // sparse
+  let v=0;
+  for(let i=0;i<n;i++){v+=Math.floor(Math.random()*20)+1;arr.push(v);}
+  return arr;
+}
+
+function linearSearch(arr, target) {
+  let steps=0;
+  for(let i=0;i<arr.length;i++){steps++;if(arr[i]===target)return{steps,found:true,idx:i};}
+  return{steps,found:false,idx:-1};
+}
+function binarySearch(arr, target) {
+  let lo=0,hi=arr.length-1,steps=0;
+  while(lo<=hi){steps++;const mid=(lo+hi)>>1;if(arr[mid]===target)return{steps,found:true,idx:mid};else if(arr[mid]<target)lo=mid+1;else hi=mid-1;}
+  return{steps,found:false,idx:-1};
+}
+function jumpSearch(arr, target) {
+  const n=arr.length, step=Math.floor(Math.sqrt(n));
+  let prev=0,steps=0;
+  while(arr[Math.min(step,n)-1]<target){steps++;prev=step;step+=Math.floor(Math.sqrt(n));if(prev>=n)return{steps,found:false,idx:-1};}
+  while(arr[prev]<target){steps++;prev++;if(prev===Math.min(step,n))return{steps,found:false,idx:-1};}
+  steps++;
+  if(arr[prev]===target)return{steps,found:true,idx:prev};
+  return{steps,found:false,idx:-1};
+}
+function interpSearch(arr, target) {
+  let lo=0,hi=arr.length-1,steps=0;
+  while(lo<=hi&&target>=arr[lo]&&target<=arr[hi]){
+    steps++;
+    if(lo===hi){if(arr[lo]===target)return{steps,found:true,idx:lo};return{steps,found:false,idx:-1};}
+    const pos=lo+Math.floor(((hi-lo)/(arr[hi]-arr[lo]))*(target-arr[lo]));
+    if(arr[pos]===target)return{steps,found:true,idx:pos};
+    if(arr[pos]<target)lo=pos+1;else hi=pos-1;
+  }
+  return{steps,found:false,idx:-1};
+}
+
+function runSearch() {
+  const n=Math.min(parseInt(document.getElementById('arr-size').value)||100, 100000);
+  const rawTarget=parseInt(document.getElementById('target').value)||1;
+  const distrib=document.getElementById('distrib').value;
+  const runs=Math.min(parseInt(document.getElementById('runs').value)||100, 10000);
+
+  const arr = buildArray(n, distrib);
+  const maxVal = arr[arr.length-1];
+  const targetMapped = distrib==='uniform' ? Math.min(rawTarget,n) : Math.round((rawTarget/n)*maxVal);
+  const target = distrib==='uniform' ? targetMapped : (arr.includes(rawTarget) ? rawTarget : targetMapped);
+
+  const algos = [
+    {name:'Linear Search', fn:linearSearch, color:'#06b6d4'},
+    {name:'Binary Search', fn:binarySearch, color:'#22c55e'},
+    {name:'Jump Search', fn:jumpSearch, color:'#f97316'},
+    {name:'Interpolation', fn:interpSearch, color:'#a855f7'},
+  ];
+
+  // Average over runs with random targets
+  const results = algos.map(a=>{
+    let totalSteps=0;
+    const single = a.fn(arr, target);
+    for(let r=0;r<runs;r++){
+      const t=arr[Math.floor(Math.random()*n)];
+      totalSteps += a.fn(arr,t).steps;
+    }
+    return{name:a.name, color:a.color, single, avgSteps:totalSteps/runs};
+  });
+
+  const maxSteps = Math.max(...results.map(r=>r.single.steps));
+  const container = document.getElementById('algo-grid');
+  container.innerHTML = results.map(r=>`
+    <div class="algo-card" style="border-color:${r.color}33">
+      <div class="algo-name" style="color:${r.color}">${r.name}</div>
+      <div class="vis-area"><div class="vis-bar" style="width:${(r.single.steps/Math.max(maxSteps,1))*100}%;background:${r.color}22;border-top-color:${r.color}"></div></div>
+      <div class="algo-stat"><span class="lbl">Steps (target=${target})</span><span class="val" style="color:${r.color}">${r.single.steps}</span></div>
+      <div class="algo-stat"><span class="lbl">Found</span><span class="val">${r.single.found?'✓ idx '+r.single.idx:'✗ not found'}</span></div>
+      <div class="algo-stat"><span class="lbl">Avg steps (${runs} rand)</span><span class="val">${r.avgSteps.toFixed(1)}</span></div>
+    </div>`).join('');
+
+  traceSearch();
+}
+
+function traceSearch() {
+  const algo = document.getElementById('trace-algo').value;
+  const rawArr = document.getElementById('trace-arr').value.trim().split(/\s+/).map(Number).filter(x=>!isNaN(x));
+  const arr = [...rawArr].sort((a,b)=>a-b);
+  const target = parseInt(document.getElementById('trace-target').value)||0;
+  const out = document.getElementById('step-output');
+
+  const steps = [];
+  let found=false, foundIdx=-1;
+
+  if(algo==='linear'){
+    for(let i=0;i<arr.length;i++){
+      const hit=arr[i]===target;
+      steps.push({msg:`Step ${i+1}: Check arr[${i}]=${arr[i]}`,hit});
+      if(hit){found=true;foundIdx=i;break;}
+    }
+  } else if(algo==='binary'){
+    let lo=0,hi=arr.length-1,step=0;
+    while(lo<=hi){
+      step++;
+      const mid=(lo+hi)>>1;
+      const hit=arr[mid]===target;
+      steps.push({msg:`Step ${step}: lo=${lo}, hi=${hi}, mid=${mid}, arr[mid]=${arr[mid]}`,hit});
+      if(hit){found=true;foundIdx=mid;break;}
+      else if(arr[mid]<target)lo=mid+1;else hi=mid-1;
+    }
+  } else if(algo==='jump'){
+    const step2=Math.floor(Math.sqrt(arr.length));
+    let prev=0,s=step2,step=0;
+    while(s<arr.length&&arr[s-1]<target){step++;steps.push({msg:`Jump step ${step}: arr[${s-1}]=${arr[s-1]} < ${target}`,hit:false});prev=s;s+=step2;}
+    let i=prev;
+    while(i<Math.min(s,arr.length)){step++;const hit=arr[i]===target;steps.push({msg:`Linear step ${step}: arr[${i}]=${arr[i]}`,hit});if(hit){found=true;foundIdx=i;break;}i++;}
+  } else {
+    let lo=0,hi=arr.length-1,step=0;
+    while(lo<=hi&&target>=arr[lo]&&target<=arr[hi]){
+      step++;
+      if(lo===hi){const hit=arr[lo]===target;steps.push({msg:`Step ${step}: lo=hi=${lo}, arr[lo]=${arr[lo]}`,hit});if(hit){found=true;foundIdx=lo;}break;}
+      const pos=lo+Math.floor(((hi-lo)/(arr[hi]-arr[lo]))*(target-arr[lo]));
+      const hit=arr[pos]===target;
+      steps.push({msg:`Step ${step}: pos=${pos}, arr[pos]=${arr[pos]}`,hit});
+      if(hit){found=true;foundIdx=pos;break;}
+      if(arr[pos]<target)lo=pos+1;else hi=pos-1;
+    }
+  }
+
+  out.innerHTML = steps.map(s=>`<div class="${s.hit?'found':'miss'}">${s.msg}${s.hit?' ← FOUND':''}</div>`).join('')
+    + (found ? `<div class="found">✓ Found ${target} at index ${foundIdx} in ${steps.length} steps</div>` : `<div class="miss">✗ ${target} not in array after ${steps.length} steps</div>`);
+}
+
+document.getElementById('trace-algo').addEventListener('change', traceSearch);
+document.getElementById('trace-arr').addEventListener('input', traceSearch);
+runSearch();
+</script>
+</body></html>

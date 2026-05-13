@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Migration Rate Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#ec4899;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus{outline:none;border-color:#ec4899}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #2a0a1a;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.3rem;font-weight:700;color:#ec4899}
+.res-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.72rem;font-weight:600}
+.tag-in{background:#14532d;color:#4ade80}
+.tag-out{background:#3b1515;color:#f87171}
+.tag-net-pos{background:#14532d;color:#4ade80}
+.tag-net-neg{background:#3b1515;color:#f87171}
+.bar-wrap{background:#0d0d0d;border-radius:4px;height:10px;margin-top:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.section-label{font-size:.78rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Migration Rate Calculator</h1>
+  <p>In-migration, out-migration, net migration rate and demographic impact</p>
+</div>
+
+<div class="card">
+  <h2>Basic Migration Rates</h2>
+  <div class="grid3">
+    <div><label>Mid-year population</label><input type="number" id="pop" value="500000" min="1" oninput="calc()"></div>
+    <div><label>In-migrants</label><input type="number" id="inmig" value="8500" min="0" oninput="calc()"></div>
+    <div><label>Out-migrants</label><input type="number" id="outmig" value="5200" min="0" oninput="calc()"></div>
+  </div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="in-rate">—</div><div class="res-lbl">In-migration rate (per 1,000)</div></div>
+    <div class="res-card"><div class="res-num" id="out-rate">—</div><div class="res-lbl">Out-migration rate (per 1,000)</div></div>
+    <div class="res-card"><div class="res-num" id="net-mig">—</div><div class="res-lbl">Net migrants</div></div>
+    <div class="res-card"><div class="res-num" id="net-rate">—</div><div class="res-lbl">Net migration rate (per 1,000)</div></div>
+  </div>
+
+  <div style="margin-top:14px">
+    <div class="info-row"><span class="info-label">Gross migration (total moves)</span><span class="info-val" id="gross">—</span></div>
+    <div class="info-row"><span class="info-label">Gross migration rate</span><span class="info-val" id="gross-rate">—</span></div>
+    <div class="info-row"><span class="info-label">Migration efficiency (%)</span><span class="info-val" id="eff">—</span></div>
+    <div class="info-row"><span class="info-label">Direction</span><span class="info-val" id="direction">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Population Impact</h2>
+  <div class="grid2">
+    <div><label>Natural increase (births − deaths)</label><input type="number" id="nat-inc" value="3200" oninput="calcImpact()"></div>
+    <div><label>Projection horizon (years)</label><input type="number" id="proj-yrs" value="10" min="1" max="50" oninput="calcImpact()"></div>
+  </div>
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">Total annual growth</span><span class="info-val" id="total-growth">—</span></div>
+    <div class="info-row"><span class="info-label">Growth rate (total, %)</span><span class="info-val" id="total-rate">—</span></div>
+    <div class="info-row"><span class="info-label">Migration share of growth</span><span class="info-val" id="mig-share">—</span></div>
+    <div class="info-row"><span class="info-label">Natural share of growth</span><span class="info-val" id="nat-share">—</span></div>
+  </div>
+  <div class="section-label">Projected population in <span id="proj-label">10</span> years</div>
+  <div class="info-row"><span class="info-label">With current trends</span><span class="info-val" id="proj-pop">—</span></div>
+  <div class="info-row"><span class="info-label">Without migration</span><span class="info-val" id="proj-no-mig">—</span></div>
+  <div class="info-row"><span class="info-label">Migration contribution</span><span class="info-val" id="mig-contrib">—</span></div>
+</div>
+
+<div class="card">
+  <h2>Push-Pull Factor Scorer</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:12px">Rate each factor 1–5 to estimate net migration pressure.</p>
+
+  <div class="section-label">Push Factors (drivers to leave)</div>
+  <div id="push-factors">
+    <div class="info-row" style="align-items:center">
+      <span class="info-label">Unemployment / poverty</span>
+      <input type="range" min="1" max="5" value="3" id="pf1" style="width:100px" oninput="calcPushPull()">
+      <span class="info-val" id="pf1v">3</span>
+    </div>
+    <div class="info-row" style="align-items:center">
+      <span class="info-label">Political instability</span>
+      <input type="range" min="1" max="5" value="2" id="pf2" style="width:100px" oninput="calcPushPull()">
+      <span class="info-val" id="pf2v">2</span>
+    </div>
+    <div class="info-row" style="align-items:center">
+      <span class="info-label">Environmental stress</span>
+      <input type="range" min="1" max="5" value="2" id="pf3" style="width:100px" oninput="calcPushPull()">
+      <span class="info-val" id="pf3v">2</span>
+    </div>
+  </div>
+
+  <div class="section-label">Pull Factors (drivers to attract)</div>
+  <div id="pull-factors">
+    <div class="info-row" style="align-items:center">
+      <span class="info-label">Economic opportunity</span>
+      <input type="range" min="1" max="5" value="4" id="pl1" style="width:100px" oninput="calcPushPull()">
+      <span class="info-val" id="pl1v">4</span>
+    </div>
+    <div class="info-row" style="align-items:center">
+      <span class="info-label">Social services / safety</span>
+      <input type="range" min="1" max="5" value="3" id="pl2" style="width:100px" oninput="calcPushPull()">
+      <span class="info-val" id="pl2v">3</span>
+    </div>
+    <div class="info-row" style="align-items:center">
+      <span class="info-label">Family / community ties</span>
+      <input type="range" min="1" max="5" value="3" id="pl3" style="width:100px" oninput="calcPushPull()">
+      <span class="info-val" id="pl3v">3</span>
+    </div>
+  </div>
+
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">Push score</span><span class="info-val" id="push-score">—</span></div>
+    <div class="info-row"><span class="info-label">Pull score</span><span class="info-val" id="pull-score">—</span></div>
+    <div class="info-row"><span class="info-label">Net pressure</span><span class="info-val" id="net-pressure">—</span></div>
+  </div>
+</div>
+
+<script>
+function fmt(n){
+  const abs=Math.abs(n);
+  let s;
+  if(abs>=1e6)s=(n/1e6).toFixed(2)+'M';
+  else if(abs>=1e3)s=(n/1e3).toFixed(1)+'K';
+  else s=Math.round(n).toString();
+  return s;
+}
+
+function calc(){
+  const pop=parseFloat(document.getElementById('pop').value)||1;
+  const inm=parseFloat(document.getElementById('inmig').value)||0;
+  const out=parseFloat(document.getElementById('outmig').value)||0;
+  const net=inm-out;
+  const inRate=(inm/pop)*1000;
+  const outRate=(out/pop)*1000;
+  const netRate=(net/pop)*1000;
+  const gross=inm+out;
+  const grossRate=(gross/pop)*1000;
+  const eff=gross>0?(Math.abs(net)/gross)*100:0;
+
+  document.getElementById('in-rate').textContent=inRate.toFixed(2);
+  document.getElementById('out-rate').textContent=outRate.toFixed(2);
+  document.getElementById('net-mig').textContent=(net>=0?'+':'')+fmt(net);
+  document.getElementById('net-rate').textContent=(netRate>=0?'+':'')+netRate.toFixed(2);
+  document.getElementById('gross').textContent=fmt(gross);
+  document.getElementById('gross-rate').textContent=grossRate.toFixed(2)+' per 1,000';
+  document.getElementById('eff').textContent=eff.toFixed(1)+'%';
+  document.getElementById('direction').textContent=net>0?'Net immigration (growth)':net<0?'Net emigration (loss)':'Balanced';
+  calcImpact();
+}
+
+function calcImpact(){
+  const pop=parseFloat(document.getElementById('pop').value)||1;
+  const inm=parseFloat(document.getElementById('inmig').value)||0;
+  const out=parseFloat(document.getElementById('outmig').value)||0;
+  const net=inm-out;
+  const natInc=parseFloat(document.getElementById('nat-inc').value)||0;
+  const yrs=parseInt(document.getElementById('proj-yrs').value)||10;
+
+  const totalGrowth=net+natInc;
+  const totalRate=(totalGrowth/pop)*100;
+  const migShare=totalGrowth!==0?(net/totalGrowth)*100:0;
+  const natShare=totalGrowth!==0?(natInc/totalGrowth)*100:0;
+
+  document.getElementById('total-growth').textContent=(totalGrowth>=0?'+':'')+fmt(totalGrowth)+' / yr';
+  document.getElementById('total-rate').textContent=(totalRate>=0?'+':'')+totalRate.toFixed(2)+'%';
+  document.getElementById('mig-share').textContent=migShare.toFixed(1)+'%';
+  document.getElementById('nat-share').textContent=natShare.toFixed(1)+'%';
+  document.getElementById('proj-label').textContent=yrs;
+
+  const rAnnual=totalGrowth/pop;
+  const rNat=natInc/pop;
+  const projWith=pop*Math.pow(1+rAnnual,yrs);
+  const projNo=pop*Math.pow(1+rNat,yrs);
+  document.getElementById('proj-pop').textContent=fmt(projWith);
+  document.getElementById('proj-no-mig').textContent=fmt(projNo);
+  document.getElementById('mig-contrib').textContent=(projWith>=0?'+':'')+fmt(projWith-projNo);
+}
+
+function calcPushPull(){
+  ['pf1','pf2','pf3','pl1','pl2','pl3'].forEach(id=>{
+    document.getElementById(id+'v').textContent=document.getElementById(id).value;
+  });
+  const push=['pf1','pf2','pf3'].reduce((s,id)=>s+parseInt(document.getElementById(id).value),0);
+  const pull=['pl1','pl2','pl3'].reduce((s,id)=>s+parseInt(document.getElementById(id).value),0);
+  const net=pull-push;
+  document.getElementById('push-score').textContent=push+' / 15';
+  document.getElementById('pull-score').textContent=pull+' / 15';
+  document.getElementById('net-pressure').textContent=(net>=0?'Pull +':'Push ')+Math.abs(net)+' — '+(net>3?'Strong attraction':net>0?'Moderate attraction':net===0?'Neutral':net>-3?'Moderate pressure to leave':'Strong pressure to leave');
+}
+
+calc();
+calcPushPull();
+</script>
+</body></html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Subnet Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#06b6d4}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem;flex-wrap:wrap;gap:4px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600;font-family:'Courier New',monospace;font-size:.82rem}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #0a2a2a;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.2rem;font-weight:700;color:#06b6d4;font-family:'Courier New',monospace}
+.res-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.subnet-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.subnet-table th{background:#1a1a1a;color:#888;padding:5px 8px;text-align:left;font-weight:500}
+.subnet-table td{padding:5px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0;font-family:'Courier New',monospace}
+.subnet-table tr:last-child td{border-bottom:none}
+.cidr-row{display:flex;gap:6px;align-items:end}
+.cidr-row input{flex:1}
+.cidr-row .slash{color:#888;padding:8px 4px;font-size:1.1rem}
+.bits-row{display:flex;flex-wrap:wrap;gap:2px;margin:8px 0}
+.bit{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;font-size:.7rem;font-family:'Courier New',monospace}
+.bit-net{background:#0a2a2a;color:#06b6d4;border:1px solid #0e4040}
+.bit-host{background:#1a0a00;color:#f97316;border:1px solid #3b1a00}
+.bit-sep{width:6px}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Subnet Calculator</h1>
+  <p>CIDR notation, network range, broadcast, hosts, and subnet split</p>
+</div>
+
+<div class="card">
+  <h2>IPv4 Subnet Calculator</h2>
+  <div style="margin-bottom:12px">
+    <label>IP Address / CIDR</label>
+    <div class="cidr-row">
+      <input type="text" id="ip-input" value="192.168.1.0" placeholder="192.168.1.0" oninput="calcSubnet()">
+      <span class="slash">/</span>
+      <input type="number" id="cidr-prefix" value="24" min="0" max="32" style="width:70px" oninput="calcSubnet()">
+    </div>
+  </div>
+
+  <div id="bits-visual" class="bits-row"></div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="net-addr">—</div><div class="res-lbl">Network Address</div></div>
+    <div class="res-card"><div class="res-num" id="broadcast">—</div><div class="res-lbl">Broadcast</div></div>
+    <div class="res-card"><div class="res-num" id="host-range">—</div><div class="res-lbl">First usable host</div></div>
+    <div class="res-card"><div class="res-num" id="last-host">—</div><div class="res-lbl">Last usable host</div></div>
+  </div>
+
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">Subnet mask</span><span class="info-val" id="mask">—</span></div>
+    <div class="info-row"><span class="info-label">Wildcard mask</span><span class="info-val" id="wildcard">—</span></div>
+    <div class="info-row"><span class="info-label">Usable hosts</span><span class="info-val" id="host-count">—</span></div>
+    <div class="info-row"><span class="info-label">IP class</span><span class="info-val" id="ip-class">—</span></div>
+    <div class="info-row"><span class="info-label">IP type</span><span class="info-val" id="ip-type">—</span></div>
+    <div class="info-row"><span class="info-label">Binary notation</span><span class="info-val" id="ip-binary">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Subnet Split</h2>
+  <div class="grid2">
+    <div><label>Number of subnets</label>
+      <select id="split-n" onchange="calcSplit()">
+        <option value="2">2</option><option value="4" selected>4</option>
+        <option value="8">8</option><option value="16">16</option><option value="32">32</option>
+      </select>
+    </div>
+    <div><label>New prefix length</label><input type="number" id="split-prefix" value="26" min="1" max="30" oninput="calcSplit()"></div>
+  </div>
+  <div style="overflow-x:auto;margin-top:10px">
+    <table class="subnet-table">
+      <thead><tr><th>#</th><th>Network</th><th>First Host</th><th>Last Host</th><th>Broadcast</th><th>Hosts</th></tr></thead>
+      <tbody id="split-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Common CIDR Reference</h2>
+  <div style="overflow-x:auto">
+    <table class="subnet-table">
+      <thead><tr><th>CIDR</th><th>Mask</th><th>Hosts</th><th>Use case</th></tr></thead>
+      <tbody>
+        <tr><td>/8</td><td>255.0.0.0</td><td>16,777,214</td><td>Large ISP block (class A)</td></tr>
+        <tr><td>/16</td><td>255.255.0.0</td><td>65,534</td><td>Large enterprise / campus</td></tr>
+        <tr><td>/24</td><td>255.255.255.0</td><td>254</td><td>Typical office LAN</td></tr>
+        <tr><td>/25</td><td>255.255.255.128</td><td>126</td><td>Half a /24</td></tr>
+        <tr><td>/26</td><td>255.255.255.192</td><td>62</td><td>Small department</td></tr>
+        <tr><td>/27</td><td>255.255.255.224</td><td>30</td><td>Small VLAN</td></tr>
+        <tr><td>/28</td><td>255.255.255.240</td><td>14</td><td>Tiny segment / DMZ</td></tr>
+        <tr><td>/30</td><td>255.255.255.252</td><td>2</td><td>Point-to-point link</td></tr>
+        <tr><td>/32</td><td>255.255.255.255</td><td>1</td><td>Host route / loopback</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function parseIP(str){
+  const parts=str.trim().split('.').map(Number);
+  if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)) return null;
+  return (parts[0]<<24)|(parts[1]<<16)|(parts[2]<<8)|parts[3];
+}
+function toIP(n){
+  return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
+}
+function toBin(n){
+  return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].map(b=>b.toString(2).padStart(8,'0')).join('.');
+}
+
+function calcSubnet(){
+  const ipStr=document.getElementById('ip-input').value;
+  const prefix=parseInt(document.getElementById('cidr-prefix').value)||24;
+  const ip=parseIP(ipStr);
+  if(ip===null||prefix<0||prefix>32) return;
+
+  const maskInt=prefix===0?0:(0xFFFFFFFF<<(32-prefix))>>>0;
+  const wildcard=(~maskInt)>>>0;
+  const netAddr=(ip&maskInt)>>>0;
+  const broadcast=(netAddr|wildcard)>>>0;
+  const first=prefix<31?(netAddr+1)>>>0:netAddr;
+  const last=prefix<31?(broadcast-1)>>>0:broadcast;
+  const hosts=prefix>=31?Math.pow(2,32-prefix):Math.max(0,Math.pow(2,32-prefix)-2);
+
+  document.getElementById('net-addr').textContent=toIP(netAddr);
+  document.getElementById('broadcast').textContent=toIP(broadcast);
+  document.getElementById('host-range').textContent=toIP(first);
+  document.getElementById('last-host').textContent=toIP(last);
+  document.getElementById('mask').textContent=toIP(maskInt);
+  document.getElementById('wildcard').textContent=toIP(wildcard);
+  document.getElementById('host-count').textContent=hosts.toLocaleString();
+  document.getElementById('ip-binary').textContent=toBin(ip);
+
+  const firstOctet=(ip>>>24)&255;
+  const cls=firstOctet<128?'A':firstOctet<192?'B':firstOctet<224?'C':firstOctet<240?'D (multicast)':'E (reserved)';
+  document.getElementById('ip-class').textContent=cls;
+  const isPriv=(firstOctet===10)||(firstOctet===172&&((ip>>>16)&255)>=16&&((ip>>>16)&255)<=31)||(firstOctet===192&&((ip>>>16)&255)===168);
+  const isLoopback=firstOctet===127;
+  const isLink=(firstOctet===169&&((ip>>>16)&255)===254);
+  document.getElementById('ip-type').textContent=isLoopback?'Loopback':isLink?'Link-local':isPriv?'Private (RFC1918)':'Public';
+
+  // Bit visual
+  const bitsEl=document.getElementById('bits-visual');
+  const allBits=toBin(ip).replace(/\./g,'');
+  let html='';
+  for(let i=0;i<32;i++){
+    if(i>0&&i%8===0) html+='<span class="bit-sep"></span>';
+    const isNet=i<prefix;
+    html+=`<span class="bit ${isNet?'bit-net':'bit-host'}">${allBits[i]}</span>`;
+  }
+  bitsEl.innerHTML=html;
+
+  document.getElementById('split-prefix').value=Math.min(prefix+2,30);
+  calcSplit();
+}
+
+function calcSplit(){
+  const ipStr=document.getElementById('ip-input').value;
+  const origPrefix=parseInt(document.getElementById('cidr-prefix').value)||24;
+  const newPrefix=parseInt(document.getElementById('split-prefix').value)||26;
+  const ip=parseIP(ipStr);
+  if(!ip&&ip!==0) return;
+  if(newPrefix<=origPrefix) return;
+
+  const origMask=origPrefix===0?0:(0xFFFFFFFF<<(32-origPrefix))>>>0;
+  const netBase=(ip&origMask)>>>0;
+  const subnetSize=Math.pow(2,32-newPrefix);
+  const count=Math.min(parseInt(document.getElementById('split-n').value)||4,64);
+  const tbody=document.getElementById('split-body');
+  let rows='';
+  for(let i=0;i<count;i++){
+    const sNet=(netBase+i*subnetSize)>>>0;
+    const sBroad=(sNet+subnetSize-1)>>>0;
+    const sFirst=(sNet+1)>>>0;
+    const sLast=(sBroad-1)>>>0;
+    const h=Math.max(0,subnetSize-2);
+    rows+=`<tr><td>${i+1}</td><td>${toIP(sNet)}/${newPrefix}</td><td>${toIP(sFirst)}</td><td>${toIP(sLast)}</td><td>${toIP(sBroad)}</td><td>${h}</td></tr>`;
+  }
+  tbody.innerHTML=rows;
+}
+
+calcSubnet();
+</script>
+</body></html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Price Elasticity — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#eab308;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus{outline:none;border-color:#eab308}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #2a2200;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.4rem;font-weight:700;color:#eab308}
+.res-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:600}
+.tag-elastic{background:#14532d;color:#4ade80}
+.tag-inelastic{background:#3b1515;color:#f87171}
+.tag-unit{background:#1e3a1e;color:#86efac}
+.chart-area{width:100%;height:160px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;margin-top:12px}
+.tab-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;cursor:pointer;font-size:.82rem}
+.tab.active{background:#eab308;color:#000;border-color:#eab308;font-weight:700}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Price Elasticity of Demand</h1>
+  <p>PED, PES, cross-price, and revenue impact calculator</p>
+</div>
+
+<div class="card">
+  <h2>Price Elasticity of Demand (PED)</h2>
+  <div class="tab-row">
+    <button class="tab active" onclick="setPedMode('point',this)">Point Elasticity</button>
+    <button class="tab" onclick="setPedMode('arc',this)">Arc Elasticity</button>
+  </div>
+
+  <div id="ped-point">
+    <div class="grid2">
+      <div><label>Initial Price (P₁)</label><input type="number" id="p1" value="100" step="any" oninput="calcPED()"></div>
+      <div><label>New Price (P₂)</label><input type="number" id="p2" value="110" step="any" oninput="calcPED()"></div>
+      <div><label>Initial Quantity (Q₁)</label><input type="number" id="q1" value="1000" step="any" oninput="calcPED()"></div>
+      <div><label>New Quantity (Q₂)</label><input type="number" id="q2" value="900" step="any" oninput="calcPED()"></div>
+    </div>
+  </div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="ped-val">—</div><div class="res-lbl">PED</div></div>
+    <div class="res-card"><div class="res-num" id="ped-type">—</div><div class="res-lbl">Elasticity type</div></div>
+    <div class="res-card"><div class="res-num" id="rev-change">—</div><div class="res-lbl">Revenue change</div></div>
+    <div class="res-card"><div class="res-num" id="rev-advice">—</div><div class="res-lbl">Pricing advice</div></div>
+  </div>
+
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">% Change in Quantity</span><span class="info-val" id="pct-q">—</span></div>
+    <div class="info-row"><span class="info-label">% Change in Price</span><span class="info-val" id="pct-p">—</span></div>
+    <div class="info-row"><span class="info-label">Revenue before</span><span class="info-val" id="rev-before">—</span></div>
+    <div class="info-row"><span class="info-label">Revenue after</span><span class="info-val" id="rev-after">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Cross-Price Elasticity (XED)</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:10px">XED = (%ΔQₐ) / (%ΔPᵦ). Positive = substitutes, negative = complements.</p>
+  <div class="grid2">
+    <div><label>% change in price of B</label><input type="number" id="xed-dpb" value="10" step="any" oninput="calcXED()"></div>
+    <div><label>% change in quantity of A</label><input type="number" id="xed-dqa" value="5" step="any" oninput="calcXED()"></div>
+  </div>
+  <div style="margin-top:10px">
+    <div class="info-row"><span class="info-label">XED value</span><span class="info-val" id="xed-val">—</span></div>
+    <div class="info-row"><span class="info-label">Relationship</span><span class="info-val" id="xed-type">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Elasticity Classification Reference</h2>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+      <thead><tr style="background:#1a1a1a">
+        <th style="padding:6px 8px;color:#888;text-align:left">|PED| range</th>
+        <th style="padding:6px 8px;color:#888;text-align:left">Type</th>
+        <th style="padding:6px 8px;color:#888;text-align:left">Example goods</th>
+        <th style="padding:6px 8px;color:#888;text-align:left">Revenue rule</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">0</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Perfectly inelastic</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Insulin, essential medicine</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Rev ↑ with price</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">0 – 1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Inelastic</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Gasoline, cigarettes, utilities</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Rev ↑ with price</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Unit elastic</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">—</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Rev unchanged</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">> 1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Elastic</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Luxury goods, airline tickets</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Rev ↓ with price</td></tr>
+        <tr><td style="padding:6px 8px">∞</td><td style="padding:6px 8px">Perfectly elastic</td><td style="padding:6px 8px">Perfect commodity market</td><td style="padding:6px 8px">Any price ↑ → zero demand</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let pedMode = 'point';
+function setPedMode(m,el){
+  pedMode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  calcPED();
+}
+
+function calcPED(){
+  const p1=parseFloat(document.getElementById('p1').value)||0;
+  const p2=parseFloat(document.getElementById('p2').value)||0;
+  const q1=parseFloat(document.getElementById('q1').value)||0;
+  const q2=parseFloat(document.getElementById('q2').value)||0;
+  if(!p1||!p2||!q1||!q2) return;
+
+  const dQ=q2-q1, dP=p2-p1;
+  let pctQ, pctP;
+  if(pedMode==='arc'){
+    pctQ=(dQ/((q1+q2)/2))*100;
+    pctP=(dP/((p1+p2)/2))*100;
+  } else {
+    pctQ=(dQ/q1)*100;
+    pctP=(dP/p1)*100;
+  }
+  const ped = pctP!==0 ? pctQ/pctP : Infinity;
+  const absPed = Math.abs(ped);
+
+  let type, tag;
+  if(absPed===0) { type='Perfectly inelastic'; tag='inelastic'; }
+  else if(absPed<1) { type='Inelastic'; tag='inelastic'; }
+  else if(Math.abs(absPed-1)<0.0001) { type='Unit elastic'; tag='unit'; }
+  else if(absPed<Infinity) { type='Elastic'; tag='elastic'; }
+  else { type='Perfectly elastic'; tag='elastic'; }
+
+  const revBefore = p1*q1, revAfter = p2*q2;
+  const revDiff = revAfter-revBefore;
+  const revPct = (revDiff/revBefore)*100;
+  const advice = absPed>1 ? (dP>0?'Lower price to gain revenue':'Good — lower price gaining revenue') : absPed<1 ? (dP>0?'Good — raising price gains revenue':'Raising price would gain revenue') : 'Revenue unchanged by price';
+
+  document.getElementById('ped-val').textContent = isFinite(ped)?ped.toFixed(3):'∞';
+  document.getElementById('ped-type').textContent = type;
+  document.getElementById('rev-change').textContent = (revDiff>=0?'+':'')+revPct.toFixed(1)+'%';
+  document.getElementById('rev-advice').textContent = dP>0 ? (revDiff>0?'↑ raise price':'↓ raised price hurts') : (revDiff>0?'↑ cut price works':'↓ cutting hurts');
+  document.getElementById('pct-q').textContent = pctQ.toFixed(2)+'%';
+  document.getElementById('pct-p').textContent = pctP.toFixed(2)+'%';
+  document.getElementById('rev-before').textContent = revBefore.toLocaleString();
+  document.getElementById('rev-after').textContent = revAfter.toLocaleString();
+}
+
+function calcXED(){
+  const dpb=parseFloat(document.getElementById('xed-dpb').value)||0;
+  const dqa=parseFloat(document.getElementById('xed-dqa').value)||0;
+  if(!dpb) return;
+  const xed=dqa/dpb;
+  document.getElementById('xed-val').textContent=xed.toFixed(3);
+  document.getElementById('xed-type').textContent=xed>0.1?'Substitutes (competing goods)':xed<-0.1?'Complements (paired goods)':'Independent goods';
+}
+
+calcPED();
+calcXED();
+</script>
+</body></html>

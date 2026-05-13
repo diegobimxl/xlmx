@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calendar Converter</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f59e0b;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cal-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:4px}
+.cal-card{background:#1a1a1a;border-radius:8px;padding:14px}
+.cal-card .cal-name{font-size:.78rem;color:#888;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.cal-card .cal-val{font-size:1rem;color:#f59e0b;font-weight:700}
+.cal-card .cal-sub{font-size:.78rem;color:#555;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.epoch{font-family:monospace;font-size:.88rem;color:#22c55e}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:10px}
+</style>
+</head>
+<body>
+<h1>Calendar Converter</h1>
+<p class="sub">Convert dates between Gregorian, Julian, Hebrew, Islamic, and Julian Day Number</p>
+
+<div class="card">
+  <h2>Input Date (Gregorian)</h2>
+  <label>Date</label>
+  <input type="date" id="gdate" oninput="calc()">
+  <label>Era</label>
+  <select id="era" onchange="calc()">
+    <option value="ce">CE / AD</option>
+    <option value="bce">BCE / BC</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>Conversions</h2>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<div class="card">
+  <h2>Day of Week & Other Facts</h2>
+  <div id="dayFacts"></div>
+</div>
+
+<script>
+const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_HE=['Tishri','Heshvan','Kislev','Tevet','Shevat','Adar','Nisan','Iyar','Sivan','Tammuz','Av','Elul'];
+const MONTHS_IS=['Muharram','Safar','Rabi al-Awwal','Rabi al-Thani','Jumada al-Awwal','Jumada al-Thani','Rajab','Shaban','Ramadan','Shawwal','Dhu al-Qadah','Dhu al-Hijjah'];
+
+// Julian Day Number from Gregorian
+function gregorianToJDN(y,m,d){
+  return Math.floor((1461*(y+4800+Math.floor((m-14)/12)))/4)
+    +Math.floor((367*(m-2-12*Math.floor((m-14)/12)))/12)
+    -Math.floor((3*Math.floor((y+4900+Math.floor((m-14)/12))/100))/4)
+    +d-32075;
+}
+function jdnToGregorian(jdn){
+  const l=jdn+68569;
+  const n=Math.floor((4*l)/146097);
+  const lr=l-Math.floor((146097*n+3)/4);
+  const i=Math.floor((4000*(lr+1))/1461001);
+  const lrr=lr-Math.floor((1461*i)/4)+31;
+  const j=Math.floor((80*lrr)/2447);
+  const d=lrr-Math.floor((2447*j)/80);
+  const le=Math.floor(j/11);
+  const m=j+2-12*le;
+  const y=100*(n-49)+i+le;
+  return{y,m,d};
+}
+// Julian calendar from JDN
+function jdnToJulian(jdn){
+  const c=jdn+32082;
+  const d1=Math.floor((4*c+3)/1461);
+  const c1=c-Math.floor(1461*d1/4);
+  const m1=Math.floor((5*c1+2)/153);
+  const d=c1-Math.floor((153*m1+2)/5)+1;
+  const m=m1+(m1<10?3:-9);
+  const y=d1-4800+(m<=2?1:0);
+  return{y,m,d};
+}
+// Hebrew calendar (simplified)
+function jdnToHebrew(jdn){
+  const HEBREW_EPOCH=347997;
+  let approx=Math.floor((jdn-HEBREW_EPOCH)/365.25);
+  let year=approx;
+  while(hebrewYearStart(year+1)<=jdn)year++;
+  const start=hebrewYearStart(year);
+  let month=1,day=jdn-start+1;
+  const months=hebrewMonthsInYear(year);
+  for(let m=1;m<=months;m++){
+    const ml=hebrewMonthLen(m,year);
+    if(day<=ml){month=m;break;}
+    day-=ml;
+  }
+  return{y:year,m:month,d:day};
+}
+function hebrewYearStart(y){
+  const m=(235*y-234)/19;
+  const p=Math.floor(m)*25920+Math.round((m-Math.floor(m))*25920);
+  let d=Math.floor(p/25920)+1+347997;
+  const dow=d%7;
+  if(dow===0||dow===3||dow===5)d++;
+  return d;
+}
+function hebrewMonthsInYear(y){return hebrewLeap(y)?13:12;}
+function hebrewLeap(y){return(7*y+1)%19<7;}
+function hebrewMonthLen(m,y){
+  if(m===2)return hebrewLongHeshvan(y)?30:29;
+  if(m===3)return hebrewShortKislev(y)?29:30;
+  if(m===12)return hebrewLeap(y)?30:29;
+  if(m===13)return 29;
+  return[0,30,0,0,29,30,29,30,29,30,29,30,29][m]||29;
+}
+function hebrewLongHeshvan(y){return(hebrewYearStart(y+1)-hebrewYearStart(y))%10===5;}
+function hebrewShortKislev(y){return(hebrewYearStart(y+1)-hebrewYearStart(y))%10===3;}
+
+// Islamic calendar (simplified tabular)
+function jdnToIslamic(jdn){
+  const ISLAMIC_EPOCH=1948440;
+  const d=jdn-ISLAMIC_EPOCH;
+  const n=Math.floor(d/10631);
+  const r=d-n*10631;
+  const y1=Math.floor((r-1)/354.367)+1;
+  const startY=Math.floor((11*y1+3)/30)+354*y1+30*(y1-1);
+  const dd=r-startY+1;
+  let m=1,day=dd;
+  for(let i=1;i<=12;i++){
+    const ml=(i%2===1)?30:29;
+    if(day<=ml){m=i;break;}
+    day-=ml;
+  }
+  const year=n*30+y1;
+  return{y:year,m:m,d:day};
+}
+
+function calc(){
+  const gdate=document.getElementById('gdate').value;
+  if(!gdate)return;
+  const [gy,gm,gd]=gdate.split('-').map(Number);
+  const era=document.getElementById('era').value;
+  const year=era==='bce'?-(gy-1):gy;
+
+  const jdn=gregorianToJDN(year,gm,gd);
+  const julian=jdnToJulian(jdn);
+  const hebrew=jdnToHebrew(jdn);
+  const islamic=jdnToIslamic(jdn);
+  const mjd=jdn-2400000.5;
+  const unixTs=(jdn-2440587.5)*86400;
+  const dow=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][(jdn+1)%7];
+  const doy=jdn-gregorianToJDN(year,1,1)+1;
+  const weekNum=Math.ceil(doy/7);
+
+  const heMonth=MONTHS_HE[hebrew.m-1]||`Month ${hebrew.m}`;
+  const isMonth=MONTHS_IS[islamic.m-1]||`Month ${islamic.m}`;
+
+  document.getElementById('calGrid').innerHTML=`
+    <div class="cal-card"><div class="cal-name">Gregorian</div><div class="cal-val">${MONTHS_EN[gm-1]} ${gd}, ${gy} ${era.toUpperCase()}</div></div>
+    <div class="cal-card"><div class="cal-name">Julian Calendar</div><div class="cal-val">${MONTHS_EN[julian.m-1]} ${julian.d}, ${julian.y>0?julian.y:Math.abs(julian.y)+' BC'}</div><div class="cal-sub">${julian.y<gy?'Julian lags behind Gregorian':'Same as Gregorian'}</div></div>
+    <div class="cal-card"><div class="cal-name">Hebrew / Jewish</div><div class="cal-val">${hebrew.d} ${heMonth} ${hebrew.y}</div><div class="cal-sub">Anno Mundi (AM)</div></div>
+    <div class="cal-card"><div class="cal-name">Islamic / Hijri</div><div class="cal-val">${islamic.d} ${isMonth} ${islamic.y} AH</div><div class="cal-sub">Tabular Islamic calendar</div></div>
+    <div class="cal-card"><div class="cal-name">Julian Day Number</div><div class="cal-val epoch">${jdn.toLocaleString()}</div></div>
+    <div class="cal-card"><div class="cal-name">Modified Julian Day</div><div class="cal-val epoch">${mjd.toFixed(1)}</div></div>
+    <div class="cal-card"><div class="cal-name">Unix Timestamp</div><div class="cal-val epoch">${unixTs>0?Math.round(unixTs).toLocaleString():'N/A (pre-1970)'}</div></div>
+  `;
+  document.getElementById('dayFacts').innerHTML=`
+    <table>
+      <tr><td>Day of week</td><td style="color:#f59e0b;font-weight:700">${dow}</td></tr>
+      <tr><td>Day of year</td><td>${doy}</td></tr>
+      <tr><td>Week number</td><td>${weekNum}</td></tr>
+      <tr><td>Days since J2000.0 (Jan 1 2000)</td><td>${(jdn-2451545).toLocaleString()}</td></tr>
+      <tr><td>Is leap year (Gregorian)</td><td>${(year%4===0&&(year%100!==0||year%400===0))?'Yes':'No'}</td></tr>
+      <tr><td>Days to/since Unix epoch</td><td>${unixTs>0?Math.round(unixTs/86400).toLocaleString()+' days since':Math.abs(Math.round(unixTs/86400)).toLocaleString()+' days before'} Jan 1 1970</td></tr>
+    </table>`;
+}
+document.getElementById('gdate').valueAsDate=new Date();
+calc();
+</script>
+</body>
+</html>

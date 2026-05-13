@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prime Factorization</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.factor-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{padding:6px 14px;border-radius:20px;font-size:.95rem;font-weight:700;font-family:monospace}
+.result-big{text-align:center;padding:16px 0;font-size:1.1rem;color:#888;margin:8px 0;background:#1a1a1a;border-radius:8px;font-family:monospace;word-break:break-all}
+.result-big span{color:#06b6d4;font-weight:700}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.2rem;font-weight:700;color:#06b6d4}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a;font-family:monospace}
+.factor-tree{font-family:monospace;font-size:.85rem;background:#1a1a1a;padding:12px;border-radius:8px;white-space:pre;overflow-x:auto;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>Prime Factorization</h1>
+<p class="sub">Factor integers, find GCD/LCM, primality test, divisor count</p>
+
+<div class="card">
+  <h2>Input</h2>
+  <div class="row2">
+    <div><label>Number A</label><input type="number" id="numA" value="360" min="2" oninput="calc()"></div>
+    <div><label>Number B (for GCD/LCM)</label><input type="number" id="numB" value="252" min="2" oninput="calc()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Factorization of A</h2>
+  <div class="factor-chips" id="chips"></div>
+  <div class="result-big" id="factorExpr"></div>
+  <div class="row2" style="margin-top:10px">
+    <div class="stat"><div class="v" id="r_div">--</div><div class="l">Number of divisors</div></div>
+    <div class="stat"><div class="v" id="r_sum">--</div><div class="l">Sum of divisors</div></div>
+  </div>
+  <div class="row2" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_prime" style="color:#22c55e">--</div><div class="l">Primality</div></div>
+    <div class="stat"><div class="v" id="r_euler">--</div><div class="l">Euler's φ(n)</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>GCD & LCM (A and B)</h2>
+  <div class="row2">
+    <div class="stat"><div class="v" id="r_gcd">--</div><div class="l">GCD(A,B)</div></div>
+    <div class="stat"><div class="v" id="r_lcm">--</div><div class="l">LCM(A,B)</div></div>
+  </div>
+  <div id="gcdSteps" style="margin-top:10px;font-size:.8rem;color:#aaa;background:#1a1a1a;padding:10px;border-radius:6px;font-family:monospace"></div>
+</div>
+
+<div class="card">
+  <h2>All Divisors of A</h2>
+  <div id="divisors" style="font-family:monospace;font-size:.82rem;line-height:2;color:#888;word-break:break-all"></div>
+</div>
+
+<script>
+const COLORS=['#06b6d4','#8b5cf6','#22c55e','#f97316','#ec4899','#eab308','#3b82f6'];
+function primeFactors(n){
+  const factors=[];let d=2;
+  while(d*d<=n){while(n%d===0){factors.push(d);n=Math.floor(n/d);}d++;}
+  if(n>1)factors.push(n);
+  return factors;
+}
+function isPrime(n){if(n<2)return false;if(n<4)return true;if(n%2===0||n%3===0)return false;for(let i=5;i*i<=n;i+=6)if(n%i===0||n%(i+2)===0)return false;return true;}
+function gcd(a,b){while(b){[a,b]=[b,a%b];}return a;}
+function euler_phi(n){
+  let result=n;
+  let p=2;const temp=n;
+  let m=n;
+  for(let p=2;p*p<=m;p++){if(m%p===0){while(m%p===0)m=Math.floor(m/p);result-=Math.floor(result/p);}}
+  if(m>1)result-=Math.floor(result/m);
+  return result;
+}
+function toSuperscript(n){return String(n).replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);}
+function calc(){
+  const a=parseInt(document.getElementById('numA').value)||2;
+  const b=parseInt(document.getElementById('numB').value)||2;
+  if(a<2||a>1e12){return;}
+  const factors=primeFactors(a);
+  const map={};factors.forEach(f=>map[f]=(map[f]||0)+1);
+  // Chips
+  const uniq=Object.keys(map).map(Number);
+  document.getElementById('chips').innerHTML=uniq.map((p,i)=>
+    `<div class="chip" style="background:${COLORS[i%COLORS.length]}22;border:2px solid ${COLORS[i%COLORS.length]};color:${COLORS[i%COLORS.length]}">${p}${map[p]>1?toSuperscript(map[p]):''}</div>`
+  ).join('<span style="margin:auto 2px;color:#555;font-size:1.2rem">×</span>');
+  // Expression
+  const expr=uniq.map(p=>p+(map[p]>1?toSuperscript(map[p]):'')).join(' × ');
+  document.getElementById('factorExpr').innerHTML=`${a} = <span>${expr}</span>`;
+  // Divisor count: product of (exp+1)
+  const ndiv=Object.values(map).reduce((a,e)=>a*(e+1),1);
+  const divsArr=[];
+  for(let i=1;i<=a;i++)if(a%i===0)divsArr.push(i);
+  const divSum=divsArr.reduce((a,b)=>a+b,0);
+  document.getElementById('r_div').textContent=ndiv;
+  document.getElementById('r_sum').textContent=divSum.toLocaleString();
+  document.getElementById('r_prime').textContent=isPrime(a)?'Prime ✓':'Composite';
+  document.getElementById('r_prime').style.color=isPrime(a)?'#22c55e':'#888';
+  document.getElementById('r_euler').textContent=euler_phi(a).toLocaleString();
+  // GCD/LCM
+  const g=gcd(a,b);
+  const l=a/g*b;
+  document.getElementById('r_gcd').textContent=g.toLocaleString();
+  document.getElementById('r_lcm').textContent=l.toLocaleString();
+  // Euclidean steps
+  let ax=a,bx=b,steps='Euclidean Algorithm:\n';
+  while(bx){steps+=`${ax} = ${Math.floor(ax/bx)} × ${bx} + ${ax%bx}\n`;[ax,bx]=[bx,ax%bx];}
+  steps+=`GCD = ${gcd(a,b)}`;
+  document.getElementById('gcdSteps').textContent=steps;
+  // Divisors list
+  document.getElementById('divisors').textContent=divsArr.slice(0,200).join(', ')+(divsArr.length>200?` ... (${divsArr.length} total)`:'');
+}
+calc();
+</script>
+</body>
+</html>

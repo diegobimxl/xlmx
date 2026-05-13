@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cladding Weight Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f97316;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.zone-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.zone-row input{flex:1}
+.zone-row select{flex:2}
+.zone-row .del{background:#1a1a1a;border:1px solid #333;color:#888;border-radius:6px;padding:6px 10px;cursor:pointer;flex-shrink:0}
+.btn-add{background:#1a1a1a;border:1px solid #f97316;color:#f97316;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:.85rem;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.total-row td{font-weight:700;color:#f97316;border-top:2px solid #f97316}
+.gauge{height:16px;background:#222;border-radius:8px;overflow:hidden;margin-top:8px}
+.gauge-fill{height:100%;background:linear-gradient(90deg,#22c55e,#f97316,#ef4444);border-radius:8px;transition:width .4s}
+.limit-row{display:flex;justify-content:space-between;font-size:.75rem;color:#666;margin-top:3px}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>Cladding Weight Calculator</h1>
+<p class="sub">Facade dead load estimate by material and area zone</p>
+
+<div class="card">
+  <h2>Facade Zones</h2>
+  <div id="zoneList"></div>
+  <button class="btn-add" onclick="addZone()">+ Add Zone</button>
+</div>
+
+<div class="card">
+  <h2>Structural Limits</h2>
+  <div class="row2">
+    <div>
+      <label>Allowable facade DL (psf)</label>
+      <input type="number" id="allowDL" value="25" min="1" oninput="calc()">
+    </div>
+    <div>
+      <label>Safety factor</label>
+      <input type="number" id="sf" value="1.5" min="1" step="0.1" oninput="calc()">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <table id="resultTable">
+    <tr><th>Zone</th><th>Material</th><th>Area (SF)</th><th>Unit (psf)</th><th>Weight (lbs)</th><th>Status</th></tr>
+  </table>
+  <div class="gauge" style="margin-top:14px"><div class="gauge-fill" id="gaugeFill" style="width:0%"></div></div>
+  <div class="limit-row"><span>0</span><span id="gaugeLabel">Avg facade load</span><span id="allowLabel">--</span></div>
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+const MATS={
+  'EIFS/Stucco':          {psf:10, note:'Lightweight, excellent thermal'},
+  'Fiber Cement':         {psf:3,  note:'Low weight, durable, low maint'},
+  'Brick Veneer':         {psf:40, note:'Heavy — needs shelf angle every floor'},
+  'Natural Stone 1"':     {psf:13, note:'Verify anchorage — seismic zone sensitive'},
+  'Natural Stone 2"':     {psf:26, note:'Heavy — structural engineer required'},
+  'Metal Panel (ACM)':    {psf:2,  note:'Lightest, excellent for high-rise'},
+  'Glass (1/4" mono)':    {psf:3.3,note:'Per unit glass weight, add frame'},
+  'Glass (1" IG)':        {psf:6.6,note:'Insulating unit with spacer'},
+  'Terracotta Panel':     {psf:14, note:'Check seismic anchoring requirements'},
+  'Precast Concrete 4"':  {psf:50, note:'Heavy — typically structural, not cladding'},
+  'GFRC (Glass Fiber RC)':{psf:12, note:'Good alternative to precast — lighter'},
+  'Zinc Panel':           {psf:3,  note:'Long life, natural patina, recyclable'},
+  'Weathering Steel':     {psf:7,  note:'No coating needed once seasoned'},
+  'HPL (High-Pressure Lam)':{psf:4,note:'Versatile, many finishes'},
+};
+let zones=[];
+let zid=0;
+function addZone(name='Zone A',mat='Metal Panel (ACM)',area=1000){
+  const id=zid++;
+  zones.push({id,mat,area});
+  render();
+}
+function removeZone(id){zones=zones.filter(z=>z.id!==id);render();}
+function render(){
+  const matOptions=Object.keys(MATS).map(m=>`<option value="${m}">${m} — ${MATS[m].psf} psf</option>`).join('');
+  let html='';
+  zones.forEach(z=>{
+    html+=`<div class="zone-row">
+      <input type="number" value="${z.area}" min="1" oninput="updateZone(${z.id},'area',this.value)" style="width:90px">
+      <select onchange="updateZone(${z.id},'mat',this.value)">
+        ${Object.keys(MATS).map(m=>`<option ${m===z.mat?'selected':''} value="${m}">${m} (${MATS[m].psf} psf)</option>`).join('')}
+      </select>
+      <button class="del" onclick="removeZone(${z.id})">✕</button>
+    </div>`;
+  });
+  document.getElementById('zoneList').innerHTML=html;
+  calc();
+}
+function updateZone(id,field,val){
+  const z=zones.find(z=>z.id===id);
+  if(z)z[field]=field==='area'?parseFloat(val)||0:val;
+  calc();
+}
+function calc(){
+  const allowDL=parseFloat(document.getElementById('allowDL').value)||25;
+  const sf=parseFloat(document.getElementById('sf').value)||1.5;
+  let totalW=0,totalA=0;
+  let rows='<tr><th>Zone</th><th>Material</th><th>Area (SF)</th><th>Unit (psf)</th><th>Weight (lbs)</th><th>Status</th></tr>';
+  zones.forEach((z,i)=>{
+    const m=MATS[z.mat];
+    const w=m.psf*z.area;
+    const design=m.psf*sf;
+    const ok=design<=allowDL;
+    totalW+=w;totalA+=z.area;
+    rows+=`<tr>
+      <td>${i+1}</td><td>${z.mat}</td><td>${z.area.toLocaleString()}</td>
+      <td>${m.psf}</td><td>${Math.round(w).toLocaleString()}</td>
+      <td style="color:${ok?'#22c55e':'#ef4444'}">${ok?'✓ OK':'⚠ Exceeds'}</td>
+    </tr>`;
+  });
+  if(zones.length>0){
+    const avgPsf=totalA>0?totalW/totalA:0;
+    rows+=`<tr class="total-row"><td colspan="4">Total / Avg</td><td>${Math.round(totalW).toLocaleString()} lbs</td><td>${avgPsf.toFixed(1)} psf avg</td></tr>`;
+    const pct=Math.min(100,avgPsf/allowDL*100);
+    document.getElementById('gaugeFill').style.width=pct+'%';
+    document.getElementById('gaugeLabel').textContent=`Avg load: ${avgPsf.toFixed(1)} psf`;
+    document.getElementById('allowLabel').textContent=allowDL+' psf limit';
+    const notes=zones.map((z,i)=>`Zone ${i+1} (${z.mat}): ${MATS[z.mat].note}`).join(' | ');
+    document.getElementById('note').textContent=notes;
+  }
+  document.getElementById('resultTable').innerHTML=rows;
+}
+addZone('Zone 1','Metal Panel (ACM)',2000);
+addZone('Zone 2','Glass (1" IG)',1200);
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Geodesic Distance Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#22c55e;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem;font-family:monospace}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pt-card{background:#1a1a1a;border-radius:8px;padding:14px;margin-bottom:10px}
+.pt-card h3{font-size:.85rem;color:#22c55e;margin-bottom:8px}
+.city-btn{background:none;border:1px solid #333;color:#aaa;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.78rem;margin-top:4px;margin-right:4px}
+.city-btn:hover{border-color:#22c55e;color:#22c55e}
+.big-dist{text-align:center;padding:20px 0 10px}
+.big-dist .val{font-size:2rem;font-weight:800;color:#22c55e}
+.big-dist .lbl{font-size:.82rem;color:#888;margin-top:4px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700;color:#22c55e}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+</style>
+</head>
+<body>
+<h1>Geodesic Distance Calculator</h1>
+<p class="sub">Haversine & Vincenty distance between two coordinates</p>
+
+<div class="card">
+  <h2>Points</h2>
+  <div class="pt-card">
+    <h3>Point A</h3>
+    <div class="row2">
+      <div><label>Latitude A</label><input type="number" id="lat1" value="19.4326" step="any" oninput="calc()"></div>
+      <div><label>Longitude A</label><input type="number" id="lon1" value="-99.1332" step="any" oninput="calc()"></div>
+    </div>
+    <div>
+      <button class="city-btn" onclick="setCity('a','mexico')">Mexico City</button>
+      <button class="city-btn" onclick="setCity('a','ny')">New York</button>
+      <button class="city-btn" onclick="setCity('a','london')">London</button>
+      <button class="city-btn" onclick="setCity('a','tokyo')">Tokyo</button>
+    </div>
+  </div>
+  <div class="pt-card">
+    <h3>Point B</h3>
+    <div class="row2">
+      <div><label>Latitude B</label><input type="number" id="lat2" value="40.7128" step="any" oninput="calc()"></div>
+      <div><label>Longitude B</label><input type="number" id="lon2" value="-74.0060" step="any" oninput="calc()"></div>
+    </div>
+    <div>
+      <button class="city-btn" onclick="setCity('b','mexico')">Mexico City</button>
+      <button class="city-btn" onclick="setCity('b','ny')">New York</button>
+      <button class="city-btn" onclick="setCity('b','london')">London</button>
+      <button class="city-btn" onclick="setCity('b','tokyo')">Tokyo</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Distance</h2>
+  <div class="big-dist">
+    <div class="val" id="d_km">--</div>
+    <div class="lbl">kilometers (geodesic)</div>
+  </div>
+  <div class="row3">
+    <div class="stat"><div class="v" id="d_mi">--</div><div class="l">miles</div></div>
+    <div class="stat"><div class="v" id="d_nm">--</div><div class="l">nautical miles</div></div>
+    <div class="stat"><div class="v" id="d_m">--</div><div class="l">meters</div></div>
+  </div>
+  <table style="margin-top:16px">
+    <tr><th>Property</th><th>Value</th></tr>
+    <tbody id="props"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Travel Time Estimates</h2>
+  <table id="travelTable">
+    <tr><th>Mode</th><th>Speed</th><th>Est. Time</th></tr>
+  </table>
+</div>
+
+<script>
+const R=6371e3; // Earth mean radius (m)
+const CITIES={
+  mexico:{lat:19.4326,lon:-99.1332,name:'Mexico City'},
+  ny:{lat:40.7128,lon:-74.0060,name:'New York'},
+  london:{lat:51.5074,lon:-0.1278,name:'London'},
+  tokyo:{lat:35.6762,lon:139.6503,name:'Tokyo'},
+  la:{lat:34.0522,lon:-118.2437,name:'Los Angeles'},
+  sydney:{lat:-33.8688,lon:151.2093,name:'Sydney'},
+};
+function setCity(pt,city){
+  const c=CITIES[city];
+  if(pt==='a'){document.getElementById('lat1').value=c.lat;document.getElementById('lon1').value=c.lon;}
+  else{document.getElementById('lat2').value=c.lat;document.getElementById('lon2').value=c.lon;}
+  calc();
+}
+function toRad(d){return d*Math.PI/180;}
+function calc(){
+  const lat1=parseFloat(document.getElementById('lat1').value)||0;
+  const lon1=parseFloat(document.getElementById('lon1').value)||0;
+  const lat2=parseFloat(document.getElementById('lat2').value)||0;
+  const lon2=parseFloat(document.getElementById('lon2').value)||0;
+
+  // Haversine
+  const dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  const c_hav=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  const d_hav=R*c_hav; // meters
+
+  // Initial bearing
+  const y=Math.sin(toRad(lon2-lon1))*Math.cos(toRad(lat2));
+  const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2))-Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(toRad(lon2-lon1));
+  const bearing=((Math.atan2(y,x)*180/Math.PI)+360)%360;
+
+  // Midpoint
+  const Bx=Math.cos(toRad(lat2))*Math.cos(toRad(lon2-lon1));
+  const By=Math.cos(toRad(lat2))*Math.sin(toRad(lon2-lon1));
+  const midLat=Math.atan2(Math.sin(toRad(lat1))+Math.sin(toRad(lat2)),Math.sqrt((Math.cos(toRad(lat1))+Bx)**2+By**2))*180/Math.PI;
+  const midLon=(lon1+Math.atan2(By,Math.cos(toRad(lat1))+Bx)*180/Math.PI);
+
+  const km=d_hav/1000;
+  document.getElementById('d_km').textContent=km.toFixed(2)+' km';
+  document.getElementById('d_mi').textContent=(km/1.60934).toFixed(2);
+  document.getElementById('d_nm').textContent=(km/1.852).toFixed(2);
+  document.getElementById('d_m').textContent=Math.round(d_hav).toLocaleString();
+
+  document.getElementById('props').innerHTML=`
+    <tr><td>Initial bearing (A→B)</td><td>${bearing.toFixed(2)}° (${compassDir(bearing)})</td></tr>
+    <tr><td>Return bearing (B→A)</td><td>${((bearing+180)%360).toFixed(2)}°</td></tr>
+    <tr><td>Midpoint latitude</td><td>${midLat.toFixed(5)}°</td></tr>
+    <tr><td>Midpoint longitude</td><td>${midLon.toFixed(5)}°</td></tr>
+    <tr><td>Lat difference</td><td>${Math.abs(lat2-lat1).toFixed(4)}° (${(Math.abs(lat2-lat1)*111.32).toFixed(1)} km approx)</td></tr>
+    <tr><td>Lon difference</td><td>${Math.abs(lon2-lon1).toFixed(4)}°</td></tr>
+    <tr><td>WGS84 Earth flattening correction</td><td>~${(km*0.0033).toFixed(2)} km (Vincenty vs Haversine)</td></tr>
+  `;
+  const modes=[
+    {name:'Walking',speed:5},{name:'Cycling',speed:20},{name:'Car',speed:100},
+    {name:'Train (high-speed)',speed:250},{name:'Prop plane',speed:500},{name:'Jet airliner',speed:900},
+  ];
+  document.getElementById('travelTable').innerHTML=
+    '<tr><th>Mode</th><th>Speed</th><th>Est. Time</th></tr>'+
+    modes.map(m=>{
+      const h=km/m.speed;
+      const hh=Math.floor(h),mm=Math.round((h-hh)*60);
+      return`<tr><td>${m.name}</td><td>${m.speed} km/h</td><td>${hh>0?hh+'h ':''} ${mm}min</td></tr>`;
+    }).join('');
+}
+function compassDir(b){
+  const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(b/22.5)%16];
+}
+calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mandelbrot Explorer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:16px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:16px;margin-bottom:12px}
+.card h2{font-size:.9rem;font-weight:600;color:#a78bfa;margin-bottom:10px}
+label{display:block;font-size:.78rem;color:#aaa;margin-bottom:3px;margin-top:8px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:6px 8px;font-size:.85rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+canvas{width:100%;border-radius:8px;cursor:crosshair;display:block}
+.controls{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.btn{background:#1a1a1a;border:1px solid #a78bfa;color:#a78bfa;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:.82rem}
+.btn:hover{background:#a78bfa;color:#000}
+.info{font-size:.75rem;color:#888;margin-top:6px;font-family:monospace}
+</style>
+</head>
+<body>
+<h1>Mandelbrot Explorer</h1>
+<p class="sub">Interactive fractal explorer — click to zoom, scroll to navigate</p>
+
+<canvas id="canvas" height="400"></canvas>
+
+<div class="controls">
+  <button class="btn" onclick="zoom(2)">Zoom In ×2</button>
+  <button class="btn" onclick="zoom(0.5)">Zoom Out</button>
+  <button class="btn" onclick="reset()">Reset</button>
+  <button class="btn" onclick="changeColor()">Color Scheme</button>
+</div>
+<div class="info" id="info">Click on canvas to center view</div>
+
+<div class="card">
+  <h2>Parameters</h2>
+  <div class="row2">
+    <div>
+      <label>Max iterations</label>
+      <select id="maxIter" onchange="draw()">
+        <option value="64">64 (fast)</option>
+        <option value="128" selected>128 (balanced)</option>
+        <option value="256">256 (detailed)</option>
+        <option value="512">512 (slow)</option>
+      </select>
+    </div>
+    <div>
+      <label>Escape radius</label>
+      <select id="escR" onchange="draw()">
+        <option value="2">2 (standard)</option>
+        <option value="4">4</option>
+        <option value="8" selected>8 (smooth)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row2">
+    <div><label>Center Re</label><input type="number" id="cx" value="-0.5" step="any" onchange="draw()"></div>
+    <div><label>Center Im</label><input type="number" id="cy" value="0" step="any" onchange="draw()"></div>
+  </div>
+  <label>Zoom level: <span id="zoomLabel">1×</span></label>
+  <input type="range" id="zoomSlider" min="-1" max="14" step="0.1" value="0" oninput="document.getElementById('zoomLabel').textContent=Math.pow(2,parseFloat(this.value)).toFixed(1)+'×';zoom_abs(parseFloat(this.value))">
+</div>
+
+<script>
+let centerX=-0.5,centerY=0,scale=3.5,colorScheme=0;
+let W,H;
+const SCHEMES=[
+  (t,max)=>{const h=t/max;return[Math.sin(h*6.28)*127+128,Math.sin(h*6.28+2.09)*127+128,Math.sin(h*6.28+4.18)*127+128];},
+  (t,max)=>{const v=t/max;return[v*255,v*v*255,Math.pow(v,4)*255];},
+  (t,max)=>{const v=t/max*360;return hsl2rgb(v,1,0.5);},
+  (t,max)=>{const v=255-t/max*255;return[v,v*0.7,v*0.3];},
+];
+function hsl2rgb(h,s,l){const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(h/60%2-1)),m=l-c/2;let r,g,b;if(h<60)r=c,g=x,b=0;else if(h<120)r=x,g=c,b=0;else if(h<180)r=0,g=c,b=x;else if(h<240)r=0,g=x,b=c;else if(h<300)r=x,g=0,b=c;else r=c,g=0,b=x;return[(r+m)*255,(g+m)*255,(b+m)*255];}
+function mandelbrot(cr,ci,maxIter,esc){
+  let zr=0,zi=0,i=0;
+  for(;i<maxIter;i++){const zr2=zr*zr-zi*zi+cr,zi2=2*zr*zi+ci;zr=zr2;zi=zi2;if(zr*zr+zi*zi>esc*esc)break;}
+  if(i===maxIter)return-1;
+  return i+(1-Math.log(Math.log(Math.sqrt(zr*zr+zi*zi))/Math.log(esc))/Math.log(2));
+}
+function draw(){
+  const canvas=document.getElementById('canvas');
+  W=canvas.offsetWidth;H=canvas.height=Math.round(W*0.65);
+  canvas.width=W;
+  const ctx=canvas.getContext('2d');
+  const img=ctx.createImageData(W,H);
+  const maxIter=parseInt(document.getElementById('maxIter').value)||128;
+  const esc=parseInt(document.getElementById('escR').value)||8;
+  const scheme=SCHEMES[colorScheme%SCHEMES.length];
+  for(let py=0;py<H;py++){
+    for(let px=0;px<W;px++){
+      const cr=centerX+(px/W-0.5)*scale;
+      const ci=centerY+(py/H-0.5)*scale*(H/W);
+      const t=mandelbrot(cr,ci,maxIter,esc);
+      const i=(py*W+px)*4;
+      if(t<0){img.data[i]=img.data[i+1]=img.data[i+2]=0;}
+      else{const [r,g,b]=scheme(t,maxIter);img.data[i]=r;img.data[i+1]=g;img.data[i+2]=b;}
+      img.data[i+3]=255;
+    }
+  }
+  ctx.putImageData(img,0,0);
+  document.getElementById('cx').value=centerX.toFixed(10);
+  document.getElementById('cy').value=centerY.toFixed(10);
+  document.getElementById('info').textContent=`Center: ${centerX.toFixed(8)} + ${centerY.toFixed(8)}i | Scale: ${scale.toFixed(8)} | Zoom: ${(3.5/scale).toFixed(1)}×`;
+}
+function zoom(factor){scale*=(1/factor);draw();}
+function zoom_abs(logZ){scale=3.5/Math.pow(2,logZ);draw();}
+function reset(){centerX=-0.5;centerY=0;scale=3.5;document.getElementById('zoomSlider').value=0;draw();}
+function changeColor(){colorScheme++;draw();}
+document.getElementById('canvas').addEventListener('click',e=>{
+  const canvas=e.currentTarget;
+  const rect=canvas.getBoundingClientRect();
+  const px=(e.clientX-rect.left)/rect.width;
+  const py=(e.clientY-rect.top)/rect.height;
+  centerX=centerX+(px-0.5)*scale;
+  centerY=centerY+(py-0.5)*scale*(H/W);
+  scale*=0.5;
+  draw();
+});
+setTimeout(draw,100);
+window.addEventListener('resize',()=>setTimeout(draw,100));
+</script>
+</body>
+</html>

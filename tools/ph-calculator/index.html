@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pH Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#ec4899;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{flex:1;padding:8px;background:#1a1a1a;border:1px solid #333;border-radius:6px;text-align:center;cursor:pointer;font-size:.82rem}
+.tab.active{background:#ec4899;border-color:#ec4899;color:#fff;font-weight:700}
+.pane{display:none}.pane.active{display:block}
+.ph-scale{height:40px;border-radius:8px;margin:12px 0;background:linear-gradient(90deg,#dc2626,#f97316,#eab308,#84cc16,#22c55e,#06b6d4,#3b82f6,#8b5cf6);position:relative}
+.ph-marker{position:absolute;top:-6px;width:4px;height:52px;background:#fff;border-radius:2px;transition:left .4s;box-shadow:0 0 8px rgba(255,255,255,.5)}
+.ph-val{text-align:center;font-size:2.5rem;font-weight:800;margin:8px 0 4px}
+.ph-label{text-align:center;font-size:1rem;font-weight:600;margin-bottom:4px}
+.ph-desc{text-align:center;font-size:.82rem;color:#888;margin-bottom:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:10px;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700}
+.stat .l{font-size:.72rem;color:#888;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:8px}
+th{padding:5px 8px;border-bottom:1px solid #222;text-align:left;color:#888}
+td{padding:5px 8px;border-bottom:1px solid #1a1a1a}
+</style>
+</head>
+<body>
+<h1>pH Calculator</h1>
+<p class="sub">Calculate pH, pOH, [H⁺], [OH⁻] for acids, bases, and buffers</p>
+
+<div class="card">
+  <h2>Input Method</h2>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('sa')">Strong Acid/Base</div>
+    <div class="tab" onclick="switchTab('weak')">Weak Acid</div>
+    <div class="tab" onclick="switchTab('buffer')">Buffer</div>
+    <div class="tab" onclick="switchTab('direct')">Direct pH</div>
+  </div>
+
+  <div class="pane active" id="pane-sa">
+    <label>Type</label>
+    <select id="saType" onchange="calc()">
+      <option value="acid">Strong Acid (HCl, HNO₃, H₂SO₄)</option>
+      <option value="base">Strong Base (NaOH, KOH)</option>
+    </select>
+    <label>Concentration (mol/L)</label>
+    <input type="number" id="saConc" value="0.01" step="any" min="0" oninput="calc()">
+  </div>
+
+  <div class="pane" id="pane-weak">
+    <label>Acid concentration Ca (mol/L)</label>
+    <input type="number" id="wkConc" value="0.1" step="any" min="0" oninput="calc()">
+    <label>Ka (acid dissociation constant)</label>
+    <input type="number" id="wkKa" value="1.8e-5" step="any" min="0" oninput="calc()">
+    <div style="font-size:.75rem;color:#555;margin-top:4px">Ka examples: Acetic acid 1.8×10⁻⁵, Formic 1.77×10⁻⁴, HF 6.8×10⁻⁴, NH₄⁺ 5.6×10⁻¹⁰</div>
+  </div>
+
+  <div class="pane" id="pane-buffer">
+    <div style="font-size:.8rem;color:#888;margin-bottom:8px">Henderson-Hasselbalch: pH = pKa + log([A⁻]/[HA])</div>
+    <label>pKa of weak acid</label>
+    <input type="number" id="bfPka" value="4.74" step="any" oninput="calc()">
+    <div class="row2">
+      <div><label>[A⁻] conjugate base (mol/L)</label><input type="number" id="bfBase" value="0.1" step="any" min="0" oninput="calc()"></div>
+      <div><label>[HA] weak acid (mol/L)</label><input type="number" id="bfAcid" value="0.1" step="any" min="0" oninput="calc()"></div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-direct">
+    <label>pH value</label>
+    <input type="number" id="directPH" value="7" step="0.01" min="0" max="14" oninput="calc()">
+  </div>
+</div>
+
+<div class="card">
+  <h2>Result</h2>
+  <div class="ph-scale"><div class="ph-marker" id="phMarker"></div></div>
+  <div style="display:flex;justify-content:space-between;font-size:.7rem;color:#666;margin-bottom:8px">
+    <span>0 Acidic</span><span>7 Neutral</span><span>14 Basic</span>
+  </div>
+  <div class="ph-val" id="phVal">--</div>
+  <div class="ph-label" id="phLabel">--</div>
+  <div class="ph-desc" id="phDesc">--</div>
+  <div class="row3">
+    <div class="stat"><div class="v" id="r_poh" style="color:#ec4899">--</div><div class="l">pOH</div></div>
+    <div class="stat"><div class="v" id="r_hp" style="color:#ef4444">--</div><div class="l">[H⁺] mol/L</div></div>
+    <div class="stat"><div class="v" id="r_oh" style="color:#3b82f6">--</div><div class="l">[OH⁻] mol/L</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Common pH Reference</h2>
+  <table>
+    <tr><th>Substance</th><th>pH</th><th>Classification</th></tr>
+    <tr><td>Battery acid</td><td>0.5</td><td style="color:#dc2626">Very strong acid</td></tr>
+    <tr><td>Stomach acid (HCl)</td><td>1.5–3.5</td><td style="color:#ef4444">Strong acid</td></tr>
+    <tr><td>Lemon juice / Vinegar</td><td>2–3</td><td style="color:#f97316">Acid</td></tr>
+    <tr><td>Coffee</td><td>5.0</td><td style="color:#eab308">Weak acid</td></tr>
+    <tr><td>Rain water</td><td>5.6</td><td style="color:#eab308">Slightly acid</td></tr>
+    <tr><td>Pure water</td><td>7.0</td><td style="color:#22c55e">Neutral</td></tr>
+    <tr><td>Blood</td><td>7.4</td><td style="color:#84cc16">Slightly basic</td></tr>
+    <tr><td>Baking soda</td><td>8.3</td><td style="color:#06b6d4">Basic</td></tr>
+    <tr><td>Bleach</td><td>12.5</td><td style="color:#8b5cf6">Strong base</td></tr>
+    <tr><td>NaOH solution</td><td>13–14</td><td style="color:#ec4899">Very strong base</td></tr>
+  </table>
+</div>
+
+<script>
+let mode='sa';
+document.querySelectorAll('.tab').forEach((el,i)=>{
+  const tabs=['sa','weak','buffer','direct'];
+  el.onclick=()=>{
+    mode=tabs[i];
+    document.querySelectorAll('.tab').forEach((t,ti)=>t.classList.toggle('active',ti===i));
+    document.querySelectorAll('.pane').forEach((p,pi)=>p.classList.toggle('active',pi===i));
+    calc();
+  };
+});
+function phColor(ph){
+  if(ph<2)return'#dc2626';if(ph<4)return'#ef4444';if(ph<6)return'#f97316';
+  if(ph<7)return'#eab308';if(ph<=7.5)return'#22c55e';if(ph<9)return'#06b6d4';
+  if(ph<11)return'#3b82f6';return'#8b5cf6';
+}
+function classify(ph){
+  if(ph<0)return['Extremely Acidic','Beyond pH 0'];
+  if(ph<3)return['Strongly Acidic','Corrosive — Handle with care'];
+  if(ph<5)return['Acidic','Sour taste, dissolves metals'];
+  if(ph<6.5)return['Weakly Acidic','Slightly acidic, common in nature'];
+  if(ph<7.5)return['Neutral','Pure water at 25°C'];
+  if(ph<9)return['Weakly Basic','Slightly alkaline'];
+  if(ph<11)return['Basic','Slippery feel, bitter taste'];
+  return['Strongly Basic','Corrosive — Handle with care'];
+}
+function showPH(ph){
+  if(!isFinite(ph)||ph<0)ph=0;if(ph>14)ph=14;
+  const col=phColor(ph);
+  document.getElementById('phVal').textContent=ph.toFixed(4);
+  document.getElementById('phVal').style.color=col;
+  const [label,desc]=classify(ph);
+  document.getElementById('phLabel').textContent=label;
+  document.getElementById('phLabel').style.color=col;
+  document.getElementById('phDesc').textContent=desc;
+  document.getElementById('phMarker').style.left=(ph/14*96)+'%';
+  const poh=14-ph;
+  const hp=Math.pow(10,-ph);
+  const oh=Math.pow(10,-poh);
+  document.getElementById('r_poh').textContent=poh.toFixed(4);
+  document.getElementById('r_hp').textContent=hp.toExponential(3);
+  document.getElementById('r_oh').textContent=oh.toExponential(3);
+}
+function calc(){
+  if(mode==='sa'){
+    const c=parseFloat(document.getElementById('saConc').value)||1e-7;
+    const type=document.getElementById('saType').value;
+    const ph=type==='acid'?-Math.log10(c):14+Math.log10(c);
+    showPH(ph);
+  }else if(mode==='weak'){
+    const ca=parseFloat(document.getElementById('wkConc').value)||0.1;
+    const ka=parseFloat(document.getElementById('wkKa').value)||1.8e-5;
+    // Quadratic: x²+ka*x-ka*ca=0
+    const x=(-ka+Math.sqrt(ka*ka+4*ka*ca))/2;
+    const ph=-Math.log10(x);
+    showPH(ph);
+  }else if(mode==='buffer'){
+    const pka=parseFloat(document.getElementById('bfPka').value)||4.74;
+    const base=parseFloat(document.getElementById('bfBase').value)||0.1;
+    const acid=parseFloat(document.getElementById('bfAcid').value)||0.1;
+    if(acid===0){showPH(14);return;}
+    const ph=pka+Math.log10(base/acid);
+    showPH(ph);
+  }else{
+    const ph=parseFloat(document.getElementById('directPH').value)||7;
+    showPH(ph);
+  }
+}
+calc();
+</script>
+</body>
+</html>

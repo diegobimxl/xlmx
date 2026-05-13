@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fractal Dimension Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#a78bfa;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#1a1a1a;border-radius:8px;padding:14px;text-align:center}
+.stat .v{font-size:1.6rem;font-weight:800;color:#a78bfa}
+.stat .l{font-size:.78rem;color:#888;margin-top:4px}
+canvas{width:100%;border-radius:8px;background:#0a0a0a;margin-top:8px;display:block}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:10px}
+.fractal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.frac-item{background:#1a1a1a;border-radius:8px;padding:12px;cursor:pointer;border:2px solid transparent;transition:border-color .2s}
+.frac-item:hover{border-color:#a78bfa}
+.frac-item .name{font-size:.85rem;font-weight:600;color:#a78bfa}
+.frac-item .dim{font-size:.78rem;color:#888;margin-top:2px}
+</style>
+</head>
+<body>
+<h1>Fractal Dimension Calculator</h1>
+<p class="sub">Hausdorff dimension, box-counting method, and iterated function systems</p>
+
+<div class="card">
+  <h2>Known Fractals</h2>
+  <div class="fractal-grid" id="fractalGrid"></div>
+</div>
+
+<div class="card">
+  <h2>Box-Counting Method (Custom)</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:8px">Enter box counts at different resolutions. D = log(N) / log(1/r) where N = boxes, r = box size</p>
+  <table id="boxTable">
+    <tr><th>Box size r (1/n)</th><th>Count N (boxes)</th><th>log(1/r)</th><th>log(N)</th></tr>
+    <tr><td>1/4</td><td><input type="number" id="n1" value="4" min="1" oninput="calcBox()"></td><td>0.602</td><td id="ln1">0.602</td></tr>
+    <tr><td>1/8</td><td><input type="number" id="n2" value="12" min="1" oninput="calcBox()"></td><td>0.903</td><td id="ln2">1.079</td></tr>
+    <tr><td>1/16</td><td><input type="number" id="n3" value="34" min="1" oninput="calcBox()"></td><td>1.204</td><td id="ln3">1.531</td></tr>
+    <tr><td>1/32</td><td><input type="number" id="n4" value="96" min="1" oninput="calcBox()"></td><td>1.505</td><td id="ln4">1.982</td></tr>
+    <tr><td>1/64</td><td><input type="number" id="n5" value="272" min="1" oninput="calcBox()"></td><td>1.806</td><td id="ln5">2.435</td></tr>
+  </table>
+  <div class="stat" style="margin-top:12px"><div class="v" id="boxDim">--</div><div class="l">Estimated box-counting dimension</div></div>
+  <canvas id="loglogCanvas" height="200"></canvas>
+</div>
+
+<div class="card">
+  <h2>IFS Fractal Renderer</h2>
+  <label>Fractal type</label>
+  <select id="ifsType" onchange="drawIFS()">
+    <option value="sierpinski">Sierpinski Triangle</option>
+    <option value="cantor">Cantor Set</option>
+    <option value="koch">Koch Snowflake (edge)</option>
+    <option value="dragon">Dragon Curve</option>
+    <option value="barnsley">Barnsley Fern</option>
+  </select>
+  <label>Iterations</label>
+  <input type="range" id="ifsIter" min="1" max="7" value="5" oninput="document.getElementById('ifsIterV').textContent=this.value;drawIFS()">
+  <span id="ifsIterV" style="font-size:.85rem;color:#a78bfa">5</span>
+  <canvas id="ifsCanvas" height="300"></canvas>
+</div>
+
+<script>
+const FRACTALS=[
+  {name:'Cantor Set',d:'0.631',formula:'log(2)/log(3)',desc:'Remove middle third recursively'},
+  {name:'Sierpinski Triangle',d:'1.585',formula:'log(3)/log(2)',desc:'3 self-similar copies at scale 1/2'},
+  {name:'Koch Snowflake',d:'1.2619',formula:'log(4)/log(3)',desc:'4 copies at scale 1/3 each iteration'},
+  {name:'Mandelbrot Boundary',d:'2.0',formula:'≈ 2.0',desc:'Boundary dimension ≈ 2 (Shishikura 1998)'},
+  {name:'Sierpinski Carpet',d:'1.893',formula:'log(8)/log(3)',desc:'8 copies at scale 1/3'},
+  {name:'Menger Sponge',d:'2.727',formula:'log(20)/log(3)',desc:'20 copies at scale 1/3 in 3D'},
+  {name:'Dragon Curve',d:'2.0',formula:'≈ 2.0',desc:'Approaches plane-filling dimension'},
+  {name:'Barnsley Fern',d:'1.2–1.5',formula:'IFS approx',desc:'Natural-looking leaf fractal'},
+];
+document.getElementById('fractalGrid').innerHTML=FRACTALS.map(f=>`
+  <div class="frac-item">
+    <div class="name">${f.name}</div>
+    <div class="dim">D = ${f.d} &nbsp; [${f.formula}]</div>
+    <div style="font-size:.72rem;color:#555;margin-top:2px">${f.desc}</div>
+  </div>`).join('');
+
+const RVALS=[4,8,16,32,64];
+function calcBox(){
+  const ns=[1,2,3,4,5].map(i=>parseFloat(document.getElementById('n'+i).value)||1);
+  const logR=RVALS.map(r=>Math.log10(r));
+  const logN=ns.map(n=>Math.log10(n));
+  // Update table
+  ns.forEach((n,i)=>document.getElementById('ln'+(i+1)).textContent=Math.log10(n).toFixed(4));
+  // Linear regression on logR vs logN
+  const n_=logR.length;
+  const sumX=logR.reduce((a,b)=>a+b,0),sumY=logN.reduce((a,b)=>a+b,0);
+  const sumXY=logR.reduce((a,x,i)=>a+x*logN[i],0),sumX2=logR.reduce((a,x)=>a+x*x,0);
+  const slope=(n_*sumXY-sumX*sumY)/(n_*sumX2-sumX*sumX);
+  document.getElementById('boxDim').textContent=slope.toFixed(4);
+  drawLogLog(logR,logN,slope);
+}
+function drawLogLog(xs,ys,slope){
+  const canvas=document.getElementById('loglogCanvas');
+  const W=canvas.offsetWidth*2||400,H=400;canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const pad=50;
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const tx=x=>pad+(x-minX)/(maxX-minX)*(W-2*pad);
+  const ty=y=>H-pad-(y-minY)/(maxY-minY)*(H-2*pad);
+  // Grid
+  ctx.strokeStyle='#222';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){ctx.beginPath();ctx.moveTo(pad,pad+i*(H-2*pad)/4);ctx.lineTo(W-pad,pad+i*(H-2*pad)/4);ctx.stroke();}
+  // Regression line
+  ctx.beginPath();ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;
+  ctx.moveTo(tx(minX),ty(minX*slope+(Math.reduce?0:(ys.reduce((a,b)=>a+b,0)/ys.length-slope*xs.reduce((a,b)=>a+b,0)/xs.length))));
+  const b_=ys.reduce((a,b)=>a+b,0)/ys.length-slope*xs.reduce((a,b)=>a+b,0)/xs.length;
+  ctx.moveTo(tx(minX),ty(minX*slope+b_));ctx.lineTo(tx(maxX),ty(maxX*slope+b_));ctx.stroke();
+  // Points
+  xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(tx(x),ty(ys[i]),5,0,Math.PI*2);ctx.fillStyle='#22c55e';ctx.fill();});
+  ctx.fillStyle='#888';ctx.font='22px sans-serif';
+  ctx.fillText('log(1/r)',W/2-40,H-10);ctx.fillText('D≈'+slope.toFixed(3),W-150,40);
+}
+function drawIFS(){
+  const type=document.getElementById('ifsType').value;
+  const iter=parseInt(document.getElementById('ifsIter').value)||5;
+  const canvas=document.getElementById('ifsCanvas');
+  const W=canvas.offsetWidth*2||400,H=canvas.height=Math.round(W*0.65)||300;
+  canvas.width=W;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#a78bfa';ctx.fillStyle='#a78bfa';ctx.lineWidth=1;
+  if(type==='sierpinski'){
+    function tri(ax,ay,bx,by,cx,cy,d){
+      if(d===0){ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.lineTo(cx,cy);ctx.closePath();ctx.fill();return;}
+      const mx1=(ax+bx)/2,my1=(ay+by)/2,mx2=(bx+cx)/2,my2=(by+cy)/2,mx3=(ax+cx)/2,my3=(ay+cy)/2;
+      tri(ax,ay,mx1,my1,mx3,my3,d-1);tri(mx1,my1,bx,by,mx2,my2,d-1);tri(mx3,my3,mx2,my2,cx,cy,d-1);
+    }
+    tri(W/2,20,20,H-20,W-20,H-20,iter);
+  }else if(type==='koch'){
+    function kochLine(x1,y1,x2,y2,d){
+      if(d===0){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();return;}
+      const dx=(x2-x1)/3,dy=(y2-y1)/3;
+      const ax=x1+dx,ay=y1+dy,bx=x1+2*dx,by=y1+2*dy;
+      const mx=ax+(bx-ax)/2-(by-ay)*Math.sqrt(3)/2,my=ay+(by-ay)/2+(bx-ax)*Math.sqrt(3)/2;
+      kochLine(x1,y1,ax,ay,d-1);kochLine(ax,ay,mx,my,d-1);kochLine(mx,my,bx,by,d-1);kochLine(bx,by,x2,y2,d-1);
+    }
+    const it=Math.min(iter,6);
+    kochLine(20,H/2+50,W-20,H/2+50,it);
+  }else if(type==='barnsley'){
+    let x=0,y=0;const pts=100000;
+    for(let i=0;i<pts;i++){
+      const r=Math.random(),nx,ny;
+      if(r<0.01){nx=0;ny=0.16*y;}
+      else if(r<0.86){nx=0.85*x+0.04*y;ny=-0.04*x+0.85*y+1.6;}
+      else if(r<0.93){nx=0.2*x-0.26*y;ny=0.23*x+0.22*y+1.6;}
+      else{nx=-0.15*x+0.28*y;ny=0.26*x+0.24*y+0.44;}
+      x=nx||0;y=ny||0;
+      if(i>50){const px=W/2+x*W*0.085,py=H-y*H*0.085-10;ctx.fillRect(px,py,1,1);}
+    }
+  }else if(type==='cantor'){
+    function cantor(x,y,len,d){
+      if(d===0)return;ctx.fillRect(x,y,len,8);
+      cantor(x,y+20,len/3,d-1);cantor(x+2*len/3,y+20,len/3,d-1);
+    }
+    cantor(20,10,W-40,iter);
+  }else if(type==='dragon'){
+    let pts=[[0,0],[1,0]];
+    for(let i=0;i<iter+5;i++){
+      const np=[];for(let j=0;j<pts.length-1;j++){const mid=[(pts[j][0]+pts[j+1][0])/2+(pts[j][1]-pts[j+1][1])/2,(pts[j][1]+pts[j+1][1])/2-(pts[j][0]-pts[j+1][0])/2];np.push(pts[j],mid);}np.push(pts[pts.length-1]);pts=np;
+    }
+    const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const s=Math.min((W-40)/(maxX-minX||1),(H-40)/(maxY-minY||1));
+    ctx.beginPath();pts.forEach((p,i)=>{const px=20+(p[0]-minX)*s,py=20+(p[1]-minY)*s;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);});ctx.stroke();
+  }
+}
+calcBox();drawIFS();
+window.addEventListener('resize',()=>{calcBox();drawIFS();});
+</script>
+</body>
+</html>

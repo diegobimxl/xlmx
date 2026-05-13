@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GDP Growth Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#eab308;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus{outline:none;border-color:#eab308}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #2a2200;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.2rem;font-weight:700;color:#eab308}
+.res-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.chart-area{width:100%;height:180px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;margin-top:12px}
+.proj-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px}
+.proj-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.proj-table td{padding:5px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.proj-table tr:last-child td{border-bottom:none}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>GDP Growth Calculator</h1>
+  <p>Nominal vs real GDP, growth rates, per capita, and projections</p>
+</div>
+
+<div class="card">
+  <h2>GDP Growth Rate</h2>
+  <div class="grid2">
+    <div><label>GDP Year 1 (base)</label><input type="number" id="gdp1" value="1200000000000" step="any" oninput="calcGDP()"></div>
+    <div><label>GDP Year 2</label><input type="number" id="gdp2" value="1260000000000" step="any" oninput="calcGDP()"></div>
+    <div><label>Inflation rate (%)</label><input type="number" id="infl" value="3.5" step="0.01" oninput="calcGDP()"></div>
+    <div><label>Population Year 2</label><input type="number" id="pop2" value="130000000" step="any" oninput="calcGDP()"></div>
+  </div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="nom-growth">—</div><div class="res-lbl">Nominal growth</div></div>
+    <div class="res-card"><div class="res-num" id="real-growth">—</div><div class="res-lbl">Real growth</div></div>
+    <div class="res-card"><div class="res-num" id="gdp-pc">—</div><div class="res-lbl">GDP per capita</div></div>
+  </div>
+
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">Nominal GDP change</span><span class="info-val" id="nom-delta">—</span></div>
+    <div class="info-row"><span class="info-label">Real GDP (deflated)</span><span class="info-val" id="real-gdp">—</span></div>
+    <div class="info-row"><span class="info-label">GDP deflator</span><span class="info-val" id="deflator">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>CAGR & Long-Run Projection</h2>
+  <div class="grid2">
+    <div><label>Base GDP</label><input type="number" id="base-gdp" value="1200000000000" step="any" oninput="calcCAGR()"></div>
+    <div><label>Annual growth rate (%)</label><input type="number" id="annual-r" value="2.5" step="0.01" oninput="calcCAGR()"></div>
+    <div><label>Projection years</label><input type="number" id="proj-yr" value="20" min="1" max="100" oninput="calcCAGR()"></div>
+    <div><label>Population growth (%/yr)</label><input type="number" id="pop-r" value="0.8" step="0.01" oninput="calcCAGR()"></div>
+  </div>
+
+  <canvas id="gdpChart" class="chart-area" width="600" height="180"></canvas>
+
+  <table class="proj-table" style="margin-top:10px">
+    <thead><tr><th>Year</th><th>GDP</th><th>vs Base</th><th>GDP/capita (est.)</th></tr></thead>
+    <tbody id="proj-body"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>World GDP Reference (2024)</h2>
+  <div class="info-row"><span class="info-label">World GDP</span><span class="info-val">~$108 trillion (nominal)</span></div>
+  <div class="info-row"><span class="info-label">US GDP</span><span class="info-val">~$28.2T | 2.5% real growth</span></div>
+  <div class="info-row"><span class="info-label">China GDP</span><span class="info-val">~$18.5T | 5.0% real growth</span></div>
+  <div class="info-row"><span class="info-label">Mexico GDP</span><span class="info-val">~$1.5T | 1.5% real growth</span></div>
+  <div class="info-row"><span class="info-label">World average growth</span><span class="info-val">~3.1% (2024, IMF)</span></div>
+  <div class="info-row"><span class="info-label">Rule of 70</span><span class="info-val">Doubles in 70 ÷ growth rate years</span></div>
+</div>
+
+<script>
+function fmtBig(n){
+  const abs=Math.abs(n);
+  if(abs>=1e12)return(n/1e12).toFixed(2)+'T';
+  if(abs>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(abs>=1e6)return(n/1e6).toFixed(2)+'M';
+  return Math.round(n).toLocaleString();
+}
+
+function calcGDP(){
+  const g1=parseFloat(document.getElementById('gdp1').value)||0;
+  const g2=parseFloat(document.getElementById('gdp2').value)||0;
+  const infl=(parseFloat(document.getElementById('infl').value)||0)/100;
+  const pop=parseFloat(document.getElementById('pop2').value)||1;
+  if(!g1||!g2) return;
+
+  const nomGrowth=((g2-g1)/g1)*100;
+  const realGDP=g2/(1+infl);
+  const realGrowth=((realGDP-g1)/g1)*100;
+  const deflator=(g2/realGDP)*100;
+  const perCap=g2/pop;
+
+  document.getElementById('nom-growth').textContent=nomGrowth.toFixed(2)+'%';
+  document.getElementById('real-growth').textContent=realGrowth.toFixed(2)+'%';
+  document.getElementById('gdp-pc').textContent='$'+Math.round(perCap).toLocaleString();
+  document.getElementById('nom-delta').textContent='$'+fmtBig(g2-g1);
+  document.getElementById('real-gdp').textContent='$'+fmtBig(realGDP);
+  document.getElementById('deflator').textContent=deflator.toFixed(1);
+}
+
+function calcCAGR(){
+  const base=parseFloat(document.getElementById('base-gdp').value)||1e12;
+  const r=(parseFloat(document.getElementById('annual-r').value)||2.5)/100;
+  const yrs=parseInt(document.getElementById('proj-yr').value)||20;
+  const popR=(parseFloat(document.getElementById('pop-r').value)||0.8)/100;
+
+  const points=[];
+  for(let i=0;i<=yrs;i++) points.push(base*Math.pow(1+r,i));
+
+  const canvas=document.getElementById('gdpChart');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const maxV=points[points.length-1];
+
+  ctx.strokeStyle='#eab308';ctx.lineWidth=2;
+  ctx.beginPath();
+  points.forEach((v,i)=>{
+    const x=20+(W-40)*(i/yrs);
+    const y=H-20-(H-40)*(v/maxV);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.fillStyle='#eab30822';
+  ctx.beginPath();
+  points.forEach((v,i)=>{const x=20+(W-40)*(i/yrs);const y=H-20-(H-40)*(v/maxV);if(i===0)ctx.moveTo(x,H-20);ctx.lineTo(x,y);});
+  ctx.lineTo(W-20,H-20);ctx.closePath();ctx.fill();
+
+  ctx.fillStyle='#888';ctx.font='10px Segoe UI';
+  ctx.textAlign='left';ctx.fillText('$'+fmtBig(base),22,H-5);
+  ctx.textAlign='right';ctx.fillText('$'+fmtBig(maxV),W-22,H-5);
+  ctx.textAlign='left';ctx.fillText('Yr '+yrs,22,14);
+
+  const tbody=document.getElementById('proj-body');
+  const step=Math.max(1,Math.floor(yrs/8));
+  let rows='';
+  for(let y=step;y<=yrs;y+=step){
+    const gdp=base*Math.pow(1+r,y);
+    const pop=130e6*Math.pow(1+popR,y);
+    rows+=`<tr><td>+${y}</td><td>$${fmtBig(gdp)}</td><td>+${(((gdp-base)/base)*100).toFixed(0)}%</td><td>$${Math.round(gdp/pop).toLocaleString()}</td></tr>`;
+  }
+  tbody.innerHTML=rows;
+}
+
+calcGDP();
+calcCAGR();
+</script>
+</body></html>

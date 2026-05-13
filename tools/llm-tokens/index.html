@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLM Token Cost Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#a78bfa;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select,textarea{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+textarea{resize:vertical;min-height:100px;font-family:monospace}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.2rem;font-weight:700;color:#a78bfa}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.token-viz{display:flex;flex-wrap:wrap;gap:2px;margin-top:8px;max-height:120px;overflow-y:auto}
+.tok{padding:2px 6px;border-radius:3px;font-size:.75rem;font-family:monospace;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:#a78bfa}
+.bar{height:8px;background:#222;border-radius:4px;overflow:hidden;margin-top:4px}
+.bar-fill{height:100%;border-radius:4px;background:#a78bfa;transition:width .4s}
+.highlight-row td{color:#a78bfa;font-weight:600}
+</style>
+</head>
+<body>
+<h1>LLM Token Cost Calculator</h1>
+<p class="sub">Estimate tokens, context usage, and API cost for major LLMs</p>
+
+<div class="card">
+  <h2>Text Input</h2>
+  <label>Paste text to tokenize (approx)</label>
+  <textarea id="inputText" oninput="estimateTokens()">The quick brown fox jumps over the lazy dog. This sentence contains multiple words and punctuation marks that will be tokenized by the model's BPE tokenizer.</textarea>
+  <div class="row2" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_chars">--</div><div class="l">Characters</div></div>
+    <div class="stat"><div class="v" id="r_tokens">--</div><div class="l">Est. tokens</div></div>
+  </div>
+  <div class="token-viz" id="tokenViz"></div>
+</div>
+
+<div class="card">
+  <h2>Usage Parameters</h2>
+  <div class="row2">
+    <div><label>Input tokens (prompt)</label><input type="number" id="inTok" value="1000" oninput="calcCost()"></div>
+    <div><label>Output tokens (completion)</label><input type="number" id="outTok" value="500" oninput="calcCost()"></div>
+  </div>
+  <div class="row2">
+    <div><label>Requests per day</label><input type="number" id="reqDay" value="1000" oninput="calcCost()"></div>
+    <div><label>Days per month</label><input type="number" id="days" value="30" oninput="calcCost()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Cost by Model</h2>
+  <table id="costTable">
+    <tr><th>Model</th><th>Context</th><th>In ($/1M)</th><th>Out ($/1M)</th><th>Per Request</th><th>Monthly</th><th>Ctx Usage</th></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Context Window Reference</h2>
+  <div id="ctxBars"></div>
+</div>
+
+<script>
+const MODELS=[
+  {name:'GPT-4o',ctx:128000,in_m:2.50,out_m:10.00},
+  {name:'GPT-4o mini',ctx:128000,in_m:0.15,out_m:0.60},
+  {name:'GPT-4 Turbo',ctx:128000,in_m:10.00,out_m:30.00},
+  {name:'Claude 3.5 Sonnet',ctx:200000,in_m:3.00,out_m:15.00},
+  {name:'Claude 3 Haiku',ctx:200000,in_m:0.25,out_m:1.25},
+  {name:'Claude 3 Opus',ctx:200000,in_m:15.00,out_m:75.00},
+  {name:'Gemini 1.5 Pro',ctx:1000000,in_m:1.25,out_m:5.00},
+  {name:'Gemini 1.5 Flash',ctx:1000000,in_m:0.075,out_m:0.30},
+  {name:'Llama 3.1 70B',ctx:131072,in_m:0.59,out_m:0.79},
+  {name:'Mistral Large',ctx:131072,in_m:3.00,out_m:9.00},
+];
+function estimateTokens(){
+  const text=document.getElementById('inputText').value;
+  const chars=text.length;
+  // BPE approximation: ~4 chars per token on average
+  const toks=Math.ceil(chars/4);
+  document.getElementById('r_chars').textContent=chars.toLocaleString();
+  document.getElementById('r_tokens').textContent=toks.toLocaleString();
+  document.getElementById('inTok').value=toks;
+  // Visual tokenization (split on word boundaries approx)
+  const words=text.match(/\S+|\n/g)||[];
+  const chips=words.slice(0,80).map(w=>`<span class="tok">${w.replace(/</g,'&lt;')}</span>`).join('');
+  document.getElementById('tokenViz').innerHTML=chips+(words.length>80?`<span style="color:#555;font-size:.75rem">+${words.length-80} more...</span>`:'');
+  calcCost();
+}
+function calcCost(){
+  const inTok=parseInt(document.getElementById('inTok').value)||0;
+  const outTok=parseInt(document.getElementById('outTok').value)||0;
+  const reqDay=parseInt(document.getElementById('reqDay').value)||0;
+  const days=parseInt(document.getElementById('days').value)||30;
+  const totalTok=inTok+outTok;
+  const monthlyReq=reqDay*days;
+
+  let rows='<tr><th>Model</th><th>Context</th><th>In ($/1M)</th><th>Out ($/1M)</th><th>Per Request</th><th>Monthly</th><th>Ctx Usage</th></tr>';
+  const maxCtx=Math.max(...MODELS.map(m=>m.ctx));
+  let ctxHtml='';
+  MODELS.forEach(m=>{
+    const perReq=(inTok/1e6*m.in_m)+(outTok/1e6*m.out_m);
+    const monthly=perReq*monthlyReq;
+    const ctxPct=(totalTok/m.ctx*100).toFixed(1);
+    const fits=totalTok<=m.ctx;
+    const fitColor=fits?'#22c55e':'#ef4444';
+    rows+=`<tr>
+      <td style="font-weight:600">${m.name}</td>
+      <td>${(m.ctx/1000).toFixed(0)}K</td>
+      <td>$${m.in_m}</td><td>$${m.out_m}</td>
+      <td>$${perReq.toFixed(6)}</td>
+      <td style="color:${monthly>100?'#ef4444':'#22c55e'}">$${monthly.toFixed(2)}</td>
+      <td style="color:${fitColor}">${ctxPct}% ${fits?'✓':'✗'}</td>
+    </tr>`;
+    const barPct=Math.min(100,m.ctx/maxCtx*100);
+    ctxHtml+=`<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:#888;margin-bottom:2px"><span>${m.name}</span><span>${(m.ctx/1000).toFixed(0)}K tokens</span></div>
+      <div class="bar"><div class="bar-fill" style="width:${barPct}%"></div></div>
+    </div>`;
+  });
+  document.getElementById('costTable').innerHTML=rows;
+  document.getElementById('ctxBars').innerHTML=ctxHtml;
+}
+estimateTokens();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Big-O Complexity Analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#3b82f6;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+select,input{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.complexity-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.cx-item{display:flex;align-items:center;gap:10px;background:#1a1a1a;border-radius:8px;padding:10px 12px;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.cx-item.selected{border-color:#3b82f6}
+.cx-item .badge{min-width:90px;font-family:monospace;font-size:.88rem;font-weight:700}
+.cx-item .desc{font-size:.8rem;color:#aaa}
+.cx-item .bar{flex:1;height:8px;background:#222;border-radius:4px;overflow:hidden}
+.cx-item .bfill{height:100%;border-radius:4px}
+canvas{width:100%;height:200px;border-radius:8px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:right;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+th:first-child{text-align:left}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a;text-align:right}
+td:first-child{text-align:left;color:#aaa}
+.highlight{background:#1a2a4a;font-weight:600}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:10px}
+</style>
+</head>
+<body>
+<h1>Big-O Complexity Analyzer</h1>
+<p class="sub">Compare algorithm complexities and estimated runtimes</p>
+
+<div class="card">
+  <h2>Select Complexity Class</h2>
+  <div class="complexity-list" id="cxList"></div>
+</div>
+
+<div class="card">
+  <h2>Runtime Comparison</h2>
+  <label>Input size N</label>
+  <input type="range" id="nSlider" min="1" max="1000" value="100" oninput="document.getElementById('nVal').textContent=this.value;drawChart();buildTable()">
+  <div style="text-align:center;margin:6px 0;font-size:.88rem">N = <span id="nVal" style="color:#3b82f6;font-weight:700">100</span></div>
+  <canvas id="chart"></canvas>
+  <label>CPU speed (ops/sec)</label>
+  <select id="cpuSpeed" onchange="buildTable()">
+    <option value="1e6">1 MHz (embedded)</option>
+    <option value="1e8">100 MHz</option>
+    <option value="1e9" selected>1 GHz</option>
+    <option value="1e10">10 GHz</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>Operation Count Table</h2>
+  <table id="opTable"></table>
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+const COMPLEXITIES=[
+  {label:'O(1)',         color:'#22c55e', fn:n=>1,          name:'Constant',        ex:'Hash table lookup, array access'},
+  {label:'O(log n)',     color:'#84cc16', fn:n=>Math.log2(n),name:'Logarithmic',    ex:'Binary search, balanced BST'},
+  {label:'O(n)',         color:'#3b82f6', fn:n=>n,          name:'Linear',          ex:'Linear search, single loop'},
+  {label:'O(n log n)',   color:'#8b5cf6', fn:n=>n*Math.log2(n),name:'Linearithmic', ex:'Merge sort, heap sort'},
+  {label:'O(n²)',        color:'#eab308', fn:n=>n*n,         name:'Quadratic',      ex:'Bubble sort, nested loops'},
+  {label:'O(n³)',        color:'#f97316', fn:n=>n*n*n,       name:'Cubic',          ex:'Matrix multiplication (naive)'},
+  {label:'O(2ⁿ)',        color:'#ef4444', fn:n=>Math.pow(2,Math.min(n,50)),name:'Exponential',ex:'Subset enumeration, naive Fibonacci'},
+  {label:'O(n!)',        color:'#dc2626', fn:n=>{let f=1;for(let i=2;i<=Math.min(n,20);i++)f*=i;return f;},name:'Factorial',ex:'Traveling salesman (brute force)'},
+];
+let selected=new Set([0,1,2,3,4]);
+function renderList(){
+  let html='';
+  COMPLEXITIES.forEach((c,i)=>{
+    const isSelected=selected.has(i);
+    const N=100;
+    const relPct=Math.min(100,c.fn(N)/COMPLEXITIES[4].fn(N)*80);
+    html+=`<div class="cx-item ${isSelected?'selected':''}" onclick="toggleCx(${i})">
+      <span class="badge" style="color:${c.color}">${c.label}</span>
+      <div style="flex:1">
+        <div style="font-size:.82rem;font-weight:600">${c.name}</div>
+        <div class="desc">${c.ex}</div>
+      </div>
+      <div class="bar" style="width:80px"><div class="bfill" style="width:${relPct}%;background:${c.color}"></div></div>
+    </div>`;
+  });
+  document.getElementById('cxList').innerHTML=html;
+}
+function toggleCx(i){
+  if(selected.has(i))selected.delete(i);else selected.add(i);
+  renderList();drawChart();buildTable();
+}
+function drawChart(){
+  const canvas=document.getElementById('chart');
+  const W=canvas.offsetWidth*2||600;
+  const H=400;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const pad=40;
+  const maxN=parseInt(document.getElementById('nSlider').value)||100;
+  const points=50;
+  const step=maxN/points;
+  // Find max y for scaling
+  let maxY=0;
+  COMPLEXITIES.forEach((c,i)=>{if(selected.has(i)){for(let x=1;x<=maxN;x+=step){const y=c.fn(x);if(isFinite(y)&&y>maxY)maxY=y;}}});
+  maxY=maxY||1;
+  ctx.strokeStyle='#333';ctx.lineWidth=1;
+  // Grid
+  for(let i=0;i<=4;i++){
+    const y=pad+(H-2*pad)*i/4;
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+    ctx.fillStyle='#555';ctx.font=`${W*0.02}px sans-serif`;
+    ctx.fillText(Math.round(maxY*(1-i/4)).toLocaleString(),0,y+4);
+  }
+  COMPLEXITIES.forEach((c,i)=>{
+    if(!selected.has(i))return;
+    ctx.beginPath();ctx.strokeStyle=c.color;ctx.lineWidth=2;
+    let first=true;
+    for(let x=1;x<=maxN;x+=step){
+      const y=c.fn(x);
+      if(!isFinite(y))continue;
+      const px=pad+(x/maxN)*(W-2*pad);
+      const py=pad+(1-Math.min(y,maxY)/maxY)*(H-2*pad);
+      if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    // Label at end
+    const ey=c.fn(maxN);
+    if(isFinite(ey)){
+      const lpy=pad+(1-Math.min(ey,maxY)/maxY)*(H-2*pad);
+      ctx.fillStyle=c.color;ctx.font=`bold ${W*0.02}px sans-serif`;
+      ctx.fillText(c.label,W-pad+2,lpy+4);
+    }
+  });
+  // X axis labels
+  ctx.fillStyle='#555';ctx.font=`${W*0.02}px sans-serif`;
+  [1,maxN/4,maxN/2,maxN*3/4,maxN].forEach(x=>{
+    const px=pad+(x/maxN)*(W-2*pad);
+    ctx.fillText(Math.round(x),px-8,H-pad+16);
+  });
+}
+function buildTable(){
+  const cpu=parseFloat(document.getElementById('cpuSpeed').value)||1e9;
+  const ns=[1,10,100,1000,10000,1000000];
+  const N=parseInt(document.getElementById('nSlider').value)||100;
+  let html=`<tr><th>N →</th>${ns.map(n=>`<th>${n>=1000?n.toLocaleString():n}</th>`).join('')}</tr>`;
+  COMPLEXITIES.forEach((c,i)=>{
+    if(!selected.has(i))return;
+    html+=`<tr class="${i===2?'highlight':''}">
+      <td style="color:${c.color};font-family:monospace">${c.label}</td>
+      ${ns.map(n=>{
+        const ops=c.fn(n);
+        if(!isFinite(ops)||ops>1e50)return`<td style="color:#555">∞</td>`;
+        const secs=ops/cpu;
+        let str;
+        if(secs<1e-9)str=(secs*1e12).toFixed(1)+'ps';
+        else if(secs<1e-6)str=(secs*1e9).toFixed(1)+'ns';
+        else if(secs<1e-3)str=(secs*1e6).toFixed(1)+'μs';
+        else if(secs<1)str=(secs*1e3).toFixed(1)+'ms';
+        else if(secs<60)str=secs.toFixed(2)+'s';
+        else if(secs<3600)str=(secs/60).toFixed(1)+'min';
+        else if(secs<86400)str=(secs/3600).toFixed(1)+'hr';
+        else str=(secs/86400).toFixed(0)+'days';
+        return`<td>${str}</td>`;
+      }).join('')}
+    </tr>`;
+  });
+  document.getElementById('opTable').innerHTML=html;
+  const sel=COMPLEXITIES.filter((_,i)=>selected.has(i));
+  const worst=sel[sel.length-1];
+  const best=sel[0];
+  document.getElementById('note').textContent=
+    `At N=${N}: Best = ${best.label} (${best.fn(N).toLocaleString()} ops), Worst = ${worst.label} (${isFinite(worst.fn(N))?worst.fn(N).toLocaleString():'∞'} ops). Ratio: ${isFinite(worst.fn(N))?Math.round(worst.fn(N)/best.fn(N)).toLocaleString():'∞'}×.`;
+}
+renderList();drawChart();buildTable();
+window.addEventListener('resize',()=>drawChart());
+</script>
+</body>
+</html>

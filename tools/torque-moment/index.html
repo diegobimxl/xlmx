@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Torque & Moment Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f97316;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:14px;text-align:center}
+.stat .v{font-size:1.3rem;font-weight:700;color:#f97316}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+canvas{width:100%;border-radius:8px;margin-top:8px;background:#0a0a0a}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.formula{font-family:monospace;font-size:.82rem;background:#1a1a1a;padding:8px;border-radius:6px;color:#888;margin-top:6px}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:10px}
+</style>
+</head>
+<body>
+<h1>Torque & Moment Calculator</h1>
+<p class="sub">τ = F × d × sin(θ) — rotational force, beam moments, and unit conversions</p>
+
+<div class="card">
+  <h2>Torque / Moment</h2>
+  <div class="row2">
+    <div><label>Force (F)</label><input type="number" id="force" value="50" step="any" oninput="calc()"></div>
+    <div><label>Force unit</label><select id="fUnit" onchange="calc()"><option value="1">N</option><option value="4.44822">lbf</option><option value="9.80665">kgf</option></select></div>
+  </div>
+  <div class="row2">
+    <div><label>Moment arm (d)</label><input type="number" id="arm" value="0.3" step="any" oninput="calc()"></div>
+    <div><label>Distance unit</label><select id="dUnit" onchange="calc()"><option value="1">m</option><option value="0.001">mm</option><option value="0.0254">in</option><option value="0.3048">ft</option></select></div>
+  </div>
+  <label>Angle θ (degrees from perpendicular)</label>
+  <input type="range" id="theta" min="0" max="90" value="90" oninput="document.getElementById('thetaV').textContent=this.value+'°';calc()">
+  <div style="text-align:center;font-size:.85rem;margin:4px">θ = <span id="thetaV" style="color:#f97316;font-weight:700">90°</span> (90° = full perpendicular force)</div>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <div class="row3">
+    <div class="stat"><div class="v" id="r_nm">--</div><div class="l">N·m</div></div>
+    <div class="stat"><div class="v" id="r_ftlb">--</div><div class="l">ft·lbf</div></div>
+    <div class="stat"><div class="v" id="r_inlb">--</div><div class="l">in·lbf</div></div>
+  </div>
+  <div class="row3" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_kgcm">--</div><div class="l">kgf·cm</div></div>
+    <div class="stat"><div class="v" id="r_knm">--</div><div class="l">kN·m</div></div>
+    <div class="stat"><div class="v" id="r_inoz">--</div><div class="l">in·oz</div></div>
+  </div>
+  <div class="formula">τ = F × d × sin(θ) = <span id="r_expr" style="color:#f97316">--</span></div>
+</div>
+
+<div class="card">
+  <h2>Beam Moment (Simply Supported)</h2>
+  <div class="row2">
+    <div><label>Span L (m)</label><input type="number" id="span" value="5" step="any" oninput="calcBeam()"></div>
+    <div><label>Load type</label><select id="loadType" onchange="calcBeam()"><option value="point">Point load at center</option><option value="udl">Uniform distributed load</option><option value="pointx">Point load at x</option></select></div>
+  </div>
+  <div class="row2">
+    <div><label>Load W (kN or kN/m)</label><input type="number" id="beamLoad" value="10" step="any" oninput="calcBeam()"></div>
+    <div><label>Load position x (m, for point@x)</label><input type="number" id="loadX" value="2" step="any" oninput="calcBeam()"></div>
+  </div>
+  <div class="row3" style="margin-top:10px">
+    <div class="stat"><div class="v" id="b_mmax">--</div><div class="l">M_max (kN·m)</div></div>
+    <div class="stat"><div class="v" id="b_ra">--</div><div class="l">R_A (kN)</div></div>
+    <div class="stat"><div class="v" id="b_rb">--</div><div class="l">R_B (kN)</div></div>
+  </div>
+  <canvas id="beamCanvas" height="120"></canvas>
+</div>
+
+<script>
+function calc(){
+  const F=parseFloat(document.getElementById('force').value)||0;
+  const fU=parseFloat(document.getElementById('fUnit').value)||1;
+  const d=parseFloat(document.getElementById('arm').value)||0;
+  const dU=parseFloat(document.getElementById('dUnit').value)||1;
+  const theta=parseFloat(document.getElementById('theta').value)||90;
+  const FN=F*fU,dM=d*dU;
+  const tau=FN*dM*Math.sin(theta*Math.PI/180);
+  document.getElementById('r_nm').textContent=tau.toFixed(4);
+  document.getElementById('r_ftlb').textContent=(tau/1.35582).toFixed(4);
+  document.getElementById('r_inlb').textContent=(tau/0.113).toFixed(3);
+  document.getElementById('r_kgcm').textContent=(tau/0.0981).toFixed(3);
+  document.getElementById('r_knm').textContent=(tau/1000).toFixed(6);
+  document.getElementById('r_inoz').textContent=(tau/0.00706).toFixed(3);
+  document.getElementById('r_expr').textContent=`${FN.toFixed(2)} N × ${dM.toFixed(4)} m × sin(${theta}°) = ${tau.toFixed(4)} N·m`;
+}
+function calcBeam(){
+  const L=parseFloat(document.getElementById('span').value)||1;
+  const W=parseFloat(document.getElementById('beamLoad').value)||0;
+  const type=document.getElementById('loadType').value;
+  const x=parseFloat(document.getElementById('loadX').value)||L/2;
+  let mmax,ra,rb;
+  if(type==='point'){ra=W/2;rb=W/2;mmax=W*L/4;}
+  else if(type==='udl'){ra=W*L/2;rb=W*L/2;mmax=W*L*L/8;}
+  else{ra=W*(L-x)/L;rb=W*x/L;mmax=ra*x;}
+  document.getElementById('b_mmax').textContent=mmax.toFixed(4);
+  document.getElementById('b_ra').textContent=ra.toFixed(4);
+  document.getElementById('b_rb').textContent=rb.toFixed(4);
+  drawBeam(L,W,type,x,ra,rb,mmax);
+}
+function drawBeam(L,W,type,x,ra,rb,mmax){
+  const canvas=document.getElementById('beamCanvas');
+  const W2=canvas.offsetWidth*2||400,H=240;canvas.width=W2;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W2,H);
+  const pad=40,y0=120;
+  const bw=W2-2*pad;
+  // Beam
+  ctx.fillStyle='#f97316';ctx.fillRect(pad,y0-8,bw,16);
+  // Supports
+  ctx.strokeStyle='#888';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(pad,y0+8);ctx.lineTo(pad-15,y0+30);ctx.lineTo(pad+15,y0+30);ctx.closePath();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad+bw,y0+8);ctx.lineTo(pad+bw-15,y0+30);ctx.lineTo(pad+bw+15,y0+30);ctx.closePath();ctx.stroke();
+  // Load
+  if(type==='udl'){
+    for(let xi=0;xi<=bw;xi+=20){ctx.strokeStyle='#3b82f6';ctx.beginPath();ctx.moveTo(pad+xi,y0-8);ctx.lineTo(pad+xi,y0-30);ctx.stroke();}
+    ctx.strokeStyle='#3b82f6';ctx.beginPath();ctx.moveTo(pad,y0-30);ctx.lineTo(pad+bw,y0-30);ctx.stroke();
+    ctx.fillStyle='#3b82f6';ctx.font='22px sans-serif';ctx.fillText('w='+W+'kN/m',W2/2-40,y0-35);
+  }else{
+    const lx=type==='pointx'?pad+x/L*bw:W2/2;
+    ctx.strokeStyle='#3b82f6';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(lx,y0-8);ctx.lineTo(lx,y0-50);ctx.stroke();
+    ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.moveTo(lx,y0-8);ctx.lineTo(lx-8,y0-20);ctx.lineTo(lx+8,y0-20);ctx.closePath();ctx.fill();
+    ctx.font='22px sans-serif';ctx.fillText('W='+W+'kN',lx-30,y0-55);
+  }
+  ctx.fillStyle='#888';ctx.font='20px sans-serif';
+  ctx.fillText('A  RA='+ra.toFixed(2)+'kN',pad-10,y0+55);
+  ctx.fillText('B  RB='+rb.toFixed(2)+'kN',pad+bw-80,y0+55);
+  ctx.fillStyle='#f97316';ctx.font='bold 22px sans-serif';
+  ctx.fillText('Mmax='+mmax.toFixed(2)+'kN·m',W2/2-70,H-5);
+}
+calc();calcBeam();
+window.addEventListener('resize',calcBeam);
+</script>
+</body>
+</html>

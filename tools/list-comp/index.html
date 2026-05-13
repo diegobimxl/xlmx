@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Python List Comprehension Builder — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#3b82f6;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select,textarea{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#3b82f6}
+textarea{resize:vertical;min-height:60px;font-family:'Courier New',monospace;font-size:.85rem}
+.code-block{background:#0a0a16;border:1px solid #1e2a4a;border-radius:8px;padding:14px;font-family:'Courier New',monospace;font-size:.88rem;color:#93c5fd;white-space:pre-wrap;word-break:break-all;margin:8px 0}
+.code-comment{color:#4b5563}
+.code-kw{color:#f472b6}
+.code-str{color:#86efac}
+.code-num{color:#fbbf24}
+.copy-btn{background:#1e3a6a;border:1px solid #3b82f6;color:#93c5fd;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:.78rem;float:right;margin-bottom:6px}
+.copy-btn:hover{background:#2563eb;color:#fff}
+.result-out{background:#0a1a0a;border:1px solid #14532d;border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:.85rem;color:#4ade80;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow-y:auto;margin-top:8px}
+.tab-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;cursor:pointer;font-size:.82rem}
+.tab.active{background:#3b82f6;color:#fff;border-color:#3b82f6;font-weight:700}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.recipe-card{background:#0d0d0d;border:1px solid #1e2a4a;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer}
+.recipe-card:hover{border-color:#3b82f6}
+.recipe-title{font-size:.85rem;font-weight:600;color:#93c5fd;margin-bottom:4px}
+.recipe-code{font-family:'Courier New',monospace;font-size:.78rem;color:#6b7280}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Python List Comprehension Builder</h1>
+  <p>Build, simulate, and learn list / dict / set comprehensions</p>
+</div>
+
+<div class="card">
+  <h2>Builder</h2>
+  <div class="tab-row">
+    <button class="tab active" onclick="setType('list',this)">List [ ]</button>
+    <button class="tab" onclick="setType('dict',this)">Dict { }</button>
+    <button class="tab" onclick="setType('set',this)">Set { }</button>
+    <button class="tab" onclick="setType('gen',this)">Generator ( )</button>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <label>Expression (what to produce per item)</label>
+      <input type="text" id="expr" value="x**2" oninput="build()">
+      <label style="margin-top:8px">Variable name</label>
+      <input type="text" id="var" value="x" maxlength="10" oninput="build()">
+    </div>
+    <div>
+      <label>Iterable</label>
+      <input type="text" id="iterable" value="range(10)" oninput="build()">
+      <label style="margin-top:8px">Condition (optional)</label>
+      <input type="text" id="cond" placeholder="e.g. x % 2 == 0" oninput="build()">
+    </div>
+  </div>
+
+  <div id="dict-extra" style="display:none;margin-top:10px">
+    <label>Value expression (key → value)</label>
+    <input type="text" id="val-expr" value="x**2" oninput="build()">
+  </div>
+
+  <div style="margin-top:12px">
+    <button class="copy-btn" onclick="copyCode()">Copy</button>
+    <div class="code-block" id="code-out">—</div>
+    <div class="code-block" id="loop-equiv" style="color:#6b7280">—</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Simulate Output (browser JS)</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:8px">Uses JS to approximate Python output for simple expressions. Complex Python builtins may differ.</p>
+  <button onclick="simulate()" style="background:#1e3a6a;border:1px solid #3b82f6;color:#93c5fd;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:.85rem">Run Simulation</button>
+  <div class="result-out" id="sim-out">Click "Run Simulation"</div>
+  <div style="margin-top:8px">
+    <div class="info-row"><span class="info-label">Output length</span><span class="info-val" id="sim-len">—</span></div>
+    <div class="info-row"><span class="info-label">Type</span><span class="info-val" id="sim-type">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recipes — Click to Load</h2>
+  <div id="recipes"></div>
+</div>
+
+<script>
+let compType='list';
+
+const RECIPES=[
+  {title:'Squares of even numbers', expr:'x**2', var:'x', iter:'range(20)', cond:'x % 2 == 0', type:'list'},
+  {title:'Flatten nested list', expr:'item', var:'item', iter:'sublist for sublist in matrix', cond:'', type:'list', note:'# matrix = [[1,2],[3,4],[5,6]]'},
+  {title:'Uppercase words > 3 chars', expr:'w.upper()', var:'w', iter:"words", cond:'len(w) > 3', type:'list', note:"# words = ['hi','hello','hey','world']"},
+  {title:'Word length dictionary', expr:'w', valExpr:'len(w)', var:'w', iter:"['apple','banana','fig']", cond:'', type:'dict'},
+  {title:'Unique first letters', expr:'w[0]', var:'w', iter:"['apple','avocado','banana','blueberry']", cond:'', type:'set'},
+  {title:'Celsius to Fahrenheit', expr:'c*9/5+32', var:'c', iter:'range(0,101,10)', cond:'', type:'list'},
+  {title:'Filter None values', expr:'x', var:'x', iter:"[1, None, 2, None, 3, 4]", cond:'x is not None', type:'list'},
+  {title:'String to int list', expr:'int(n)', var:'n', iter:"'1 2 3 4 5'.split()", cond:'', type:'list'},
+];
+
+function setType(t,el){
+  compType=t;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dict-extra').style.display=t==='dict'?'':'none';
+  build();
+}
+
+function build(){
+  const expr=document.getElementById('expr').value.trim()||'x';
+  const v=document.getElementById('var').value.trim()||'x';
+  const iter=document.getElementById('iterable').value.trim()||'range(10)';
+  const cond=document.getElementById('cond').value.trim();
+  const valExpr=document.getElementById('val-expr')?.value.trim()||'';
+
+  let code, loop;
+  const condStr=cond?` if ${cond}`:'';
+
+  if(compType==='list'){
+    code=`[${expr} for ${v} in ${iter}${condStr}]`;
+    loop=`result = []\nfor ${v} in ${iter}:\n    ${cond?'if '+cond+':\n        ':''}result.append(${expr})`;
+  } else if(compType==='dict'){
+    const ke=expr, ve=valExpr||expr;
+    code=`{${ke}: ${ve} for ${v} in ${iter}${condStr}}`;
+    loop=`result = {}\nfor ${v} in ${iter}:\n    ${cond?'if '+cond+':\n        ':''}result[${ke}] = ${ve}`;
+  } else if(compType==='set'){
+    code=`{${expr} for ${v} in ${iter}${condStr}}`;
+    loop=`result = set()\nfor ${v} in ${iter}:\n    ${cond?'if '+cond+':\n        ':''}result.add(${expr})`;
+  } else {
+    code=`(${expr} for ${v} in ${iter}${condStr})`;
+    loop=`# Generator — lazily evaluated\n# Use list(...) or next() to consume`;
+  }
+
+  document.getElementById('code-out').textContent=code;
+  document.getElementById('loop-equiv').textContent=`# Equivalent for-loop:\n${loop}`;
+}
+
+function copyCode(){
+  navigator.clipboard?.writeText(document.getElementById('code-out').textContent);
+}
+
+function simulate(){
+  const expr=document.getElementById('expr').value.trim();
+  const v=document.getElementById('var').value.trim()||'x';
+  const iter=document.getElementById('iterable').value.trim();
+  const cond=document.getElementById('cond').value.trim();
+
+  // Simple JS simulation for range() and array literals
+  try {
+    let items=[];
+    const rangeMatch=iter.match(/^range\(([^)]+)\)$/);
+    if(rangeMatch){
+      const args=rangeMatch[1].split(',').map(s=>parseInt(s.trim()));
+      const [start,end,step]=args.length===1?[0,args[0],1]:args.length===2?[args[0],args[1],1]:args;
+      for(let i=start;(step>0?i<end:i>end);i+=step) items.push(i);
+    } else {
+      // try JSON-ish eval
+      items=Function(`"use strict"; return ${iter.replace(/'/g,'"')}`)();
+    }
+
+    const fn=Function(v,'return ('+expr.replace(/\*\*/g,'**').replace(/\*\*/,(a,b)=>`Math.pow(${a},${b})`)+')')
+              .toString().replace('**','Math.pow');
+    
+    // safer: just eval with restricted scope
+    const result=items
+      .map(item=>{ try{ return Function(v,`"use strict"; return (${expr.replace(/\*\*/g,'^')})`)(item); }catch(e){return '?';} })
+      .filter((_,i)=>{
+        if(!cond) return true;
+        try{ return Function(v,`"use strict"; return (${cond})`)(items[i]); }catch(e){return false;}
+      });
+
+    const out=document.getElementById('sim-out');
+    out.textContent=JSON.stringify(result,null,2);
+    document.getElementById('sim-len').textContent=result.length;
+    document.getElementById('sim-type').textContent=compType==='dict'?'dict':compType==='set'?'set (shown as array)':compType==='gen'?'generator':'list';
+  } catch(e){
+    document.getElementById('sim-out').textContent='Simulation error: '+e.message+'\n(Try running in a real Python env)';
+  }
+}
+
+function loadRecipe(r){
+  compType=r.type||'list';
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const types=['list','dict','set','gen'];
+    t.classList.toggle('active',types[i]===compType);
+  });
+  document.getElementById('expr').value=r.expr||'x';
+  document.getElementById('var').value=r.var||'x';
+  document.getElementById('iterable').value=r.iter||'range(10)';
+  document.getElementById('cond').value=r.cond||'';
+  if(r.valExpr) document.getElementById('val-expr').value=r.valExpr;
+  document.getElementById('dict-extra').style.display=compType==='dict'?'':'none';
+  build();
+}
+
+const rc=document.getElementById('recipes');
+rc.innerHTML=RECIPES.map((r,i)=>`
+  <div class="recipe-card" onclick='loadRecipe(${JSON.stringify(r).replace(/'/g,"\\'")})'> 
+    <div class="recipe-title">${r.title}</div>
+    <div class="recipe-code">${r.note||''}</div>
+  </div>`).join('');
+
+build();
+</script>
+</body></html>

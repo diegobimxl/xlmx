@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Irrigation Water Calculator — XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}.header h1{font-size:1.4rem;font-weight:600;color:#fff}.header p{color:#888;font-size:0.85rem;margin-top:4px}.badge{display:inline-block;background:#84cc16;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}@media(max-width:700px){.grid,.grid-3{grid-template-columns:1fr}}.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}label:first-of-type{margin-top:0}input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}input:focus,select:focus{outline:none;border-color:#84cc16}.result-big{font-size:2rem;font-weight:700;color:#84cc16;margin:4px 0}.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}.good{color:#84cc16}.warn{color:#f59e0b}table{width:100%;border-collapse:collapse;font-size:0.82rem}th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}th:first-child{text-align:left}td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}td:first-child{text-align:left;color:#ccc}tr:last-child td{border-bottom:none;font-weight:700;background:#161616}</style></head>
+<body>
+<div class="header"><h1>Irrigation Water Calculator <span class="badge">AGRICULTURE</span></h1><p>Crop water requirement, irrigation volume, and system sizing — FAO-56 Penman-Monteith (simplified) · USDA</p></div>
+<div class="grid">
+<div class="card">
+<h3>Field Parameters</h3>
+<label>Crop Type</label>
+<select id="crop" onchange="calc()">
+<option value="corn">Corn / Maize (Kc=1.15)</option>
+<option value="wheat">Wheat (Kc=1.10)</option>
+<option value="cotton">Cotton (Kc=1.05)</option>
+<option value="soybean">Soybean (Kc=1.05)</option>
+<option value="tomato">Tomato (Kc=1.15)</option>
+<option value="potato">Potato (Kc=1.10)</option>
+<option value="alfalfa">Alfalfa (Kc=0.95)</option>
+<option value="grass">Turfgrass (Kc=0.85)</option>
+<option value="citrus">Citrus (Kc=0.75)</option>
+<option value="custom">Custom Kc</option>
+</select>
+<label>Custom Kc (if selected above)</label>
+<input type="number" id="kc_custom" value="1.0" step="0.05" oninput="calc()">
+<label>Field Area (acres)</label>
+<input type="number" id="area" value="50" oninput="calc()">
+<label>Growing Season (days)</label>
+<input type="number" id="season" value="120" oninput="calc()">
+<label>Irrigation System Efficiency (%)</label>
+<select id="eff" onchange="calc()">
+<option value="90">Drip/Micro (90%)</option>
+<option value="75">Center Pivot (75%)</option>
+<option value="65">Sprinkler (65%)</option>
+<option value="55">Furrow/Flood (55%)</option>
+</select>
+</div>
+<div class="card">
+<h3>Climate Inputs</h3>
+<label>Reference ET₀ (in/day, avg growing season)</label>
+<input type="number" id="et0" value="0.22" step="0.01" oninput="calc()">
+<label>Effective Rainfall (in/season)</label>
+<input type="number" id="rainfall" value="6" oninput="calc()">
+<label>Soil Water Holding Capacity (in/ft)</label>
+<select id="soil" onchange="calc()">
+<option value="2.5">Sandy loam (2.5 in/ft)</option>
+<option value="1.5">Sandy (1.5 in/ft)</option>
+<option value="2.0">Loamy sand (2.0 in/ft)</option>
+<option value="3.0" selected>Loam (3.0 in/ft)</option>
+<option value="3.5">Clay loam (3.5 in/ft)</option>
+<option value="4.0">Clay (4.0 in/ft)</option>
+</select>
+<label>Root Zone Depth (ft)</label>
+<input type="number" id="rootzone" value="3" step="0.5" oninput="calc()">
+<label>Water Cost ($/acre-ft)</label>
+<input type="number" id="water_cost" value="80" oninput="calc()">
+</div>
+</div>
+<div class="grid-3">
+<div class="card">
+<h3>Crop Water Requirement</h3>
+<div class="result-big" id="etc_season">—</div>
+<div class="result-label">Seasonal ETc (inches)</div>
+<div class="result-sub" id="net_req">—</div>
+<div class="result-label">Net irrigation needed (after rain)</div>
+<div class="result-sub" id="gross_req">—</div>
+<div class="result-label">Gross irrigation (after efficiency loss)</div>
+</div>
+<div class="card">
+<h3>Volume & Cost</h3>
+<div class="result-big good" id="vol_af">—</div>
+<div class="result-label">Total acre-feet / season</div>
+<div class="result-sub" id="vol_gal">—</div>
+<div class="result-label">Total gallons / season</div>
+<div class="result-sub" id="water_bill">—</div>
+<div class="result-label">Estimated water cost / season</div>
+</div>
+<div class="card">
+<h3>Daily System Demand</h3>
+<div class="result-big" id="daily_gpm">—</div>
+<div class="result-label">GPM required (12hr/day operation)</div>
+<div class="result-sub" id="daily_gal">—</div>
+<div class="result-label">Gallons per day (peak)</div>
+<div class="result-sub" id="app_rate">—</div>
+<div class="result-label">Application rate (in/day)</div>
+</div>
+</div>
+<div class="card" style="margin-bottom:16px">
+<h3>Crop Kc Reference — FAO-56</h3>
+<table><thead><tr><th>Crop</th><th>Kc Initial</th><th>Kc Mid</th><th>Kc End</th><th>Season (days)</th></tr></thead>
+<tbody>
+<tr><td>Corn / Maize</td><td>0.30</td><td>1.20</td><td>0.60</td><td>125</td></tr>
+<tr><td>Wheat (winter)</td><td>0.30</td><td>1.15</td><td>0.30</td><td>180</td></tr>
+<tr><td>Soybean</td><td>0.40</td><td>1.15</td><td>0.50</td><td>140</td></tr>
+<tr><td>Tomato</td><td>0.60</td><td>1.15</td><td>0.80</td><td>135</td></tr>
+<tr><td>Alfalfa</td><td>0.40</td><td>0.95</td><td>0.90</td><td>365</td></tr>
+<tr><td>Turfgrass</td><td>0.90</td><td>0.95</td><td>0.95</td><td>365</td></tr>
+</tbody></table>
+</div>
+<script>
+var KC={corn:1.15,wheat:1.10,cotton:1.05,soybean:1.05,tomato:1.15,potato:1.10,alfalfa:0.95,grass:0.85,citrus:0.75,custom:1.0};
+function calc(){
+  var crop=document.getElementById('crop').value;
+  var kc=crop==='custom'?parseFloat(document.getElementById('kc_custom').value):KC[crop];
+  var area=parseFloat(document.getElementById('area').value)||50;
+  var season=parseFloat(document.getElementById('season').value)||120;
+  var eff=parseFloat(document.getElementById('eff').value)/100||0.75;
+  var et0=parseFloat(document.getElementById('et0').value)||0.22;
+  var rain=parseFloat(document.getElementById('rainfall').value)||6;
+  var wc=parseFloat(document.getElementById('water_cost').value)||80;
+  var etc_day=kc*et0; // in/day
+  var etc_season=etc_day*season; // in/season
+  var net=Math.max(0,etc_season-rain);
+  var gross=net/eff;
+  var vol_af=gross*area/12; // acre-ft
+  var vol_gal=vol_af*325851;
+  var bill=vol_af*wc;
+  var daily_gal=vol_gal/season;
+  var daily_gpm=daily_gal/(12*60);
+  var app_rate=gross/season;
+  document.getElementById('etc_season').textContent=etc_season.toFixed(1)+' in';
+  document.getElementById('net_req').textContent=net.toFixed(1)+' in net';
+  document.getElementById('gross_req').textContent=gross.toFixed(1)+' in gross';
+  document.getElementById('vol_af').textContent=vol_af.toFixed(1)+' ac-ft';
+  document.getElementById('vol_gal').textContent=Math.round(vol_gal).toLocaleString()+' gal';
+  document.getElementById('water_bill').textContent='$'+Math.round(bill).toLocaleString();
+  document.getElementById('daily_gpm').textContent=daily_gpm.toFixed(0)+' GPM';
+  document.getElementById('daily_gal').textContent=Math.round(daily_gal).toLocaleString()+' gal/day';
+  document.getElementById('app_rate').textContent=app_rate.toFixed(3)+' in/day';
+}
+calc();
+</script></body></html>

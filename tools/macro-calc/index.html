@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Macro Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#10b981;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#10b981}
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.macro-card{background:#0d0d0d;border-radius:8px;padding:14px;text-align:center}
+.macro-num{font-size:1.3rem;font-weight:700}
+.macro-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.macro-g{font-size:.8rem;color:#888;margin-top:4px}
+.donut-wrap{display:flex;justify-content:center;margin:14px 0}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.goal-btn{padding:6px 14px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;cursor:pointer;font-size:.82rem;margin:0 4px 8px 0}
+.goal-btn.active{background:#10b981;color:#000;border-color:#10b981;font-weight:700}
+.meal-row{display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:.82rem}
+.meal-row:last-child{border-bottom:none}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Macro Calculator</h1>
+  <p>Protein, carbs, fat targets based on goal, weight, and activity</p>
+</div>
+
+<div class="card">
+  <h2>Personal Info</h2>
+  <div class="grid2">
+    <div><label>Weight (kg)</label><input type="number" id="weight" value="75" step="0.1" oninput="calc()"></div>
+    <div><label>Goal</label>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">
+        <button class="goal-btn active" onclick="setGoal('cut',this)">Cut (lose fat)</button>
+        <button class="goal-btn" onclick="setGoal('maintain',this)">Maintain</button>
+        <button class="goal-btn" onclick="setGoal('bulk',this)">Bulk (gain)</button>
+        <button class="goal-btn" onclick="setGoal('recomp',this)">Recomp</button>
+      </div>
+    </div>
+    <div><label>Activity level</label>
+      <select id="activity" onchange="calc()">
+        <option value="1.2">Sedentary</option>
+        <option value="1.375">Light (1–3×/wk)</option>
+        <option value="1.55" selected>Moderate (3–5×/wk)</option>
+        <option value="1.725">Active (6–7×/wk)</option>
+        <option value="1.9">Very active</option>
+      </select>
+    </div>
+    <div><label>Diet style</label>
+      <select id="diet-style" onchange="calc()">
+        <option value="balanced" selected>Balanced</option>
+        <option value="highprotein">High Protein</option>
+        <option value="keto">Keto / Low-carb</option>
+        <option value="lowfat">Low Fat</option>
+        <option value="zone">Zone (40/30/30)</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:10px">
+    <label>BMR (kcal/day) — or enter your own</label>
+    <input type="number" id="bmr" value="1750" oninput="calc()">
+  </div>
+</div>
+
+<div class="card">
+  <h2>Your Macro Targets</h2>
+  <div style="margin-bottom:8px">
+    <div class="info-row"><span class="info-label">Daily calorie target</span><span class="info-val" id="calorie-target">—</span></div>
+    <div class="info-row"><span class="info-label">vs TDEE</span><span class="info-val" id="vs-tdee">—</span></div>
+  </div>
+
+  <div class="macro-grid">
+    <div class="macro-card" style="border:1px solid #1e3a6a">
+      <div class="macro-num" style="color:#3b82f6" id="protein-kcal">—</div>
+      <div class="macro-lbl">Protein kcal</div>
+      <div class="macro-g" id="protein-g">— g</div>
+    </div>
+    <div class="macro-card" style="border:1px solid #2a2200">
+      <div class="macro-num" style="color:#eab308" id="carb-kcal">—</div>
+      <div class="macro-lbl">Carbs kcal</div>
+      <div class="macro-g" id="carb-g">— g</div>
+    </div>
+    <div class="macro-card" style="border:1px solid #2a1200">
+      <div class="macro-num" style="color:#f97316" id="fat-kcal">—</div>
+      <div class="macro-lbl">Fat kcal</div>
+      <div class="macro-g" id="fat-g">— g</div>
+    </div>
+  </div>
+
+  <div class="donut-wrap">
+    <canvas id="macro-donut" width="160" height="160"></canvas>
+  </div>
+
+  <div class="info-row"><span class="info-label">Protein per kg body weight</span><span class="info-val" id="g-per-kg">—</span></div>
+  <div class="info-row"><span class="info-label">Protein split</span><span class="info-val" id="protein-pct">—</span></div>
+  <div class="info-row"><span class="info-label">Carb split</span><span class="info-val" id="carb-pct">—</span></div>
+  <div class="info-row"><span class="info-label">Fat split</span><span class="info-val" id="fat-pct">—</span></div>
+</div>
+
+<div class="card">
+  <h2>Example Meal Split (3 meals + 2 snacks)</h2>
+  <div style="overflow-x:auto">
+    <div class="meal-row" style="font-weight:600;color:#888">
+      <div>Meal</div><div>kcal</div><div>Protein</div><div>Carbs</div><div>Fat</div>
+    </div>
+    <div id="meal-plan"></div>
+  </div>
+</div>
+
+<script>
+let goal='cut';
+
+function setGoal(g,el){
+  goal=g;
+  document.querySelectorAll('.goal-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  calc();
+}
+
+function calc(){
+  const wt=parseFloat(document.getElementById('weight').value)||75;
+  const bmr=parseFloat(document.getElementById('bmr').value)||1750;
+  const act=parseFloat(document.getElementById('activity').value)||1.55;
+  const style=document.getElementById('diet-style').value;
+
+  const tdee=bmr*act;
+  let calTarget;
+  if(goal==='cut') calTarget=tdee-500;
+  else if(goal==='bulk') calTarget=tdee+300;
+  else if(goal==='recomp') calTarget=tdee;
+  else calTarget=tdee;
+
+  // Macro splits
+  let pPct,cPct,fPct;
+  if(style==='balanced') { pPct=0.30;cPct=0.40;fPct=0.30; }
+  else if(style==='highprotein') { pPct=0.40;cPct=0.35;fPct=0.25; }
+  else if(style==='keto') { pPct=0.25;cPct=0.05;fPct=0.70; }
+  else if(style==='lowfat') { pPct=0.30;cPct=0.50;fPct=0.20; }
+  else { pPct=0.30;cPct=0.40;fPct=0.30; } // zone
+
+  const pKcal=calTarget*pPct, cKcal=calTarget*cPct, fKcal=calTarget*fPct;
+  const pG=pKcal/4, cG=cKcal/4, fG=fKcal/9;
+
+  document.getElementById('calorie-target').textContent=Math.round(calTarget)+' kcal/day';
+  document.getElementById('vs-tdee').textContent=(calTarget>=tdee?'+':'')+Math.round(calTarget-tdee)+' kcal vs TDEE ('+Math.round(tdee)+')';
+  document.getElementById('protein-kcal').textContent=Math.round(pKcal);
+  document.getElementById('carb-kcal').textContent=Math.round(cKcal);
+  document.getElementById('fat-kcal').textContent=Math.round(fKcal);
+  document.getElementById('protein-g').textContent=Math.round(pG)+' g';
+  document.getElementById('carb-g').textContent=Math.round(cG)+' g';
+  document.getElementById('fat-g').textContent=Math.round(fG)+' g';
+  document.getElementById('g-per-kg').textContent=(pG/wt).toFixed(1)+' g/kg';
+  document.getElementById('protein-pct').textContent=(pPct*100).toFixed(0)+'%';
+  document.getElementById('carb-pct').textContent=(cPct*100).toFixed(0)+'%';
+  document.getElementById('fat-pct').textContent=(fPct*100).toFixed(0)+'%';
+
+  // Donut chart
+  const canvas=document.getElementById('macro-donut');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,160,160);
+  const segs=[{v:pPct,c:'#3b82f6'},{v:cPct,c:'#eab308'},{v:fPct,c:'#f97316'}];
+  let ang=-Math.PI/2;
+  segs.forEach(s=>{
+    const end=ang+s.v*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(80,80);ctx.arc(80,80,72,ang,end);ctx.closePath();
+    ctx.fillStyle=s.c;ctx.fill();
+    ctx.beginPath();ctx.arc(80,80,44,0,Math.PI*2);
+    ctx.fillStyle='#111';ctx.fill();
+    ang=end;
+  });
+  ctx.fillStyle='#e0e0e0';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(Math.round(calTarget),80,77);
+  ctx.fillStyle='#888';ctx.font='9px Segoe UI';ctx.fillText('kcal',80,90);
+
+  // Meal split
+  const meals=[
+    {name:'Breakfast',share:.25},
+    {name:'Snack 1',share:.10},
+    {name:'Lunch',share:.30},
+    {name:'Snack 2',share:.10},
+    {name:'Dinner',share:.25},
+  ];
+  document.getElementById('meal-plan').innerHTML=meals.map(m=>`
+    <div class="meal-row">
+      <div>${m.name}</div>
+      <div>${Math.round(calTarget*m.share)}</div>
+      <div>${Math.round(pG*m.share)}g</div>
+      <div>${Math.round(cG*m.share)}g</div>
+      <div>${Math.round(fG*m.share)}g</div>
+    </div>`).join('');
+}
+
+calc();
+</script>
+</body></html>

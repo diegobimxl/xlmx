@@ -1,0 +1,229 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Population Growth Models — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#ec4899;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#ec4899}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #2a0a1a;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.2rem;font-weight:700;color:#ec4899}
+.res-lbl{font-size:.72rem;color:#888;margin-top:2px}
+.chart-area{width:100%;height:200px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;margin-top:12px}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.tab-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;cursor:pointer;font-size:.82rem}
+.tab.active{background:#ec4899;color:#000;border-color:#ec4899;font-weight:700}
+.eq{font-family:monospace;background:#0d0d0d;border:1px solid #2a0a1a;border-radius:6px;padding:8px 12px;font-size:.85rem;color:#ec4899;margin-bottom:12px}
+.proj-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px}
+.proj-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.proj-table td{padding:5px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.proj-table tr:last-child td{border-bottom:none}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Population Growth Models</h1>
+  <p>Exponential, logistic, and doubling time — with projections</p>
+</div>
+
+<div class="card">
+  <h2>Model Parameters</h2>
+  <div class="tab-row">
+    <button class="tab active" onclick="setModel('exp',this)">Exponential</button>
+    <button class="tab" onclick="setModel('log',this)">Logistic</button>
+    <button class="tab" onclick="setModel('comp',this)">Compound</button>
+  </div>
+
+  <div id="model-exp">
+    <div class="eq">P(t) = P₀ · e^(r·t)</div>
+    <div class="grid2">
+      <div><label>Initial population P₀</label><input type="number" id="e_p0" value="1000000" min="1" oninput="calcModel()"></div>
+      <div><label>Growth rate r (% per year)</label><input type="number" id="e_r" value="1.2" step="0.01" oninput="calcModel()"></div>
+      <div><label>Time horizon (years)</label><input type="number" id="e_t" value="50" min="1" max="500" oninput="calcModel()"></div>
+    </div>
+  </div>
+
+  <div id="model-log" style="display:none">
+    <div class="eq">P(t) = K / (1 + ((K−P₀)/P₀)·e^(−r·t))</div>
+    <div class="grid2">
+      <div><label>Initial population P₀</label><input type="number" id="l_p0" value="1000000" min="1" oninput="calcModel()"></div>
+      <div><label>Carrying capacity K</label><input type="number" id="l_k" value="10000000" min="1" oninput="calcModel()"></div>
+      <div><label>Intrinsic rate r (%/yr)</label><input type="number" id="l_r" value="3" step="0.01" oninput="calcModel()"></div>
+      <div><label>Time horizon (years)</label><input type="number" id="l_t" value="100" min="1" max="500" oninput="calcModel()"></div>
+    </div>
+  </div>
+
+  <div id="model-comp" style="display:none">
+    <div class="eq">P(t) = P₀ · (1 + r)^t</div>
+    <div class="grid2">
+      <div><label>Initial population P₀</label><input type="number" id="c_p0" value="1000000" min="1" oninput="calcModel()"></div>
+      <div><label>Annual growth rate r (%)</label><input type="number" id="c_r" value="1.2" step="0.01" oninput="calcModel()"></div>
+      <div><label>Time horizon (years)</label><input type="number" id="c_t" value="50" min="1" max="500" oninput="calcModel()"></div>
+    </div>
+  </div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="r-final">—</div><div class="res-lbl">Final population</div></div>
+    <div class="res-card"><div class="res-num" id="r-double">—</div><div class="res-lbl">Doubling time (yrs)</div></div>
+    <div class="res-card"><div class="res-num" id="r-change">—</div><div class="res-lbl">Total change</div></div>
+  </div>
+
+  <canvas id="growthChart" class="chart-area" width="600" height="200"></canvas>
+</div>
+
+<div class="card">
+  <h2>10-Year Projection Table</h2>
+  <table class="proj-table">
+    <thead><tr><th>Year</th><th>Population</th><th>Change from P₀</th><th>Growth that year</th></tr></thead>
+    <tbody id="proj-tbody"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>World Population Reference</h2>
+  <div class="info-row"><span class="info-label">World population 2024</span><span class="info-val">~8.1 billion</span></div>
+  <div class="info-row"><span class="info-label">Annual growth rate (2024)</span><span class="info-val">~0.9% / yr</span></div>
+  <div class="info-row"><span class="info-label">Projected 2050</span><span class="info-val">~9.7 billion (UN medium)</span></div>
+  <div class="info-row"><span class="info-label">Doubling time at 0.9%</span><span class="info-val">~77 years</span></div>
+  <div class="info-row"><span class="info-label">Fastest growing region</span><span class="info-val">Sub-Saharan Africa (~2.5%/yr)</span></div>
+  <div class="info-row"><span class="info-label">Shrinking populations</span><span class="info-val">Japan, S. Korea, some EU states</span></div>
+  <div class="info-row"><span class="info-label">Mexico growth rate (2024)</span><span class="info-val">~0.8% / yr (~130M people)</span></div>
+  <div class="info-row"><span class="info-label">US growth rate (2024)</span><span class="info-val">~0.5% / yr (~340M people)</span></div>
+</div>
+
+<script>
+let currentModel = 'exp';
+
+function setModel(m, el) {
+  currentModel = m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['exp','log','comp'].forEach(x=>{
+    document.getElementById('model-'+x).style.display = x===m ? '' : 'none';
+  });
+  calcModel();
+}
+
+function fmt(n) {
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return Math.round(n).toString();
+}
+
+function getParams() {
+  if(currentModel==='exp') return {
+    p0: parseFloat(document.getElementById('e_p0').value)||1e6,
+    r: (parseFloat(document.getElementById('e_r').value)||1.2)/100,
+    t: parseInt(document.getElementById('e_t').value)||50,
+    k: null
+  };
+  if(currentModel==='log') return {
+    p0: parseFloat(document.getElementById('l_p0').value)||1e6,
+    r: (parseFloat(document.getElementById('l_r').value)||3)/100,
+    t: parseInt(document.getElementById('l_t').value)||100,
+    k: parseFloat(document.getElementById('l_k').value)||1e7
+  };
+  return {
+    p0: parseFloat(document.getElementById('c_p0').value)||1e6,
+    r: (parseFloat(document.getElementById('c_r').value)||1.2)/100,
+    t: parseInt(document.getElementById('c_t').value)||50,
+    k: null
+  };
+}
+
+function popAt(p) {
+  const {p0,r,t,k} = p;
+  return function(year) {
+    if(currentModel==='exp') return p0*Math.exp(r*year);
+    if(currentModel==='log') return k/(1+((k-p0)/p0)*Math.exp(-r*year));
+    return p0*Math.pow(1+r,year);
+  };
+}
+
+function calcModel() {
+  const p = getParams();
+  const fn = popAt(p);
+  const pFinal = fn(p.t);
+  const r = p.r;
+  const doublingTime = r>0 ? Math.log(2)/r : Infinity;
+
+  document.getElementById('r-final').textContent = fmt(pFinal);
+  document.getElementById('r-double').textContent = isFinite(doublingTime) ? doublingTime.toFixed(1) : '∞';
+  document.getElementById('r-change').textContent = (((pFinal-p.p0)/p.p0)*100).toFixed(1)+'%';
+
+  // Chart
+  const canvas = document.getElementById('growthChart');
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const steps = Math.min(p.t, 200);
+  const points = [];
+  for(let i=0;i<=steps;i++) points.push(fn(p.t*i/steps));
+  const maxP = Math.max(...points);
+  const minP = p.p0;
+
+  ctx.strokeStyle='#ec4899';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  points.forEach((val,i)=>{
+    const x=20+(W-40)*(i/steps);
+    const y=H-20-(H-40)*((val-minP)/(maxP-minP||1));
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Fill
+  ctx.strokeStyle='transparent';
+  ctx.fillStyle='#ec489922';
+  ctx.beginPath();
+  points.forEach((val,i)=>{
+    const x=20+(W-40)*(i/steps);
+    const y=H-20-(H-40)*((val-minP)/(maxP-minP||1));
+    if(i===0)ctx.moveTo(x,H-20);
+    ctx.lineTo(x,y);
+  });
+  ctx.lineTo(W-20,H-20);
+  ctx.closePath();
+  ctx.fill();
+
+  // Labels
+  ctx.fillStyle='#888';
+  ctx.font='10px Segoe UI';
+  ctx.textAlign='left'; ctx.fillText('Yr 0: '+fmt(p.p0), 22, H-6);
+  ctx.textAlign='right'; ctx.fillText('Yr '+p.t+': '+fmt(pFinal), W-22, H-6);
+  ctx.textAlign='left'; ctx.fillText(fmt(maxP), 22, 14);
+
+  // Projection table — 10 milestones
+  const tbody = document.getElementById('proj-tbody');
+  const step = Math.max(1, Math.floor(p.t/10));
+  let rows='';
+  for(let yr=step; yr<=p.t; yr+=step){
+    const pop=fn(yr);
+    const prev=fn(yr-step);
+    rows+=`<tr>
+      <td>+${yr}</td>
+      <td>${fmt(pop)}</td>
+      <td>+${(((pop-p.p0)/p.p0)*100).toFixed(1)}%</td>
+      <td>+${fmt(pop-prev)} (${(((pop-prev)/prev)*100).toFixed(2)}%/yr)</td>
+    </tr>`;
+  }
+  tbody.innerHTML = rows;
+}
+
+calcModel();
+</script>
+</body></html>

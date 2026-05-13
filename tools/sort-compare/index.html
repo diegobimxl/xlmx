@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sorting Algorithm Visualizer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#3b82f6;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.algo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.algo-chip{background:#1a1a1a;border:2px solid #333;border-radius:8px;padding:10px;cursor:pointer;font-size:.82rem;transition:all .2s}
+.algo-chip.selected{border-color:#3b82f6;color:#3b82f6}
+.algo-chip .name{font-weight:600}
+.algo-chip .cx{font-size:.72rem;color:#888;margin-top:2px}
+.btn-run{width:100%;background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:12px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:12px}
+canvas{width:100%;border-radius:8px;margin-top:8px}
+.stat-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stat{background:#1a1a1a;border-radius:6px;padding:8px 12px;font-size:.8rem;text-align:center;flex:1;min-width:80px}
+.stat .v{font-size:1.1rem;font-weight:700;color:#3b82f6}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+</style>
+</head>
+<body>
+<h1>Sorting Algorithm Visualizer</h1>
+<p class="sub">Compare sort algorithms by operations, swaps, and complexity</p>
+
+<div class="card">
+  <h2>Configuration</h2>
+  <label>Array size (N)</label>
+  <input type="range" id="nSlider" min="10" max="200" value="50" oninput="document.getElementById('nVal').textContent=this.value">
+  <div style="text-align:center;font-size:.88rem;margin:4px 0">N = <span id="nVal" style="color:#3b82f6;font-weight:700">50</span></div>
+  <label>Input type</label>
+  <select id="inputType">
+    <option value="random">Random</option>
+    <option value="nearly">Nearly sorted (5% noise)</option>
+    <option value="reverse">Reverse sorted</option>
+    <option value="sorted">Already sorted</option>
+  </select>
+  <label>Algorithms (select multiple)</label>
+  <div class="algo-grid" id="algoGrid"></div>
+  <button class="btn-run" onclick="runAll()">Run Comparison</button>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <canvas id="canvas" height="300"></canvas>
+  <table id="resultTable" style="margin-top:16px">
+    <tr><th>Algorithm</th><th>Comparisons</th><th>Swaps</th><th>Time (ms)</th><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th></tr>
+  </table>
+</div>
+
+<script>
+const ALGOS=[
+  {id:'bubble',name:'Bubble Sort',best:'O(n)',avg:'O(n²)',worst:'O(n²)',space:'O(1)',
+    fn:arr=>{const a=[...arr];let c=0,s=0;for(let i=0;i<a.length;i++)for(let j=0;j<a.length-i-1;j++){c++;if(a[j]>a[j+1]){[a[j],a[j+1]]=[a[j+1],a[j]];s++;}}return{arr:a,c,s};}},
+  {id:'selection',name:'Selection Sort',best:'O(n²)',avg:'O(n²)',worst:'O(n²)',space:'O(1)',
+    fn:arr=>{const a=[...arr];let c=0,s=0;for(let i=0;i<a.length;i++){let m=i;for(let j=i+1;j<a.length;j++){c++;if(a[j]<a[m])m=j;}if(m!==i){[a[i],a[m]]=[a[m],a[i]];s++;}}return{arr:a,c,s};}},
+  {id:'insertion',name:'Insertion Sort',best:'O(n)',avg:'O(n²)',worst:'O(n²)',space:'O(1)',
+    fn:arr=>{const a=[...arr];let c=0,s=0;for(let i=1;i<a.length;i++){let j=i;while(j>0&&(c++,a[j-1]>a[j])){[a[j-1],a[j]]=[a[j],a[j-1]];j--;s++;}}return{arr:a,c,s};}},
+  {id:'merge',name:'Merge Sort',best:'O(n log n)',avg:'O(n log n)',worst:'O(n log n)',space:'O(n)',
+    fn:arr=>{let c=0,s=0;function ms(a){if(a.length<=1)return a;const m=Math.floor(a.length/2);const l=ms(a.slice(0,m)),r=ms(a.slice(m));const res=[];let i=0,j=0;while(i<l.length&&j<r.length){c++;if(l[i]<=r[j])res.push(l[i++]);else{res.push(r[j++]);s++;}}return res.concat(l.slice(i)).concat(r.slice(j));}const arr2=ms([...arr]);return{arr:arr2,c,s};}},
+  {id:'quick',name:'Quick Sort',best:'O(n log n)',avg:'O(n log n)',worst:'O(n²)',space:'O(log n)',
+    fn:arr=>{let c=0,s=0;function qs(a,lo,hi){if(lo>=hi)return;let p=a[hi],i=lo-1;for(let j=lo;j<hi;j++){c++;if(a[j]<=p){i++;[a[i],a[j]]=[a[j],a[i]];s++;}}[a[i+1],a[hi]]=[a[hi],a[i+1]];s++;const pi=i+1;qs(a,lo,pi-1);qs(a,pi+1,hi);}const arr2=[...arr];qs(arr2,0,arr2.length-1);return{arr:arr2,c,s};}},
+  {id:'heap',name:'Heap Sort',best:'O(n log n)',avg:'O(n log n)',worst:'O(n log n)',space:'O(1)',
+    fn:arr=>{const a=[...arr];let c=0,s=0;function heapify(n,i){let lg=i,l=2*i+1,r=2*i+2;c++;if(l<n&&a[l]>a[lg])lg=l;c++;if(r<n&&a[r]>a[lg])lg=r;if(lg!==i){[a[i],a[lg]]=[a[lg],a[i]];s++;heapify(n,lg);}}const n=a.length;for(let i=Math.floor(n/2)-1;i>=0;i--)heapify(n,i);for(let i=n-1;i>0;i--){[a[0],a[i]]=[a[i],a[0]];s++;heapify(i,0);}return{arr:a,c,s};}},
+];
+let selected=new Set(['bubble','merge','quick']);
+document.getElementById('algoGrid').innerHTML=ALGOS.map(a=>`
+  <div class="algo-chip ${selected.has(a.id)?'selected':''}" id="chip_${a.id}" onclick="toggleAlgo('${a.id}')">
+    <div class="name">${a.name}</div>
+    <div class="cx">Avg: ${a.avg}</div>
+  </div>`).join('');
+function toggleAlgo(id){selected.has(id)?selected.delete(id):selected.add(id);document.getElementById('chip_'+id).classList.toggle('selected',selected.has(id));}
+function genArray(){
+  const n=parseInt(document.getElementById('nSlider').value)||50;
+  const type=document.getElementById('inputType').value;
+  let a=Array.from({length:n},(_,i)=>i+1);
+  if(type==='random')a.sort(()=>Math.random()-0.5);
+  else if(type==='nearly'){a.sort(()=>Math.random()-0.5);for(let i=0;i<Math.floor(n*0.05);i++){const j=Math.floor(Math.random()*n),k=Math.floor(Math.random()*n);[a[j],a[k]]=[a[k],a[j]];}}
+  else if(type==='reverse')a.reverse();
+  return a;
+}
+const COLORS=['#3b82f6','#22c55e','#f97316','#8b5cf6','#ef4444','#eab308'];
+function runAll(){
+  const arr=genArray();
+  const results=[];
+  ALGOS.filter(a=>selected.has(a.id)).forEach((algo,i)=>{
+    const t0=performance.now();
+    const r=algo.fn(arr);
+    const t1=performance.now();
+    results.push({...algo,...r,ms:(t1-t0).toFixed(3),color:COLORS[i%COLORS.length]});
+  });
+  // Draw bars
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth*2||600,H=600;canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const maxC=Math.max(...results.map(r=>r.c));
+  const barW=W/results.length*0.6,gap=W/results.length;
+  results.forEach((r,i)=>{
+    const bh=(r.c/maxC)*(H-60);
+    ctx.fillStyle=r.color;
+    ctx.fillRect(gap*i+gap*0.2,H-40-bh,barW,bh);
+    ctx.fillStyle='#888';ctx.font='22px sans-serif';
+    ctx.fillText(r.name.split(' ')[0],gap*i+gap*0.2,H-10);
+    ctx.fillStyle=r.color;ctx.font='bold 24px sans-serif';
+    ctx.fillText(r.c.toLocaleString(),gap*i+gap*0.2,H-44-bh);
+  });
+  ctx.fillStyle='#555';ctx.font='20px sans-serif';ctx.fillText('Comparisons',W/2-60,20);
+
+  document.getElementById('resultTable').innerHTML=
+    '<tr><th>Algorithm</th><th>Comparisons</th><th>Swaps</th><th>Time (ms)</th><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th></tr>'+
+    results.map(r=>`<tr>
+      <td style="color:${r.color};font-weight:600">${r.name}</td>
+      <td>${r.c.toLocaleString()}</td><td>${r.s.toLocaleString()}</td>
+      <td>${r.ms}</td><td>${r.best}</td><td>${r.avg}</td><td>${r.worst}</td><td>${r.space}</td>
+    </tr>`).join('');
+}
+runAll();
+</script>
+</body>
+</html>

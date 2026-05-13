@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flight Timezone Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f97316;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#f97316}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.highlight-row{background:#1a0a00;border-radius:6px;padding:10px 12px;margin:10px 0;display:flex;justify-content:space-between;align-items:center}
+.hl-label{font-size:.8rem;color:#888}
+.hl-val{font-size:1.1rem;font-weight:700;color:#f97316}
+.timeline{display:flex;align-items:center;gap:0;margin-top:12px;overflow-x:auto}
+.tl-item{flex:1;min-width:90px;background:#0d0d0d;border:1px solid #1a1a1a;padding:8px;text-align:center;font-size:.75rem}
+.tl-item:first-child{border-radius:8px 0 0 8px}
+.tl-item:last-child{border-radius:0 8px 8px 0}
+.tl-city{color:#888;margin-bottom:2px}
+.tl-time{font-weight:700;color:#f97316;font-size:.9rem}
+.tl-tz{color:#555;font-size:.7rem}
+.tl-arrow{color:#555;font-size:1.2rem;padding:0 4px;flex-shrink:0}
+.world-clock{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.clock-card{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;padding:10px;text-align:center}
+.clock-city{font-size:.75rem;color:#888;margin-bottom:2px}
+.clock-time{font-size:1rem;font-weight:700;color:#e0e0e0}
+.clock-tz{font-size:.7rem;color:#555}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Flight Timezone Calculator</h1>
+  <p>Departure → arrival local times with timezone offset and layover logic</p>
+</div>
+
+<div class="card">
+  <h2>Flight Details</h2>
+  <div class="grid2">
+    <div>
+      <label>Origin city / timezone</label>
+      <select id="origin-tz" onchange="calcFlight()">
+        <option value="-6">Monterrey / Mexico City (UTC-6)</option>
+        <option value="-5">Bogotá / Lima / Chicago (UTC-5)</option>
+        <option value="-4">Santiago / New York (UTC-4/-5 EST)</option>
+        <option value="-7">Denver / Chihuahua (UTC-7)</option>
+        <option value="-8">Los Angeles / Vancouver (UTC-8)</option>
+        <option value="-3">Buenos Aires / São Paulo (UTC-3)</option>
+        <option value="0">London UTC (UTC+0)</option>
+        <option value="1">Madrid / Paris (UTC+1)</option>
+        <option value="2">Cairo / Kyiv (UTC+2)</option>
+        <option value="5.5">Mumbai (UTC+5:30)</option>
+        <option value="8">Beijing / Singapore (UTC+8)</option>
+        <option value="9">Tokyo / Seoul (UTC+9)</option>
+        <option value="-5" id="custom-orig-opt">Custom offset</option>
+      </select>
+      <label style="margin-top:8px">Departure date & time (local)</label>
+      <input type="datetime-local" id="depart-time" oninput="calcFlight()">
+    </div>
+    <div>
+      <label>Destination city / timezone</label>
+      <select id="dest-tz" onchange="calcFlight()">
+        <option value="-8">Los Angeles / Vancouver (UTC-8)</option>
+        <option value="-6">Monterrey / Mexico City (UTC-6)</option>
+        <option value="-5">Bogotá / Lima / Chicago (UTC-5)</option>
+        <option value="-4">New York / EST (UTC-5)</option>
+        <option value="-7">Denver (UTC-7)</option>
+        <option value="-3">Buenos Aires / São Paulo (UTC-3)</option>
+        <option value="0">London UTC (UTC+0)</option>
+        <option value="1">Madrid / Paris (UTC+1)</option>
+        <option value="2">Cairo (UTC+2)</option>
+        <option value="5.5">Mumbai (UTC+5:30)</option>
+        <option value="8">Beijing / Singapore (UTC+8)</option>
+        <option value="9">Tokyo / Seoul (UTC+9)</option>
+      </select>
+      <label style="margin-top:8px">Flight duration</label>
+      <div style="display:flex;gap:6px">
+        <div style="flex:1"><label style="font-size:.72rem">Hours</label><input type="number" id="flight-hr" value="4" min="0" max="24" oninput="calcFlight()"></div>
+        <div style="flex:1"><label style="font-size:.72rem">Minutes</label><input type="number" id="flight-min" value="30" min="0" max="59" oninput="calcFlight()"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="flight-results" style="margin-top:14px">
+    <div class="highlight-row">
+      <div><div class="hl-label">Departs (local)</div><div class="hl-val" id="depart-local">—</div></div>
+      <div style="font-size:1.5rem;color:#555">→</div>
+      <div><div class="hl-label">Arrives (local destination)</div><div class="hl-val" id="arrive-local">—</div></div>
+    </div>
+    <div class="info-row"><span class="info-label">Departure UTC</span><span class="info-val" id="depart-utc">—</span></div>
+    <div class="info-row"><span class="info-label">Arrival UTC</span><span class="info-val" id="arrive-utc">—</span></div>
+    <div class="info-row"><span class="info-label">Timezone offset</span><span class="info-val" id="tz-offset">—</span></div>
+    <div class="info-row"><span class="info-label">Local clock change</span><span class="info-val" id="clock-change">—</span></div>
+    <div class="info-row"><span class="info-label">Date change at destination</span><span class="info-val" id="date-change">—</span></div>
+    <div class="info-row"><span class="info-label">Overnight flight?</span><span class="info-val" id="overnight">—</span></div>
+  </div>
+
+  <div id="tl-wrap" style="margin-top:14px"></div>
+</div>
+
+<div class="card">
+  <h2>World Clock — Now</h2>
+  <div class="world-clock" id="world-clock"></div>
+  <div style="margin-top:8px;font-size:.75rem;color:#555;text-align:right">Updates on page load — not live</div>
+</div>
+
+<script>
+function fmtTime(d){
+  return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+function fmtDate(d){
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+}
+
+function calcFlight(){
+  const origOff=parseFloat(document.getElementById('origin-tz').value)||0;
+  const destOff=parseFloat(document.getElementById('dest-tz').value)||0;
+  const dt=document.getElementById('depart-time').value;
+  const fhr=parseInt(document.getElementById('flight-hr').value)||0;
+  const fmin=parseInt(document.getElementById('flight-min').value)||0;
+
+  if(!dt) return;
+
+  // Parse local time as UTC-offset
+  const localDepart=new Date(dt);
+  const flightMs=(fhr*60+fmin)*60*1000;
+  const utcDepart=new Date(localDepart.getTime()-origOff*3600000);
+  const utcArrive=new Date(utcDepart.getTime()+flightMs);
+  const localArrive=new Date(utcArrive.getTime()+destOff*3600000);
+
+  const tzDiff=destOff-origOff;
+  const clockChange=Math.abs(tzDiff);
+  const clockDir=tzDiff>0?'forward (later)':tzDiff<0?'back (earlier)':'same timezone';
+
+  const departDay=new Date(localDepart).toDateString();
+  const arriveDay=new Date(localArrive).toDateString();
+  const daysDiff=Math.round((new Date(arriveDay)-new Date(departDay))/(1000*86400));
+
+  document.getElementById('depart-local').textContent=fmtTime(localDepart)+' — '+fmtDate(localDepart);
+  document.getElementById('arrive-local').textContent=fmtTime(localArrive)+' — '+fmtDate(localArrive);
+  document.getElementById('depart-utc').textContent=utcDepart.toISOString().replace('T',' ').slice(0,16)+' UTC';
+  document.getElementById('arrive-utc').textContent=utcArrive.toISOString().replace('T',' ').slice(0,16)+' UTC';
+  document.getElementById('tz-offset').textContent=(tzDiff>=0?'+':'')+tzDiff.toFixed(1)+' hours';
+  document.getElementById('clock-change').textContent='Set clock '+clockDir;
+  document.getElementById('date-change').textContent=daysDiff===0?'Same day':daysDiff===1?'+1 day ahead':daysDiff===-1?'Arrive day before':daysDiff+' days ahead';
+  document.getElementById('overnight').textContent=localArrive.getDate()!==localDepart.getDate()?'Yes — overnight crossing':'No';
+
+  const tl=document.getElementById('tl-wrap');
+  tl.innerHTML=`<div class="timeline">
+    <div class="tl-item"><div class="tl-city">Departs</div><div class="tl-time">${fmtTime(localDepart)}</div><div class="tl-tz">UTC${origOff>=0?'+':''}${origOff}</div></div>
+    <div class="tl-arrow">✈</div>
+    <div class="tl-item"><div class="tl-city">UTC</div><div class="tl-time">${utcDepart.toISOString().slice(11,16)}</div><div class="tl-tz">UTC+0</div></div>
+    <div class="tl-arrow">→</div>
+    <div class="tl-item"><div class="tl-city">UTC arrive</div><div class="tl-time">${utcArrive.toISOString().slice(11,16)}</div><div class="tl-tz">UTC+0</div></div>
+    <div class="tl-arrow">→</div>
+    <div class="tl-item"><div class="tl-city">Arrives</div><div class="tl-time">${fmtTime(localArrive)}</div><div class="tl-tz">UTC${destOff>=0?'+':''}${destOff}</div></div>
+  </div>`;
+}
+
+function buildWorldClock(){
+  const zones=[
+    {city:'Mexico City',off:-6},{city:'New York',off:-5},{city:'London',off:0},
+    {city:'Madrid',off:1},{city:'Dubai',off:4},{city:'Mumbai',off:5.5},
+    {city:'Singapore',off:8},{city:'Tokyo',off:9},{city:'Sydney',off:10},
+  ];
+  const now=new Date();
+  const utcMs=now.getTime()+now.getTimezoneOffset()*60000;
+  document.getElementById('world-clock').innerHTML=zones.map(z=>{
+    const local=new Date(utcMs+z.off*3600000);
+    return `<div class="clock-card"><div class="clock-city">${z.city}</div><div class="clock-time">${fmtTime(local)}</div><div class="clock-tz">UTC${z.off>=0?'+':''}${z.off}</div></div>`;
+  }).join('');
+}
+
+// Set default datetime to now
+const now=new Date();
+const pad=n=>String(n).padStart(2,'0');
+document.getElementById('depart-time').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+buildWorldClock();
+calcFlight();
+</script>
+</body></html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Facade Wind Load Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f97316;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result-big{background:#1a1a1a;border-radius:10px;padding:20px;text-align:center;margin-bottom:12px}
+.result-big .val{font-size:2rem;font-weight:800;color:#f97316}
+.result-big .lbl{font-size:.82rem;color:#888;margin-top:4px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700;color:#f97316}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.8rem;color:#aaa;line-height:1.6;margin-top:10px}
+.warn{color:#f97316;font-weight:600}
+</style>
+</head>
+<body>
+<h1>Facade Wind Load Calculator</h1>
+<p class="sub">ASCE 7-22 Components & Cladding simplified — glass, cladding, curtain wall</p>
+
+<div class="card">
+  <h2>Site & Building</h2>
+  <div class="row2">
+    <div>
+      <label>Basic wind speed V (mph)</label>
+      <input type="number" id="V" value="115" min="85" max="200" oninput="calc()">
+    </div>
+    <div>
+      <label>Exposure category</label>
+      <select id="exp" onchange="calc()">
+        <option value="B">B — Suburban/Urban</option>
+        <option value="C" selected>C — Open terrain</option>
+        <option value="D">D — Coastal/flat</option>
+      </select>
+    </div>
+  </div>
+  <div class="row2">
+    <div>
+      <label>Building height (ft)</label>
+      <input type="number" id="h" value="60" min="10" max="500" oninput="calc()">
+    </div>
+    <div>
+      <label>Importance factor I</label>
+      <select id="imp" onchange="calc()">
+        <option value="0.87">I — Low hazard (0.87)</option>
+        <option value="1.00" selected>II — Normal (1.00)</option>
+        <option value="1.15">III — Substantial hazard (1.15)</option>
+        <option value="1.15">IV — Essential (1.15)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Panel / Component</h2>
+  <div class="row2">
+    <div>
+      <label>Panel width (ft)</label>
+      <input type="number" id="pw" value="5" min="0.5" step="0.5" oninput="calc()">
+    </div>
+    <div>
+      <label>Panel height (ft)</label>
+      <input type="number" id="ph" value="10" min="0.5" step="0.5" oninput="calc()">
+    </div>
+  </div>
+  <label>Component type</label>
+  <select id="ctype" onchange="calc()">
+    <option value="wall">Wall / Cladding (Zone 4/5)</option>
+    <option value="glass">Glass (Zone 4/5)</option>
+    <option value="corner">Corner Zone 5 (×1.5)</option>
+    <option value="roof">Roof cladding</option>
+  </select>
+  <label>GCp (external pressure coefficient)</label>
+  <select id="gcp" onchange="calc()">
+    <option value="0.7">+0.7 Positive (inward)</option>
+    <option value="-0.9">−0.9 Negative (outward) — walls</option>
+    <option value="-1.8" selected>−1.8 Negative corner zone 5</option>
+    <option value="-2.0">−2.0 Roof overhang</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <div class="result-big">
+    <div class="val" id="r_net">-- psf</div>
+    <div class="lbl">Net design pressure (psf)</div>
+  </div>
+  <div class="grid3">
+    <div class="stat"><div class="v" id="r_qz">--</div><div class="l">Velocity pressure qz (psf)</div></div>
+    <div class="stat"><div class="v" id="r_kz">--</div><div class="l">Kz (exposure coeff)</div></div>
+    <div class="stat"><div class="v" id="r_total">--</div><div class="l">Panel total force (lbs)</div></div>
+  </div>
+
+  <table style="margin-top:16px">
+    <tr><th>Wind Speed</th><th>qz (psf)</th><th>Design Pressure (psf)</th><th>Panel Force (lbs)</th></tr>
+    <tbody id="speedTable"></tbody>
+  </table>
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+// ASCE 7-22 Kz table (exposure category × height)
+const KZ={
+  B:{15:0.57,20:0.62,25:0.66,30:0.70,40:0.76,50:0.81,60:0.85,70:0.89,80:0.93,90:0.96,100:0.99,120:1.04,140:1.09,160:1.13,180:1.17,200:1.20},
+  C:{15:0.85,20:0.90,25:0.94,30:0.98,40:1.04,50:1.09,60:1.13,70:1.17,80:1.21,90:1.24,100:1.26,120:1.31,140:1.36,160:1.39,180:1.43,200:1.46},
+  D:{15:1.03,20:1.08,25:1.12,30:1.16,40:1.22,50:1.27,60:1.31,70:1.34,80:1.38,90:1.40,100:1.43,120:1.48,140:1.52,160:1.55,180:1.58,200:1.61},
+};
+function getKz(exp,h){
+  const table=KZ[exp];
+  const keys=Object.keys(table).map(Number).sort((a,b)=>a-b);
+  if(h<=keys[0])return table[keys[0]];
+  if(h>=keys[keys.length-1])return table[keys[keys.length-1]];
+  for(let i=0;i<keys.length-1;i++){
+    if(h>=keys[i]&&h<=keys[i+1]){
+      const t=(h-keys[i])/(keys[i+1]-keys[i]);
+      return table[keys[i]]*(1-t)+table[keys[i+1]]*t;
+    }
+  }
+  return 1.0;
+}
+function calc(){
+  const V=parseFloat(document.getElementById('V').value)||115;
+  const exp=document.getElementById('exp').value;
+  const h=parseFloat(document.getElementById('h').value)||60;
+  const imp=parseFloat(document.getElementById('imp').value)||1.0;
+  const pw=parseFloat(document.getElementById('pw').value)||5;
+  const ph=parseFloat(document.getElementById('ph').value)||10;
+  const GCp=parseFloat(document.getElementById('gcp').value)||-0.9;
+  const GCpi=0.18; // enclosed building internal
+  const Kd=0.85; // directionality (C&C)
+  const Kzt=1.0; // topographic factor (flat)
+
+  const Kz=getKz(exp,h);
+  const qz=0.00256*Kz*Kzt*Kd*V*V*imp;
+  const p=qz*(GCp-GCpi); // net C&C pressure
+  const area=pw*ph;
+  const totalF=Math.abs(p)*area;
+
+  document.getElementById('r_net').textContent=(Math.abs(p)).toFixed(2)+' psf';
+  document.getElementById('r_net').style.color=Math.abs(p)>50?'#ef4444':Math.abs(p)>30?'#f97316':'#22c55e';
+  document.getElementById('r_qz').textContent=qz.toFixed(2)+' psf';
+  document.getElementById('r_kz').textContent=Kz.toFixed(3);
+  document.getElementById('r_total').textContent=Math.round(totalF).toLocaleString()+' lbs';
+
+  const speeds=[85,100,115,130,150,175,200];
+  const tbody=document.getElementById('speedTable');
+  tbody.innerHTML=speeds.map(vs=>{
+    const qzv=0.00256*getKz(exp,h)*Kzt*Kd*vs*vs*imp;
+    const pv=qzv*(GCp-GCpi);
+    const fv=Math.abs(pv)*area;
+    return`<tr style="${vs===Math.round(V)?'color:#f97316;font-weight:600':''}">
+      <td>${vs} mph</td><td>${qzv.toFixed(1)}</td>
+      <td>${Math.abs(pv).toFixed(1)}</td><td>${Math.round(fv).toLocaleString()}</td></tr>`;
+  }).join('');
+
+  const glassThk=Math.abs(p)<=20?'3/16"':Math.abs(p)<=40?'1/4"':Math.abs(p)<=60?'3/8"':'1/2"+';
+  document.getElementById('note').innerHTML=
+    `<span class="warn">qz = ${qz.toFixed(2)} psf</span>  |  Net C&C pressure = <strong>${Math.abs(p).toFixed(2)} psf</strong>  |  Panel force: <strong>${Math.round(totalF).toLocaleString()} lbs</strong><br>`+
+    `Kz=${Kz.toFixed(3)}, Kd=0.85, Kzt=1.0, GCp=${GCp}, GCpi=±0.18 (enclosed). Suggested min glass: <strong>${glassThk}</strong> monolithic (verify with ASTM E1300 chart).`;
+}
+calc();
+</script>
+</body>
+</html>

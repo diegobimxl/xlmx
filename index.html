@@ -513,6 +513,89 @@ var TOOLS=[
   {n:'Decision Log',d:'Record key project decisions with date, rationale, and approver.',c:'General Productivity',s:'soon'},
   {n:'Assumption Log',d:'Track project assumptions with validation status and owner.',c:'General Productivity',s:'soon'},
 
+  // -- Walkability --------------------------------------------------
+  {n:'Walk Score Estimator',d:'Amenity proximity and walkability score by service type and radius.',c:'Walkability',s:'live',u:'/tools/walk-score/'},
+  {n:'15-Minute City Planner',d:'Program mix and coverage area for 15-minute city self-sufficiency.',c:'Walkability',s:'live',u:'/tools/15min-city/'},
+  {n:'Pedestrian Comfort Index',d:'Thermal comfort, shade, and sidewalk quality scoring for walkability.',c:'Walkability',s:'live',u:'/tools/pedestrian-comfort/'},
+  // -- Agriculture ------------------------------------------------
+  {n:'Irrigation Water Calculator',d:'Crop ET and drip/sprinkler irrigation volume by season and climate.',c:'Agriculture',s:'live',u:'/tools/irrigation-calc/'},
+  {n:'Crop Yield Estimator',d:'Revenue and net yield by crop type, area, market price, and input costs.',c:'Agriculture',s:'live',u:'/tools/crop-yield/'},
+  // -- Facades ----------------------------------------------------
+  {n:'Facade Wind Load',d:'ASCE 7-22 simplified design wind pressure on cladding by exposure category.',c:'Facades',s:'live',u:'/tools/facade-wind-load/'},
+  {n:'Cladding Weight & Anchor Load',d:'Dead load from facade cladding by material, thickness, and connection spacing.',c:'Facades',s:'live',u:'/tools/cladding-weight/'},
+  // -- Programming ------------------------------------------------
+  {n:'Big-O Complexity Reference',d:'Time and space complexity table for common algorithms with examples.',c:'Programming',s:'live',u:'/tools/big-o-complexity/'},
+  {n:'API Rate Limit Calculator',d:'API quota burn rate, daily call budget, and pagination depth estimator.',c:'Programming',s:'live',u:'/tools/api-rate-limiter/'},
+  {n:'Regex Tester',d:'Live regex pattern tester with match highlighting and capture group display.',c:'Programming',s:'live',u:'/tools/regex-tester/'},
+  // -- Statistics -------------------------------------------------
+  {n:'Descriptive Statistics',d:'Mean, median, mode, variance, std dev, and percentiles from pasted data.',c:'Statistics',s:'live',u:'/tools/descriptive-stats/'},
+  {n:'Sample Size Calculator',d:'Required sample size from confidence level, margin of error, and population.',c:'Statistics',s:'live',u:'/tools/sample-size/'},
+  {n:'Confidence Interval',d:'CI for proportions and means from sample data with z and t distributions.',c:'Statistics',s:'live',u:'/tools/confidence-interval/'},
+  // -- Accounting -------------------------------------------------
+  {n:'Depreciation Calculator',d:'Straight-line, double-declining balance, and MACRS depreciation schedules.',c:'Accounting',s:'live',u:'/tools/depreciation-calc/'},
+  {n:'Cash Flow Ratios',d:'Operating CF, free CF, DSCR, interest coverage, and CF-to-debt ratios.',c:'Accounting',s:'live',u:'/tools/cash-flow-ratios/'},
+  // -- History ----------------------------------------------------
+  {n:'Timeline Builder',d:'Interactive chronological event timeline with era markers and print export.',c:'History',s:'live',u:'/tools/timeline-builder/'},
+  {n:'Calendar Converter',d:'Convert dates between Gregorian, Julian, Islamic Hijri, and Hebrew calendars.',c:'History',s:'live',u:'/tools/calendar-converter/'},
+  // -- GIS --------------------------------------------------------
+  {n:'Coordinate Converter',d:'Convert between Decimal Degrees, DMS, UTM, and MGRS geographic coordinates.',c:'GIS',s:'live',u:'/tools/coord-converter/'},
+  {n:'Geodesic Calculator',d:'Great circle distance, initial bearing, and midpoint between two coordinates.',c:'GIS',s:'live',u:'/tools/geodesic-calc/'},
+  // -- Maps -------------------------------------------------------
+  {n:'Map Scale Calculator',d:'Convert between map scale ratio, real-world distance, and paper distance.',c:'Maps',s:'live',u:'/tools/map-scale/'},
+  {n:'Web Map Tile Calculator',d:'Tile count, coverage area, and download size for any zoom level and bbox.',c:'Maps',s:'live',u:'/tools/tile-calc/'},
+  // -- Urban Planning ---------------------------------------------
+  {n:'Parking Ratio Calculator',d:'Required parking spaces by land use type and jurisdiction standard.',c:'Urban Planning',s:'live',u:'/tools/parking-ratio/'},
+  {n:'TOD Density Calculator',d:'Transit-oriented development unit count, density, and 5-min walk radius.',c:'Urban Planning',s:'live',u:'/tools/tod-density/'},
+  {n:'Mixed-Use Program Calculator',d:'GFA allocation, unit mix, parking, and floor plate for mixed-use buildings.',c:'Urban Planning',s:'live',u:'/tools/program-mix/'},
+  // -- Chemistry --------------------------------------------------
+  {n:'Molar Mass Calculator',d:'Molecular weight from chemical formula with elemental composition breakdown.',c:'Chemistry',s:'live',u:'/tools/molar-mass/'},
+  {n:'Concentration Converter',d:'Convert between molarity, molality, mass%, ppm, ppb, and mg/L.',c:'Chemistry',s:'live',u:'/tools/concentration/'},
+  {n:'pH Calculator',d:'pH from [H+] or Ka, pOH, and Henderson-Hasselbalch buffer pH.',c:'Chemistry',s:'live',u:'/tools/ph-calculator/'},
+  // -- Geometry ---------------------------------------------------
+  {n:'Polygon Solver',d:'Area and perimeter for regular and irregular polygons up to 12 sides.',c:'Geometry',s:'live',u:'/tools/polygon-solver/'},
+  {n:'3D Shape Calculator',d:'Volume and surface area for 10 common 3D shapes with dimension inputs.',c:'Geometry',s:'live',u:'/tools/3d-shapes/'},
+  {n:'Triangle Solver',d:'Solve triangles by SSS, SAS, ASA, or AAS with all angles, sides, and area.',c:'Geometry',s:'live',u:'/tools/triangle-solver/'},
+  // -- Fractals ---------------------------------------------------
+  {n:'Mandelbrot Explorer',d:'Interactive Mandelbrot set canvas with zoom, color palette, and iteration depth.',c:'Fractals',s:'live',u:'/tools/mandelbrot/'},
+  {n:'Fractal Dimension',d:'Box-counting fractal dimension estimator with self-similarity ratio inputs.',c:'Fractals',s:'live',u:'/tools/fractal-dim/'},
+  // -- Math -------------------------------------------------------
+  {n:'Matrix Calculator',d:'3x3 matrix add, multiply, determinant, inverse, and transpose operations.',c:'Math',s:'live',u:'/tools/matrix-calc/'},
+  {n:'Base Converter',d:'Convert integers between decimal, binary, octal, and hexadecimal bases.',c:'Math',s:'live',u:'/tools/base-converter/'},
+  {n:'Prime Factorization',d:'Prime factors, GCD, LCM, and divisibility check for any integer.',c:'Math',s:'live',u:'/tools/prime-factors/'},
+  // -- Algorithms -------------------------------------------------
+  {n:'Sorting Algorithm Comparator',d:'Complexity, stability, and use-case guide for 10 classical sort algorithms.',c:'Algorithms',s:'live',u:'/tools/sort-compare/'},
+  {n:'Search Algorithm Guide',d:'Linear vs binary vs hash search — complexity, memory, and when to use each.',c:'Algorithms',s:'live',u:'/tools/search-algo/'},
+  // -- Artificial Intelligence ------------------------------------
+  {n:'LLM Token & Cost Calculator',d:'Token count and API cost for GPT-4o, Claude, Gemini, and Llama models.',c:'Artificial Intelligence',s:'live',u:'/tools/llm-tokens/'},
+  {n:'Neural Network Parameter Counter',d:'Trainable parameters by layer for dense, CNN, and transformer architectures.',c:'Artificial Intelligence',s:'live',u:'/tools/neural-params/'},
+  // -- Mechanics --------------------------------------------------
+  {n:'Torque & Moment Calculator',d:'Force, moment arm, torque, and rotational work for mechanical systems.',c:'Mechanics',s:'live',u:'/tools/torque-moment/'},
+  {n:'Gear Ratio Calculator',d:'Gear ratio, output speed, output torque, and mechanical advantage.',c:'Mechanics',s:'live',u:'/tools/gear-ratio/'},
+  // -- Physics ----------------------------------------------------
+  {n:'Projectile Motion',d:'Launch angle, range, max height, and flight time for any initial velocity.',c:'Physics',s:'live',u:'/tools/projectile/'},
+  {n:'Ohm\'s Law & Circuit',d:'Voltage, current, resistance, and power for series and parallel circuits.',c:'Physics',s:'live',u:'/tools/ohms-law/'},
+  {n:'Ideal Gas Law',d:'PV=nRT solver: find pressure, volume, temperature, or moles from the other three.',c:'Physics',s:'live',u:'/tools/ideal-gas/'},
+  // -- Demography -------------------------------------------------
+  {n:'Population Growth Calculator',d:'Exponential and logistic growth with doubling time and carrying capacity.',c:'Demography',s:'live',u:'/tools/population-growth/'},
+  {n:'Migration Rate Calculator',d:'Net migration rate, emigration/immigration balance, and population projection.',c:'Demography',s:'live',u:'/tools/migration-rate/'},
+  // -- Economics --------------------------------------------------
+  {n:'Price Elasticity of Demand',d:'PED with revenue impact and elastic/inelastic classification.',c:'Economics',s:'live',u:'/tools/elasticity/'},
+  {n:'GDP & Growth Calculator',d:'Compound GDP growth, per capita GDP, and real vs nominal comparison.',c:'Economics',s:'live',u:'/tools/gdp-growth/'},
+  {n:'Inflation Adjuster',d:'CPI-based historical purchasing power and real/nominal value conversion.',c:'Economics',s:'live',u:'/tools/inflation-adj/'},
+  // -- Travel -----------------------------------------------------
+  {n:'Road Trip Fuel Cost',d:'Fuel cost by distance, mpg, and price with multi-stop trip total.',c:'Travel',s:'live',u:'/tools/fuel-cost/'},
+  {n:'Flight Time Zone Calculator',d:'Departure and arrival local times with timezone offsets and flight duration.',c:'Travel',s:'live',u:'/tools/timezone-flight/'},
+  // -- Python -----------------------------------------------------
+  {n:'Python List Comprehension Builder',d:'Step-by-step list comprehension with for/if clause composer and output preview.',c:'Python',s:'live',u:'/tools/list-comp/'},
+  {n:'pip Package Size Estimator',d:'Rough install size estimate for Python packages with dependency count.',c:'Python',s:'live',u:'/tools/pip-size/'},
+  // -- Health -----------------------------------------------------
+  {n:'BMI & BMR Calculator',d:'BMI, Mifflin-St Jeor BMR, and TDEE by activity level with healthy range.',c:'Health',s:'live',u:'/tools/bmi-bmr/'},
+  {n:'Medication Dosage Calculator',d:'Weight-based and age-based dosage by drug class with max dose check.',c:'Health',s:'live',u:'/tools/medication-dose/'},
+  {n:'Macronutrient Calculator',d:'Daily protein, carb, and fat targets from caloric goals and body composition.',c:'Health',s:'live',u:'/tools/macro-calc/'},
+  // -- Networking -------------------------------------------------
+  {n:'IPv4 Subnet Calculator',d:'CIDR subnet mask, network address, broadcast, host range, and usable IPs.',c:'Networking',s:'live',u:'/tools/subnet-calc/'},
+  {n:'Bandwidth & Transfer Calculator',d:'File transfer time, throughput efficiency, and bandwidth requirement.',c:'Networking',s:'live',u:'/tools/bandwidth-calc/'},
+  {n:'IP Address Classifier',d:'IP class, private/public range, loopback, and multicast identification.',c:'Networking',s:'live',u:'/tools/ip-class/'},
   // -- Other --
   {n:'Accessibility Compliance Checklist',d:'ADA/IBC checklist fong',s:'soon'}
 ];
@@ -540,6 +623,30 @@ var CAT_COLORS={
   "Business":             {bg:"rgba(6,182,212,.08)",   bd:"rgba(6,182,212,.25)",   tx:"#22d3ee",  ic:"◇"},
   "General Productivity": {bg:"rgba(156,163,175,.08)", bd:"rgba(156,163,175,.25)", tx:"#9ca3af",  ic:"◯"},
   "Leisure":              {bg:"rgba(250,204,21,.09)",  bd:"rgba(250,204,21,.3)",   tx:"#facc15",  ic:"◎"}
+  "Walkability":          {bg:"rgba(20,184,166,.09)",  bd:"rgba(20,184,166,.3)",   tx:"#14b8a6",  ic:"⚶"},
+  "Agriculture":          {bg:"rgba(132,204,22,.09)",  bd:"rgba(132,204,22,.3)",   tx:"#84cc16",  ic:"⚘"},
+  "Facades":              {bg:"rgba(249,115,22,.09)",  bd:"rgba(249,115,22,.3)",   tx:"#f97316",  ic:"▣"},
+  "Programming":          {bg:"rgba(59,130,246,.09)",  bd:"rgba(59,130,246,.3)",   tx:"#3b82f6",  ic:"</>"},
+  "Statistics":           {bg:"rgba(139,92,246,.09)",  bd:"rgba(139,92,246,.3)",   tx:"#8b5cf6",  ic:"σ"},
+  "Accounting":           {bg:"rgba(34,197,94,.09)",   bd:"rgba(34,197,94,.3)",    tx:"#22c55e",  ic:"$"},
+  "History":              {bg:"rgba(217,119,6,.09)",   bd:"rgba(217,119,6,.3)",    tx:"#d97706",  ic:"⌛"},
+  "GIS":                  {bg:"rgba(6,182,212,.09)",   bd:"rgba(6,182,212,.3)",    tx:"#06b6d4",  ic:"⊕"},
+  "Maps":                 {bg:"rgba(14,165,233,.09)",  bd:"rgba(14,165,233,.3)",   tx:"#0ea5e9",  ic:"◉"},
+  "Urban Planning":       {bg:"rgba(244,63,94,.09)",   bd:"rgba(244,63,94,.3)",    tx:"#f43f5e",  ic:"⌂"},
+  "Chemistry":            {bg:"rgba(168,85,247,.09)",  bd:"rgba(168,85,247,.3)",   tx:"#a855f7",  ic:"⚗"},
+  "Geometry":             {bg:"rgba(99,102,241,.09)",  bd:"rgba(99,102,241,.3)",   tx:"#6366f1",  ic:"△"},
+  "Fractals":             {bg:"rgba(236,72,153,.09)",  bd:"rgba(236,72,153,.3)",   tx:"#ec4899",  ic:"∞"},
+  "Math":                 {bg:"rgba(234,179,8,.09)",   bd:"rgba(234,179,8,.3)",    tx:"#eab308",  ic:"∑"},
+  "Algorithms":           {bg:"rgba(52,211,153,.09)",  bd:"rgba(52,211,153,.3)",   tx:"#34d399",  ic:"⊏"},
+  "Artificial Intelligence":{bg:"rgba(96,165,250,.09)",bd:"rgba(96,165,250,.3)",   tx:"#60a5fa",  ic:"⊗"},
+  "Mechanics":            {bg:"rgba(251,191,36,.09)",  bd:"rgba(251,191,36,.3)",   tx:"#fbbf24",  ic:"⚙"},
+  "Physics":              {bg:"rgba(239,68,68,.09)",   bd:"rgba(239,68,68,.3)",    tx:"#ef4444",  ic:"ϕ"},
+  "Demography":           {bg:"rgba(148,163,184,.09)", bd:"rgba(148,163,184,.3)",  tx:"#94a3b8",  ic:"⊹"},
+  "Economics":            {bg:"rgba(200,169,110,.09)", bd:"rgba(200,169,110,.3)",  tx:"#c8a96e",  ic:"∿"},
+  "Travel":               {bg:"rgba(56,189,248,.09)",  bd:"rgba(56,189,248,.3)",   tx:"#38bdf8",  ic:"✈"},
+  "Python":               {bg:"rgba(250,204,21,.09)",  bd:"rgba(250,204,21,.3)",   tx:"#facc15",  ic:"Py"},
+  "Health":               {bg:"rgba(74,222,128,.09)",  bd:"rgba(74,222,128,.3)",   tx:"#4ade80",  ic:"♥"},
+  "Networking":           {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⌬"}
 };
 function catColor(c){return CAT_COLORS[c]||{bg:"rgba(255,255,255,.05)",bd:"rgba(255,255,255,.15)",tx:"#9ca3af"};}
 
@@ -697,7 +804,7 @@ function _syncBubbleActive(){
   });
 }
 
-var _BR=62,_physEngine=null,_physBodies=[],_bubbleEls=[],_bubbleCats=[];
+var _BR=31,_physEngine=null,_physBodies=[],_bubbleEls=[],_bubbleCats=[];
 var _dragIdx=-1,_mX=0,_mY=0,_vX=0,_vY=0;
 var _impactTmr={},_arenaEl=null,_eventsAttached=false,_rafId=0;
 

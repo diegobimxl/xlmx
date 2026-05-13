@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>15-Minute City Checker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#14b8a6;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.cat-item{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px}
+.cat-item label{margin:0 0 4px;font-size:.78rem;color:#aaa}
+.cat-item input{padding:6px 8px;font-size:.85rem}
+.btn{width:100%;background:#14b8a6;color:#000;border:none;border-radius:8px;padding:12px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:16px}
+.result{text-align:center;padding:24px 0 12px}
+.score-ring{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 12px;border:4px solid #14b8a6;font-size:2rem;font-weight:800}
+.score-label{font-size:.8rem;color:#888;margin-top:4px}
+.service-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.svc{background:#1a1a1a;border-radius:8px;padding:10px;font-size:.82rem}
+.svc .name{color:#aaa;margin-bottom:4px}
+.svc .bar{height:6px;background:#222;border-radius:3px;overflow:hidden}
+.svc .fill{height:100%;border-radius:3px;transition:width .4s}
+.svc .val{font-size:.78rem;color:#888;margin-top:3px}
+.verdict{background:#1a1a1a;border-radius:8px;padding:14px;margin-top:12px;font-size:.88rem;line-height:1.6;color:#ccc}
+</style>
+</head>
+<body>
+<h1>15-Minute City Checker</h1>
+<p class="sub">Evaluate if a location meets 15-min walkability thresholds for key services</p>
+
+<div class="card">
+  <h2>Walk Speed & Mode</h2>
+  <label>Walking speed (km/h)</label>
+  <input type="number" id="speed" value="4.5" step="0.1" min="2" max="8" oninput="calc()">
+  <label>Time budget (minutes)</label>
+  <select id="budget" onchange="calc()">
+    <option value="5">5 min</option>
+    <option value="10">10 min</option>
+    <option value="15" selected>15 min</option>
+    <option value="20">20 min</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>Distance to Services (meters)</h2>
+  <div class="cat-grid">
+    <div class="cat-item">
+      <label>Grocery / Market</label>
+      <input type="number" id="d_grocery" value="350" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>School / Education</label>
+      <input type="number" id="d_school" value="600" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>Health Clinic / Pharmacy</label>
+      <input type="number" id="d_health" value="500" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>Park / Green Space</label>
+      <input type="number" id="d_park" value="250" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>Public Transit Stop</label>
+      <input type="number" id="d_transit" value="400" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>Restaurant / Café</label>
+      <input type="number" id="d_food" value="200" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>Workplace / Cowork</label>
+      <input type="number" id="d_work" value="800" min="0" oninput="calc()">
+    </div>
+    <div class="cat-item">
+      <label>Cultural / Community</label>
+      <input type="number" id="d_culture" value="700" min="0" oninput="calc()">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Result</h2>
+  <div class="result">
+    <div class="score-ring" id="ring"><span id="scoreVal">--</span></div>
+    <div class="score-label" id="scoreLabel">Score / 100</div>
+  </div>
+  <div class="service-grid" id="svcGrid"></div>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<script>
+const SERVICES=[
+  {id:'d_grocery',name:'Grocery',weight:18},
+  {id:'d_school',name:'School',weight:14},
+  {id:'d_health',name:'Health',weight:14},
+  {id:'d_park',name:'Park',weight:12},
+  {id:'d_transit',name:'Transit',weight:14},
+  {id:'d_food',name:'Food/Café',weight:10},
+  {id:'d_work',name:'Workplace',weight:10},
+  {id:'d_culture',name:'Culture',weight:8},
+];
+function calc(){
+  const speed=parseFloat(document.getElementById('speed').value)||4.5;
+  const budget=parseInt(document.getElementById('budget').value)||15;
+  const maxDist=speed*1000/60*budget; // meters
+  let total=0,max=0,results=[];
+  SERVICES.forEach(s=>{
+    const d=parseFloat(document.getElementById(s.id).value)||0;
+    const pct=Math.max(0,Math.min(1,(maxDist-d)/maxDist));
+    // decay: linear but harsh beyond threshold
+    const score=d<=maxDist?Math.round(pct*100):0;
+    const mins=(d/(speed*1000/60)).toFixed(1);
+    results.push({name:s.name,score,d,mins,maxDist,weight:s.weight,pass:d<=maxDist});
+    total+=score*s.weight;
+    max+=100*s.weight;
+  });
+  const overall=Math.round(total/max*100);
+  const ring=document.getElementById('ring');
+  const colors=['#ef4444','#f97316','#eab308','#84cc16','#22c55e'];
+  const ci=Math.min(4,Math.floor(overall/20));
+  ring.style.borderColor=colors[ci];
+  ring.style.color=colors[ci];
+  document.getElementById('scoreVal').textContent=overall;
+  const labels=['Car Dependent','Low Walk','Moderate','Walkable','15-Min City'];
+  document.getElementById('scoreLabel').textContent=labels[ci];
+  let html='';
+  results.forEach(r=>{
+    const pct=Math.min(100,Math.round(r.d/r.maxDist*100));
+    const col=r.pass?'#22c55e':'#ef4444';
+    html+=`<div class="svc">
+      <div class="name">${r.pass?'✓':'✗'} ${r.name}</div>
+      <div class="bar"><div class="fill" style="width:${Math.min(100,pct)}%;background:${col}"></div></div>
+      <div class="val">${r.d}m · ${r.mins} min ${r.pass?'':'(over budget)'}</div>
+    </div>`;
+  });
+  document.getElementById('svcGrid').innerHTML=html;
+  const passing=results.filter(r=>r.pass).length;
+  const gap=results.filter(r=>!r.pass).map(r=>r.name).join(', ');
+  document.getElementById('verdict').innerHTML=
+    `<strong>${passing}/8</strong> services within ${budget}-min walk (${maxDist.toFixed(0)}m radius).<br>`+
+    (gap?`<span style="color:#f97316">Gaps: ${gap}.</span> Consider mixed-use infill or transit extension.`:'<span style="color:#22c55e">All services accessible — genuine 15-min city zone.</span>');
+}
+calc();
+</script>
+</body>
+</html>

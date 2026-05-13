@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Walk Score Estimator — XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}.header h1{font-size:1.4rem;font-weight:600;color:#fff}.header p{color:#888;font-size:0.85rem;margin-top:4px}.badge{display:inline-block;background:#14b8a6;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}@media(max-width:700px){.grid{grid-template-columns:1fr}}.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}label:first-of-type{margin-top:0}input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}input:focus,select:focus{outline:none;border-color:#14b8a6}.result-big{font-size:3rem;font-weight:900;margin:4px 0}.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}.good{color:#14b8a6}.warn{color:#f59e0b}.bad{color:#ef4444}table{width:100%;border-collapse:collapse;font-size:0.82rem}th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:left;border-bottom:1px solid #222}td{padding:7px 10px;border-bottom:1px solid #1a1a1a}tr:last-child td{border-bottom:none}.bar-wrap{background:#1a1a1a;border-radius:3px;height:8px;overflow:hidden;margin-top:4px}.bar-fill{height:8px;border-radius:3px;transition:width .3s}.score-ring{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 12px;border:4px solid}</style></head>
+<body>
+<div class="header"><h1>Walk Score Estimator <span class="badge">WALKABILITY</span></h1><p>Amenity proximity scoring by service type — Walk Score methodology · EPA Smart Growth · NACTO</p></div>
+<div class="grid">
+<div class="card">
+<h3>Location Context</h3>
+<label>Development Type</label>
+<select id="dtype" onchange="calc()">
+<option value="urban">Urban Core / Downtown</option>
+<option value="midtown">Midtown / Mixed-Use</option>
+<option value="suburban">Suburban</option>
+<option value="rural">Rural / Exurban</option>
+</select>
+<label>Population Density (persons/sq mile)</label>
+<input type="number" id="density" value="8000" oninput="calc()">
+<label>Block Size (ft average)</label>
+<input type="number" id="block" value="400" oninput="calc()">
+<label>Street Network Quality</label>
+<select id="streets" onchange="calc()">
+<option value="3">Excellent — grid, wide sidewalks, signals</option>
+<option value="2" selected>Good — mostly connected, some gaps</option>
+<option value="1">Fair — disconnected, missing sidewalks</option>
+<option value="0">Poor — no sidewalks, hostile to pedestrians</option>
+</select>
+</div>
+<div class="card">
+<h3>Nearby Amenities (distance in ft, 0 = absent)</h3>
+<label>Grocery / Supermarket (ft)</label><input type="number" id="a_grocery" value="1200" oninput="calc()">
+<label>Restaurant / Café (ft)</label><input type="number" id="a_resto" value="600" oninput="calc()">
+<label>School (ft)</label><input type="number" id="a_school" value="2000" oninput="calc()">
+<label>Park / Green Space (ft)</label><input type="number" id="a_park" value="1800" oninput="calc()">
+<label>Transit Stop (ft)</label><input type="number" id="a_transit" value="1400" oninput="calc()">
+<label>Pharmacy / Health (ft)</label><input type="number" id="a_health" value="2200" oninput="calc()">
+<label>Bank / ATM (ft)</label><input type="number" id="a_bank" value="1600" oninput="calc()">
+<label>Library / Community (ft)</label><input type="number" id="a_lib" value="3000" oninput="calc()">
+</div>
+</div>
+<div class="grid">
+<div class="card" style="text-align:center">
+<h3>Walk Score</h3>
+<div class="score-ring" id="score_ring"><div class="result-big" id="score_val">—</div><div style="font-size:0.72rem;color:#888">/ 100</div></div>
+<div class="result-sub" id="score_label">—</div>
+<div class="result-label" id="score_desc">—</div>
+</div>
+<div class="card">
+<h3>Amenity Score Breakdown</h3>
+<table id="amen_table"><thead><tr><th>Amenity</th><th>Distance</th><th>Score</th><th>Weight</th></tr></thead><tbody></tbody></table>
+</div>
+</div>
+<div class="card" style="margin-bottom:16px">
+<h3>Walk Score Ranges</h3>
+<table><thead><tr><th>Score</th><th>Label</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td class="good">90–100</td><td>Walker's Paradise</td><td>Daily errands do not require a car</td></tr>
+<tr><td class="good">70–89</td><td>Very Walkable</td><td>Most errands can be accomplished on foot</td></tr>
+<tr><td style="color:#f59e0b">50–69</td><td>Somewhat Walkable</td><td>Some errands can be accomplished on foot</td></tr>
+<tr><td style="color:#f97316">25–49</td><td>Car-Dependent</td><td>Most errands require a car</td></tr>
+<tr><td class="bad">0–24</td><td>Almost All Errands Require a Car</td><td>Walking is impractical for most trips</td></tr>
+</tbody></table>
+</div>
+<script>
+var AMENITIES=[
+  {id:'a_grocery',name:'Grocery',weight:0.20,ideal:500,max:2640},
+  {id:'a_resto',name:'Restaurant',weight:0.15,ideal:300,max:2000},
+  {id:'a_school',name:'School',weight:0.12,ideal:1000,max:5280},
+  {id:'a_park',name:'Park',weight:0.12,ideal:1000,max:3960},
+  {id:'a_transit',name:'Transit Stop',weight:0.15,ideal:800,max:2640},
+  {id:'a_health',name:'Pharmacy/Health',weight:0.10,ideal:1000,max:3960},
+  {id:'a_bank',name:'Bank/ATM',weight:0.08,ideal:1000,max:3960},
+  {id:'a_lib',name:'Library/Community',weight:0.08,ideal:1500,max:5280}
+];
+function amenScore(dist,ideal,max){
+  if(dist<=0||dist>max)return 0;
+  if(dist<=ideal)return 1.0;
+  return Math.max(0,1-(dist-ideal)/(max-ideal));
+}
+function calc(){
+  var streets=parseInt(document.getElementById('streets').value)||1;
+  var block=parseFloat(document.getElementById('block').value)||400;
+  var density=parseFloat(document.getElementById('density').value)||8000;
+  var blockBonus=block<400?5:block<600?2:0;
+  var densityBonus=density>10000?8:density>5000?4:density>2000?2:0;
+  var streetBonus=streets*5;
+  var amen_total=0;
+  var rows='';
+  AMENITIES.forEach(function(a){
+    var d=parseFloat(document.getElementById(a.id).value)||0;
+    var s=amenScore(d,a.ideal,a.max);
+    amen_total+=s*a.weight;
+    var pct=Math.round(s*100);
+    var cl=pct>=70?'good':pct>=40?'warn':'bad';
+    rows+='<tr><td>'+a.name+'</td><td>'+(d>0?d+' ft':'absent')+'</td><td class="'+cl+'">'+pct+'</td><td>'+(a.weight*100).toFixed(0)+'%</td></tr>';
+  });
+  document.querySelector('#amen_table tbody').innerHTML=rows;
+  var base=amen_total*82;
+  var score=Math.min(100,Math.round(base+blockBonus+densityBonus+streetBonus));
+  document.getElementById('score_val').textContent=score;
+  var label,desc,col;
+  if(score>=90){label="Walker's Paradise";desc="Daily errands don't require a car";col="#14b8a6";}
+  else if(score>=70){label="Very Walkable";desc="Most errands on foot";col="#10b981";}
+  else if(score>=50){label="Somewhat Walkable";desc="Some errands on foot";col="#f59e0b";}
+  else if(score>=25){label="Car-Dependent";desc="Most errands need a car";col="#f97316";}
+  else{label="Auto-Dependent";desc="Almost all errands need a car";col="#ef4444";}
+  document.getElementById('score_label').textContent=label;
+  document.getElementById('score_desc').textContent=desc;
+  var ring=document.getElementById('score_ring');
+  ring.style.borderColor=col;
+  document.getElementById('score_val').style.color=col;
+}
+calc();
+</script></body></html>

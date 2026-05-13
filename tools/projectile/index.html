@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Projectile Motion Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#22c55e;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#1a1a1a;border-radius:8px;padding:12px;text-align:center}
+.stat .v{font-size:1.1rem;font-weight:700;color:#22c55e}
+.stat .l{font-size:.75rem;color:#888;margin-top:3px}
+canvas{width:100%;border-radius:8px;background:#0a0a0a;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
+td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
+</style>
+</head>
+<body>
+<h1>Projectile Motion Calculator</h1>
+<p class="sub">Trajectory, range, max height, and time of flight</p>
+
+<div class="card">
+  <h2>Launch Parameters</h2>
+  <div class="row2">
+    <div><label>Initial velocity v₀ (m/s)</label><input type="number" id="v0" value="30" step="any" min="0" oninput="calc()"></div>
+    <div><label>Launch angle θ (°)</label><input type="number" id="angle" value="45" step="any" min="0" max="90" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div><label>Initial height h₀ (m)</label><input type="number" id="h0" value="0" step="any" min="0" oninput="calc()"></div>
+    <div><label>Gravity (m/s²)</label>
+      <select id="g" onchange="calc()">
+        <option value="9.81" selected>9.81 Earth</option>
+        <option value="1.62">1.62 Moon</option>
+        <option value="3.72">3.72 Mars</option>
+        <option value="24.79">24.79 Jupiter</option>
+        <option value="9.80">9.80 Standard</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Results</h2>
+  <div class="row3">
+    <div class="stat"><div class="v" id="r_range">--</div><div class="l">Horizontal range (m)</div></div>
+    <div class="stat"><div class="v" id="r_hmax">--</div><div class="l">Max height (m)</div></div>
+    <div class="stat"><div class="v" id="r_tof">--</div><div class="l">Time of flight (s)</div></div>
+  </div>
+  <div class="row3" style="margin-top:8px">
+    <div class="stat"><div class="v" id="r_vx">--</div><div class="l">v_x (m/s)</div></div>
+    <div class="stat"><div class="v" id="r_vy0">--</div><div class="l">v_y0 (m/s)</div></div>
+    <div class="stat"><div class="v" id="r_vimp">--</div><div class="l">Impact velocity</div></div>
+  </div>
+  <canvas id="canvas" height="280"></canvas>
+</div>
+
+<div class="card">
+  <h2>Angle Optimization (same v₀)</h2>
+  <table id="angleTable">
+    <tr><th>Angle</th><th>Range (m)</th><th>Max H (m)</th><th>ToF (s)</th></tr>
+  </table>
+</div>
+
+<script>
+function calc(){
+  const v0=parseFloat(document.getElementById('v0').value)||0;
+  const a=parseFloat(document.getElementById('angle').value)||0;
+  const h0=parseFloat(document.getElementById('h0').value)||0;
+  const g=parseFloat(document.getElementById('g').value)||9.81;
+  const th=a*Math.PI/180;
+  const vx=v0*Math.cos(th),vy0=v0*Math.sin(th);
+  const hmax=h0+vy0*vy0/(2*g);
+  // Time of flight: h0+vy0*t-0.5*g*t²=0
+  const disc=vy0*vy0+2*g*h0;
+  const tof=disc<0?0:(vy0+Math.sqrt(disc))/g;
+  const range=vx*tof;
+  const vimp=Math.sqrt(vx*vx+(vy0-g*tof)**2);
+  document.getElementById('r_range').textContent=range.toFixed(3);
+  document.getElementById('r_hmax').textContent=hmax.toFixed(3);
+  document.getElementById('r_tof').textContent=tof.toFixed(4);
+  document.getElementById('r_vx').textContent=vx.toFixed(3);
+  document.getElementById('r_vy0').textContent=vy0.toFixed(3);
+  document.getElementById('r_vimp').textContent=vimp.toFixed(3)+' m/s';
+  drawTrajectory(v0,a,h0,g,vx,vy0,tof,range,hmax);
+  buildAngleTable(v0,h0,g);
+}
+function drawTrajectory(v0,a,h0,g,vx,vy0,tof,range,hmax){
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth*2||600,H=560;canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const pad=50;
+  const steps=200;
+  const pts=[];
+  for(let i=0;i<=steps;i++){
+    const t=tof*i/steps;
+    pts.push({x:vx*t,y:h0+vy0*t-0.5*g*t*t});
+  }
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const minX=0,maxX=Math.max(...xs)||1,minY=0,maxY=Math.max(...ys)||1;
+  const sx=(W-2*pad)/(maxX-minX),sy=(H-2*pad)/(maxY-minY);
+  const sc=Math.min(sx,sy);
+  const tx=x=>pad+(x-minX)*sc,ty=y=>H-pad-(y-minY)*sc;
+  // Ground
+  ctx.strokeStyle='#333';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,ty(0));ctx.lineTo(W-pad,ty(0));ctx.stroke();
+  // Trajectory
+  ctx.beginPath();ctx.strokeStyle='#22c55e';ctx.lineWidth=2;
+  pts.forEach((p,i)=>i===0?ctx.moveTo(tx(p.x),ty(p.y)):ctx.lineTo(tx(p.x),ty(p.y)));
+  ctx.stroke();
+  // Key points
+  const maxHpt=pts.reduce((a,p)=>p.y>a.y?p:a,pts[0]);
+  ctx.fillStyle='#eab308';ctx.beginPath();ctx.arc(tx(maxHpt.x),ty(maxHpt.y),6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#eab308';ctx.font='22px sans-serif';ctx.fillText('H_max='+hmax.toFixed(1)+'m',tx(maxHpt.x)+8,ty(maxHpt.y)-6);
+  ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(tx(0),ty(h0),6,0,Math.PI*2);ctx.fill();
+  const lp=pts[pts.length-1];
+  ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(tx(lp.x),ty(0),6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#888';ctx.font='20px sans-serif';ctx.fillText('R='+range.toFixed(1)+'m',tx(lp.x)-40,ty(0)+20);
+}
+function buildAngleTable(v0,h0,g){
+  const angles=[15,30,45,60,75,90];
+  const rows=angles.map(a=>{
+    const th=a*Math.PI/180;
+    const vx=v0*Math.cos(th),vy0=v0*Math.sin(th);
+    const disc=vy0*vy0+2*g*h0;
+    const tof=(vy0+Math.sqrt(Math.max(0,disc)))/g;
+    const range=vx*tof;
+    const hmax=h0+vy0*vy0/(2*g);
+    const isOpt=Math.abs(a-45)<=5;
+    return`<tr ${isOpt?'style="color:#22c55e;font-weight:600"':''}>
+      <td>${a}°</td><td>${range.toFixed(2)}</td><td>${hmax.toFixed(2)}</td><td>${tof.toFixed(3)}</td>
+    </tr>`;
+  });
+  document.getElementById('angleTable').innerHTML='<tr><th>Angle</th><th>Range (m)</th><th>Max H (m)</th><th>ToF (s)</th></tr>'+rows.join('');
+}
+calc();
+window.addEventListener('resize',calc);
+</script>
+</body>
+</html>

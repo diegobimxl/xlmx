@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IP Address Classifier — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:10px;color:#e0e0e0;font-size:1rem;font-family:'Courier New',monospace}
+input:focus{outline:none;border-color:#06b6d4}
+.result-card{background:#0d0d0d;border:1px solid #0a2a2a;border-radius:8px;padding:16px;margin-top:14px}
+.result-main{font-size:1.2rem;font-weight:700;color:#06b6d4;margin-bottom:8px}
+.info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem;flex-wrap:wrap;gap:4px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600;font-family:'Courier New',monospace;font-size:.82rem}
+.tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.8rem;font-weight:600;margin-left:6px}
+.tag-private{background:#14532d;color:#4ade80}
+.tag-public{background:#1e3a6a;color:#93c5fd}
+.tag-special{background:#2a1a00;color:#fbbf24}
+.tag-loopback{background:#1a1a1a;color:#888}
+.octet-vis{display:flex;gap:4px;margin:10px 0;flex-wrap:wrap}
+.octet{background:#0a2a2a;border:1px solid #0e4040;border-radius:6px;padding:8px 10px;text-align:center;flex:1;min-width:60px}
+.octet-label{font-size:.65rem;color:#888;margin-bottom:2px}
+.octet-dec{font-size:.9rem;font-weight:700;color:#06b6d4;font-family:'Courier New',monospace}
+.octet-bin{font-size:.65rem;color:#888;font-family:'Courier New',monospace;margin-top:2px}
+.class-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.class-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.class-table td{padding:6px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.class-table tr:last-child td{border-bottom:none}
+.class-table tr.highlight td{background:#0a2a2a;color:#06b6d4}
+.batch-result{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;padding:10px;margin-top:8px;font-family:'Courier New',monospace;font-size:.8rem;max-height:200px;overflow-y:auto}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>IP Address Classifier</h1>
+  <p>Class, type, range, binary breakdown, and batch lookup</p>
+</div>
+
+<div class="card">
+  <h2>Single IP Lookup</h2>
+  <label>IPv4 address</label>
+  <input type="text" id="ip-in" value="192.168.1.100" placeholder="e.g. 10.0.0.1" oninput="classifyIP()">
+
+  <div id="octet-vis" class="octet-vis"></div>
+
+  <div class="result-card" id="result-main-card" style="display:none">
+    <div class="result-main" id="res-summary">—</div>
+    <div class="info-row"><span class="info-label">IP Class</span><span class="info-val" id="res-class">—</span></div>
+    <div class="info-row"><span class="info-label">Type</span><span class="info-val" id="res-type">—</span></div>
+    <div class="info-row"><span class="info-label">Default subnet mask</span><span class="info-val" id="res-mask">—</span></div>
+    <div class="info-row"><span class="info-label">Default CIDR</span><span class="info-val" id="res-cidr">—</span></div>
+    <div class="info-row"><span class="info-label">Network range</span><span class="info-val" id="res-range">—</span></div>
+    <div class="info-row"><span class="info-label">Max hosts (classful)</span><span class="info-val" id="res-hosts">—</span></div>
+    <div class="info-row"><span class="info-label">Binary (32-bit)</span><span class="info-val" id="res-binary">—</span></div>
+    <div class="info-row"><span class="info-label">Hex</span><span class="info-val" id="res-hex">—</span></div>
+    <div class="info-row"><span class="info-label">Decimal</span><span class="info-val" id="res-dec">—</span></div>
+    <div class="info-row"><span class="info-label">RFC</span><span class="info-val" id="res-rfc">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Batch IP Classifier</h2>
+  <label>Enter IPs (one per line or comma-separated)</label>
+  <textarea id="batch-in" rows="4" style="width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-family:'Courier New',monospace;font-size:.85rem;resize:vertical" placeholder="10.0.0.1&#10;172.16.5.20&#10;8.8.8.8&#10;192.168.0.1"></textarea>
+  <button onclick="batchClassify()" style="background:#0a2a2a;border:1px solid #06b6d4;color:#06b6d4;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:.85rem;margin-top:8px">Classify All</button>
+  <div class="batch-result" id="batch-out">—</div>
+</div>
+
+<div class="card">
+  <h2>IPv4 Class Reference</h2>
+  <table class="class-table" id="class-table">
+    <thead><tr><th>Class</th><th>First octet</th><th>Default mask</th><th>Range</th><th>Private range</th><th>Hosts</th></tr></thead>
+    <tbody>
+      <tr data-class="A"><td>A</td><td>1 – 126</td><td>255.0.0.0 /8</td><td>1.0.0.0 – 126.255.255.255</td><td>10.0.0.0/8</td><td>16,777,214</td></tr>
+      <tr data-class="B"><td>B</td><td>128 – 191</td><td>255.255.0.0 /16</td><td>128.0.0.0 – 191.255.255.255</td><td>172.16.0.0/12</td><td>65,534</td></tr>
+      <tr data-class="C"><td>C</td><td>192 – 223</td><td>255.255.255.0 /24</td><td>192.0.0.0 – 223.255.255.255</td><td>192.168.0.0/16</td><td>254</td></tr>
+      <tr data-class="D"><td>D</td><td>224 – 239</td><td>N/A (multicast)</td><td>224.0.0.0 – 239.255.255.255</td><td>—</td><td>—</td></tr>
+      <tr data-class="E"><td>E</td><td>240 – 255</td><td>N/A (reserved)</td><td>240.0.0.0 – 255.255.255.255</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function parseIP(str){
+  const p=str.trim().split('.').map(Number);
+  if(p.length!==4||p.some(x=>isNaN(x)||x<0||x>255)) return null;
+  return p;
+}
+function toInt(p){return(p[0]<<24|p[1]<<16|p[2]<<8|p[3])>>>0;}
+function toBin(p){return p.map(b=>b.toString(2).padStart(8,'0')).join('.');}
+function toHex(p){return p.map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(':');}
+
+function classify(p){
+  const f=p[0],s=p[1];
+  let cls,mask,cidr,range,hosts,rfc,type;
+
+  // Special
+  if(f===127){return{cls:'Loopback',type:'Loopback',mask:'255.0.0.0',cidr:8,range:'127.0.0.0 – 127.255.255.255',hosts:0,rfc:'RFC 5735',tag:'loopback'};}
+  if(f===169&&s===254){return{cls:'Link-local',type:'Link-local',mask:'255.255.0.0',cidr:16,range:'169.254.0.0 – 169.254.255.255',hosts:65534,rfc:'RFC 3927',tag:'special'};}
+  if(f===0){return{cls:'Reserved',type:'This network',mask:'255.0.0.0',cidr:8,range:'0.0.0.0 – 0.255.255.255',hosts:0,rfc:'RFC 1122',tag:'special'};}
+  if(f>=240){return{cls:'E',type:'Reserved',mask:'N/A',cidr:null,range:'240.0.0.0 – 255.255.255.255',hosts:0,rfc:'RFC 1112',tag:'special'};}
+  if(f>=224){return{cls:'D',type:'Multicast',mask:'N/A',cidr:null,range:'224.0.0.0 – 239.255.255.255',hosts:0,rfc:'RFC 1112',tag:'special'};}
+
+  if(f<=126){
+    cls='A';mask='255.0.0.0';cidr=8;range='1.0.0.0 – 126.255.255.255';hosts=16777214;rfc='RFC 791';
+    type=(f===10)?'Private (RFC1918)':'Public';
+  } else if(f<=191){
+    cls='B';mask='255.255.0.0';cidr=16;range='128.0.0.0 – 191.255.255.255';hosts=65534;rfc='RFC 791';
+    type=(f===172&&s>=16&&s<=31)?'Private (RFC1918)':'Public';
+  } else {
+    cls='C';mask='255.255.255.0';cidr=24;range='192.0.0.0 – 223.255.255.255';hosts=254;rfc='RFC 791';
+    type=(f===192&&s===168)?'Private (RFC1918)':'Public';
+  }
+  const tag=type.startsWith('Private')?'private':'public';
+  return{cls,type,mask,cidr,range,hosts,rfc,tag};
+}
+
+function classifyIP(){
+  const str=document.getElementById('ip-in').value;
+  const p=parseIP(str);
+  const vis=document.getElementById('octet-vis');
+  if(!p){vis.innerHTML='';document.getElementById('result-main-card').style.display='none';return;}
+
+  vis.innerHTML=p.map((o,i)=>`<div class="octet"><div class="octet-label">Octet ${i+1}</div><div class="octet-dec">${o}</div><div class="octet-bin">${o.toString(2).padStart(8,'0')}</div></div>`).join('');
+
+  const r=classify(p);
+  const n=toInt(p);
+  document.getElementById('result-main-card').style.display='';
+  document.getElementById('res-summary').innerHTML=str+' <span class="tag tag-'+r.tag+'">'+(r.type.startsWith('Private')?'Private':'Public')+'</span>';
+  document.getElementById('res-class').textContent='Class '+r.cls;
+  document.getElementById('res-type').textContent=r.type;
+  document.getElementById('res-mask').textContent=r.mask;
+  document.getElementById('res-cidr').textContent=r.cidr?'/'+r.cidr:'N/A';
+  document.getElementById('res-range').textContent=r.range;
+  document.getElementById('res-hosts').textContent=r.hosts?r.hosts.toLocaleString():'N/A';
+  document.getElementById('res-binary').textContent=toBin(p);
+  document.getElementById('res-hex').textContent='0x'+n.toString(16).toUpperCase().padStart(8,'0')+' ('+toHex(p)+')';
+  document.getElementById('res-dec').textContent=n.toLocaleString();
+  document.getElementById('res-rfc').textContent=r.rfc;
+
+  document.querySelectorAll('#class-table tr[data-class]').forEach(row=>{
+    row.classList.toggle('highlight',row.dataset.class===r.cls);
+  });
+}
+
+function batchClassify(){
+  const raw=document.getElementById('batch-in').value;
+  const ips=raw.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+  const out=document.getElementById('batch-out');
+  if(!ips.length){out.textContent='No IPs found.';return;}
+  const lines=ips.map(ipStr=>{
+    const p=parseIP(ipStr);
+    if(!p) return ipStr+' → INVALID';
+    const r=classify(p);
+    return ipStr.padEnd(18)+' Class '+r.cls.padEnd(2)+' | '+r.type.padEnd(20)+' | '+r.rfc;
+  });
+  out.textContent=lines.join('\n');
+}
+
+classifyIP();
+</script>
+</body></html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gear Ratio Calculator — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus{outline:none;border-color:#06b6d4}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.res-card{background:#0d0d0d;border:1px solid #1e3a3a;border-radius:8px;padding:12px;text-align:center}
+.res-num{font-size:1.4rem;font-weight:700;color:#06b6d4}
+.res-lbl{font-size:.75rem;color:#888;margin-top:2px}
+.gear-vis{width:100%;height:160px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;margin-top:12px}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.chain-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;margin-bottom:8px}
+.chain-op{color:#06b6d4;font-size:1.2rem;text-align:center;padding-bottom:8px}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Gear Ratio Calculator</h1>
+  <p>Speed, torque, and mechanical advantage for gear trains</p>
+</div>
+
+<div class="card">
+  <h2>Single Gear Pair</h2>
+  <div class="grid2">
+    <div>
+      <label>Driver Teeth (N₁)</label>
+      <input type="number" id="n1" value="20" min="3" oninput="calcGear()">
+      <label style="margin-top:8px">Driver RPM (ω₁)</label>
+      <input type="number" id="w1" value="1000" min="1" oninput="calcGear()">
+      <label style="margin-top:8px">Input Torque (N·m)</label>
+      <input type="number" id="t1" value="10" step="any" oninput="calcGear()">
+    </div>
+    <div>
+      <label>Driven Teeth (N₂)</label>
+      <input type="number" id="n2" value="40" min="3" oninput="calcGear()">
+      <label style="margin-top:8px">Efficiency (%)</label>
+      <input type="number" id="eff" value="98" min="50" max="100" step="any" oninput="calcGear()">
+    </div>
+  </div>
+
+  <div class="result-grid">
+    <div class="res-card"><div class="res-num" id="gr">—</div><div class="res-lbl">Gear Ratio</div></div>
+    <div class="res-card"><div class="res-num" id="w2">—</div><div class="res-lbl">Output RPM</div></div>
+    <div class="res-card"><div class="res-num" id="t2">—</div><div class="res-lbl">Output Torque (N·m)</div></div>
+    <div class="res-card"><div class="res-num" id="ma">—</div><div class="res-lbl">Mech. Advantage</div></div>
+  </div>
+
+  <canvas id="gearVis" class="gear-vis" width="600" height="160"></canvas>
+
+  <div style="margin-top:12px">
+    <div class="info-row"><span class="info-label">Type</span><span class="info-val" id="gear-type">—</span></div>
+    <div class="info-row"><span class="info-label">Driver pitch velocity (m/s @ 1m pitch)</span><span class="info-val" id="pv">—</span></div>
+    <div class="info-row"><span class="info-label">Output power (W)</span><span class="info-val" id="pout">—</span></div>
+    <div class="info-row"><span class="info-label">Power loss (W)</span><span class="info-val" id="ploss">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Gear Train (Up to 4 Stages)</h2>
+  <div id="stages"></div>
+  <button onclick="addStage()" style="background:#0d0d0d;border:1px dashed #333;color:#888;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;margin-top:4px">+ Add Stage</button>
+  <div style="margin-top:14px">
+    <div class="info-row"><span class="info-label">Total Gear Ratio</span><span class="info-val" id="total-gr">—</span></div>
+    <div class="info-row"><span class="info-label">Overall Efficiency</span><span class="info-val" id="total-eff">—</span></div>
+    <div class="info-row"><span class="info-label">Output RPM (from 1000 rpm input)</span><span class="info-val" id="total-rpm">—</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Common Gear Ratios Reference</h2>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+      <thead><tr style="background:#1a1a1a">
+        <th style="padding:6px 8px;color:#888;text-align:left">Application</th>
+        <th style="padding:6px 8px;color:#888;text-align:left">Typical Ratio</th>
+        <th style="padding:6px 8px;color:#888;text-align:left">Effect</th>
+      </tr></thead>
+      <tbody id="ref-table">
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Car 1st gear</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">3.5–4.5:1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">High torque, low speed</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Car top gear</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">0.7–1.0:1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Overdrive / fuel savings</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Bicycle (sprint)</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">~4.5:1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">High wheel speed</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Clock (minute→hour)</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">12:1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Timekeeping reduction</td></tr>
+        <tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">Worm gear (heavy)</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">20–300:1</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a">High reduction, self-locking</td></tr>
+        <tr><td style="padding:6px 8px">Planetary (typical)</td><td style="padding:6px 8px">3–10:1</td><td style="padding:6px 8px">Compact, high efficiency</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let stageCount = 2;
+const stages = [{n1:20,n2:60},{n1:15,n2:45}];
+
+function buildStages() {
+  const c = document.getElementById('stages');
+  c.innerHTML = '';
+  stages.forEach((s,i)=>{
+    const row = document.createElement('div');
+    row.className = 'chain-row';
+    row.style.marginBottom = '8px';
+    row.innerHTML = `
+      <div>
+        <label>Stage ${i+1} Driver Teeth</label>
+        <input type="number" value="${s.n1}" min="3" oninput="stageChange(${i},'n1',this.value)">
+      </div>
+      <div class="chain-op">→</div>
+      <div>
+        <label>Stage ${i+1} Driven Teeth</label>
+        <input type="number" value="${s.n2}" min="3" oninput="stageChange(${i},'n2',this.value)">
+      </div>`;
+    c.appendChild(row);
+  });
+  calcTrain();
+}
+
+function addStage() {
+  if(stages.length >= 4) return;
+  stages.push({n1:15,n2:30});
+  buildStages();
+}
+
+function stageChange(i,key,val) {
+  stages[i][key] = parseInt(val)||1;
+  calcTrain();
+}
+
+function calcTrain() {
+  let totalRatio = 1, totalEff = 1;
+  stages.forEach(s=>{
+    totalRatio *= s.n2/s.n1;
+    totalEff *= 0.98;
+  });
+  document.getElementById('total-gr').textContent = totalRatio.toFixed(4)+':1';
+  document.getElementById('total-eff').textContent = (totalEff*100).toFixed(1)+'%';
+  document.getElementById('total-rpm').textContent = (1000/totalRatio).toFixed(1)+' rpm';
+}
+
+function calcGear() {
+  const n1=parseFloat(document.getElementById('n1').value)||1;
+  const n2=parseFloat(document.getElementById('n2').value)||1;
+  const w1=parseFloat(document.getElementById('w1').value)||0;
+  const tin=parseFloat(document.getElementById('t1').value)||0;
+  const eff=(parseFloat(document.getElementById('eff').value)||98)/100;
+
+  const ratio = n2/n1;
+  const w2_val = w1/ratio;
+  const t2_val = tin*ratio*eff;
+  const pin = tin*w1*(Math.PI/30);
+  const pout = t2_val*w2_val*(Math.PI/30);
+  const ploss = pin - pout;
+  const pv = w1*(Math.PI/30)*0.5; // 1m pitch circle radius assumption
+
+  document.getElementById('gr').textContent = ratio.toFixed(3)+':1';
+  document.getElementById('w2').textContent = w2_val.toFixed(1);
+  document.getElementById('t2').textContent = t2_val.toFixed(2);
+  document.getElementById('ma').textContent = (ratio*eff).toFixed(3);
+  document.getElementById('gear-type').textContent = ratio>1 ? 'Speed Reducer (torque ↑)' : ratio<1 ? 'Speed Increaser (torque ↓)' : '1:1 Direct Drive';
+  document.getElementById('pv').textContent = pv.toFixed(2);
+  document.getElementById('pout').textContent = pout.toFixed(1);
+  document.getElementById('ploss').textContent = ploss.toFixed(1);
+
+  drawGears(n1, n2, ratio);
+}
+
+function drawGears(n1, n2, ratio) {
+  const canvas = document.getElementById('gearVis');
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const maxR = H*0.42;
+  const scale = maxR / Math.max(n1,n2);
+  const r1 = n1*scale, r2 = n2*scale;
+  const cx1 = W*0.3, cx2 = W*0.7, cy = H*0.5;
+
+  function drawGear(cx,cy,r,teeth,color,label,rpm) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.fillStyle = color+'22';
+    ctx.beginPath();
+    for(let i=0;i<teeth*2;i++){
+      const ang = (i/teeth)*Math.PI;
+      const rr = (i%2===0) ? r : r*0.82;
+      ctx.lineTo(cx+Math.cos(ang)*rr, cy+Math.sin(ang)*rr);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx,cy,r*0.25,0,Math.PI*2);
+    ctx.fillStyle=color;
+    ctx.fill();
+    ctx.fillStyle='#e0e0e0';
+    ctx.font='bold 11px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(label, cx, cy+r+16);
+    ctx.font='10px Segoe UI';
+    ctx.fillStyle='#888';
+    ctx.fillText(rpm, cx, cy+r+28);
+  }
+
+  const w1=parseFloat(document.getElementById('w1').value)||1000;
+  drawGear(cx1, cy, r1, Math.round(n1), '#06b6d4', `Driver (${Math.round(n1)}T)`, w1.toFixed(0)+' rpm');
+  drawGear(cx2, cy, r2, Math.round(n2), '#f97316', `Driven (${Math.round(n2)}T)`, (w1/ratio).toFixed(0)+' rpm');
+}
+
+buildStages();
+calcGear();
+</script>
+</body></html>

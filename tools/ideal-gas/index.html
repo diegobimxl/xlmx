@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ideal Gas Law — XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.5rem;font-weight:600;color:#fff}
+.header p{font-size:.85rem;color:#888;margin-top:4px}
+.back{display:inline-block;margin-bottom:18px;color:#888;text-decoration:none;font-size:.85rem}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#f97316;margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+label{display:block;font-size:.78rem;color:#888;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.9rem}
+input:focus,select:focus{outline:none;border-color:#f97316}
+.solve-btn{width:100%;background:#f97316;color:#000;border:none;border-radius:6px;padding:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px}
+.solve-btn:hover{background:#fb923c}
+.result-box{background:#0d0d0d;border:1px solid #f97316;border-radius:8px;padding:16px;margin-top:12px}
+.result-val{font-size:1.6rem;font-weight:700;color:#f97316;text-align:center}
+.result-label{font-size:.8rem;color:#888;text-align:center;margin-top:4px}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#888}
+.info-val{color:#e0e0e0;font-weight:600}
+.tab-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;cursor:pointer;font-size:.82rem}
+.tab.active{background:#f97316;color:#000;border-color:#f97316;font-weight:700}
+.eq{text-align:center;font-size:1.1rem;color:#f97316;letter-spacing:.05em;margin-bottom:12px;font-family:monospace}
+.unknown-select{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.u-btn{padding:6px 16px;border-radius:6px;border:1px solid #333;background:#0d0d0d;color:#888;cursor:pointer;font-size:.85rem}
+.u-btn.active{background:#f97316;color:#000;border-color:#f97316;font-weight:700}
+.hidden{display:none}
+.gas-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.gas-table th{background:#1a1a1a;color:#888;padding:6px 8px;text-align:left;font-weight:500}
+.gas-table td{padding:6px 8px;border-bottom:1px solid #1a1a1a;color:#e0e0e0}
+.gas-table tr:last-child td{border-bottom:none}
+</style>
+</head><body>
+<a class="back" href="/tools/">← Back to Tools</a>
+<div class="header">
+  <h1>Ideal Gas Law</h1>
+  <p>PV = nRT — solve for any variable, unit conversion included</p>
+</div>
+
+<div class="card">
+  <h2>Solve For Unknown</h2>
+  <div class="eq">PV = nRT</div>
+  <div style="margin-bottom:10px;font-size:.8rem;color:#888">Select the unknown variable:</div>
+  <div class="unknown-select">
+    <button class="u-btn active" onclick="setUnknown('P')">P — Pressure</button>
+    <button class="u-btn" onclick="setUnknown('V')">V — Volume</button>
+    <button class="u-btn" onclick="setUnknown('n')">n — Moles</button>
+    <button class="u-btn" onclick="setUnknown('T')">T — Temperature</button>
+  </div>
+
+  <div class="grid2">
+    <div id="inp-P">
+      <label>Pressure</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="P_val" placeholder="e.g. 1" step="any" oninput="calc()">
+        <select id="P_unit" onchange="calc()" style="width:90px">
+          <option value="101325">Pa</option>
+          <option value="1000">kPa</option>
+          <option value="1" selected>atm</option>
+          <option value="0.0689476">psi</option>
+          <option value="0.750062">mmHg</option>
+          <option value="1.01325">bar</option>
+        </select>
+      </div>
+    </div>
+    <div id="inp-V">
+      <label>Volume</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="V_val" placeholder="e.g. 22.4" step="any" oninput="calc()">
+        <select id="V_unit" onchange="calc()" style="width:90px">
+          <option value="1" selected>L</option>
+          <option value="0.001">mL</option>
+          <option value="1000">m³</option>
+          <option value="28.3168">ft³</option>
+          <option value="3.78541">gal</option>
+        </select>
+      </div>
+    </div>
+    <div id="inp-n">
+      <label>Moles (n)</label>
+      <input type="number" id="n_val" placeholder="e.g. 1" step="any" oninput="calc()">
+    </div>
+    <div id="inp-T">
+      <label>Temperature</label>
+      <div style="display:flex;gap:6px">
+        <input type="number" id="T_val" placeholder="e.g. 25" step="any" oninput="calc()">
+        <select id="T_unit" onchange="calc()" style="width:80px">
+          <option value="K">K</option>
+          <option value="C" selected>°C</option>
+          <option value="F">°F</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="result-area" class="hidden">
+    <div class="result-box">
+      <div class="result-val" id="result-num">—</div>
+      <div class="result-label" id="result-unit"></div>
+    </div>
+    <div id="detail-rows" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Combined Gas Law</h2>
+  <p style="font-size:.8rem;color:#888;margin-bottom:12px">P₁V₁/T₁ = P₂V₂/T₂ — fixed amount of gas changing state</p>
+  <div class="eq">P₁V₁/T₁ = P₂V₂/T₂</div>
+  <div class="grid2" style="margin-bottom:8px">
+    <div><label>P₁ (atm)</label><input type="number" id="c_p1" placeholder="1" step="any" oninput="combined()"></div>
+    <div><label>V₁ (L)</label><input type="number" id="c_v1" placeholder="22.4" step="any" oninput="combined()"></div>
+    <div><label>T₁ (°C)</label><input type="number" id="c_t1" placeholder="0" step="any" oninput="combined()"></div>
+    <div><label>P₂ (atm)</label><input type="number" id="c_p2" placeholder="2" step="any" oninput="combined()"></div>
+    <div><label>T₂ (°C)</label><input type="number" id="c_t2" placeholder="100" step="any" oninput="combined()"></div>
+    <div><label>V₂ (L) — result</label><input type="number" id="c_v2" readonly style="color:#f97316;background:#1a1a1a"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Gas Constants & Reference</h2>
+  <table class="gas-table">
+    <thead><tr><th>Constant</th><th>Value</th><th>Units</th></tr></thead>
+    <tbody>
+      <tr><td>R (universal)</td><td>8.31446</td><td>J / (mol·K)</td></tr>
+      <tr><td>R</td><td>0.082057</td><td>L·atm / (mol·K)</td></tr>
+      <tr><td>R</td><td>8.31446</td><td>Pa·m³ / (mol·K)</td></tr>
+      <tr><td>STP pressure</td><td>100,000 Pa</td><td>1 bar (IUPAC 1982)</td></tr>
+      <tr><td>STP temp</td><td>273.15 K</td><td>0 °C</td></tr>
+      <tr><td>STP molar vol</td><td>22.711 L/mol</td><td>at 1 bar, 0 °C</td></tr>
+      <tr><td>NTP temp</td><td>293.15 K</td><td>20 °C</td></tr>
+      <tr><td>Avogadro</td><td>6.022 × 10²³</td><td>molecules/mol</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const R = 0.082057; // L·atm/(mol·K)
+let unknown = 'P';
+
+function setUnknown(u) {
+  unknown = u;
+  document.querySelectorAll('.u-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  ['P','V','n','T'].forEach(x => {
+    const el = document.getElementById('inp-'+x);
+    if(el) el.style.opacity = (x===u) ? '0.3' : '1';
+  });
+  const pEl = document.getElementById('inp-P');
+  if(pEl) pEl.style.pointerEvents = (u==='P') ? 'none' : '';
+  calc();
+}
+
+function toAtm(val, unit) { return parseFloat(val) / parseFloat(unit); }
+function toK(val, unit) {
+  val = parseFloat(val);
+  if(unit==='C') return val + 273.15;
+  if(unit==='F') return (val - 32) * 5/9 + 273.15;
+  return val;
+}
+function toLiters(val, unit) { return parseFloat(val) * parseFloat(unit); }
+
+function calc() {
+  const P_v = document.getElementById('P_val').value;
+  const P_u = document.getElementById('P_unit').value;
+  const V_v = document.getElementById('V_val').value;
+  const V_u = document.getElementById('V_unit').value;
+  const n_v = document.getElementById('n_val').value;
+  const T_v = document.getElementById('T_val').value;
+  const T_u = document.getElementById('T_unit').value;
+
+  const P_atm = P_v ? toAtm(P_v, P_u) : null;
+  const V_L   = V_v ? toLiters(V_v, V_u) : null;
+  const n_mol = n_v ? parseFloat(n_v) : null;
+  const T_K   = T_v ? toK(T_v, T_u) : null;
+
+  const ra = document.getElementById('result-area');
+  const rn = document.getElementById('result-num');
+  const ru = document.getElementById('result-unit');
+  const dr = document.getElementById('detail-rows');
+
+  let result, label, details = [];
+  try {
+    if(unknown==='P') {
+      if(!V_L||!n_mol||!T_K||T_K<=0||V_L<=0) return ra.classList.add('hidden');
+      result = (n_mol * R * T_K) / V_L;
+      label = 'atm';
+      details = [`${(result*101325).toFixed(0)} Pa`, `${(result*14.6959).toFixed(3)} psi`, `${(result*760).toFixed(1)} mmHg`, `${(result*1.01325).toFixed(4)} bar`];
+    } else if(unknown==='V') {
+      if(!P_atm||!n_mol||!T_K||T_K<=0||P_atm<=0) return ra.classList.add('hidden');
+      result = (n_mol * R * T_K) / P_atm;
+      label = 'L';
+      details = [`${(result/1000).toFixed(6)} m³`, `${(result*1000).toFixed(1)} mL`, `${(result/28.3168).toFixed(4)} ft³`];
+    } else if(unknown==='n') {
+      if(!P_atm||!V_L||!T_K||T_K<=0||P_atm<=0||V_L<=0) return ra.classList.add('hidden');
+      result = (P_atm * V_L) / (R * T_K);
+      label = 'mol';
+      details = [`${(result*6.022e23).toExponential(3)} molecules`, `Mass depends on gas`];
+    } else {
+      if(!P_atm||!V_L||!n_mol||P_atm<=0||V_L<=0||n_mol<=0) return ra.classList.add('hidden');
+      const T_K2 = (P_atm * V_L) / (n_mol * R);
+      result = T_K2;
+      label = 'K';
+      details = [`${(T_K2-273.15).toFixed(2)} °C`, `${((T_K2-273.15)*9/5+32).toFixed(2)} °F`];
+    }
+    if(!isFinite(result)||result<0) return ra.classList.add('hidden');
+    rn.textContent = result < 0.001 ? result.toExponential(4) : result.toFixed(4);
+    ru.textContent = label;
+    dr.innerHTML = details.map(d=>`<div class="info-row"><span class="info-label">Also</span><span class="info-val">${d}</span></div>`).join('');
+    ra.classList.remove('hidden');
+  } catch(e) { ra.classList.add('hidden'); }
+}
+
+function combined() {
+  const p1=parseFloat(document.getElementById('c_p1').value);
+  const v1=parseFloat(document.getElementById('c_v1').value);
+  const t1=parseFloat(document.getElementById('c_t1').value)+273.15;
+  const p2=parseFloat(document.getElementById('c_p2').value);
+  const t2=parseFloat(document.getElementById('c_t2').value)+273.15;
+  const out=document.getElementById('c_v2');
+  if([p1,v1,t1,p2,t2].some(x=>!isFinite(x)||x<=0)){out.value='';return;}
+  out.value = ((p1*v1*t2)/(t1*p2)).toFixed(4);
+}
+
+setUnknown('P');
+</script>
+</body></html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matrix Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sub{color:#888;font-size:.85rem;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px}
+label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
+input,select{background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#e5e5e5;padding:6px;font-size:.88rem;text-align:center;width:60px}
+select{width:auto}
+.matrix-wrap{overflow-x:auto;margin-top:8px}
+.matrix-grid{display:inline-grid;gap:4px}
+.op-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.op-btn{background:#1a1a1a;border:1px solid #06b6d4;color:#06b6d4;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:.85rem}
+.op-btn:hover{background:#06b6d4;color:#000}
+.result-matrix{background:#1a1a1a;border-radius:8px;padding:16px;margin-top:12px;overflow-x:auto}
+.result-matrix .r-val{color:#06b6d4;font-size:.95rem;font-weight:700;min-width:70px;display:inline-block;text-align:center;font-family:monospace}
+.matrix-row{display:flex;gap:4px;margin:2px 0}
+.scalar-info{font-size:.82rem;color:#888;margin-top:8px;background:#1a1a1a;padding:8px;border-radius:6px;font-family:monospace}
+.dim-sel{display:flex;gap:6px;align-items:center;margin-bottom:10px;font-size:.82rem}
+.dim-sel select{width:50px;padding:4px}
+</style>
+</head>
+<body>
+<h1>Matrix Calculator</h1>
+<p class="sub">2D matrix operations: add, subtract, multiply, transpose, determinant, inverse</p>
+
+<div class="card">
+  <h2>Matrix A</h2>
+  <div class="dim-sel">
+    <span>Rows:</span><select id="arRows" onchange="buildMatrices()"><option>2</option><option selected>3</option><option>4</option></select>
+    <span>Cols:</span><select id="arCols" onchange="buildMatrices()"><option>2</option><option selected>3</option><option>4</option></select>
+    <button onclick="identityA()" style="background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.75rem">Identity</button>
+    <button onclick="randomA()" style="background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.75rem">Random</button>
+  </div>
+  <div class="matrix-wrap" id="matA"></div>
+</div>
+
+<div class="card">
+  <h2>Matrix B</h2>
+  <div class="dim-sel">
+    <span>Rows:</span><select id="brRows" onchange="buildMatrices()"><option>2</option><option selected>3</option><option>4</option></select>
+    <span>Cols:</span><select id="brCols" onchange="buildMatrices()"><option>2</option><option selected>3</option><option>4</option></select>
+    <button onclick="identityB()" style="background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.75rem">Identity</button>
+    <button onclick="randomB()" style="background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.75rem">Random</button>
+  </div>
+  <div class="matrix-wrap" id="matB"></div>
+</div>
+
+<div class="card">
+  <h2>Operations</h2>
+  <div class="op-grid">
+    <button class="op-btn" onclick="operate('add')">A + B</button>
+    <button class="op-btn" onclick="operate('sub')">A − B</button>
+    <button class="op-btn" onclick="operate('mul')">A × B</button>
+    <button class="op-btn" onclick="operate('transA')">Aᵀ</button>
+    <button class="op-btn" onclick="operate('transB')">Bᵀ</button>
+    <button class="op-btn" onclick="operate('detA')">det(A)</button>
+    <button class="op-btn" onclick="operate('detB')">det(B)</button>
+    <button class="op-btn" onclick="operate('invA')">A⁻¹</button>
+    <button class="op-btn" onclick="operate('invB')">B⁻¹</button>
+    <button class="op-btn" onclick="operate('traceA')">trace(A)</button>
+  </div>
+  <div class="result-matrix" id="result"><div style="color:#555;font-size:.85rem">Select an operation above</div></div>
+</div>
+
+<script>
+function getRows(which){return parseInt(document.getElementById(which+'Rows').value)||3;}
+function getCols(which){return parseInt(document.getElementById(which+'Cols').value)||3;}
+function buildMatrices(){
+  ['a','b'].forEach(m=>{
+    const r=getRows(m),c=getCols(m);
+    let html='<div class="matrix-grid" style="grid-template-columns:repeat('+c+',1fr)">';
+    for(let i=0;i<r;i++)for(let j=0;j<c;j++)html+=`<input type="number" id="${m}_${i}_${j}" value="${i===j?1:0}" step="any" style="width:60px">`;
+    html+='</div>';
+    document.getElementById('mat'+m.toUpperCase()).innerHTML=html;
+  });
+}
+function getMatrix(which){
+  const r=getRows(which),c=getCols(which),m=[];
+  for(let i=0;i<r;i++){m[i]=[];for(let j=0;j<c;j++)m[i][j]=parseFloat(document.getElementById(which+'_'+i+'_'+j).value)||0;}
+  return m;
+}
+function showMatrix(m,title){
+  let html=`<div style="color:#06b6d4;font-size:.82rem;margin-bottom:8px;font-weight:600">${title}</div>`;
+  if(typeof m==='number'||typeof m==='string'){html+=`<div class="r-val">${typeof m==='number'?m.toFixed(6):m}</div>`;document.getElementById('result').innerHTML=html;return;}
+  m.forEach(row=>{html+='<div class="matrix-row">';row.forEach(v=>html+=`<span class="r-val">${v.toFixed(4)}</span>`);html+='</div>';});
+  document.getElementById('result').innerHTML=html;
+}
+function identityA(){const r=getRows('a'),c=getCols('a');for(let i=0;i<r;i++)for(let j=0;j<c;j++){const el=document.getElementById('a_'+i+'_'+j);if(el)el.value=i===j?1:0;}}
+function identityB(){const r=getRows('b'),c=getCols('b');for(let i=0;i<r;i++)for(let j=0;j<c;j++){const el=document.getElementById('b_'+i+'_'+j);if(el)el.value=i===j?1:0;}}
+function randomA(){const r=getRows('a'),c=getCols('a');for(let i=0;i<r;i++)for(let j=0;j<c;j++){const el=document.getElementById('a_'+i+'_'+j);if(el)el.value=Math.round((Math.random()*10-5)*10)/10;}}
+function randomB(){const r=getRows('b'),c=getCols('b');for(let i=0;i<r;i++)for(let j=0;j<c;j++){const el=document.getElementById('b_'+i+'_'+j);if(el)el.value=Math.round((Math.random()*10-5)*10)/10;}}
+function det(m){
+  if(m.length===1)return m[0][0];
+  if(m.length===2)return m[0][0]*m[1][1]-m[0][1]*m[1][0];
+  let d=0;
+  for(let j=0;j<m.length;j++){
+    const sub=m.slice(1).map(r=>r.filter((_,c)=>c!==j));
+    d+=Math.pow(-1,j)*m[0][j]*det(sub);
+  }
+  return d;
+}
+function inv(m){
+  const n=m.length;
+  const aug=m.map((r,i)=>[...r,...Array(n).fill(0).map((_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let maxRow=col;for(let r=col+1;r<n;r++)if(Math.abs(aug[r][col])>Math.abs(aug[maxRow][col]))maxRow=r;
+    [aug[col],aug[maxRow]]=[aug[maxRow],aug[col]];
+    const piv=aug[col][col];if(Math.abs(piv)<1e-10)return null;
+    for(let c=0;c<2*n;c++)aug[col][c]/=piv;
+    for(let r=0;r<n;r++){if(r===col)continue;const f=aug[r][col];for(let c=0;c<2*n;c++)aug[r][c]-=f*aug[col][c];}
+  }
+  return aug.map(r=>r.slice(n));
+}
+function transpose(m){return m[0].map((_,j)=>m.map(r=>r[j]));}
+function addMat(a,b){return a.map((r,i)=>r.map((v,j)=>v+b[i][j]));}
+function subMat(a,b){return a.map((r,i)=>r.map((v,j)=>v-b[i][j]));}
+function mulMat(a,b){
+  if(a[0].length!==b.length)return null;
+  return a.map(r=>b[0].map((_,j)=>r.reduce((s,v,k)=>s+v*b[k][j],0)));
+}
+function operate(op){
+  const A=getMatrix('a'),B=getMatrix('b');
+  try{
+    if(op==='add'){const r=addMat(A,B);r?showMatrix(r,'A + B'):showMatrix('Error','Dimension mismatch');}
+    else if(op==='sub'){const r=subMat(A,B);r?showMatrix(r,'A − B'):showMatrix('Error','Dimension mismatch');}
+    else if(op==='mul'){const r=mulMat(A,B);r?showMatrix(r,'A × B'):showMatrix('Error','A cols must equal B rows');}
+    else if(op==='transA'){showMatrix(transpose(A),'Aᵀ');}
+    else if(op==='transB'){showMatrix(transpose(B),'Bᵀ');}
+    else if(op==='detA'){showMatrix(A.length===A[0].length?det(A):'N/A (not square)','det(A)');}
+    else if(op==='detB'){showMatrix(B.length===B[0].length?det(B):'N/A (not square)','det(B)');}
+    else if(op==='invA'){const r=A.length===A[0].length?inv(A):null;showMatrix(r||'Singular or non-square','A⁻¹');}
+    else if(op==='invB'){const r=B.length===B[0].length?inv(B):null;showMatrix(r||'Singular or non-square','B⁻¹');}
+    else if(op==='traceA'){const t=A.length===A[0].length?A.reduce((s,r,i)=>s+r[i],0):'N/A (not square)';showMatrix(t,'trace(A)');}
+  }catch(e){showMatrix('Error: '+e.message,'Operation failed');}
+}
+buildMatrices();
+</script>
+</body>
+</html>
