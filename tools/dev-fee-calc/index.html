@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Development Fee Estimator — XLMX</title>
+<style>
+:root{--bg:#070b0f;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e2e8f0;--mu:#8892a4;--gold:#c8a96e;--gold2:rgba(200,169,110,.15);--red:#ef4444;--grn:#22c55e;--pur:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 28px;height:52px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold);font-family:"JetBrains Mono",monospace;}
+.logo span{color:var(--mu);font-weight:400;}
+.back{color:var(--mu);font-size:12px;text-decoration:none;margin-left:auto;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.back:hover{color:var(--tx);}
+.wrap{max-width:820px;margin:0 auto;padding:40px 28px 100px;position:relative;z-index:1;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:32px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px 24px;margin-bottom:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:6px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,110,.1);}
+select option{background:#0f1419;}
+.btn{background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));border:1px solid rgba(200,169,110,.3);color:var(--gold);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(200,169,110,.15);}
+.btn-sm{padding:6px 14px;font-size:11px;}
+.btn-full{width:100%;margin-top:4px;}
+.btn-ghost{background:transparent;border:1px solid var(--bd2);color:var(--mu);}
+.btn-ghost:hover{border-color:var(--bd2);color:var(--tx);box-shadow:none;}
+.btn-danger{border-color:rgba(239,68,68,.3);color:var(--red);background:rgba(239,68,68,.06);}
+.btn-danger:hover{border-color:var(--red);box-shadow:none;}
+.results{display:none;}
+.results.show{display:block;}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.res-item{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.18);border-radius:8px;padding:14px 16px;}
+.res-item.neg{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.18);}
+.res-item.grn{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.18);}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
+.res-val{font-size:18px;font-weight:800;color:var(--gold);font-family:"JetBrains Mono",monospace;line-height:1.2;}
+.res-item.neg .res-val{color:var(--red);}
+.res-item.grn .res-val{color:var(--grn);}
+.res-note{font-size:11px;color:var(--mu);margin-top:3px;}
+.info{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--mu);line-height:1.7;margin-bottom:0;}
+.info b{color:var(--tx);font-weight:600;}
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--tx);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl td.hi{color:var(--gold);font-weight:700;font-family:"JetBrains Mono",monospace;}
+.tbl td.mu{color:var(--mu);font-size:12px;}
+.tbl input{padding:5px 8px;font-size:12px;}
+.tbl select{padding:5px 8px;font-size:12px;}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mu);text-transform:uppercase;margin-bottom:10px;}
+.add-row{padding:10px 0 4px;display:flex;gap:8px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.04em;}
+.badge-hi{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.badge-med{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3);}
+.badge-lo{background:rgba(34,197,94,.1);color:var(--grn);border:1px solid rgba(34,197,94,.3);}
+</style>
+</head>
+<body>
+<nav><span class="logo">XLMX <span>/ UTILITY LIBRARY</span></span><a class="back" href="/">&#8592; All Tools</a></nav>
+<div class="wrap">
+<h1>Development Fee Estimator</h1>
+<p class="sub">Estimate development management fees by phase as % of hard costs, soft costs, land, and financing.</p>
+<div class="card">
+  <div class="row2">
+    <div class="field"><label>Hard Costs — Construction ($)</label><input id="hard" type="number" step="any" placeholder="e.g. 18000000" oninput="calc()"></div>
+    <div class="field"><label>Soft Costs — Design & Admin ($)</label><input id="soft" type="number" step="any" placeholder="e.g. 2700000" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Land / Acquisition Cost ($)</label><input id="land" type="number" step="any" placeholder="e.g. 3500000" oninput="calc()"></div>
+    <div class="field"><label>Financing / Interest Reserve ($)</label><input id="fin" type="number" step="any" placeholder="e.g. 1200000" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <p class="sec-lbl" style="margin-bottom:12px;">Fee Schedule by Phase</p>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Phase</th><th>Basis</th><th>Fee % on Basis</th><th>Calculated Fee</th></tr></thead>
+    <tbody id="phaseBody"></tbody>
+  </table></div>
+  <div class="add-row"><button class="btn btn-sm btn-ghost" onclick="addPhase()">+ Add Phase</button></div>
+</div>
+<div class="results" id="res">
+  <div class="card">
+    <div class="res-grid" id="resGrid"></div>
+    <div class="info" style="margin-top:12px;"><b>Market range:</b> Dev management fee = 3–5% of total project cost. Promote (carried interest) is separate and triggered at hurdle. AIA recommends documenting fee basis clearly in the Development Management Agreement.</div>
+  </div>
+</div>
+<script>
+var phases=[
+  {name:'Pre-Development / Entitlement',basis:'soft',pct:'5'},
+  {name:'Design Development',basis:'soft',pct:'8'},
+  {name:'Construction Administration',basis:'hard',pct:'4'},
+  {name:'Close-Out / Commissioning',basis:'hard',pct:'1'},
+];
+function getCosts(){
+  return {
+    hard:parseFloat(document.getElementById('hard').value)||0,
+    soft:parseFloat(document.getElementById('soft').value)||0,
+    land:parseFloat(document.getElementById('land').value)||0,
+    fin:parseFloat(document.getElementById('fin').value)||0,
+  };
+}
+function renderPhases(){
+  var c=getCosts();
+  var rows='';
+  phases.forEach(function(p,i){
+    var basisVal=c[p.basis]||0;
+    var fee=basisVal*(parseFloat(p.pct)||0)/100;
+    rows+='<tr>'+
+      '<td><input type="text" value="'+p.name+'" oninput="phases['+i+'].name=this.value;calc()" style="background:transparent;border:none;padding:4px 6px;font-size:13px;color:var(--tx);" /></td>'+
+      '<td><select onchange="phases['+i+'].basis=this.value;calc()" style="width:120px;padding:5px 8px;font-size:12px;"><option value="hard"'+(p.basis==='hard'?' selected':'')+'>Hard Costs</option><option value="soft"'+(p.basis==='soft'?' selected':'')+'>Soft Costs</option><option value="land"'+(p.basis==='land'?' selected':'')+'>Land</option><option value="fin"'+(p.basis==='fin'?' selected':'')+'>Financing</option></select></td>'+
+      '<td><input type="number" step="any" value="'+p.pct+'" style="width:80px;" oninput="phases['+i+'].pct=this.value;calc()" /> %</td>'+
+      '<td class="hi">$'+Math.round(fee).toLocaleString()+'</td>'+
+      '</tr>';
+  });
+  document.getElementById('phaseBody').innerHTML=rows;
+}
+function addPhase(){phases.push({name:'New Phase',basis:'hard',pct:'2'});renderPhases();calc();}
+function calc(){
+  var c=getCosts();
+  renderPhases();
+  var total=c.hard+c.soft+c.land+c.fin;
+  var totalFee=phases.reduce(function(s,p){return s+(c[p.basis]||0)*(parseFloat(p.pct)||0)/100;},0);
+  var pctTotal=total>0?totalFee/total*100:0;
+  document.getElementById('resGrid').innerHTML=
+    '<div class="res-item"><div class="res-lbl">Total Project Cost</div><div class="res-val">$'+Math.round(total).toLocaleString()+'</div></div>'+
+    '<div class="res-item"><div class="res-lbl">Total Dev Fee</div><div class="res-val">$'+Math.round(totalFee).toLocaleString()+'</div></div>'+
+    '<div class="res-item"><div class="res-lbl">Fee as % of TPC</div><div class="res-val">'+pctTotal.toFixed(2)+'%</div></div>'+
+    '<div class="res-item"><div class="res-lbl">Hard Costs</div><div class="res-val">$'+Math.round(c.hard).toLocaleString()+'</div></div>';
+  document.getElementById('res').classList.add('show');
+}
+renderPhases();calc();
+</script>
+</div>
+</body>
+</html>

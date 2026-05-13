@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Risk Register — XLMX</title>
+<style>
+:root{--bg:#070b0f;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e2e8f0;--mu:#8892a4;--gold:#c8a96e;--gold2:rgba(200,169,110,.15);--red:#ef4444;--grn:#22c55e;--pur:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 28px;height:52px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold);font-family:"JetBrains Mono",monospace;}
+.logo span{color:var(--mu);font-weight:400;}
+.back{color:var(--mu);font-size:12px;text-decoration:none;margin-left:auto;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.back:hover{color:var(--tx);}
+.wrap{max-width:820px;margin:0 auto;padding:40px 28px 100px;position:relative;z-index:1;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:32px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px 24px;margin-bottom:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:6px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,110,.1);}
+select option{background:#0f1419;}
+.btn{background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));border:1px solid rgba(200,169,110,.3);color:var(--gold);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(200,169,110,.15);}
+.btn-sm{padding:6px 14px;font-size:11px;}
+.btn-full{width:100%;margin-top:4px;}
+.btn-ghost{background:transparent;border:1px solid var(--bd2);color:var(--mu);}
+.btn-ghost:hover{border-color:var(--bd2);color:var(--tx);box-shadow:none;}
+.btn-danger{border-color:rgba(239,68,68,.3);color:var(--red);background:rgba(239,68,68,.06);}
+.btn-danger:hover{border-color:var(--red);box-shadow:none;}
+.results{display:none;}
+.results.show{display:block;}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.res-item{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.18);border-radius:8px;padding:14px 16px;}
+.res-item.neg{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.18);}
+.res-item.grn{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.18);}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
+.res-val{font-size:18px;font-weight:800;color:var(--gold);font-family:"JetBrains Mono",monospace;line-height:1.2;}
+.res-item.neg .res-val{color:var(--red);}
+.res-item.grn .res-val{color:var(--grn);}
+.res-note{font-size:11px;color:var(--mu);margin-top:3px;}
+.info{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--mu);line-height:1.7;margin-bottom:0;}
+.info b{color:var(--tx);font-weight:600;}
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--tx);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl td.hi{color:var(--gold);font-weight:700;font-family:"JetBrains Mono",monospace;}
+.tbl td.mu{color:var(--mu);font-size:12px;}
+.tbl input{padding:5px 8px;font-size:12px;}
+.tbl select{padding:5px 8px;font-size:12px;}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mu);text-transform:uppercase;margin-bottom:10px;}
+.add-row{padding:10px 0 4px;display:flex;gap:8px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.04em;}
+.badge-hi{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.badge-med{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3);}
+.badge-lo{background:rgba(34,197,94,.1);color:var(--grn);border:1px solid rgba(34,197,94,.3);}
+</style>
+</head>
+<body>
+<nav><span class="logo">XLMX <span>/ UTILITY LIBRARY</span></span><a class="back" href="/">&#8592; All Tools</a></nav>
+<div class="wrap">
+<h1>Risk Register</h1>
+<p class="sub">Log, score, and track project risks with probability × impact matrix. Filter by category and severity.</p>
+<div class="card">
+  <p class="sec-lbl" style="margin-bottom:12px;">Add Risk</p>
+  <div class="row2">
+    <div class="field"><label>Risk Description</label><input id="rDesc" type="text" placeholder="e.g. Permit delay exceeding 60 days" onkeydown="if(event.key==='Enter')addRisk()"></div>
+    <div class="field"><label>Category</label>
+      <select id="rCat">
+        <option>Schedule</option><option>Cost</option><option>Design</option>
+        <option>Contractor</option><option>Regulatory</option><option>Financial</option>
+        <option>Environmental</option><option>Force Majeure</option><option>Other</option>
+      </select>
+    </div>
+  </div>
+  <div class="row3">
+    <div class="field"><label>Probability (1–5)</label>
+      <select id="rProb"><option value="1">1 — Rare</option><option value="2">2 — Unlikely</option><option value="3" selected>3 — Possible</option><option value="4">4 — Likely</option><option value="5">5 — Almost Certain</option></select>
+    </div>
+    <div class="field"><label>Impact (1–5)</label>
+      <select id="rImp"><option value="1">1 — Negligible</option><option value="2">2 — Minor</option><option value="3" selected>3 — Moderate</option><option value="4">4 — Major</option><option value="5">5 — Critical</option></select>
+    </div>
+    <div class="field"><label>Owner</label><input id="rOwner" type="text" placeholder="e.g. PM / BIM Lead"></div>
+  </div>
+  <div class="field"><label>Mitigation Strategy</label><input id="rMit" type="text" placeholder="e.g. Submit permit 8 weeks early, engage expeditor"></div>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button class="btn btn-sm" onclick="addRisk()">+ Add Risk</button>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+      <label style="font-size:11px;text-transform:none;letter-spacing:0;margin:0;">Filter:</label>
+      <select id="filterCat" onchange="render()" style="width:140px;padding:5px 10px;font-size:12px;"><option value="">All Categories</option></select>
+      <select id="filterSev" onchange="render()" style="width:120px;padding:5px 10px;font-size:12px;"><option value="">All Severity</option><option value="high">High (&ge;15)</option><option value="med">Medium (6–14)</option><option value="low">Low (&le;5)</option></select>
+    </div>
+  </div>
+</div>
+<div id="summaryWrap" style="display:none;margin-bottom:14px;">
+  <div class="res-grid" id="summaryGrid"></div>
+</div>
+<div class="card" style="padding:0;overflow:hidden;">
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Description</th><th>Category</th><th>P</th><th>I</th><th>Score</th><th>Severity</th><th>Owner</th><th>Mitigation</th><th>Status</th><th></th></tr></thead>
+      <tbody id="riskBody"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+var risks=[];var uid=1;
+function sev(score){return score>=15?'high':score>=6?'med':'low';}
+function sevBadge(score){var s=sev(score);return'<span class="badge badge-'+s+'">'+(s==='high'?'HIGH':s==='med'?'MED':'LOW')+'</span>';}
+function addRisk(){
+  var d=document.getElementById('rDesc').value.trim();
+  if(!d)return;
+  risks.push({id:uid++,desc:d,cat:document.getElementById('rCat').value,prob:parseInt(document.getElementById('rProb').value),imp:parseInt(document.getElementById('rImp').value),owner:document.getElementById('rOwner').value,mit:document.getElementById('rMit').value,status:'Open'});
+  document.getElementById('rDesc').value='';document.getElementById('rMit').value='';document.getElementById('rOwner').value='';
+  updateCatFilter();render();
+}
+function removeRisk(id){risks=risks.filter(function(r){return r.id!==id;});updateCatFilter();render();}
+function toggleStatus(id){var r=risks.find(function(r){return r.id===id;});if(r)r.status=r.status==='Open'?'Closed':'Open';render();}
+function updateCatFilter(){var sel=document.getElementById('filterCat');var cur=sel.value;var cats=[...new Set(risks.map(function(r){return r.cat;}))].sort();sel.innerHTML='<option value="">All Categories</option>'+cats.map(function(c){return'<option value="'+c+'"'+(c===cur?' selected':'')+'>'+c+'</option>';}).join('');}
+function render(){
+  var fc=document.getElementById('filterCat').value;
+  var fs=document.getElementById('filterSev').value;
+  var filtered=risks.filter(function(r){
+    var sc=r.prob*r.imp;
+    var matchC=!fc||r.cat===fc;
+    var matchS=!fs||(fs==='high'&&sc>=15)||(fs==='med'&&sc>=6&&sc<15)||(fs==='low'&&sc<=5);
+    return matchC&&matchS;
+  }).sort(function(a,b){return b.prob*b.imp-a.prob*a.imp;});
+  document.getElementById('riskBody').innerHTML=filtered.length?filtered.map(function(r,i){
+    var sc=r.prob*r.imp;
+    return'<tr style="opacity:'+(r.status==='Closed'?'.45':'1')+'">'+
+      '<td class="mu">'+r.id+'</td>'+
+      '<td style="max-width:200px;">'+r.desc+'</td>'+
+      '<td class="mu">'+r.cat+'</td>'+
+      '<td style="text-align:center;font-weight:700;">'+r.prob+'</td>'+
+      '<td style="text-align:center;font-weight:700;">'+r.imp+'</td>'+
+      '<td class="hi" style="text-align:center;">'+sc+'</td>'+
+      '<td>'+sevBadge(sc)+'</td>'+
+      '<td class="mu">'+r.owner+'</td>'+
+      '<td class="mu" style="max-width:180px;font-size:12px;">'+r.mit+'</td>'+
+      '<td><span style="cursor:pointer;font-size:12px;color:'+(r.status==='Open'?'var(--grn)':'var(--mu)')+';" onclick="toggleStatus('+r.id+')">'+r.status+'</span></td>'+
+      '<td><button class="btn btn-sm btn-danger" onclick="removeRisk('+r.id+')">&#10005;</button></td></tr>';
+  }).join(''):'<tr><td colspan="11" style="text-align:center;color:var(--mu);padding:28px;">No risks logged. Add one above.</td></tr>';
+  var open=risks.filter(function(r){return r.status==='Open';});
+  var hi=open.filter(function(r){return r.prob*r.imp>=15;}).length;
+  var med=open.filter(function(r){var s=r.prob*r.imp;return s>=6&&s<15;}).length;
+  var lo=open.filter(function(r){return r.prob*r.imp<=5;}).length;
+  if(risks.length){
+    document.getElementById('summaryGrid').innerHTML=
+      '<div class="res-item"><div class="res-lbl">Total Risks</div><div class="res-val">'+risks.length+'</div></div>'+
+      '<div class="res-item neg"><div class="res-lbl">High (&#8805;15)</div><div class="res-val">'+hi+'</div></div>'+
+      '<div class="res-item" style="background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);"><div class="res-lbl">Medium (6–14)</div><div class="res-val" style="color:#f59e0b;">'+med+'</div></div>'+
+      '<div class="res-item grn"><div class="res-lbl">Low (&#8804;5)</div><div class="res-val">'+lo+'</div></div>';
+    document.getElementById('summaryWrap').style.display='block';
+  }
+}
+// seed with example risks
+['Permit approval delayed beyond 45 days||Schedule||2||4||PM||Submit 8 wks early; engage permit expeditor',
+ 'Subcontractor bid 15% over budget||Cost||3||4||PM||Re-bid; value-engineer scope',
+ 'Structural RFI response over 14 days||Design||2||3||BIM Lead||Pre-coordinate issues in weekly clash review',
+].forEach(function(s){
+  var p=s.split('||');
+  risks.push({id:uid++,desc:p[0],cat:p[1],prob:parseInt(p[2]),imp:parseInt(p[3]),owner:p[4],mit:p[5],status:'Open'});
+});
+updateCatFilter();render();
+</script>
+</div>
+</body>
+</html>

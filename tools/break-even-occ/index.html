@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Break-Even Occupancy Calculator — XLMX</title>
+<style>
+:root{--bg:#070b0f;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e2e8f0;--mu:#8892a4;--gold:#c8a96e;--gold2:rgba(200,169,110,.15);--red:#ef4444;--grn:#22c55e;--pur:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 28px;height:52px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold);font-family:"JetBrains Mono",monospace;}
+.logo span{color:var(--mu);font-weight:400;}
+.back{color:var(--mu);font-size:12px;text-decoration:none;margin-left:auto;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.back:hover{color:var(--tx);}
+.wrap{max-width:820px;margin:0 auto;padding:40px 28px 100px;position:relative;z-index:1;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:32px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px 24px;margin-bottom:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:6px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,110,.1);}
+select option{background:#0f1419;}
+.btn{background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));border:1px solid rgba(200,169,110,.3);color:var(--gold);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(200,169,110,.15);}
+.btn-sm{padding:6px 14px;font-size:11px;}
+.btn-full{width:100%;margin-top:4px;}
+.btn-ghost{background:transparent;border:1px solid var(--bd2);color:var(--mu);}
+.btn-ghost:hover{border-color:var(--bd2);color:var(--tx);box-shadow:none;}
+.btn-danger{border-color:rgba(239,68,68,.3);color:var(--red);background:rgba(239,68,68,.06);}
+.btn-danger:hover{border-color:var(--red);box-shadow:none;}
+.results{display:none;}
+.results.show{display:block;}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.res-item{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.18);border-radius:8px;padding:14px 16px;}
+.res-item.neg{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.18);}
+.res-item.grn{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.18);}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
+.res-val{font-size:18px;font-weight:800;color:var(--gold);font-family:"JetBrains Mono",monospace;line-height:1.2;}
+.res-item.neg .res-val{color:var(--red);}
+.res-item.grn .res-val{color:var(--grn);}
+.res-note{font-size:11px;color:var(--mu);margin-top:3px;}
+.info{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--mu);line-height:1.7;margin-bottom:0;}
+.info b{color:var(--tx);font-weight:600;}
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--tx);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl td.hi{color:var(--gold);font-weight:700;font-family:"JetBrains Mono",monospace;}
+.tbl td.mu{color:var(--mu);font-size:12px;}
+.tbl input{padding:5px 8px;font-size:12px;}
+.tbl select{padding:5px 8px;font-size:12px;}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mu);text-transform:uppercase;margin-bottom:10px;}
+.add-row{padding:10px 0 4px;display:flex;gap:8px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.04em;}
+.badge-hi{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.badge-med{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3);}
+.badge-lo{background:rgba(34,197,94,.1);color:var(--grn);border:1px solid rgba(34,197,94,.3);}
+</style>
+</head>
+<body>
+<nav><span class="logo">XLMX <span>/ UTILITY LIBRARY</span></span><a class="back" href="/">&#8592; All Tools</a></nav>
+<div class="wrap">
+<h1>Break-Even Occupancy Calculator</h1>
+<p class="sub">Find the occupancy rate needed to cover OpEx and debt service. Includes sensitivity table.</p>
+<div class="card">
+  <div class="row2">
+    <div class="field"><label>Potential Gross Revenue @ 100% ($)</label><input id="pgr" type="number" step="any" placeholder="e.g. 240000" oninput="calc()"></div>
+    <div class="field"><label>Total Annual Operating Expenses ($)</label><input id="opex" type="number" step="any" placeholder="e.g. 85000" oninput="calc()"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Annual Debt Service ($)</label><input id="debt" type="number" step="any" placeholder="e.g. 72000" oninput="calc()"></div>
+    <div class="field"><label>Target NOI ($) <span style="color:var(--mu);font-size:10px">optional</span></label><input id="targetNOI" type="number" step="any" placeholder="above debt service" oninput="calc()"></div>
+  </div>
+</div>
+<div class="results" id="res">
+  <div class="card">
+    <div class="res-grid" id="resGrid"></div>
+    <div style="margin-top:4px;background:rgba(255,255,255,.02);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;">
+      <div class="sec-lbl" style="margin-bottom:8px;">Occupancy Sensitivity</div>
+      <table class="tbl"><thead><tr><th>Occupancy %</th><th>EGI</th><th>NOI</th><th>Cash Flow After DS</th><th>Status</th></tr></thead>
+      <tbody id="sensBody"></tbody></table>
+    </div>
+    <div class="info" style="margin-top:14px;"><b>Break-Even Occupancy</b> = (OpEx + Debt Service) ÷ PGR. At this occupancy level, NOI exactly covers debt service. Lenders typically want BEO below 85%. DSCR = NOI ÷ Debt Service.</div>
+  </div>
+</div>
+<script>
+function fmt(n){return'$'+Math.round(n).toLocaleString();}
+function fmtp(n){return n.toFixed(1)+'%';}
+function res(l,v,n,cls){return'<div class="res-item'+(cls?' '+cls:'')+'"><div class="res-lbl">'+l+'</div><div class="res-val">'+v+'</div>'+(n?'<div class="res-note">'+n+'</div>':'')+'</div>';}
+function calc(){
+  var pgr=parseFloat(document.getElementById('pgr').value)||0;
+  var opex=parseFloat(document.getElementById('opex').value)||0;
+  var debt=parseFloat(document.getElementById('debt').value)||0;
+  var target=parseFloat(document.getElementById('targetNOI').value)||0;
+  if(!pgr){document.getElementById('res').classList.remove('show');return;}
+  var beoDs=pgr>0?(opex+debt)/pgr*100:0;
+  var beoNoi=pgr>0?opex/pgr*100:0;
+  var beoTarget=target>0&&pgr>0?(opex+debt+target)/pgr*100:null;
+  var noi100=pgr-opex;
+  var dscr=debt>0?noi100/debt:null;
+  document.getElementById('resGrid').innerHTML=
+    res('BEO (incl. Debt Service)',fmtp(beoDs),'occupancy to cover OpEx + DS',(beoDs>85?'neg':'grn'))+
+    res('BEO (NOI only)',fmtp(beoNoi),'to cover OpEx only')+
+    res('NOI @ 100% Occ',fmt(noi100))+
+    (dscr?res('DSCR @ 100%',dscr.toFixed(2)+'x','',dscr>=1.25?'grn':dscr>=1.0?'':'neg'):'')+ 
+    (beoTarget?res('BEO for Target NOI',fmtp(beoTarget),'incl. target NOI of '+fmt(target)):'');
+  var rows='';
+  [60,65,70,75,80,85,90,95,100].forEach(function(occ){
+    var egi=pgr*occ/100;
+    var noi=egi-opex;
+    var cf=noi-debt;
+    var ok=cf>=0;
+    rows+='<tr><td>'+occ+'%</td><td>'+fmt(egi)+'</td><td class="'+(noi>=0?'hi':'')+'">'+fmt(noi)+'</td><td style="color:'+(ok?'var(--grn)':'var(--red)')+'">'+fmt(cf)+'</td><td><span class="badge badge-'+(ok?'lo':'hi')+'">'+(ok?'POSITIVE':'DEFICIT')+'</span></td></tr>';
+  });
+  document.getElementById('sensBody').innerHTML=rows;
+  document.getElementById('res').classList.add('show');
+}
+</script>
+</div>
+</body>
+</html>
