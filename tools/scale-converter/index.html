@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scale Converter — XLMX</title>
+<style>
+:root{--bg:#070b0f;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e2e8f0;--mu:#8892a4;--gold:#c8a96e;--gold2:rgba(200,169,110,.15);--red:#ef4444;--grn:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 28px;height:52px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold);font-family:"JetBrains Mono",monospace;}
+.logo span{color:var(--mu);font-weight:400;}
+.back{color:var(--mu);font-size:12px;text-decoration:none;margin-left:auto;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.back:hover{color:var(--tx);}
+.wrap{max-width:760px;margin:0 auto;padding:40px 28px 80px;position:relative;z-index:1;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:32px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:24px 24px 20px;margin-bottom:16px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.field{margin-bottom:18px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:6px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,110,.1);}
+select option{background:#0f1419;}
+.btn{background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));border:1px solid rgba(200,169,110,.3);color:var(--gold);padding:11px 28px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;width:100%;margin-top:4px;}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(200,169,110,.15);}
+.results{display:none;margin-top:0;}
+.results.show{display:block;}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.res-item{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.18);border-radius:8px;padding:14px 16px;}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
+.res-val{font-size:18px;font-weight:800;color:var(--gold);font-family:"JetBrains Mono",monospace;line-height:1.2;}
+.res-note{font-size:11px;color:var(--mu);margin-top:3px;}
+.info{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--mu);line-height:1.7;}
+.info b{color:var(--tx);font-weight:600;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--bd);color:var(--tx);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl td.hi{color:var(--gold);font-weight:700;font-family:"JetBrains Mono",monospace;}
+.err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+</style>
+</head>
+<body>
+<nav><span class="logo">XLMX <span>/ UTILITY LIBRARY</span></span><a class="back" href="/">← All Tools</a></nav>
+<div class="wrap">
+<h1>Scale Converter</h1>
+<p class="sub">Convert real dimensions to drawing dimensions and back for any architectural or engineering scale.</p>
+<div class="card">
+  <div class="field"><label>Drawing Scale</label>
+    <select id="scScale" onchange="scCalc()">
+      <option value="12">1" = 1&apos;-0" (1:12)</option>
+      <option value="24">1/2" = 1&apos;-0" (1:24)</option>
+      <option value="48" selected>1/4" = 1&apos;-0" (1:48)</option>
+      <option value="96">1/8" = 1&apos;-0" (1:96)</option>
+      <option value="192">1/16" = 1&apos;-0" (1:192)</option>
+      <option value="100">1:100 (metric)</option>
+      <option value="200">1:200 (metric)</option>
+      <option value="500">1:500 (metric)</option>
+      <option value="custom">Custom ratio…</option>
+    </select>
+  </div>
+  <div class="field" id="customWrap" style="display:none"><label>Custom scale (1 : ?)</label><input id="scCustom" type="number" step="any" placeholder="e.g. 150" oninput="scCalc()"></div>
+  <div id="scCardA" class="card" style="background:rgba(255,255,255,.02);margin-bottom:0;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:12px;">Real → Drawing</p>
+    <div class="row">
+      <div class="field"><label>Real dimension (ft or m)</label><input id="scRealIn" type="number" step="any" placeholder="e.g. 20" oninput="scRealToDraw()"></div>
+      <div class="field" style="display:flex;align-items:flex-end"><div id="scDrawOut" class="res-item" style="width:100%"><div class="res-lbl">Drawing length</div><div class="res-val" id="scDrawVal">—</div></div></div>
+    </div>
+  </div>
+  <div id="scCardB" class="card" style="background:rgba(255,255,255,.02);margin-top:12px;margin-bottom:0;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:12px;">Drawing → Real</p>
+    <div class="row">
+      <div class="field"><label>Drawing measurement (inches or mm)</label><input id="scDrawIn" type="number" step="any" placeholder="e.g. 2.5" oninput="scDrawToReal()"></div>
+      <div class="field" style="display:flex;align-items:flex-end"><div id="scRealOut" class="res-item" style="width:100%"><div class="res-lbl">Real dimension</div><div class="res-val" id="scRealVal">—</div></div></div>
+    </div>
+  </div>
+</div>
+<script>
+function getRatio(){
+  var sel=document.getElementById('scScale').value;
+  if(sel==='custom'){
+    var v=parseFloat(document.getElementById('scCustom').value);
+    return isNaN(v)?null:v;
+  }
+  return parseFloat(sel);
+}
+document.getElementById('scScale').addEventListener('change',function(){
+  document.getElementById('customWrap').style.display=this.value==='custom'?'block':'none';
+  scCalc();
+});
+function scCalc(){scRealToDraw();scDrawToReal();}
+function fmt(n){
+  if(n>=12){var ft=Math.floor(n/12);var i=+(n%12).toFixed(3);return ft+"&apos;-"+i+'"';}
+  return n.toFixed(4)+'"';
+}
+function scRealToDraw(){
+  var r=getRatio();
+  var real=parseFloat(document.getElementById('scRealIn').value);
+  if(!r||isNaN(real)){document.getElementById('scDrawVal').textContent='—';return;}
+  // real in feet → drawing in inches: realFt * 12 / ratio
+  var drawIn=real*12/r;
+  document.getElementById('scDrawVal').innerHTML=drawIn.toFixed(4)+'" &nbsp;<span style="font-size:11px;color:var(--mu)">on drawing</span>';
+}
+function scDrawToReal(){
+  var r=getRatio();
+  var drawIn=parseFloat(document.getElementById('scDrawIn').value);
+  if(!r||isNaN(drawIn)){document.getElementById('scRealVal').textContent='—';return;}
+  // drawIn * ratio / 12 = real feet
+  var realFt=drawIn*r/12;
+  document.getElementById('scRealVal').innerHTML=fmt(realFt*12)+' &nbsp;<span style="font-size:11px;color:var(--mu)">= '+realFt.toFixed(3)+" ft</span>";
+}
+</script>
+</div>
+</body>
+</html>

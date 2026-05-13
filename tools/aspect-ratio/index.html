@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aspect Ratio Calculator — XLMX</title>
+<style>
+:root{--bg:#070b0f;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e2e8f0;--mu:#8892a4;--gold:#c8a96e;--gold2:rgba(200,169,110,.15);--red:#ef4444;--grn:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 28px;height:52px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold);font-family:"JetBrains Mono",monospace;}
+.logo span{color:var(--mu);font-weight:400;}
+.back{color:var(--mu);font-size:12px;text-decoration:none;margin-left:auto;display:flex;align-items:center;gap:6px;transition:color .15s;}
+.back:hover{color:var(--tx);}
+.wrap{max-width:760px;margin:0 auto;padding:40px 28px 80px;position:relative;z-index:1;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:32px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:24px 24px 20px;margin-bottom:16px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.field{margin-bottom:18px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:6px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,110,.1);}
+select option{background:#0f1419;}
+.btn{background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));border:1px solid rgba(200,169,110,.3);color:var(--gold);padding:11px 28px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.04em;transition:all .2s;width:100%;margin-top:4px;}
+.btn:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(200,169,110,.15);}
+.results{display:none;margin-top:0;}
+.results.show{display:block;}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.res-item{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.18);border-radius:8px;padding:14px 16px;}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
+.res-val{font-size:18px;font-weight:800;color:var(--gold);font-family:"JetBrains Mono",monospace;line-height:1.2;}
+.res-note{font-size:11px;color:var(--mu);margin-top:3px;}
+.info{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--mu);line-height:1.7;}
+.info b{color:var(--tx);font-weight:600;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--bd);color:var(--tx);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl td.hi{color:var(--gold);font-weight:700;font-family:"JetBrains Mono",monospace;}
+.err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+</style>
+</head>
+<body>
+<nav><span class="logo">XLMX <span>/ UTILITY LIBRARY</span></span><a class="back" href="/">← All Tools</a></nav>
+<div class="wrap">
+<h1>Aspect Ratio Calculator</h1>
+<p class="sub">Calculate and lock aspect ratios. Solve for missing dimensions using any standard scale.</p>
+<div class="card">
+  <div class="row">
+    <div class="field"><label>Width</label><input id="arW" type="number" step="any" placeholder="1920" oninput="calcAR()"></div>
+    <div class="field"><label>Height</label><input id="arH" type="number" step="any" placeholder="1080" oninput="calcAR()"></div>
+  </div>
+  <div class="field"><label>Lock ratio to (optional)</label>
+    <select id="arPreset" onchange="applyPreset()">
+      <option value="">— or pick a standard ratio —</option>
+      <option value="16:9">16:9 — HD Video / Widescreen</option>
+      <option value="4:3">4:3 — Traditional / SDTV</option>
+      <option value="1:1">1:1 — Square</option>
+      <option value="3:2">3:2 — 35mm Photo / DSLR</option>
+      <option value="2:1">2:1 — Ultrawide / Panorama</option>
+      <option value="8.5:11">8.5:11 — Letter / ANSI A</option>
+      <option value="11:17">11:17 — Tabloid / ANSI B</option>
+      <option value="24:36">24:36 — Arch D</option>
+      <option value="1.414:1">1.414:1 — A-series (ISO 216)</option>
+    </select>
+  </div>
+</div>
+<div class="results" id="arRes">
+  <div class="card">
+    <div class="res-grid" id="arGrid"></div>
+    <div class="card" id="arSolveCard" style="margin-top:0;background:rgba(255,255,255,.02);">
+      <p style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:12px;">Solve for missing dimension</p>
+      <div class="row">
+        <div class="field"><label>Known Width</label><input id="solW" type="number" step="any" placeholder="e.g. 1920" oninput="solve('w')"></div>
+        <div class="field"><label>Known Height</label><input id="solH" type="number" step="any" placeholder="e.g. 1080" oninput="solve('h')"></div>
+      </div>
+      <div class="res-grid" id="solRes"></div>
+    </div>
+  </div>
+</div>
+<script>
+var lockedRatio=null;
+function gcd(a,b){return b<0.001?a:gcd(b,a%b);}
+function calcAR(){
+  var w=parseFloat(document.getElementById('arW').value);
+  var h=parseFloat(document.getElementById('arH').value);
+  if(!w||!h||w<=0||h<=0){document.getElementById('arRes').classList.remove('show');return;}
+  var g=gcd(w,h);
+  var rx=Math.round(w/g*100)/100, ry=Math.round(h/g*100)/100;
+  // simplify for common ratios
+  var dec=w/h;
+  var simple=simplifyRatio(w,h);
+  lockedRatio=dec;
+  document.getElementById('arGrid').innerHTML=
+    res('Ratio',simple.n+':'+simple.d)+
+    res('Decimal','1 : '+dec.toFixed(4))+
+    res('Landscape',w+' × '+h)+
+    res('Portrait',h+' × '+w);
+  document.getElementById('arRes').classList.add('show');
+  clearSolve();
+}
+function simplifyRatio(w,h){
+  // use integer GCD for clean ratios
+  function igcd(a,b){a=Math.round(a);b=Math.round(b);return b===0?a:igcd(b,a%b);}
+  // scale to integers (up to 4 decimal places)
+  var scale=1;
+  while((w*scale)%1>0.001||(h*scale)%1>0.001){scale*=10;if(scale>10000)break;}
+  var wi=Math.round(w*scale),hi=Math.round(h*scale);
+  var g=igcd(wi,hi);
+  return {n:wi/g,d:hi/g};
+}
+function res(lbl,val,note){return '<div class="res-item"><div class="res-lbl">'+lbl+'</div><div class="res-val">'+val+'</div>'+(note?'<div class="res-note">'+note+'</div>':'')+'</div>';}
+function applyPreset(){
+  var v=document.getElementById('arPreset').value;
+  if(!v)return;
+  var parts=v.split(':');
+  var w=parseFloat(parts[0]),h=parseFloat(parts[1]);
+  document.getElementById('arW').value=w;
+  document.getElementById('arH').value=h;
+  calcAR();
+}
+function solve(known){
+  if(!lockedRatio)return;
+  if(known==='w'){
+    var w=parseFloat(document.getElementById('solW').value);
+    if(!w)return;
+    var h=w/lockedRatio;
+    document.getElementById('solRes').innerHTML=res('Calculated Height',h.toFixed(2));
+  }else{
+    var h=parseFloat(document.getElementById('solH').value);
+    if(!h)return;
+    var w=h*lockedRatio;
+    document.getElementById('solRes').innerHTML=res('Calculated Width',w.toFixed(2));
+  }
+}
+function clearSolve(){document.getElementById('solRes').innerHTML='';}
+</script>
+</div>
+</body>
+</html>
