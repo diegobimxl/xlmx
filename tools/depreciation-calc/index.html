@@ -1,107 +1,95 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Depreciation Calculator | XLMX</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
-.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
-.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
-.container{max-width:800px;margin:0 auto;padding:24px 20px}.desc{color:#888;font-size:13px;margin-bottom:24px}
-.grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
-.section{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px}
-.section h2{font-size:12px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase}
-.field{margin-bottom:12px}label{font-size:11px;color:#888;display:block;margin-bottom:4px}
-input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
-input:focus,select:focus{outline:none;border-color:#c8a96e}
-.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
-.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
-.result-row:last-child{border-bottom:none}.result-label{color:#888}.result-val{font-weight:600}
-.gold{color:#c8a96e}.green{color:#52c87a}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{text-align:right;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
-th:first-child{text-align:left}td{padding:5px 8px;border-bottom:1px solid #111;text-align:right}
-td:first-child{text-align:left;color:#888}tr:hover td{background:#151515}
-.scroll{max-height:440px;overflow-y:auto;border:1px solid #1e1e1e;border-radius:8px}
-.tabs{display:flex;gap:8px;margin-bottom:14px}
-.tab{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid #2a2a2a;background:#111;color:#888}
-.tab.active{background:#c8a96e;color:#000;border-color:#c8a96e;font-weight:600}
-</style></head>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Depreciation Calculator — XL Tools</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e5e5e5;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px}.header{border-bottom:1px solid #222;padding-bottom:16px;margin-bottom:24px}.header h1{font-size:1.4rem;font-weight:600;color:#fff}.header p{color:#888;font-size:0.85rem;margin-top:4px}.badge{display:inline-block;background:#22c55e;color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;vertical-align:middle}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}@media(max-width:700px){.grid{grid-template-columns:1fr}}.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px}.card h3{font-size:0.8rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}label:first-of-type{margin-top:0}input,select{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:0.88rem}input:focus,select:focus{outline:none;border-color:#22c55e}.result-big{font-size:2rem;font-weight:700;color:#22c55e;margin:4px 0}.result-label{font-size:0.75rem;color:#666;margin-bottom:12px}.result-sub{font-size:1rem;font-weight:600;color:#fff;margin:2px 0}.good{color:#22c55e}.warn{color:#f59e0b}table{width:100%;border-collapse:collapse;font-size:0.82rem}th{background:#161616;color:#888;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:.04em;padding:8px 10px;text-align:right;border-bottom:1px solid #222}th:first-child{text-align:left}td{padding:7px 10px;border-bottom:1px solid #1a1a1a;text-align:right}td:first-child{text-align:left;color:#ccc}tr:last-child td{border-bottom:none;font-weight:700;background:#161616}tr:nth-child(even) td{background:#131313}</style></head>
 <body>
-<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Depreciation Calculator</h1></div>
-<div class="container">
-<p class="desc">Straight-line, declining balance, and sum-of-years-digits depreciation schedules with annual breakdown.</p>
+<div class="header"><h1>Depreciation Calculator <span class="badge">ACCOUNTING</span></h1><p>Straight-line, double-declining balance, and MACRS depreciation schedules with tax deduction tables</p></div>
 <div class="grid">
-<div>
-<div class="section">
-<h2>Asset</h2>
-<div class="field"><label>Asset Cost ($)</label><input type="number" id="cost" placeholder="500000" min="0"></div>
-<div class="field"><label>Salvage Value ($)</label><input type="number" id="salvage" value="0" min="0"></div>
-<div class="field"><label>Useful Life (years)</label><input type="number" id="life" value="27.5" min="1" max="50" step="0.5"></div>
-<div class="field"><label>Method</label>
-<select id="method">
-<option value="sl">Straight-Line (SL)</option>
-<option value="db">Declining Balance (200% DB)</option>
-<option value="syd">Sum-of-Years Digits (SYD)</option>
-</select></div>
-<div class="field"><label>Asset Type (for reference)</label>
-<select id="atype" onchange="prefillLife()">
-<option value="0">Custom</option>
-<option value="27.5">Residential Real Estate (27.5 yr)</option>
-<option value="39">Commercial Real Estate (39 yr)</option>
-<option value="15">Land Improvements (15 yr)</option>
-<option value="7">Equipment / Furniture (7 yr)</option>
-<option value="5">Vehicles / Computers (5 yr)</option>
-</select></div>
-<button class="btn" onclick="calc()">Generate Schedule</button>
+<div class="card">
+<h3>Asset Parameters</h3>
+<label>Asset Cost ($)</label>
+<input type="number" id="cost" value="50000" oninput="calc()">
+<label>Salvage Value ($)</label>
+<input type="number" id="salvage" value="5000" oninput="calc()">
+<label>Useful Life (years)</label>
+<input type="number" id="life" value="7" min="1" max="40" oninput="calc()">
+<label>Asset Class (MACRS Recovery Period)</label>
+<select id="macrs_class" onchange="calc()">
+<option value="3">3-year (horses, tractor units)</option>
+<option value="5">5-year (computers, autos, light trucks)</option>
+<option value="7" selected>7-year (office equipment, machinery)</option>
+<option value="10">10-year (vessels, water transport)</option>
+<option value="15">15-year (land improvements)</option>
+<option value="20">20-year (farm buildings)</option>
+<option value="27.5">27.5-year (residential rental)</option>
+<option value="39">39-year (nonresidential real estate)</option>
+</select>
+<label>Year Placed in Service</label>
+<input type="number" id="year_start" value="2024" oninput="calc()">
+<label>Bonus Depreciation % (Section 179)</label>
+<input type="number" id="bonus" value="60" min="0" max="100" oninput="calc()">
 </div>
-<div class="section">
-<div class="result-row"><span class="result-label">Annual Deduction (SL)</span><span class="result-val gold" id="r-sl">&#8212;</span></div>
-<div class="result-row"><span class="result-label">Depreciable Basis</span><span class="result-val" id="r-basis">&#8212;</span></div>
-<div class="result-row"><span class="result-label">SL Rate</span><span class="result-val" id="r-rate">&#8212;</span></div>
-<div class="result-row"><span class="result-label">Total Depreciation</span><span class="result-val" id="r-total">&#8212;</span></div>
-</div>
-</div>
-<div>
-<div class="section">
-<h2>Depreciation Schedule</h2>
-<div class="scroll">
-<table>
-<thead><tr><th>Year</th><th>Depreciation</th><th>Accum. Depr.</th><th>Book Value</th></tr></thead>
-<tbody id="tbody"><tr><td colspan="4" style="text-align:center;color:#555;padding:20px">Enter asset details and click Generate.</td></tr></tbody>
-</table>
+<div class="card">
+<h3>Year 1 Deductions</h3>
+<div class="result-big" id="sl_yr1">—</div>
+<div class="result-label">Straight-Line Year 1</div>
+<div class="result-sub" id="ddb_yr1">—</div>
+<div class="result-label">Double-Declining Balance Year 1</div>
+<div class="result-sub" id="macrs_yr1">—</div>
+<div class="result-label">MACRS Year 1</div>
+<div class="result-sub" id="bonus_yr1">—</div>
+<div class="result-label">Bonus Depreciation (Section 168k) Year 1</div>
+<div style="margin-top:16px;padding:12px;background:#0a1a0f;border-radius:6px;font-size:0.78rem;color:#86efac">Bonus depreciation phases down: 80% in 2023, 60% in 2024, 40% in 2025, 20% in 2026, 0% in 2027+. Section 179 allows full expensing up to $1.16M (2023).</div>
 </div>
 </div>
-</div>
-</div>
-</div>
+<h3 style="font-size:0.8rem;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Full Depreciation Schedule</h3>
+<table><thead><tr><th>Year</th><th>SL Deduction</th><th>SL Book Value</th><th>DDB Deduction</th><th>DDB Book Value</th><th>MACRS %</th><th>MACRS Deduction</th></tr></thead>
+<tbody id="sched_table"></tbody></table>
 <script>
-function prefillLife(){var v=document.getElementById("atype").value;if(v!=="0")document.getElementById("life").value=v}
-function fm(n){return"$"+Math.round(n).toLocaleString("en-US")}
-function fmd(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+// MACRS half-year convention GDS rates
+var MACRS_RATES={
+  3:[33.33,44.45,14.81,7.41],
+  5:[20.00,32.00,19.20,11.52,11.52,5.76],
+  7:[14.29,24.49,17.49,12.49,8.93,8.92,8.93,4.46],
+  10:[10.00,18.00,14.40,11.52,9.22,7.37,6.55,6.55,6.56,6.55,3.28],
+  15:[5.00,9.50,8.55,7.70,6.93,6.23,5.90,5.90,5.91,5.90,5.91,5.90,5.91,5.90,5.91,2.95],
+  20:[3.750,7.219,6.677,6.177,5.713,5.285,4.888,4.522,4.462,4.461,4.462,4.461,4.462,4.461,4.462,4.461,4.462,4.461,4.462,4.461,2.231],
+  27.5:null, 39:null
+};
 function calc(){
-var cost=parseFloat(document.getElementById("cost").value)||0;
-var salvage=parseFloat(document.getElementById("salvage").value)||0;
-var life=parseFloat(document.getElementById("life").value)||27.5;
-var method=document.getElementById("method").value;
-if(!cost){alert("Enter asset cost.");return;}
-var basis=cost-salvage,annSL=basis/life,slRate=100/life;
-document.getElementById("r-sl").textContent=fmd(annSL)+"/yr";
-document.getElementById("r-basis").textContent=fm(basis);
-document.getElementById("r-rate").textContent=slRate.toFixed(2)+"%";
-document.getElementById("r-total").textContent=fm(basis);
-var rows=[],bv=cost,accum=0,n=Math.ceil(life);
-for(var yr=1;yr<=n;yr++){
-var d;
-if(method==="sl"){d=basis/life;}
-else if(method==="db"){var r=2/life;d=bv*r;if(bv-d<salvage)d=Math.max(0,bv-salvage);}
-else{var s=n*(n+1)/2,rem=n-yr+1;d=basis*(rem/s);}
-d=Math.min(d,bv-salvage);if(d<0)d=0;
-bv-=d;accum+=d;
-rows.push({yr:yr,d:d,acc:accum,bv:bv});
+  var cost=parseFloat(document.getElementById('cost').value)||50000;
+  var salvage=parseFloat(document.getElementById('salvage').value)||5000;
+  var life=parseInt(document.getElementById('life').value)||7;
+  var mc=parseFloat(document.getElementById('macrs_class').value)||7;
+  var bonus_pct=parseFloat(document.getElementById('bonus').value)||60;
+  var depreciable=cost-salvage;
+  // SL
+  var sl_ann=depreciable/life;
+  // DDB
+  var ddb_rate=2/life;
+  // MACRS
+  var macrs_rates=MACRS_RATES[mc];
+  var macrs_yr1=macrs_rates?cost*(macrs_rates[0]/100):cost/(mc);
+  var ddb_yr1=cost*ddb_rate;
+  var bonus_yr1=cost*(bonus_pct/100);
+  document.getElementById('sl_yr1').textContent='$'+Math.round(sl_ann).toLocaleString();
+  document.getElementById('ddb_yr1').textContent='$'+Math.round(ddb_yr1).toLocaleString();
+  document.getElementById('macrs_yr1').textContent='$'+Math.round(macrs_yr1).toLocaleString();
+  document.getElementById('bonus_yr1').textContent='$'+Math.round(bonus_yr1).toLocaleString()+' ('+bonus_pct+'%)';
+  // Schedule table
+  var rows='',sl_bv=cost,ddb_bv=cost;
+  var years=Math.max(life,macrs_rates?macrs_rates.length:Math.ceil(mc));
+  for(var y=1;y<=years;y++){
+    var sl_ded=y<=life?sl_ann:0;
+    sl_bv=Math.max(salvage,sl_bv-sl_ded);
+    // DDB with switch to SL
+    var ddb_rem=life-(y-1);
+    var ddb_sl=ddb_rem>0?(ddb_bv-salvage)/ddb_rem:0;
+    var ddb_ded=Math.max(0,Math.min(ddb_bv-salvage,Math.max(ddb_bv*ddb_rate,ddb_sl)));
+    ddb_bv=Math.max(salvage,ddb_bv-ddb_ded);
+    var mr=macrs_rates&&y<=macrs_rates.length?macrs_rates[y-1]:0;
+    var macrs_ded=cost*(mr/100);
+    rows+='<tr><td>'+(document.getElementById('year_start').value?parseInt(document.getElementById('year_start').value)+y-1:y)+'</td><td>$'+Math.round(sl_ded).toLocaleString()+'</td><td>$'+Math.round(sl_bv).toLocaleString()+'</td><td>$'+Math.round(ddb_ded).toLocaleString()+'</td><td>$'+Math.round(ddb_bv).toLocaleString()+'</td><td>'+(mr?mr.toFixed(2)+'%':'—')+'</td><td>$'+Math.round(macrs_ded).toLocaleString()+'</td></tr>';
+  }
+  document.getElementById('sched_table').innerHTML=rows;
 }
-document.getElementById("tbody").innerHTML=rows.map(function(r){
-return'<tr><td>'+r.yr+'</td><td class="gold">'+fmd(r.d)+'</td><td>'+fm(r.acc)+'</td><td class="green">'+fm(r.bv)+'</td></tr>';
-}).join("");
-}
+calc();
 </script></body></html>
