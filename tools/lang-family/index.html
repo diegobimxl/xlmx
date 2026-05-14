@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Language Family Tree — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:800px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.chip{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;margin:3px;border:1px solid transparent;transition:all .15s;}
+.chip.active{border-color:rgba(34,211,238,.5);}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:14px;}
+tr.hidden{display:none;}
+.greeting{font-size:12px;color:var(--acc);font-style:italic;}
+.family-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Language Family Tree</h1>
+  <p class="sub">Linguistics — 25 languages by family, branch, speakers, script</p>
+
+  <div class="card">
+    <input type="text" id="search" placeholder="Search language, family, or branch..." oninput="filter()">
+    <div class="chips-wrap" id="chips" style="margin-top:12px;"></div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:12px;" id="count"></div>
+    <div style="overflow-x:auto;">
+      <table class="tbl" id="lang-table">
+        <thead><tr>
+          <th>Language</th><th>Family</th><th>Branch</th><th>Speakers (M)</th><th>Script</th><th>Greeting</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+const langs=[
+  {l:'English',f:'Indo-European',b:'Germanic',s:1500,sc:'Latin',g:'Hello'},
+  {l:'German',f:'Indo-European',b:'Germanic',s:135,sc:'Latin',g:'Hallo'},
+  {l:'Dutch',f:'Indo-European',b:'Germanic',s:25,sc:'Latin',g:'Hallo'},
+  {l:'Swedish',f:'Indo-European',b:'Germanic',s:13,sc:'Latin',g:'Hej'},
+  {l:'Spanish',f:'Indo-European',b:'Romance',s:560,sc:'Latin',g:'Hola'},
+  {l:'French',f:'Indo-European',b:'Romance',s:280,sc:'Latin',g:'Bonjour'},
+  {l:'Portuguese',f:'Indo-European',b:'Romance',s:260,sc:'Latin',g:'Olá'},
+  {l:'Italian',f:'Indo-European',b:'Romance',s:85,sc:'Latin',g:'Ciao'},
+  {l:'Russian',f:'Indo-European',b:'Slavic',s:258,sc:'Cyrillic',g:'Привет'},
+  {l:'Polish',f:'Indo-European',b:'Slavic',s:45,sc:'Latin',g:'Cześć'},
+  {l:'Hindi',f:'Indo-European',b:'Indo-Iranian',s:600,sc:'Devanagari',g:'नमस्ते'},
+  {l:'Bengali',f:'Indo-European',b:'Indo-Iranian',s:230,sc:'Bengali',g:'নমস্কার'},
+  {l:'Persian',f:'Indo-European',b:'Indo-Iranian',s:80,sc:'Arabic',g:'سلام'},
+  {l:'Mandarin',f:'Sino-Tibetan',b:'Sinitic',s:1200,sc:'Han',g:'你好'},
+  {l:'Cantonese',f:'Sino-Tibetan',b:'Sinitic',s:85,sc:'Han',g:'你好'},
+  {l:'Tibetan',f:'Sino-Tibetan',b:'Tibeto-Burman',s:6,sc:'Tibetan',g:'བཀྲ་ཤིས་བདེ་ལེགས'},
+  {l:'Arabic',f:'Afro-Asiatic',b:'Semitic',s:370,sc:'Arabic',g:'مرحبا'},
+  {l:'Amharic',f:'Afro-Asiatic',b:'Semitic',s:57,sc:'Ethiopic',g:'ሰላም'},
+  {l:'Malay',f:'Austronesian',b:'Malayo-Polynesian',s:290,sc:'Latin',g:'Helo'},
+  {l:'Tagalog',f:'Austronesian',b:'Malayo-Polynesian',s:90,sc:'Latin',g:'Kumusta'},
+  {l:'Swahili',f:'Niger-Congo',b:'Bantu',s:200,sc:'Latin',g:'Habari'},
+  {l:'Tamil',f:'Dravidian',b:'South Dravidian',s:80,sc:'Tamil',g:'வணக்கம்'},
+  {l:'Japanese',f:'Japonic',b:'Japanese',s:125,sc:'Kana/Kanji',g:'こんにちは'},
+  {l:'Turkish',f:'Turkic',b:'Oghuz',s:90,sc:'Latin',g:'Merhaba'},
+  {l:'Uzbek',f:'Turkic',b:'Karluk',s:44,sc:'Latin',g:'Salom'},
+];
+
+const families=[...new Set(langs.map(l=>l.f))];
+const familyColors={'Indo-European':'#a78bfa','Sino-Tibetan':'#22d3ee','Afro-Asiatic':'#f97316','Austronesian':'#22c55e','Niger-Congo':'#eab308','Dravidian':'#ef4444','Japonic':'#e879f9','Turkic':'#fb923c'};
+
+let activeFamily='';
+
+function buildChips(){
+  const wrap=document.getElementById('chips');
+  wrap.innerHTML='<span class="chip active" style="background:rgba(34,211,238,.15);color:#22d3ee;border-color:rgba(34,211,238,.5);" onclick="setFamily(\'\')">All</span>';
+  families.forEach(f=>{
+    const col=familyColors[f]||'#6b7280';
+    wrap.innerHTML+=`<span class="chip" style="background:${col}18;color:${col};" data-fam="${f}" onclick="setFamily('${f}')">${f}</span>`;
+  });
+}
+
+function setFamily(f){
+  activeFamily=f;
+  document.querySelectorAll('.chip').forEach(c=>{
+    const isActive=c.dataset.fam===f||(f===''&&!c.dataset.fam);
+    c.classList.toggle('active',isActive);
+  });
+  filter();
+}
+
+function filter(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const rows=document.querySelectorAll('#tbody tr');
+  let visible=0;
+  rows.forEach(row=>{
+    const text=row.textContent.toLowerCase();
+    const famMatch=!activeFamily||row.dataset.fam===activeFamily;
+    const qMatch=!q||text.includes(q);
+    if(famMatch&&qMatch){row.classList.remove('hidden');visible++;}
+    else row.classList.add('hidden');
+  });
+  document.getElementById('count').textContent=`Showing ${visible} of ${langs.length} languages`;
+}
+
+function buildTable(){
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML=langs.map(l=>{
+    const col=familyColors[l.f]||'#6b7280';
+    return `<tr data-fam="${l.f}">
+      <td style="font-weight:600;">${l.l}</td>
+      <td><span class="family-badge" style="background:${col}18;color:${col};">${l.f}</span></td>
+      <td style="color:var(--mu);">${l.b}</td>
+      <td style="color:var(--acc);">${l.s.toLocaleString()}</td>
+      <td style="color:var(--mu);">${l.sc}</td>
+      <td class="greeting">${l.g}</td>
+    </tr>`;
+  }).join('');
+}
+
+buildChips();
+buildTable();
+filter();
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interview Question Builder — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f97316;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+btn,button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Interview Question Builder</h1>
+  <p class="sub">Journalism — Generate structured interview questions by type</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>INTERVIEW SUBJECT / BEAT</label>
+        <input type="text" id="subject" placeholder="e.g. tech CEO, city official, scientist" oninput="gen()">
+      </div>
+      <div>
+        <label>QUESTION TYPE</label>
+        <select id="qtype" onchange="gen()">
+          <option value="open">Open-ended (exploratory)</option>
+          <option value="probe">Probing (follow-up)</option>
+          <option value="confront">Confrontational (accountability)</option>
+          <option value="expert">Expert / technical</option>
+          <option value="human">Human interest</option>
+        </select>
+      </div>
+    </div>
+    <label>TOPIC / ANGLE</label>
+    <input type="text" id="topic" placeholder="e.g. data privacy, budget cuts, recent discovery" oninput="gen()">
+  </div>
+  <div class="card" id="out" style="display:none">
+    <div style="font-size:13px;font-weight:600;color:var(--acc);margin-bottom:12px;">SUGGESTED QUESTIONS</div>
+    <div id="qlist"></div>
+    <div class="note">The 5 Ws + How form the skeleton of any interview. Confrontational questions should be asked after rapport is built. Always have a "nuclear" follow-up ready: "Can you prove that?"</div>
+  </div>
+</div>
+<script>
+const TEMPLATES={
+  open:[
+    "Walk me through how [topic] has evolved from your perspective.",
+    "What do you think most people misunderstand about [topic]?",
+    "If you could change one thing about [topic], what would it be and why?",
+    "How did you first become involved with [topic]?",
+    "What does success look like for you in this area?",
+  ],
+  probe:[
+    "You mentioned [previous answer] — can you give me a specific example?",
+    "What happened next?",
+    "When you say [term], what exactly do you mean by that?",
+    "Who else was involved in that decision?",
+    "Help me understand the timeline — when did this begin?",
+  ],
+  confront:[
+    "Records show [fact]. How do you respond to that?",
+    "Critics argue [topic] has caused [harm]. What's your answer?",
+    "Your own data contradicts that claim. How do you reconcile this?",
+    "You promised [commitment] two years ago. What happened?",
+    "Why should the public trust you on [topic] given [past incident]?",
+  ],
+  expert:[
+    "In layman's terms, what is the mechanism behind [topic]?",
+    "What does the peer-reviewed evidence actually show on [topic]?",
+    "Where is the scientific consensus, and where is there genuine uncertainty?",
+    "What would change your position on this?",
+    "What questions should journalists be asking that they're not?",
+  ],
+  human:[
+    "What keeps you up at night about [topic]?",
+    "Tell me about a moment when [topic] became real for you personally.",
+    "What would your family say about your work on [topic]?",
+    "If you weren't doing this, what would you be doing?",
+    "What do you want people to remember about your work?",
+  ]
+};
+function gen(){
+  const s=document.getElementById('subject').value||'your subject';
+  const t=document.getElementById('topic').value||'this topic';
+  const qt=document.getElementById('qtype').value;
+  const qs=TEMPLATES[qt];
+  const out=document.getElementById('out');
+  out.style.display='block';
+  document.getElementById('qlist').innerHTML=qs.map((q,i)=>`
+    <div style="padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-bottom:8px;font-size:13px;color:var(--tx);line-height:1.6;">
+      <span style="color:var(--mu);font-size:11px;font-weight:600;display:block;margin-bottom:3px;">Q${i+1}</span>
+      ${q.replace(/\[topic\]/g,t).replace(/\[subject\]/g,s)}
+    </div>`).join('');
+}
+gen();
+</script>
+</body>
+</html>

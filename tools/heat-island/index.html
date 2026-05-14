@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Urban Heat Island Estimator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f43f5e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Urban Heat Island Estimator</h1>
+  <p class="sub">Urban Planning — Surface temperature delta and mitigation impact</p>
+  <div class="card">
+    <label>LAND COVER COMPOSITION (% of site, must sum to 100)</label>
+    <div class="grid3">
+      <div>
+        <label>IMPERVIOUS SURFACE %</label>
+        <input type="number" id="imp" value="60" min="0" max="100" oninput="balance('imp');calc()">
+      </div>
+      <div>
+        <label>VEGETATION / TREE CANOPY %</label>
+        <input type="number" id="veg" value="25" min="0" max="100" oninput="balance('veg');calc()">
+      </div>
+      <div>
+        <label>WATER / REFLECTIVE %</label>
+        <input type="number" id="wat" value="15" min="0" max="100" oninput="balance('wat');calc()">
+      </div>
+    </div>
+    <label>AMBIENT RURAL REFERENCE TEMPERATURE (°C)</label>
+    <input type="number" id="ref" value="28" step="0.5" oninput="calc()">
+  </div>
+  <div class="card">
+    <div class="grid3">
+      <div class="result">
+        <div class="r-label">SURFACE TEMP (est.)</div>
+        <div class="r-val" id="temp">—</div>
+        <div class="r-sub">°C</div>
+      </div>
+      <div class="result">
+        <div class="r-label">UHI DELTA ΔT</div>
+        <div class="r-val" id="delta">—</div>
+        <div class="r-sub">°C above rural</div>
+      </div>
+      <div class="result">
+        <div class="r-label">ALBEDO</div>
+        <div class="r-val" id="albedo">—</div>
+        <div class="r-sub">surface reflectivity</div>
+      </div>
+    </div>
+    <div id="mitigations" class="note" style="margin-top:12px;"></div>
+  </div>
+</div>
+<script>
+// UHI contribution per land type (°C above rural)
+const UHI={imp:4.5,veg:-1.5,wat:-0.5};
+const ALBEDO={imp:0.10,veg:0.20,wat:0.08};
+function balance(changed){/* simple feedback */}
+function calc(){
+  const imp=+document.getElementById('imp').value;
+  const veg=+document.getElementById('veg').value;
+  const wat=+document.getElementById('wat').value;
+  const ref=+document.getElementById('ref').value;
+  const total=imp+veg+wat;
+  const delta=(UHI.imp*imp/100+UHI.veg*veg/100+UHI.wat*wat/100);
+  const temp=(ref+delta).toFixed(1);
+  const alb=(ALBEDO.imp*imp/100+ALBEDO.veg*veg/100+ALBEDO.wat*wat/100).toFixed(3);
+  document.getElementById('temp').textContent=temp;
+  document.getElementById('delta').textContent=(delta>=0?'+':'')+delta.toFixed(1);
+  document.getElementById('albedo').textContent=alb;
+  const sums=total!==100?` (⚠ sum=${total}%, adjust to 100 for accuracy)`:'';
+  const level=delta>4?'Extreme UHI':delta>2?'Moderate UHI':delta>0.5?'Mild UHI':'Minimal UHI';
+  const mitigate=[];
+  if(imp>50)mitigate.push('Cool pavement (high-albedo coating) can reduce surface temp 2–4°C');
+  if(veg<30)mitigate.push('Increase tree canopy to 30%+ to cut UHI by ~1.5°C');
+  if(alb<0.15)mitigate.push('Green roofs or white roofs raise albedo and reduce cooling load');
+  mitigate.push('Each 10% increase in vegetation reduces peak temp by ~0.5°C');
+  document.getElementById('mitigations').textContent=`${level}${sums}. ΔT≈${delta.toFixed(1)}°C. ${mitigate.join('. ')}.`;
+}
+calc();
+</script>
+</body>
+</html>

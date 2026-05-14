@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Burnout Index Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#ec4899;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.section-title{font-size:13px;font-weight:700;color:var(--acc);margin-bottom:16px;letter-spacing:.05em;text-transform:uppercase;}
+.q-row{margin-bottom:18px;}
+.q-text{font-size:13px;color:var(--tx);margin-bottom:8px;line-height:1.5;}
+.scale-row{display:flex;gap:6px;align-items:center;}
+.scale-row span{font-size:10px;color:var(--mu);white-space:nowrap;}
+.scale-btns{display:flex;gap:4px;flex:1;}
+.scale-btn{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:6px;padding:6px 4px;color:var(--mu);font-size:12px;cursor:pointer;text-align:center;transition:all .15s;}
+.scale-btn.active{background:var(--acc);border-color:var(--acc);color:#000;font-weight:700;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:20px;margin-top:16px;}
+.sub-score-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.sub-name{font-size:12px;color:var(--mu);font-weight:600;letter-spacing:.04em;}
+.sub-val{font-size:14px;font-weight:700;color:var(--acc);}
+.bar-bg{height:6px;background:rgba(255,255,255,.08);border-radius:3px;margin:4px 0 14px;}
+.bar-fill{height:6px;background:var(--acc);border-radius:3px;transition:width .3s;}
+.overall-level{font-size:28px;font-weight:700;color:var(--acc);margin-top:8px;}
+.level-desc{font-size:13px;color:var(--mu);margin-top:4px;line-height:1.6;}
+.disclaimer{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:12px;font-size:12px;color:#fbbf24;margin-top:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Burnout Index Calculator</h1>
+  <p class="sub">Based on Maslach Burnout Inventory dimensions. Rate each item 0 (Never) to 6 (Always).</p>
+
+  <div class="card">
+    <div class="section-title">Section 1 — Emotional Exhaustion</div>
+    <div id="exhaust-qs"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Section 2 — Depersonalization</div>
+    <div id="depers-qs"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Section 3 — Personal Efficacy (reversed)</div>
+    <div id="efficacy-qs"></div>
+  </div>
+
+  <div class="result">
+    <div class="sub-score-row">
+      <span class="sub-name">EXHAUSTION</span>
+      <span class="sub-val" id="ex-val">0 / 18</span>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="ex-bar" style="width:0%"></div></div>
+    <div class="sub-score-row">
+      <span class="sub-name">DEPERSONALIZATION</span>
+      <span class="sub-val" id="dp-val">0 / 18</span>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="dp-bar" style="width:0%"></div></div>
+    <div class="sub-score-row">
+      <span class="sub-name">EFFICACY DEFICIT</span>
+      <span class="sub-val" id="ef-val">0 / 18</span>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="ef-bar" style="width:0%"></div></div>
+
+    <div style="margin-top:8px;font-size:11px;color:var(--mu);letter-spacing:.05em;">OVERALL BURNOUT LEVEL</div>
+    <div class="overall-level" id="overall-level">—</div>
+    <div class="level-desc" id="level-desc">Answer all questions to see your burnout assessment.</div>
+    <div class="disclaimer">Not a clinical diagnostic tool. If you are experiencing severe burnout symptoms, please consult a mental health professional.</div>
+  </div>
+</div>
+
+<script>
+const exQs=[
+  "I feel emotionally drained by my work.",
+  "I feel used up at the end of the workday.",
+  "I feel tired when I get up in the morning and have to face another day on the job."
+];
+const dpQs=[
+  "I have become less interested in my work since I started this job.",
+  "I have become less enthusiastic about my work.",
+  "I have become more callous toward people since I took this job."
+];
+const efQs=[
+  "I can effectively solve the problems that arise in my work.",
+  "I feel I am making an effective contribution to what this organization does.",
+  "In my opinion, I am good at my job."
+];
+
+function buildSection(qs, containerId, prefix){
+  const c=document.getElementById(containerId);
+  qs.forEach((q,i)=>{
+    const div=document.createElement("div");
+    div.className="q-row";
+    div.innerHTML=`<div class="q-text">${i+1}. ${q}</div>
+    <div class="scale-row">
+      <span>Never</span>
+      <div class="scale-btns" id="${prefix}-${i}">
+        ${[0,1,2,3,4,5,6].map(v=>`<div class="scale-btn" data-val="${v}" onclick="select('${prefix}-${i}',${v})">${v}</div>`).join("")}
+      </div>
+      <span>Always</span>
+    </div>`;
+    c.appendChild(div);
+  });
+}
+
+const vals={};
+
+function select(id, val){
+  vals[id]=val;
+  document.querySelectorAll(`#${id} .scale-btn`).forEach(b=>{
+    b.classList.toggle("active", +b.dataset.val===val);
+  });
+  calc();
+}
+
+function sectionScore(prefix, n){
+  let s=0,count=0;
+  for(let i=0;i<n;i++){
+    if(vals[`${prefix}-${i}`]!==undefined){s+=vals[`${prefix}-${i}`];count++;}
+  }
+  return {score:s,complete:count===n};
+}
+
+function calc(){
+  const ex=sectionScore("ex",3);
+  const dp=sectionScore("dp",3);
+  const ef=sectionScore("ef",3);
+  const efReversed={score:18-ef.score,complete:ef.complete};
+
+  document.getElementById("ex-val").textContent=`${ex.score} / 18`;
+  document.getElementById("dp-val").textContent=`${dp.score} / 18`;
+  document.getElementById("ef-val").textContent=`${efReversed.score} / 18`;
+  document.getElementById("ex-bar").style.width=(ex.score/18*100)+"%";
+  document.getElementById("dp-bar").style.width=(dp.score/18*100)+"%";
+  document.getElementById("ef-bar").style.width=(efReversed.score/18*100)+"%";
+
+  if(!ex.complete||!dp.complete||!ef.complete){
+    document.getElementById("overall-level").textContent="—";
+    document.getElementById("level-desc").textContent="Answer all questions to see your burnout assessment.";
+    return;
+  }
+
+  const total=ex.score+dp.score+efReversed.score;
+  let level,desc;
+  if(total<=18){level="Low";desc="Minimal burnout indicators. Current coping strategies appear effective. Maintain recovery habits proactively.";}
+  else if(total<=30){level="Moderate";desc="Noticeable burnout signals across one or more dimensions. Review workload distribution, boundary-setting, and recovery routines before escalation.";}
+  else if(total<=42){level="High";desc="Significant burnout across multiple dimensions. Immediate workload reduction and structured recovery time are warranted. Consider speaking with a supervisor or counselor.";}
+  else{level="Severe";desc="Critical burnout levels. Professional mental health support is strongly recommended. Do not delay intervention.";}
+
+  document.getElementById("overall-level").textContent=level;
+  document.getElementById("level-desc").textContent=desc;
+}
+
+buildSection(exQs,"exhaust-qs","ex");
+buildSection(dpQs,"depers-qs","dp");
+buildSection(efQs,"efficacy-qs","ef");
+</script>
+</body>
+</html>

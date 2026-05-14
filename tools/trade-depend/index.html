@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trade Dependency Score — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#c8a96e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+button{background:var(--acc);color:#000;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tbl tr:hover td{background:rgba(255,255,255,.03);}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.tier1{color:#34d399;}
+.tier2{color:#c8a96e;}
+.tier3{color:#f87171;}
+.surplus{color:#34d399;}
+.deficit{color:#fb7185;}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:16px;}
+.metric-box{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Back</a>
+  <h1>Trade Dependency Score</h1>
+  <p class="sub">Export/import dependency ratios, trade openness, and risk tier assessment</p>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;">YOUR COUNTRY</div>
+    <div class="grid3">
+      <div><label>GDP ($B)</label><input type="number" id="gdp" value="500" min="1" oninput="calc()"></div>
+      <div><label>Exports ($B)</label><input type="number" id="exp" value="120" min="0" oninput="calc()"></div>
+      <div><label>Imports ($B)</label><input type="number" id="imp" value="140" min="0" oninput="calc()"></div>
+    </div>
+    <div id="results" class="metric-grid"></div>
+    <div id="interpretation" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">REFERENCE COUNTRIES (2023)</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>Country</th><th>Openness</th><th>Export Dep.</th><th>Import Dep.</th><th>Balance</th><th>Risk Tier</th>
+      </tr></thead>
+      <tbody id="refBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">RISK TIER GUIDE</div>
+    <table class="tbl">
+      <thead><tr><th>Trade Openness</th><th>Tier</th><th>Risk Profile</th></tr></thead>
+      <tbody>
+        <tr><td>&lt; 50%</td><td class="tier1">Tier 1 — Low</td><td style="font-size:12px;color:var(--mu);">Large domestic economy, limited external shock exposure</td></tr>
+        <tr><td>50–100%</td><td class="tier2">Tier 2 — Moderate</td><td style="font-size:12px;color:var(--mu);">Meaningful trade integration; monitor key partners & supply chains</td></tr>
+        <tr><td>100–200%</td><td class="tier3">Tier 3 — High</td><td style="font-size:12px;color:var(--mu);">Highly open; external demand and supply disruptions have large GDP impact</td></tr>
+        <tr><td>&gt; 200%</td><td style="color:#ff6b6b;">Tier 4 — Very High</td><td style="font-size:12px;color:var(--mu);">Entrepôt/hub economy or city-state; extreme vulnerability to global trade flows</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const REF = [
+  {c:"Singapore", gdp:467, exp:583, imp:477},
+  {c:"Netherlands", gdp:1089, exp:865, imp:792},
+  {c:"Germany", gdp:4072, exp:1564, imp:1484},
+  {c:"Mexico", gdp:1277, exp:579, imp:565},
+  {c:"South Korea", gdp:1709, exp:632, imp:643},
+  {c:"Brazil", gdp:2126, exp:338, imp:239},
+  {c:"USA", gdp:25445, exp:2065, imp:3161},
+  {c:"India", gdp:3730, exp:776, imp:887},
+  {c:"Japan", gdp:4231, exp:756, imp:897},
+];
+
+function score(gdp,exp,imp){
+  const expDep=(exp/gdp)*100;
+  const impDep=(imp/gdp)*100;
+  const openness=((exp+imp)/gdp)*100;
+  const balance=exp-imp;
+  return{expDep,impDep,openness,balance};
+}
+
+function tierClass(o){
+  if(o<50)return{cls:'tier1',label:'Tier 1 — Low'};
+  if(o<100)return{cls:'tier2',label:'Tier 2 — Moderate'};
+  if(o<200)return{cls:'tier3',label:'Tier 3 — High'};
+  return{cls:'',label:'Tier 4 — Very High'};
+}
+
+function calc(){
+  const gdp=parseFloat(document.getElementById('gdp').value)||1;
+  const exp=parseFloat(document.getElementById('exp').value)||0;
+  const imp=parseFloat(document.getElementById('imp').value)||0;
+  const s=score(gdp,exp,imp);
+  const t=tierClass(s.openness);
+  const div=document.getElementById('results');
+  div.innerHTML=`
+    <div class="metric-box"><div class="r-label">OPENNESS</div><div class="r-val">${s.openness.toFixed(1)}%</div></div>
+    <div class="metric-box"><div class="r-label">EXPORT DEP.</div><div class="r-val">${s.expDep.toFixed(1)}%</div></div>
+    <div class="metric-box"><div class="r-label">IMPORT DEP.</div><div class="r-val">${s.impDep.toFixed(1)}%</div></div>
+    <div class="metric-box"><div class="r-label">TRADE BALANCE</div><div class="r-val ${s.balance>=0?'surplus':'deficit'}">${s.balance>=0?'+':'-'}$${Math.abs(s.balance).toFixed(0)}B</div></div>
+  `;
+  const interp=document.getElementById('interpretation');
+  interp.innerHTML=`<div style="background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:12px;font-size:13px;">
+    Risk tier: <span class="${t.cls}" style="font-weight:600;">${t.label}</span>&nbsp;·&nbsp;
+    Trade balance: <span class="${s.balance>=0?'surplus':'deficit'}">${s.balance>=0?'Surplus':'Deficit'} $${Math.abs(s.balance).toFixed(0)}B</span>
+    ${s.impDep>s.expDep?' · Import-heavy (current account pressure)':' · Export-heavy (current account support)'}
+  </div>`;
+}
+
+function renderRef(){
+  const body=document.getElementById('refBody');
+  let html='';
+  REF.forEach(r=>{
+    const s=score(r.gdp,r.exp,r.imp);
+    const t=tierClass(s.openness);
+    html+=`<tr>
+      <td style="font-weight:500;">${r.c}</td>
+      <td>${s.openness.toFixed(0)}%</td>
+      <td>${s.expDep.toFixed(0)}%</td>
+      <td>${s.impDep.toFixed(0)}%</td>
+      <td class="${s.balance>=0?'surplus':'deficit'}">${s.balance>=0?'+':''}$${s.balance.toFixed(0)}B</td>
+      <td class="${t.cls}" style="font-size:12px;">${t.label}</td>
+    </tr>`;
+  });
+  body.innerHTML=html;
+}
+
+calc();renderRef();
+</script>
+</body>
+</html>

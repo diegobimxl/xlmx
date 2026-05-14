@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lexical Density Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.stat-row{display:flex;gap:20px;flex-wrap:wrap;}
+.sb{flex:1;min-width:90px;}
+.sv{font-size:20px;font-weight:700;color:var(--acc);}
+.sl{font-size:11px;color:var(--mu);}
+textarea{min-height:120px;resize:vertical;line-height:1.6;}
+.meter-track{height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin:8px 0;}
+.meter-fill{height:100%;border-radius:5px;background:var(--acc);transition:width .3s;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+.word-cloud{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.wchip{padding:2px 8px;border-radius:4px;font-size:12px;}
+.content-w{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.2);}
+.func-w{background:rgba(107,114,128,.08);color:var(--mu);border:1px solid rgba(107,114,128,.15);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Lexical Density Calculator</h1>
+  <p class="sub">Linguistics — Ratio of content words to total words</p>
+
+  <div class="card">
+    <label style="margin-top:0;">TEXT INPUT</label>
+    <textarea id="txt" placeholder="Paste or type your text here..." oninput="calc()">The research demonstrates that organizational complexity significantly impacts employee productivity and overall institutional performance across multiple domains.</textarea>
+  </div>
+
+  <div class="card">
+    <div class="stat-row">
+      <div class="sb"><div class="sv" id="ld">0%</div><div class="sl">Lexical Density</div></div>
+      <div class="sb"><div class="sv" id="total">0</div><div class="sl">Total Words</div></div>
+      <div class="sb"><div class="sv" id="content">0</div><div class="sl">Content Words</div></div>
+      <div class="sb"><div class="sv" id="func">0</div><div class="sl">Function Words</div></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="r-label">DENSITY LEVEL</div>
+      <div class="meter-track"><div class="meter-fill" id="meter" style="width:0%;"></div></div>
+      <div id="interp-badge" style="margin-top:4px;"></div>
+    </div>
+    <div id="interp" style="font-size:13px;color:var(--mu);margin-top:8px;"></div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:8px;">WORD ANNOTATION (cyan = content, grey = function)</div>
+    <div class="word-cloud" id="cloud"></div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">INTERPRETATION GUIDE</div>
+    <table class="tbl">
+      <thead><tr><th>Density</th><th>Register</th></tr></thead>
+      <tbody>
+        <tr><td>&lt; 40%</td><td>Simple spoken text — conversational, high redundancy</td></tr>
+        <tr><td>40 – 50%</td><td>Informal written — emails, casual articles</td></tr>
+        <tr><td>50 – 60%</td><td>Formal written — reports, journalism</td></tr>
+        <tr><td>&gt; 60%</td><td>Academic / technical — dense information load</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const funcWords=new Set(['be','is','are','was','were','been','being','am','have','has','had','do','does','did','will','would','could','should','may','might','shall','must','can','need','dare','ought','used','the','a','an','and','but','or','nor','for','yet','so','in','on','at','to','from','with','by','of','that','which','who','whom','whose','what','when','where','why','how','this','these','those','it','its','i','me','my','mine','you','your','yours','he','him','his','she','her','hers','we','us','our','ours','they','them','their','theirs','not','no','as','if','though','although','because','since','while','after','before','until','unless','than','then','there','here','about','above','below','between','during','through','into','onto','upon','within','without','across','against','along','among','around','behind','beside','beyond','down','near','off','out','over','past','up','under','up','via','like','just','also','very','too','only','even','still','already','both','either','neither','each','every','all','some','any','few','more','most','other','such','same','own','rather','quite','well','much','many','less','least','more','most','enough','indeed','therefore','however','moreover','furthermore','meanwhile','otherwise','instead','nevertheless','consequently','accordingly','thus','hence','whether','whatever','whoever','wherever','whenever','however','whichever']);
+
+function isContent(w){return !funcWords.has(w.toLowerCase())&&/^[a-zA-Z]+$/.test(w)&&w.length>1;}
+
+function calc(){
+  const txt=document.getElementById('txt').value;
+  const words=(txt.match(/\b[a-zA-Z]+\b/g)||[]);
+  const total=words.length;
+  const contentWords=words.filter(isContent);
+  const cCount=contentWords.length;
+  const fCount=total-cCount;
+  const density=total>0?cCount/total*100:0;
+
+  document.getElementById('total').textContent=total;
+  document.getElementById('content').textContent=cCount;
+  document.getElementById('func').textContent=fCount;
+  document.getElementById('ld').textContent=density.toFixed(1)+'%';
+
+  document.getElementById('meter').style.width=Math.min(density,100)+'%';
+
+  let lbl,col,desc;
+  if(density<40){lbl='Simple Spoken';col='#22d3ee';desc='Characteristic of casual conversation — low information density, high grammatical scaffolding.';}
+  else if(density<50){lbl='Informal Written';col='#a78bfa';desc='Emails, blogs, casual writing. Moderate content-to-function ratio.';}
+  else if(density<60){lbl='Formal Written';col='#f97316';desc='Reports, journalism, professional documentation. Dense but accessible.';}
+  else{lbl='Academic / Technical';col='#ef4444';desc='High information load. Typical of academic papers, legal, and technical documents.';}
+
+  document.getElementById('interp-badge').innerHTML=`<span class="badge" style="background:${col}22;color:${col};border:1px solid ${col}44;">${lbl}</span>`;
+  document.getElementById('interp').textContent=desc;
+
+  // Word cloud (first 60 words)
+  const cloud=document.getElementById('cloud');
+  cloud.innerHTML=words.slice(0,60).map(w=>`<span class="wchip ${isContent(w)?'content-w':'func-w'}">${w}</span>`).join('');
+}
+calc();
+</script>
+</body>
+</html>

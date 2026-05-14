@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planet Distance Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#818cf8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;}
+select option{background:#1a1a2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>Planet Distance Calculator</h1>
+  <p class="sub">Category: Astronomy — Solar system body distances</p>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>BODY 1</label>
+        <select id="b1" oninput="calc()">
+          <option value="Sun">Sun</option>
+          <option value="Mercury">Mercury</option>
+          <option value="Venus">Venus</option>
+          <option value="Earth" selected>Earth</option>
+          <option value="Moon">Moon (from Earth)</option>
+          <option value="Mars">Mars</option>
+          <option value="Jupiter">Jupiter</option>
+          <option value="Saturn">Saturn</option>
+          <option value="Uranus">Uranus</option>
+          <option value="Neptune">Neptune</option>
+        </select>
+      </div>
+      <div>
+        <label>BODY 2</label>
+        <select id="b2" oninput="calc()">
+          <option value="Sun">Sun</option>
+          <option value="Mercury">Mercury</option>
+          <option value="Venus">Venus</option>
+          <option value="Earth">Earth</option>
+          <option value="Moon">Moon (from Earth)</option>
+          <option value="Mars" selected>Mars</option>
+          <option value="Jupiter">Jupiter</option>
+          <option value="Saturn">Saturn</option>
+          <option value="Uranus">Uranus</option>
+          <option value="Neptune">Neptune</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="result">
+        <div class="r-label">MEAN DISTANCE</div>
+        <div class="r-val" id="mean_au">—</div>
+        <div style="color:var(--mu);font-size:12px">AU</div>
+      </div>
+      <div class="result">
+        <div class="r-label">MEAN DISTANCE</div>
+        <div class="r-val" id="mean_km">—</div>
+        <div style="color:var(--mu);font-size:12px">million km</div>
+      </div>
+      <div class="result">
+        <div class="r-label">LIGHT TRAVEL TIME</div>
+        <div class="r-val" id="light_t">—</div>
+        <div style="color:var(--mu);font-size:12px" id="light_unit">minutes</div>
+      </div>
+      <div class="result">
+        <div class="r-label">CLOSEST APPROACH</div>
+        <div class="r-val" id="min_au">—</div>
+        <div style="color:var(--mu);font-size:12px">AU</div>
+      </div>
+      <div class="result">
+        <div class="r-label">FARTHEST APART</div>
+        <div class="r-val" id="max_au">—</div>
+        <div style="color:var(--mu);font-size:12px">AU</div>
+      </div>
+      <div class="result">
+        <div class="r-label">LIGHT AT CLOSEST</div>
+        <div class="r-val" id="light_min">—</div>
+        <div style="color:var(--mu);font-size:12px" id="lmin_unit">minutes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">MEAN DISTANCES FROM SUN</div>
+    <table class="tbl">
+      <thead><tr><th>Body</th><th>AU</th><th>Million km</th><th>Light-minutes from Sun</th></tr></thead>
+      <tbody id="ref_table"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const bodies={
+  Sun:{au:0,ecc:0},
+  Mercury:{au:0.387,ecc:0.206},
+  Venus:{au:0.723,ecc:0.007},
+  Earth:{au:1.000,ecc:0.017},
+  Moon:{au:1.00257,ecc:0.017},
+  Mars:{au:1.524,ecc:0.093},
+  Jupiter:{au:5.203,ecc:0.049},
+  Saturn:{au:9.537,ecc:0.057},
+  Uranus:{au:19.191,ecc:0.046},
+  Neptune:{au:30.069,ecc:0.010}
+};
+const AU_KM=149597870.7;
+const C_KM_S=299792.458;
+function lightTime(au){
+  const km=au*AU_KM;
+  const secs=km/C_KM_S;
+  if(secs<120) return {val:secs.toFixed(1),unit:'seconds'};
+  if(secs<7200) return {val:(secs/60).toFixed(2),unit:'minutes'};
+  return {val:(secs/3600).toFixed(2),unit:'hours'};
+}
+function calc(){
+  const b1=document.getElementById('b1').value;
+  const b2=document.getElementById('b2').value;
+  const d1=bodies[b1].au, d2=bodies[b2].au;
+  const mean=Math.abs(d1-d2);
+  const minD=Math.max(0,Math.abs(d1-d2)-bodies[b1].ecc*d1-bodies[b2].ecc*d2);
+  const maxD=d1+d2+(bodies[b1].ecc*d1)+(bodies[b2].ecc*d2);
+  const lt=lightTime(mean);
+  const ltmin=lightTime(minD);
+  document.getElementById('mean_au').textContent=mean.toFixed(4);
+  document.getElementById('mean_km').textContent=(mean*AU_KM/1e6).toFixed(2);
+  document.getElementById('light_t').textContent=lt.val;
+  document.getElementById('light_unit').textContent=lt.unit;
+  document.getElementById('min_au').textContent=minD.toFixed(4);
+  document.getElementById('max_au').textContent=maxD.toFixed(4);
+  document.getElementById('light_min').textContent=ltmin.val;
+  document.getElementById('lmin_unit').textContent=ltmin.unit;
+}
+function buildRef(){
+  let html='';
+  Object.entries(bodies).forEach(([name,d])=>{
+    const km=(d.au*AU_KM/1e6).toFixed(2);
+    const lt=lightTime(d.au);
+    html+=`<tr><td>${name}</td><td>${d.au.toFixed(4)}</td><td>${km}</td><td>${lt.val} ${lt.unit}</td></tr>`;
+  });
+  document.getElementById('ref_table').innerHTML=html;
+}
+buildRef();calc();
+</script>
+</body>
+</html>

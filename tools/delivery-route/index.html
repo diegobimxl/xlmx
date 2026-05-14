@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Route Cost Estimator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fbbf24;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+select option{background:#111;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.result-row:last-child{border:none;}
+.r-label{color:var(--mu);font-size:12px;}
+.r-val{font-size:20px;font-weight:700;color:var(--acc);}
+.r-total .r-val{font-size:28px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.add-btn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:8px 16px;color:var(--acc);font-size:13px;cursor:pointer;margin-top:8px;}
+.add-btn:hover{background:rgba(251,191,36,.15);}
+.stop-row{display:grid;grid-template-columns:1fr 100px 32px;gap:8px;align-items:center;margin-bottom:8px;}
+.del-btn{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:6px;width:28px;height:28px;color:var(--mu);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.del-btn:hover{color:#fb7185;}
+.toggle-row{display:flex;gap:8px;margin-bottom:12px;}
+.toggle-btn{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:6px;padding:8px;text-align:center;cursor:pointer;font-size:12px;color:var(--mu);transition:all .15s;}
+.toggle-btn.active{background:rgba(251,191,36,.15);border-color:var(--acc);color:var(--acc);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Route Cost Estimator</h1>
+  <p class="sub">Estimate fuel, labor, and total delivery cost for any route.</p>
+
+  <div class="card">
+    <div class="toggle-row">
+      <div class="toggle-btn active" id="btn-km" onclick="setDunit('km')">km / L per 100km</div>
+      <div class="toggle-btn" id="btn-mi" onclick="setDunit('mi')">miles / MPG</div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <label>TOTAL DISTANCE <span id="dist-unit-lbl" style="font-weight:400;text-transform:none">(km)</span></label>
+        <input type="number" id="dist" value="200" min="0" step="any" oninput="calc()">
+      </div>
+      <div>
+        <label>DRIVE TIME (hours)</label>
+        <input type="number" id="dtime" value="2.5" min="0" step="any" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label id="eff-label">FUEL EFFICIENCY (L/100km)</label>
+        <input type="number" id="eff" value="10" min="0.1" step="any" oninput="calc()">
+      </div>
+      <div>
+        <label id="price-label">FUEL PRICE (per liter)</label>
+        <input type="number" id="fprice" value="1.40" min="0" step="any" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>DRIVER RATE ($/hour)</label>
+        <input type="number" id="drate" value="25" min="0" step="any" oninput="calc()">
+      </div>
+      <div>
+        <label>VEHICLE TYPE</label>
+        <select id="vtype" onchange="calc()">
+          <option value="1">Car / Sedan</option>
+          <option value="1.1">Van / Light Commercial</option>
+          <option value="1.25" selected>Delivery Van</option>
+          <option value="1.5">Medium Truck</option>
+          <option value="2">Heavy Truck</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="result-row">
+      <span class="r-label">FUEL COST</span>
+      <span class="r-val" id="fuel-cost">—</span>
+    </div>
+    <div class="result-row">
+      <span class="r-label">LABOR COST</span>
+      <span class="r-val" id="labor-cost">—</span>
+    </div>
+    <div class="result-row r-total">
+      <span class="r-label" style="font-weight:700;color:var(--tx)">TOTAL COST</span>
+      <span class="r-val" id="total-cost">—</span>
+    </div>
+    <div class="result-row">
+      <span class="r-label" id="cpm-label">COST PER KM</span>
+      <span class="r-val" id="cost-per-unit" style="font-size:16px">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--acc);margin-bottom:12px;">Multi-Stop Route</div>
+    <div id="stops-container"></div>
+    <button class="add-btn" onclick="addStop()">+ Add Stop</button>
+    <div style="margin-top:14px;" id="multistop-result"></div>
+  </div>
+</div>
+
+<script>
+let dunit="km";
+let stopId=0;
+const stopData={};
+
+function setDunit(u){
+  dunit=u;
+  document.getElementById("btn-km").classList.toggle("active",u==="km");
+  document.getElementById("btn-mi").classList.toggle("active",u==="mi");
+  document.getElementById("dist-unit-lbl").textContent=u==="km"?"(km)":"(mi)";
+  document.getElementById("eff-label").textContent=u==="km"?"FUEL EFFICIENCY (L/100km)":"FUEL EFFICIENCY (MPG)";
+  document.getElementById("price-label").textContent=u==="km"?"FUEL PRICE (per liter)":"FUEL PRICE (per gallon)";
+  document.getElementById("cpm-label").textContent=u==="km"?"COST PER KM":"COST PER MILE";
+  calc();
+}
+
+function fuelCostCalc(dist, eff, fprice, vMult){
+  if(dunit==="km"){
+    // L/100km mode
+    return (dist/100)*eff*fprice*vMult;
+  } else {
+    // MPG mode
+    return (dist/eff)*fprice*vMult;
+  }
+}
+
+function calc(){
+  const dist=parseFloat(document.getElementById("dist").value)||0;
+  const dtime=parseFloat(document.getElementById("dtime").value)||0;
+  const eff=parseFloat(document.getElementById("eff").value)||1;
+  const fprice=parseFloat(document.getElementById("fprice").value)||0;
+  const drate=parseFloat(document.getElementById("drate").value)||0;
+  const vMult=parseFloat(document.getElementById("vtype").value)||1;
+
+  const fuel=fuelCostCalc(dist,eff,fprice,vMult);
+  const labor=dtime*drate;
+  const total=fuel+labor;
+  const cpm=dist>0?total/dist:0;
+  const cu=dunit==="km"?"km":"mi";
+
+  document.getElementById("fuel-cost").textContent="$"+fuel.toFixed(2);
+  document.getElementById("labor-cost").textContent="$"+labor.toFixed(2);
+  document.getElementById("total-cost").textContent="$"+total.toFixed(2);
+  document.getElementById("cost-per-unit").textContent="$"+cpm.toFixed(3)+"/"+cu;
+}
+
+function addStop(){
+  if(Object.keys(stopData).length>=5) return;
+  const id=++stopId;
+  stopData[id]={name:"Stop "+id,dist:0};
+  const div=document.createElement("div");
+  div.className="stop-row";
+  div.id="stop-"+id;
+  div.innerHTML=`
+    <input type="text" placeholder="Stop name" value="Stop ${id}" oninput="stopData[${id}].name=this.value;calcStops()">
+    <input type="number" min="0" step="any" placeholder="km" oninput="stopData[${id}].dist=parseFloat(this.value)||0;calcStops()">
+    <div class="del-btn" onclick="removeStop(${id})">×</div>
+  `;
+  document.getElementById("stops-container").appendChild(div);
+  calcStops();
+}
+
+function removeStop(id){
+  const el=document.getElementById("stop-"+id);
+  if(el) el.remove();
+  delete stopData[id];
+  calcStops();
+}
+
+function calcStops(){
+  const eff=parseFloat(document.getElementById("eff").value)||1;
+  const fprice=parseFloat(document.getElementById("fprice").value)||0;
+  const drate=parseFloat(document.getElementById("drate").value)||0;
+  const vMult=parseFloat(document.getElementById("vtype").value)||1;
+  const ids=Object.keys(stopData);
+  if(!ids.length){document.getElementById("multistop-result").innerHTML="";return;}
+
+  let rows="",running=0;
+  ids.forEach(id=>{
+    const d=stopData[id];
+    running+=d.dist;
+    const fc=fuelCostCalc(d.dist,eff,fprice,vMult);
+    rows+=`<tr><td>${d.name}</td><td>${d.dist} ${dunit==="km"?"km":"mi"}</td><td>$${fc.toFixed(2)}</td><td>${running} ${dunit==="km"?"km":"mi"}</td></tr>`;
+  });
+  const totalFuel=fuelCostCalc(running,eff,fprice,vMult);
+  document.getElementById("multistop-result").innerHTML=`
+    <table class="tbl">
+      <thead><tr><th>Stop</th><th>Leg Distance</th><th>Leg Fuel Cost</th><th>Cumulative Distance</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:10px;font-size:13px;color:var(--mu)">Total route: <span style="color:var(--acc);font-weight:700">${running} ${dunit==="km"?"km":"mi"}</span> &nbsp;|&nbsp; Fuel cost: <span style="color:var(--acc);font-weight:700">$${totalFuel.toFixed(2)}</span></div>
+  `;
+}
+
+calc();
+</script>
+</body>
+</html>

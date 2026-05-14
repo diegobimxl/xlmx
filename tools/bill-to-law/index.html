@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Legislative Process Reference — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#94a3b8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.toggle-wrap{display:flex;gap:0;margin-bottom:20px;}
+.toggle-btn{flex:1;padding:9px;text-align:center;cursor:pointer;border:1px solid var(--bd);font-size:13px;color:var(--mu);background:transparent;}
+.toggle-btn:first-child{border-radius:8px 0 0 8px;}
+.toggle-btn:last-child{border-radius:0 8px 8px 0;}
+.toggle-btn.active{background:rgba(148,163,184,.12);color:var(--acc);border-color:rgba(148,163,184,.35);}
+.flow{display:flex;flex-direction:column;gap:0;}
+.step{display:flex;gap:14px;cursor:pointer;position:relative;}
+.step-left{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;}
+.step-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--bd);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mu);transition:all .2s;flex-shrink:0;}
+.step:hover .step-dot,.step.active .step-dot{border-color:var(--acc);color:var(--acc);background:rgba(148,163,184,.08);}
+.step-line{width:2px;flex:1;background:var(--bd);min-height:16px;}
+.step-body{padding:4px 0 20px;}
+.step-name{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:2px;}
+.step:hover .step-name,.step.active .step-name{color:var(--acc);}
+.step-meta{font-size:12px;color:var(--mu);}
+.detail-panel{background:rgba(148,163,184,.06);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:14px;margin-top:8px;font-size:13px;line-height:1.6;}
+.detail-panel .dp-row{display:flex;gap:8px;margin-bottom:6px;}
+.dp-lbl{color:var(--mu);font-size:11px;font-weight:600;letter-spacing:.05em;min-width:80px;}
+.dp-val{color:var(--tx);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Legislative Process Reference</h1>
+  <p class="sub">Governance — How bills become law across three systems</p>
+
+  <div class="toggle-wrap">
+    <div class="toggle-btn active" onclick="setSystem('us')">US Federal</div>
+    <div class="toggle-btn" onclick="setSystem('uk')">UK Parliament</div>
+    <div class="toggle-btn" onclick="setSystem('eu')">EU Legislative</div>
+  </div>
+
+  <div id="flow-container"></div>
+</div>
+<script>
+const systems={
+  us:{
+    steps:[
+      {n:'Introduction',m:'Member of Congress | Day 1',d:'A Member of Congress drafts and formally introduces the bill by dropping it in the "hopper." The bill is assigned a number (H.R. or S.) and referred to the appropriate committee.',dur:'1 day',who:'Sponsor + House/Senate Clerk'},
+      {n:'Committee Review',m:'Standing Committee | 1–12 months',d:'The committee holds hearings, marks up the bill, and votes to report it to the full chamber. Most bills die here. The committee can amend or table the bill entirely.',dur:'1–12 months',who:'Committee Chair, Members, Witnesses'},
+      {n:'Floor Vote',m:'Full Chamber | 1–5 days',d:'The full House or Senate debates, amends, and votes on the bill. Requires a simple majority (218 in the House, 51 in Senate or 60 to overcome filibuster).',dur:'1–5 days',who:'All Members of Chamber'},
+      {n:'Other Chamber',m:'House or Senate | 1–6 months',d:'The bill is sent to the other chamber, which runs its own committee review and floor vote process. The other chamber may pass a different version.',dur:'1–6 months',who:'Other Chamber Members'},
+      {n:'Conference Committee',m:'Joint Committee | 1–4 weeks',d:'If both chambers pass different versions, a conference committee reconciles differences and produces a unified bill. Both chambers must then vote on this final version.',dur:'Days to weeks',who:'Selected Members of Both Chambers'},
+      {n:'Presidential Action',m:'White House | 10 days',d:'The President signs the bill into law, vetoes it (Congress can override with 2/3 majority in both chambers), or takes no action (becomes law after 10 days if Congress is in session).',dur:'10 days',who:'President of the United States'},
+    ]
+  },
+  uk:{
+    steps:[
+      {n:'First Reading',m:'Parliament | Day 1',d:'The bill is formally introduced in either the House of Commons or House of Lords. The title is read aloud; no debate occurs. The bill is ordered to be printed.',dur:'1 day',who:'Bill Sponsor, Clerk'},
+      {n:'Second Reading',m:'Full Chamber | 1–3 weeks',d:'The main principles of the bill are debated. MPs or Lords vote on whether the bill should proceed. This is the key ideological vote.',dur:'1–3 weeks',who:'All MPs or Lords'},
+      {n:'Committee Stage',m:'Public Bill Committee | 2–8 weeks',d:'A committee examines the bill line by line, proposes and votes on amendments. Most detailed scrutiny happens here. Any MP can participate in Public Bill Committee.',dur:'2–8 weeks',who:'Public Bill Committee (20 members)'},
+      {n:'Report Stage',m:'Full Chamber | 1–3 days',d:'The chamber considers amendments from committee. Further amendments can be proposed. Any MP or Lord can participate.',dur:'1–3 days',who:'Full Chamber'},
+      {n:'Third Reading',m:'Full Chamber | 1 day',d:'Final debate and vote on the bill as amended. Only minor verbal amendments allowed. Passed bill moves to the other House.',dur:'1 day',who:'Full Chamber'},
+      {n:'House of Lords / Commons',m:'Other House | 2–6 months',d:'The other House repeats all stages. If they amend it, amendments are sent back (ping-pong) until both agree on identical text.',dur:'2–6 months',who:'Other House Members'},
+      {n:'Royal Assent',m:'Monarch | 1 day',d:'The Monarch formally approves the bill, making it an Act of Parliament. In practice, Royal Assent is never refused in modern times.',dur:'1 day',who:'The Monarch'},
+    ]
+  },
+  eu:{
+    steps:[
+      {n:'Commission Proposal',m:'European Commission | 6–24 months',d:'The European Commission (sole right of initiative) drafts the proposal following stakeholder consultations, impact assessments, and internal deliberation. The proposal is published in all 24 official languages.',dur:'6–24 months',who:'College of Commissioners, DG Staff'},
+      {n:'European Parliament First Reading',m:'EP | 3–12 months',d:'The relevant EP committee drafts a report and amendments. The full Parliament votes on a position. Simple majority required. The position is sent to the Council.',dur:'3–12 months',who:'EP Committee, 705 MEPs'},
+      {n:'Council First Reading',m:'Council of the EU | 3–12 months',d:'Ministers from all 27 member states review the EP position. If the Council agrees, the act is adopted. If not, the Council adopts its own position and sends it back to Parliament.',dur:'3–12 months',who:'27 National Ministers (QMV required)'},
+      {n:'Second Reading',m:'EP + Council | 3–4 months',d:'Parliament can approve the Council position (act adopted), reject it (act fails), or propose amendments. If Parliament amends, it goes back to Council for second reading.',dur:'3–4 months',who:'EP + Council'},
+      {n:'Conciliation',m:'Conciliation Committee | 6 weeks',d:'If Council rejects Parliament\'s second-reading amendments, a joint committee of equal EP and Council representatives negotiates a joint text within 6 weeks.',dur:'6 weeks',who:'28 EP members + 28 Council members'},
+      {n:'Third Reading',m:'EP + Council | 6 weeks',d:'Both Parliament and Council must approve the conciliation committee\'s joint text by simple majority (EP) and QMV (Council). No further amendments allowed.',dur:'6 weeks',who:'Full Parliament + Council'},
+      {n:'Publication & Entry into Force',m:'Official Journal | 20 days',d:'The act is signed by the Presidents of Parliament and Council, published in the Official Journal of the EU, and enters into force 20 days after publication (unless the act specifies otherwise).',dur:'20 days',who:'EP President, Council Presidency'},
+    ]
+  }
+};
+
+let currentSystem='us';
+let activeStep=-1;
+
+function setSystem(s){
+  currentSystem=s;
+  activeStep=-1;
+  document.querySelectorAll('.toggle-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['us','uk','eu'][i]===s);
+  });
+  render();
+}
+
+function toggleStep(i){
+  activeStep=activeStep===i?-1:i;
+  render();
+}
+
+function render(){
+  const sys=systems[currentSystem];
+  const container=document.getElementById('flow-container');
+  container.innerHTML=`<div class="card"><div class="flow">${
+    sys.steps.map((step,i)=>{
+      const isLast=i===sys.steps.length-1;
+      const isActive=activeStep===i;
+      return `<div class="step ${isActive?'active':''}" onclick="toggleStep(${i})">
+        <div class="step-left">
+          <div class="step-dot">${i+1}</div>
+          ${!isLast?'<div class="step-line"></div>':''}
+        </div>
+        <div class="step-body">
+          <div class="step-name">${step.n}</div>
+          <div class="step-meta">${step.m}</div>
+          ${isActive?`<div class="detail-panel">
+            <div class="dp-row"><span class="dp-lbl">WHO</span><span class="dp-val">${step.who}</span></div>
+            <div class="dp-row"><span class="dp-lbl">DURATION</span><span class="dp-val">${step.dur}</span></div>
+            <div class="dp-row"><span class="dp-lbl">PROCESS</span><span class="dp-val">${step.d}</span></div>
+          </div>`:''}
+        </div>
+      </div>`;
+    }).join('')
+  }</div></div>`;
+}
+
+render();
+</script>
+</body>
+</html>

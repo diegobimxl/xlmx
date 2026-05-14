@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Biodiversity Index — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#84cc16;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+btn,button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Biodiversity Index</h1>
+  <p class="sub">Ecology — Shannon, Simpson, and species richness indices</p>
+  <div class="card">
+    <label>SPECIES COUNTS (comma-separated, e.g. 10,5,3,2)</label>
+    <input type="text" id="counts" value="15,10,8,4,3,2,1" oninput="calc()">
+  </div>
+  <div class="card">
+    <div class="grid3">
+      <div class="result">
+        <div class="r-label">SPECIES RICHNESS S</div>
+        <div class="r-val" id="S">—</div>
+        <div class="r-sub">number of species</div>
+      </div>
+      <div class="result">
+        <div class="r-label">SHANNON H'</div>
+        <div class="r-val" id="H">—</div>
+        <div class="r-sub">higher = more diverse</div>
+      </div>
+      <div class="result">
+        <div class="r-label">SIMPSON 1-D</div>
+        <div class="r-val" id="D">—</div>
+        <div class="r-sub">0–1, higher = diverse</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:12px;">
+      <div class="result">
+        <div class="r-label">EVENNESS J'</div>
+        <div class="r-val" id="J">—</div>
+        <div class="r-sub">Shannon / ln(S)</div>
+      </div>
+      <div class="result">
+        <div class="r-label">DOMINANCE</div>
+        <div class="r-val" id="dom">—</div>
+        <div class="r-sub">most abundant species %</div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+<script>
+function calc(){
+  const raw=document.getElementById('counts').value.split(',').map(Number).filter(x=>x>0&&!isNaN(x));
+  if(raw.length<2){return;}
+  const N=raw.reduce((a,b)=>a+b,0);
+  const S=raw.length;
+  let H=0,Dsum=0;
+  raw.forEach(n=>{const p=n/N;H-=p*Math.log(p);Dsum+=p*p;});
+  const simp=(1-Dsum).toFixed(4);
+  const J=(H/Math.log(S)).toFixed(4);
+  const dom=((Math.max(...raw)/N)*100).toFixed(1);
+  document.getElementById('S').textContent=S;
+  document.getElementById('H').textContent=H.toFixed(4);
+  document.getElementById('D').textContent=simp;
+  document.getElementById('J').textContent=J;
+  document.getElementById('dom').textContent=dom+'%';
+  const level=H>2.5?'High':H>1.5?'Moderate':'Low';
+  document.getElementById('note').textContent=`Total individuals: ${N}. Shannon diversity: ${level} (H'=${H.toFixed(2)}). Evenness ${J} (1 = perfectly even). Simpson index ${simp} (1-D, closer to 1 = diverse). Most abundant species holds ${dom}% of individuals.`;
+}
+calc();
+</script>
+</body>
+</html>

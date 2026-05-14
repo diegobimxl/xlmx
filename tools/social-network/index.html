@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Social Network Density — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.toggle-wrap{display:flex;gap:0;margin-bottom:12px;}
+.toggle-btn{flex:1;padding:8px;text-align:center;cursor:pointer;border:1px solid var(--bd);font-size:13px;color:var(--mu);background:transparent;}
+.toggle-btn:first-child{border-radius:8px 0 0 8px;}
+.toggle-btn:last-child{border-radius:0 8px 8px 0;}
+.toggle-btn.active{background:rgba(167,139,250,.15);color:var(--acc);border-color:rgba(167,139,250,.4);}
+.metric-row{display:flex;gap:16px;flex-wrap:wrap;}
+.metric{flex:1;min-width:120px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Social Network Density</h1>
+  <p class="sub">Sociology — Quantify connectivity in social graphs</p>
+
+  <div class="card">
+    <label>NETWORK TYPE</label>
+    <div class="toggle-wrap">
+      <div class="toggle-btn active" id="btn-un" onclick="setDir(false)">Undirected (mutual ties)</div>
+      <div class="toggle-btn" id="btn-di" onclick="setDir(true)">Directed (asymmetric ties)</div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>NUMBER OF NODES (ACTORS)</label>
+        <input type="number" id="nodes" value="15" min="2" max="1000" oninput="calc()">
+      </div>
+      <div>
+        <label>ACTUAL TIES (EDGES)</label>
+        <input type="number" id="edges" value="22" min="0" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:4px;">
+      <div>
+        <label>CLUSTERING COEFFICIENT (0–1)</label>
+        <input type="number" id="clust" value="0.35" min="0" max="1" step="0.01" oninput="calc()">
+      </div>
+      <div>
+        <label>AVERAGE PATH LENGTH</label>
+        <input type="number" id="apl" value="2.8" min="0" step="0.1" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="metric-row">
+      <div class="metric">
+        <div class="r-label">NETWORK DENSITY</div>
+        <div class="r-val" id="density">—</div>
+      </div>
+      <div class="metric">
+        <div class="r-label">MAX POSSIBLE TIES</div>
+        <div class="r-val" id="max-ties">—</div>
+      </div>
+      <div class="metric">
+        <div class="r-label">DENSITY LEVEL</div>
+        <div id="density-badge" style="margin-top:6px;">—</div>
+      </div>
+    </div>
+    <div class="metric-row" style="margin-top:16px;">
+      <div class="metric">
+        <div class="r-label">SMALL WORLD QUOTIENT (Q)</div>
+        <div class="r-val" id="sw-q">—</div>
+      </div>
+      <div class="metric">
+        <div class="r-label">SW INTERPRETATION</div>
+        <div id="sw-interp" style="font-size:13px;color:var(--tx);margin-top:6px;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px;">DENSITY REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Density Range</th><th>Classification</th><th>Implication</th></tr></thead>
+      <tbody>
+        <tr><td>&lt; 0.10</td><td style="color:#ef4444;">Sparse</td><td>Low cohesion, weak information flow</td></tr>
+        <tr><td>0.10 – 0.30</td><td style="color:#f97316;">Moderate</td><td>Balanced bridging and bonding</td></tr>
+        <tr><td>0.30 – 0.60</td><td style="color:#a78bfa;">Dense</td><td>High cohesion, redundant ties</td></tr>
+        <tr><td>&gt; 0.60</td><td style="color:#22d3ee;">Very Dense</td><td>Near-clique, strong in-group norms</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+let directed=false;
+function setDir(d){
+  directed=d;
+  document.getElementById('btn-un').classList.toggle('active',!d);
+  document.getElementById('btn-di').classList.toggle('active',d);
+  calc();
+}
+function calc(){
+  const n=parseInt(document.getElementById('nodes').value)||0;
+  const e=parseInt(document.getElementById('edges').value)||0;
+  const cc=parseFloat(document.getElementById('clust').value)||0;
+  const apl=parseFloat(document.getElementById('apl').value)||1;
+
+  if(n<2){['density','max-ties','density-badge','sw-q','sw-interp'].forEach(id=>document.getElementById(id).textContent='—');return;}
+
+  const maxTies=directed?n*(n-1):n*(n-1)/2;
+  const density=e/maxTies;
+
+  document.getElementById('max-ties').textContent=maxTies.toLocaleString();
+  document.getElementById('density').textContent=density.toFixed(4);
+
+  let lvl,col;
+  if(density<0.1){lvl='Sparse';col='#ef4444';}
+  else if(density<0.3){lvl='Moderate';col='#f97316';}
+  else if(density<0.6){lvl='Dense';col='#a78bfa';}
+  else{lvl='Very Dense';col='#22d3ee';}
+  document.getElementById('density-badge').innerHTML=`<span class="badge" style="background:${col}22;color:${col};border:1px solid ${col}44;">${lvl}</span>`;
+
+  // Small world: random graph expected clustering ≈ density, expected path ≈ ln(n)/ln(n*density)
+  const ccRandom=density;
+  const aplRandom=n>1&&density>0?Math.log(n)/Math.log(Math.max(n*density,1.001)):1;
+  const Q=(cc/Math.max(ccRandom,0.0001))/(apl/Math.max(aplRandom,0.0001));
+  document.getElementById('sw-q').textContent=Q.toFixed(3);
+
+  let swTxt='';
+  if(Q>1.5) swTxt='Small-world network — high local clustering relative to path length';
+  else if(Q>0.8) swTxt='Near small-world properties';
+  else swTxt='Not a small-world network — random or regular structure';
+  document.getElementById('sw-interp').textContent=swTxt;
+}
+calc();
+</script>
+</body>
+</html>

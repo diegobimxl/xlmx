@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bloom's Taxonomy Builder — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#34d399;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;resize:vertical;min-height:100px;}
+textarea:focus{border-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.level-title{font-size:13px;font-weight:700;margin-bottom:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.chip{background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;transition:all .15s;color:var(--tx);}
+.chip:hover{border-color:var(--acc);color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;line-height:1.5;}
+.btn-clear{background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:6px;padding:6px 14px;color:var(--mu);font-size:12px;cursor:pointer;float:right;margin-top:-2px;}
+.btn-clear:hover{color:var(--tx);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Bloom's Taxonomy Builder</h1>
+  <p class="sub">Click verbs to build learning objectives. Students will be able to [verb]...</p>
+
+  <div class="card" id="verbs-card"></div>
+
+  <div class="card">
+    <label>LEARNING OBJECTIVE BUILDER <button class="btn-clear" onclick="clearObj()">Clear</button></label>
+    <textarea id="obj-builder" placeholder="Click a verb above to start building your objective..."></textarea>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;font-weight:600;">TAXONOMY REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Level</th><th>Cognitive Goal</th><th>Assessment Types</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#a78bfa;font-weight:600">Remember</td><td>Recall facts and basic concepts</td><td>Multiple choice, matching, labeling, recall quizzes</td></tr>
+        <tr><td style="color:#60a5fa;font-weight:600">Understand</td><td>Explain ideas or concepts</td><td>Summaries, paraphrasing, classification tasks</td></tr>
+        <tr><td style="color:#34d399;font-weight:600">Apply</td><td>Use information in new situations</td><td>Problem sets, case studies, simulations</td></tr>
+        <tr><td style="color:#fbbf24;font-weight:600">Analyze</td><td>Draw connections and break down parts</td><td>Diagrams, debate, comparative essays</td></tr>
+        <tr><td style="color:#fb7185;font-weight:600">Evaluate</td><td>Justify decisions and make judgments</td><td>Critiques, peer reviews, argument construction</td></tr>
+        <tr><td style="color:#f472b6;font-weight:600">Create</td><td>Produce new or original work</td><td>Projects, prototypes, research papers, designs</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const levels=[
+  {name:"Remember",color:"#a78bfa",verbs:["Define","List","Recall","Identify","Name","Repeat","State","Recognize","Retrieve","Match"]},
+  {name:"Understand",color:"#60a5fa",verbs:["Explain","Summarize","Paraphrase","Classify","Describe","Interpret","Illustrate","Infer","Predict","Compare"]},
+  {name:"Apply",color:"#34d399",verbs:["Use","Execute","Implement","Solve","Demonstrate","Apply","Calculate","Operate","Produce","Carry out"]},
+  {name:"Analyze",color:"#fbbf24",verbs:["Differentiate","Organize","Attribute","Examine","Distinguish","Deconstruct","Integrate","Compare","Contrast","Outline"]},
+  {name:"Evaluate",color:"#fb7185",verbs:["Judge","Critique","Justify","Defend","Assess","Argue","Recommend","Evaluate","Prioritize","Select"]},
+  {name:"Create",color:"#f472b6",verbs:["Design","Construct","Develop","Formulate","Produce","Invent","Plan","Compose","Build","Generate"]},
+];
+
+function addVerb(verb){
+  const ta=document.getElementById("obj-builder");
+  const cur=ta.value.trim();
+  if(!cur){
+    ta.value=`Students will be able to ${verb.toLowerCase()} `;
+  } else {
+    ta.value=cur+"\nStudents will be able to "+verb.toLowerCase()+" ";
+  }
+  ta.focus();
+}
+
+function clearObj(){
+  document.getElementById("obj-builder").value="";
+}
+
+const card=document.getElementById("verbs-card");
+levels.forEach(l=>{
+  const div=document.createElement("div");
+  div.style.marginBottom="16px";
+  div.innerHTML=`<div class="level-title" style="color:${l.color}">${l.name}</div>
+    <div class="chips">${l.verbs.map(v=>`<div class="chip" onclick="addVerb('${v}')" style="border-color:${l.color}20">${v}</div>`).join("")}</div>`;
+  card.appendChild(div);
+});
+</script>
+</body>
+</html>

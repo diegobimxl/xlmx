@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Budget Allocation Visualizer — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#94a3b8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.cat-row{display:grid;grid-template-columns:2fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;}
+.btn-del{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:8px 10px;color:#ef4444;cursor:pointer;font-size:12px;}
+.btn-add{background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);border-radius:8px;padding:9px 18px;color:var(--acc);cursor:pointer;font-size:13px;font-weight:600;margin-top:8px;}
+.btn-add:hover{background:rgba(148,163,184,.16);}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.btn-preset{background:rgba(148,163,184,.06);border:1px solid rgba(148,163,184,.2);border-radius:6px;padding:6px 12px;color:var(--mu);font-size:12px;cursor:pointer;}
+.btn-preset:hover{color:var(--acc);border-color:rgba(148,163,184,.4);}
+canvas{display:block;border-radius:8px;}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--bd);margin-top:12px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Budget Allocation Visualizer</h1>
+  <p class="sub">Governance — Up to 12 budget categories with stacked bar chart</p>
+
+  <div class="card">
+    <div class="preset-row">
+      <button class="btn-preset" onclick="loadPreset('us')">US Federal 2024</button>
+      <button class="btn-preset" onclick="loadPreset('mx')">Mexico Federal 2024</button>
+      <button class="btn-preset" onclick="loadPreset('un')">UN Budget 2024</button>
+    </div>
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">CATEGORIES</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:0;color:var(--mu);font-size:11px;font-weight:600;letter-spacing:.05em;padding:0 0 6px;padding-right:42px;">
+      <div>Category</div><div>Amount ($)</div>
+    </div>
+    <div id="cats"></div>
+    <button class="btn-add" onclick="addCat()">+ Add Category</button>
+  </div>
+
+  <div class="card">
+    <canvas id="bar" height="80"></canvas>
+    <div class="legend" id="legend"></div>
+    <div class="total-row">
+      <span style="font-weight:600;color:var(--mu);">TOTAL</span>
+      <span style="font-size:20px;font-weight:700;color:var(--acc);" id="total-val">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <table class="tbl" id="breakdown-tbl">
+      <thead><tr><th>Category</th><th>Amount</th><th>Share</th></tr></thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const palette=['#94a3b8','#22d3ee','#a78bfa','#f97316','#22c55e','#ef4444','#eab308','#e879f9','#fb923c','#34d399','#60a5fa','#f43f5e'];
+let catCount=0;
+const cats=[];
+
+const presets={
+  us:{label:'US Federal 2024 (Trillions $)',items:[
+    {n:'Social Security',v:1350},{n:'Medicare/Medicaid',v:1680},{n:'Defense',v:886},{n:'Interest on Debt',v:870},
+    {n:'Education',v:238},{n:'Veterans',v:302},{n:'Transportation',v:115},{n:'Other',v:893}
+  ]},
+  mx:{label:'Mexico Federal 2024 (Billion MXN)',items:[
+    {n:'Pemex & CFE',v:1240},{n:'Education',v:870},{n:'Health',v:720},{n:'Social Programs',v:980},
+    {n:'Infrastructure',v:540},{n:'Security',v:410},{n:'Debt Service',v:1100},{n:'Other',v:640}
+  ]},
+  un:{label:'UN Regular Budget 2024 (Million $)',items:[
+    {n:'Political Affairs',v:1156},{n:'Administration',v:568},{n:'Development',v:489},
+    {n:'Human Rights',v:178},{n:'Justice/Law',v:265},{n:'Public Info',v:183},{n:'Economic Affairs',v:210},{n:'Other',v:321}
+  ]}
+};
+
+function addCat(name='',value=''){
+  if(document.querySelectorAll('#cats .cat-row').length>=12) return;
+  catCount++;
+  const id=catCount;
+  const div=document.createElement('div');
+  div.className='cat-row';
+  div.id='cr'+id;
+  const col=palette[(catCount-1)%palette.length];
+  div.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:12px;height:12px;border-radius:3px;background:${col};flex-shrink:0;"></div>
+      <input type="text" placeholder="Category name" value="${name}" oninput="render()">
+    </div>
+    <input type="number" placeholder="0" value="${value||''}" min="0" step="any" oninput="render()">
+    <button class="btn-del" onclick="removeCat(${id})">x</button>
+  `;
+  document.getElementById('cats').appendChild(div);
+  render();
+}
+
+function removeCat(id){document.getElementById('cr'+id).remove();render();}
+
+function loadPreset(key){
+  document.getElementById('cats').innerHTML='';
+  catCount=0;
+  const p=presets[key];
+  p.items.forEach(item=>addCat(item.n,item.v));
+}
+
+function render(){
+  const rows=[...document.querySelectorAll('#cats .cat-row')];
+  const data=rows.map((row,i)=>{
+    const inputs=row.querySelectorAll('input');
+    return {name:inputs[0].value||'Unnamed',value:parseFloat(inputs[1].value)||0,color:palette[i%palette.length]};
+  }).filter(d=>d.value>0);
+
+  const total=data.reduce((a,b)=>a+b.value,0);
+  document.getElementById('total-val').textContent=total>0?total.toLocaleString(undefined,{maximumFractionDigits:1}):'—';
+
+  // Stacked bar
+  const canvas=document.getElementById('bar');
+  const W=canvas.offsetWidth||640;
+  canvas.width=W;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,80);
+  if(total>0){
+    let x=0;
+    const h=50,y=10;
+    data.forEach(d=>{
+      const w=d.value/total*W;
+      ctx.fillStyle=d.color;
+      ctx.fillRect(x,y,w,h);
+      x+=w;
+    });
+  }
+
+  // Legend
+  document.getElementById('legend').innerHTML=data.map(d=>{
+    const pct=total>0?(d.value/total*100).toFixed(1):'0';
+    return `<div class="legend-item"><div class="legend-dot" style="background:${d.color};"></div><span>${d.name} (${pct}%)</span></div>`;
+  }).join('');
+
+  // Table
+  document.getElementById('breakdown-body').innerHTML=data
+    .sort((a,b)=>b.value-a.value)
+    .map(d=>{
+      const pct=total>0?(d.value/total*100).toFixed(1):'0';
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:2px;background:${d.color};"></div>${d.name}</div></td>
+        <td>${d.value.toLocaleString(undefined,{maximumFractionDigits:1})}</td>
+        <td style="color:var(--acc);">${pct}%</td>
+      </tr>`;
+    }).join('');
+}
+
+loadPreset('us');
+window.addEventListener('resize',render);
+</script>
+</body>
+</html>

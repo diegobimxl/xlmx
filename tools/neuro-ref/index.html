@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neurotransmitter Reference — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a855f7;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:800px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:20px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px;}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--bd);font-size:12px;cursor:pointer;background:none;color:var(--mu);transition:.15s;}
+.chip.active{background:var(--acc);color:#fff;border-color:var(--acc);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+tbody tr{cursor:pointer;transition:.1s;}
+tbody tr:hover{background:rgba(168,85,247,.07);}
+tbody tr.selected{background:rgba(168,85,247,.12);}
+tbody td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+.type-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:.04em;}
+.detail-panel{background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:16px;margin-top:14px;display:none;}
+.detail-panel.open{display:block;}
+.dp-name{font-size:18px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.dp-type{font-size:12px;color:var(--mu);margin-bottom:12px;}
+.dp-section{margin-bottom:10px;}
+.dp-label{font-size:11px;color:var(--mu);font-weight:600;letter-spacing:.05em;margin-bottom:4px;}
+.dp-text{font-size:13px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← XLMX Tools</a>
+  <h1>Neurotransmitter Reference</h1>
+  <p class="sub">Category: Neuroscience — 15 neurotransmitters, receptors, disorders, drugs</p>
+  <div class="card">
+    <input type="text" id="search" placeholder="Search by name, function, receptor, drug..." oninput="render()">
+    <div class="chips" id="chip-container"></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Name</th><th>Type</th><th>Key Functions</th><th>Main Receptors</th><th>Disorders</th><th>Key Drugs</th></tr></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+    <div class="detail-panel" id="detail"></div>
+  </div>
+</div>
+<script>
+const typeColors={
+  'Amino acid':'rgba(34,211,238,.15)',
+  'Monoamine':'rgba(248,113,113,.15)',
+  'Acetylcholine':'rgba(132,204,22,.15)',
+  'Neuropeptide':'rgba(251,191,36,.15)',
+  'Purine':'rgba(168,85,247,.15)'
+};
+const typeText={
+  'Amino acid':'#22d3ee','Monoamine':'#f87171','Acetylcholine':'#84cc16','Neuropeptide':'#fbbf24','Purine':'#a855f7'
+};
+const NT=[
+  {name:'GABA',type:'Amino acid',fn:'Primary inhibitory neurotransmitter; reduces neuronal excitability; promotes relaxation and sleep',rec:'GABA-A (ionotropic), GABA-B (metabotropic)',dis:'Anxiety disorders, epilepsy, insomnia, schizophrenia',drugs:'Benzodiazepines, barbiturates, gabapentin, alcohol'},
+  {name:'Glutamate',type:'Amino acid',fn:'Primary excitatory neurotransmitter; essential for learning and memory; synaptic plasticity (LTP)',rec:'AMPA, NMDA, Kainate, mGluR',dis:'ALS, Alzheimer's, epilepsy, schizophrenia',drugs:'Ketamine, memantine, riluzole'},
+  {name:'Glycine',type:'Amino acid',fn:'Inhibitory (spinal cord); co-agonist at NMDA receptors (brain); motor and sensory processing',rec:'Glycine receptor (GlyR), NMDA (co-agonist)',dis:'Hyperekplexia (startle disease), some pain disorders',drugs:'Strychnine (antagonist), sarcosine'},
+  {name:'Dopamine',type:'Monoamine',fn:'Reward, motivation, motor control, pleasure, working memory, executive function',rec:'D1–D5 (all metabotropic GPCRs)',dis:"Parkinson's, schizophrenia, ADHD, addiction",drugs:'Levodopa, haloperidol, methylphenidate, cocaine'},
+  {name:'Serotonin (5-HT)',type:'Monoamine',fn:'Mood regulation, sleep, appetite, social behavior, cognitive function',rec:'5-HT1–7 (14 subtypes), mostly metabotropic',dis:'Depression, anxiety, OCD, migraine, IBS',drugs:'SSRIs, SNRIs, triptans, psilocybin, LSD'},
+  {name:'Norepinephrine',type:'Monoamine',fn:'Alertness, attention, fight-or-flight response, stress, mood',rec:'α1, α2, β1, β2 adrenergic receptors',dis:'ADHD, depression, PTSD, anxiety',drugs:'Atomoxetine, tricyclics, propranolol, SNRIs'},
+  {name:'Epinephrine',type:'Monoamine',fn:'Peripheral stress response (adrenaline); cardiac stimulation; bronchodilation; also central neurotransmitter',rec:'α and β adrenergic receptors',dis:'Anaphylaxis, cardiac arrest, hypotension',drugs:'Epinephrine (EpiPen), dobutamine'},
+  {name:'Histamine',type:'Monoamine',fn:'Wakefulness and arousal, immune response, gastric acid secretion, appetite',rec:'H1, H2, H3, H4',dis:'Allergies, narcolepsy, peptic ulcer, vertigo',drugs:'Antihistamines (diphenhydramine), ranitidine, betahistine'},
+  {name:'Acetylcholine',type:'Acetylcholine',fn:'Neuromuscular junction; autonomic nervous system; learning, memory, attention',rec:"Nicotinic (nAChR, ionotropic), Muscarinic (M1–M5, metabotropic)",dis:"Myasthenia gravis, Alzheimer's, Parkinson's",drugs:'Donepezil, atropine, neostigmine, nicotine'},
+  {name:'Endorphins',type:'Neuropeptide',fn:'Pain modulation (endogenous opioids), euphoria, stress response, reward',rec:'μ, δ, κ opioid receptors',dis:'Chronic pain, addiction, depression',drugs:'Morphine, naloxone, methadone, buprenorphine'},
+  {name:'Substance P',type:'Neuropeptide',fn:'Pain signaling, nociception, inflammation, gut motility, stress response',rec:'NK1 (neurokinin-1) receptor',dis:'Chronic pain, depression, IBS, PTSD',drugs:'Aprepitant (NK1 antagonist), capsaicin (depletes)'},
+  {name:'Oxytocin',type:'Neuropeptide',fn:'Social bonding, trust, maternal behavior, uterine contraction, milk ejection',rec:'Oxytocin receptor (OXTR)',dis:'Autism spectrum, social anxiety, postpartum disorders',drugs:'Pitocin (synthetic), intranasal oxytocin (research)'},
+  {name:'Vasopressin (ADH)',type:'Neuropeptide',fn:'Water reabsorption (kidney), blood pressure, social behavior, memory',rec:'V1a, V1b, V2 receptors',dis:'Diabetes insipidus, hyponatremia, PTSD',drugs:'Desmopressin, tolvaptan'},
+  {name:'Adenosine',type:'Purine',fn:'Promotes sleep, inhibits neural activity, regulates coronary blood flow, anti-inflammatory',rec:'A1, A2A, A2B, A3',dis:'Sleep disorders, cardiovascular disease',drugs:'Caffeine (A1/A2A antagonist), adenosine (SVT treatment)'},
+  {name:'ATP',type:'Purine',fn:'Purinergic neurotransmission; nociception; autonomic signaling; cotransmitter with other NTs',rec:'P2X (ionotropic), P2Y (metabotropic)',dis:'Chronic pain, bladder disorders, neuropathies',drugs:'Suramin (P2 antagonist, research), ticagrelor'},
+];
+
+let activeType='All',searchQ='';
+function render(){
+  searchQ=document.getElementById('search').value.toLowerCase();
+  const filtered=NT.filter(n=>{
+    const matchType=activeType==='All'||n.type===activeType;
+    const matchSearch=!searchQ||[n.name,n.type,n.fn,n.rec,n.dis,n.drugs].some(f=>f.toLowerCase().includes(searchQ));
+    return matchType&&matchSearch;
+  });
+  const tbody=document.getElementById('tbl-body');
+  tbody.innerHTML=filtered.map((n,i)=>`
+    <tr onclick="showDetail(${NT.indexOf(n)})" id="row-${NT.indexOf(n)}">
+      <td style="font-weight:600;color:var(--tx)">${n.name}</td>
+      <td><span class="type-badge" style="background:${typeColors[n.type]};color:${typeText[n.type]}">${n.type}</span></td>
+      <td style="color:var(--mu);max-width:180px;">${n.fn.substring(0,60)}${n.fn.length>60?'…':''}</td>
+      <td style="color:var(--mu);">${n.rec.substring(0,40)}${n.rec.length>40?'…':''}</td>
+      <td style="color:var(--mu);">${n.dis.substring(0,40)}${n.dis.length>40?'…':''}</td>
+      <td style="color:var(--mu);">${n.drugs.substring(0,35)}${n.drugs.length>35?'…':''}</td>
+    </tr>`).join('');
+}
+let selectedIdx=-1;
+function showDetail(i){
+  if(selectedIdx===i){
+    selectedIdx=-1;
+    document.getElementById('detail').classList.remove('open');
+    document.querySelectorAll('tbody tr').forEach(r=>r.classList.remove('selected'));
+    return;
+  }
+  selectedIdx=i;
+  document.querySelectorAll('tbody tr').forEach(r=>r.classList.remove('selected'));
+  const row=document.getElementById('row-'+i);if(row)row.classList.add('selected');
+  const n=NT[i];
+  document.getElementById('detail').innerHTML=`
+    <div class="dp-name">${n.name}</div>
+    <div class="dp-type">${n.type}</div>
+    <div class="dp-section"><div class="dp-label">KEY FUNCTIONS</div><div class="dp-text">${n.fn}</div></div>
+    <div class="dp-section"><div class="dp-label">MAIN RECEPTORS</div><div class="dp-text">${n.rec}</div></div>
+    <div class="dp-section"><div class="dp-label">ASSOCIATED DISORDERS</div><div class="dp-text">${n.dis}</div></div>
+    <div class="dp-section"><div class="dp-label">KEY DRUGS (agonists, antagonists, modulators)</div><div class="dp-text">${n.drugs}</div></div>`;
+  document.getElementById('detail').classList.add('open');
+}
+// Chips
+const types=['All','Amino acid','Monoamine','Acetylcholine','Neuropeptide','Purine'];
+const chipCont=document.getElementById('chip-container');
+types.forEach(t=>{
+  const b=document.createElement('button');b.className='chip'+(t==='All'?' active':'');
+  b.textContent=t;b.onclick=()=>{activeType=t;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));b.classList.add('active');render();};
+  chipCont.appendChild(b);
+});
+render();
+</script>
+</body>
+</html>

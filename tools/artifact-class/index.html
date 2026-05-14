@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Artifact Classification — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:760px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
+.tbl tr:hover td{background:rgba(255,255,255,.04);}
+.tbl tr.selected td{background:rgba(217,119,6,.1);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.detail{background:rgba(217,119,6,.06);border:1px solid rgba(217,119,6,.2);border-radius:10px;padding:16px;margin-top:16px;display:none;}
+.detail h3{color:var(--acc);font-size:15px;margin-bottom:8px;}
+.detail p{color:var(--mu);font-size:13px;line-height:1.6;margin-bottom:6px;}
+.detail strong{color:var(--tx);}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;margin-right:4px;}
+.count-bar{height:3px;background:var(--acc);border-radius:2px;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="/tools/">← Tools</a>
+<h1>Artifact Classification Reference</h1>
+<p class="sub">Category: Archeology — 30 artifact types with period, material, and identification guide. Click any row for detail.</p>
+
+<div class="card">
+  <div class="grid2">
+    <div>
+      <label>Filter by Period</label>
+      <select id="filterPeriod" onchange="renderTable()">
+        <option value="">All Periods</option>
+        <option>Paleolithic</option>
+        <option>Mesolithic</option>
+        <option>Neolithic</option>
+        <option>Bronze Age</option>
+        <option>Iron Age</option>
+        <option>Roman</option>
+        <option>Medieval</option>
+        <option>Post-Medieval</option>
+      </select>
+    </div>
+    <div>
+      <label>Filter by Material</label>
+      <select id="filterMat" onchange="renderTable()">
+        <option value="">All Materials</option>
+        <option>stone</option>
+        <option>bone</option>
+        <option>ceramic</option>
+        <option>metal</option>
+        <option>glass</option>
+        <option>organic</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:12px;">
+    <label>Search</label>
+    <input id="search" placeholder="Type to filter…" oninput="renderTable()">
+  </div>
+  <div style="margin-top:8px;font-size:12px;color:var(--mu)" id="countLine"></div>
+</div>
+
+<div class="card" style="padding:0;overflow-x:auto;">
+  <table class="tbl" id="artTable">
+    <thead><tr>
+      <th>Period</th><th>Type</th><th>Material</th><th>Key Features</th><th>Dating Range</th><th>Culture</th>
+    </tr></thead>
+    <tbody id="artBody"></tbody>
+  </table>
+</div>
+
+<div class="detail" id="detailPanel">
+  <h3 id="d-type"></h3>
+  <p><strong>Period:</strong> <span id="d-period"></span> &nbsp;|&nbsp; <strong>Material:</strong> <span id="d-mat"></span></p>
+  <p><strong>Dating:</strong> <span id="d-date"></span> &nbsp;|&nbsp; <strong>Culture:</strong> <span id="d-culture"></span></p>
+  <p id="d-desc"></p>
+  <p style="margin-top:8px;"><strong>Identification tips:</strong> <span id="d-tips"></span></p>
+</div>
+
+</div>
+<script>
+const artifacts = [
+  {period:"Paleolithic",type:"Acheulean Handaxe",mat:"stone",features:"Bifacial, teardrop shape, knapped flint/quartzite",date:"1.7 Ma – 300,000 BP",culture:"Homo erectus / heidelbergensis",
+   desc:"Large cutting tool formed by removing flakes from both faces of a core. Symmetrical and versatile — possibly multi-function.",
+   tips:"Look for bifacial flaking, S-twist profile, lenticular cross-section. Distinguish from later bifaces by cruder flaking pattern."},
+  {period:"Paleolithic",type:"Levallois Core",mat:"stone",features:"Tortoise-shell prepared core, centripetal scars",date:"300,000–30,000 BP",culture:"Neanderthal / Middle Palaeolithic",
+   desc:"Prepared-core technology producing predetermined flake shapes. Core shows distinctive carapace of centripetal flake scars.",
+   tips:"Flat dorsal surface with radial preparation scars; single large removal scar on ventral face. Highly distinctive shape."},
+  {period:"Paleolithic",type:"Blade",mat:"stone",features:"Elongated flake, parallel sides, L:W > 2:1",date:"50,000–10,000 BP",culture:"Upper Paleolithic (Aurignacian–Magdalenian)",
+   desc:"Standardized elongated flakes struck from prepared prismatic cores. Foundation of Upper Paleolithic toolkits.",
+   tips:"Parallel lateral edges, regular platform, dorsal ridges. Length at least twice width."},
+  {period:"Paleolithic",type:"Burin",mat:"stone",features:"Chisel-like edge formed by burin spall removal",date:"40,000–10,000 BP",culture:"Aurignacian / Gravettian",
+   desc:"Engraving tool with a narrow working edge. Used to incise bone, antler, and ivory.",
+   tips:"Look for one or more burin spall scars at distal end creating a chisel tip. Often on blades."},
+  {period:"Paleolithic",type:"Backed Bladelet",mat:"stone",features:"Miniature blade, blunted spine, sharp edge",date:"35,000–10,000 BP",culture:"Gravettian / Epigravettian",
+   desc:"Small projectile inserts or cutting elements with one edge blunted by steep retouch.",
+   tips:"Very small (< 3 cm), one edge has abrupt backing retouch. Usually found in multiples — composite tool elements."},
+  {period:"Mesolithic",type:"Microlith",mat:"stone",features:"Geometric micro-tool (triangle, trapeze, lunate)",date:"10,000–6,000 BP",culture:"Mesolithic hunter-gatherers",
+   desc:"Tiny standardized stone tools set into hafts as arrow barbs or composite cutting edges.",
+   tips:"Under 3 cm, geometric forms, fine retouch. Often found clustered. Presence of honey-coloured patina typical."},
+  {period:"Mesolithic",type:"Tranchet Axe",mat:"stone",features:"Transverse cutting edge, flint, polished bit",date:"8,000–5,000 BP",culture:"Late Mesolithic / Early Neolithic transition",
+   desc:"Chopping tool with cutting edge formed by a single transverse (tranchet) blow.",
+   tips:"Characteristic tranchet scar across bit. Often resharpened multiple times leaving stepped scars."},
+  {period:"Neolithic",type:"Polished Stone Axe",mat:"stone",features:"Ground and polished surface, oval cross-section",date:"6,000–4,000 BP",culture:"Early Farming cultures",
+   desc:"Ground stone axe used for tree-felling, woodworking, and exchange. Often exotic stone signaling status.",
+   tips:"Smooth polished surfaces (at least on bit and sides). Pecking marks may be visible on body. Distinguish raw material — jadeite = high status."},
+  {period:"Neolithic",type:"Leaf Arrowhead",mat:"stone",features:"Bifacial, leaf-shaped, fine pressure flaking",date:"5,500–4,000 BP",culture:"Neolithic European cultures",
+   desc:"Pressure-flaked projectile point, symmetrical leaf form. Found in burial and settlement contexts.",
+   tips:"Extremely fine bifacial retouch. Symmetrical. Often made on high-quality flint or obsidian."},
+  {period:"Neolithic",type:"Impressed Ware",mat:"ceramic",features:"Fingernail or shell impressions on coarse fabric",date:"6,000–4,500 BP",culture:"Early Neolithic Mediterranean",
+   desc:"Early pottery decorated with impressions before firing. Thick walls, coarse temper.",
+   tips:"Irregular vessel shape, thick walls (8–15 mm), abundant organic/mineral temper, low-fired."},
+  {period:"Bronze Age",type:"Flat Axe",mat:"metal",features:"Simple flat copper/bronze trapezoid form",date:"3,200–2,500 BP",culture:"Early Bronze Age (Chalcolithic–EBA)",
+   desc:"Earliest metal axes cast in open moulds. Cutting edge typically expanded. Some show hammering.",
+   tips:"Thin, trapezoidal, no flanges or stopridge. Copper or arsenical bronze composition."},
+  {period:"Bronze Age",type:"Palstave",mat:"metal",features:"Stop-ridge, flanged sides, loop for hafting",date:"2,500–1,200 BC",culture:"Middle Bronze Age Europe",
+   desc:"Cast bronze axe with stop-ridge and incipient socket. Improvement on flanged axe for hafting security.",
+   tips:"Distinctive stop-ridge divides blade from shaft area. Side flanges fold inward. Often with side loop."},
+  {period:"Bronze Age",type:"Bronze Sword",mat:"metal",features:"Leaf-shaped blade, cast hilt, rivet holes",date:"1,600–900 BC",culture:"MBA–LBA warrior elites",
+   desc:"Prestige weapon and symbol of elite status. Leaf-shaped blade optimized for slashing.",
+   tips:"Rivet holes in hilt plate. Blade widens at mid-section then tapers to point. Cast in clay or stone moulds."},
+  {period:"Bronze Age",type:"Amber Bead",mat:"organic",features:"Translucent golden-orange, resin-like",date:"2,500–800 BC",culture:"Bronze Age exchange networks",
+   desc:"Baltic amber traded across Europe as prestige item. Found in wealthy burials and hoards.",
+   tips:"Warm golden/orange colour, lightweight, electrostatic when rubbed, distinctive smell when heated. FT-IR for provenance."},
+  {period:"Iron Age",type:"La Tène Brooch (Fibula)",mat:"metal",features:"Coiled spring, bow, catchplate, iron/bronze",date:"500–50 BC",culture:"La Tène Celtic cultures",
+   desc:"Dress fastener replacing pin alone. Complex spring mechanism. Stylized zoomorphic decoration in later phases.",
+   tips:"Spring coil at head, bow with variable decoration, foot with catchplate. Phase by form: La Tène I (short foot) to III (folded foot)."},
+  {period:"Iron Age",type:"Rotary Quern",mat:"stone",features:"Upper/lower stone, central perforation, rynd socket",date:"400 BC–AD 500",culture:"Iron Age–Roman",
+   desc:"Hand-powered grain-grinding tool replacing saddle quern. Upper stone rotates on fixed lower stone.",
+   tips:"Circular stones 30–60 cm diameter. Upper stone has central hole (eye) and handle socket. Lower stone has raised boss."},
+  {period:"Iron Age",type:"Decorated Pottery",mat:"ceramic",features:"Curvilinear La Tène motifs, wheel-thrown",date:"350–50 BC",culture:"La Tène Iron Age",
+   desc:"Fine wheel-thrown ware with characteristic swirling vegetal motifs painted or incised.",
+   tips:"Well-fired, thin walls (4–7 mm), geometric or vegetal incised/painted decoration."},
+  {period:"Roman",type:"Samian Ware (Terra Sigillata)",mat:"ceramic",features:"Red-slip, mould-made relief decoration, stamps",date:"AD 1–AD 250",culture:"Roman Empire",
+   desc:"Mass-produced fine tableware from southern Gaul (La Graufesenque) and later central Gaul. Hallmark of Roman occupation.",
+   tips:"Brilliant red slip, hard fabric, mould-made relief scenes or plain. Potter stamps on base. Sherds highly diagnostic."},
+  {period:"Roman",type:"Amphora",mat:"ceramic",features:"Two handles, pointed base, storage vessel",date:"200 BC–AD 400",culture:"Roman trade network",
+   desc:"Large ceramic container for wine, olive oil, fish sauce (garum). Contents often identified via organic residue analysis.",
+   tips:"Fabric and form indicate origin: Dressel 1 (wine/Italy), Dressel 20 (olive oil/Baetica). Tituli picti paint labels sometimes preserved."},
+  {period:"Roman",type:"Coin (Denarius)",mat:"metal",features:"Silver, portrait obverse, reverse deity/legend",date:"211 BC–AD 244",culture:"Roman Republic / Empire",
+   desc:"Standard silver coinage. Weight ~3.4g. Portrait of emperor allows precise dating to reign.",
+   tips:"Identify by obverse portrait and legends. Cross-reference RIC (Roman Imperial Coinage) catalogue. Wear pattern indicates circulation length."},
+  {period:"Roman",type:"Glass Unguentarium",mat:"glass",features:"Tubular neck, blown, blue-green tint",date:"AD 50–AD 400",culture:"Roman",
+   desc:"Small flask for perfume or oil. Blown glass technique. Found in burial and domestic contexts.",
+   tips:"Very thin walls, iridescent weathering crust, elongated form. Free-blown vs mould-blown identifiable by seam lines."},
+  {period:"Roman",type:"Hypocaust Tile (Tegula Mamata)",mat:"ceramic",features:"Pilae stacks, flanged tiles, box-flue tiles",date:"AD 50–AD 400",culture:"Roman",
+   desc:"Underfloor heating system tile. Pillar-forming tiles support suspended floor above hot air channel.",
+   tips:"Flanged or keyed surface for mortar adhesion. Combing patterns on box-flue tiles. Presence = high-status structure."},
+  {period:"Medieval",type:"Pilgrim Badge",mat:"metal",features:"Lead-tin alloy, pin fitting, religious motif",date:"AD 1100–AD 1500",culture:"Medieval Christian",
+   desc:"Cheap souvenir badge sold at pilgrimage shrines. Worn on hat or cloak to display pilgrimage completed.",
+   tips:"Lead-tin alloy, cast. Pin or loop fitting. Image identifies shrine (scallop shell = Compostela, ampulla = Canterbury, etc.)."},
+  {period:"Medieval",type:"Floor Tile (Encaustic)",mat:"ceramic",features:"Inlaid two-colour design, lead glaze",date:"AD 1200–AD 1550",culture:"Medieval European church/castle",
+   desc:"Decorative floor tile with inlaid clay of contrasting colour. Pattern pressed by stamp before firing.",
+   tips:"Two-tone pattern, recessed design field filled with white clay on red body or vice versa. Yellow glaze over white = tile floor."},
+  {period:"Medieval",type:"Crossbow Bolt Head",mat:"metal",features:"Square section bodkin, socket for wooden bolt",date:"AD 1000–AD 1500",culture:"Medieval military",
+   desc:"Iron armour-piercing projectile tip for crossbow. Square or diamond section designed to penetrate mail.",
+   tips:"Very short (3–5 cm), square or pyramidal section tip, socket at base for wooden shaft. Often found singly on battle sites."},
+  {period:"Post-Medieval",type:"Clay Tobacco Pipe",mat:"organic",features:"White kaolin clay, small bowl, long stem",date:"AD 1580–AD 1900",culture:"Post-Medieval European",
+   desc:"Mass-produced smoking pipe. Bowl size increases over time (smaller bowl = earlier date). Maker marks on heel.",
+   tips:"Bore diameter of stem decreases over time. Bowl angle and form changes by century. Heel marks and mould seams visible."},
+  {period:"Post-Medieval",type:"Transfer-Printed Pottery",mat:"ceramic",features:"Blue (or other) printed decoration under glaze",date:"AD 1780–present",culture:"Industrial British / colonial",
+   desc:"Mass-produced whiteware with transfer-printed decoration. Blue-and-white willow pattern most common globally.",
+   tips:"Regular, detailed printed pattern (not hand-painted). Sharp, even lines. Staffordshire marks on base. Ubiquitous on historic sites."},
+  {period:"Post-Medieval",type:"Bottle Glass",mat:"glass",features:"Mould seam, pontil scar, kick-up base",date:"AD 1650–present",culture:"Post-Medieval industrial",
+   desc:"Mass-produced glass bottle. Form, colour, and manufacturing marks allow dating and factory identification.",
+   tips:"Mould seam height on neck indicates machine-made (seam to lip = after 1905) vs mouth-blown. Applied vs machine-made lip."},
+  {period:"Post-Medieval",type:"Gunflint",mat:"stone",features:"Tabular flint, backed, trimmed platform",date:"AD 1630–AD 1840",culture:"Post-Medieval military / hunting",
+   desc:"Shaped flint for flintlock firearms. French (blonde) and English (black) types. Mass-produced by knappers.",
+   tips:"Distinctive square/rectangular form, thin, backed edge. Brandon (UK) and Meusnes (France) production centres. Often found in military contexts."},
+  {period:"Post-Medieval",type:"Thimble",mat:"metal",features:"Pitted crown and band, open or closed top",date:"AD 1600–present",culture:"Post-Medieval domestic",
+   desc:"Sewing implement protecting finger. Brass, silver, or iron. Form and dimple pattern allows dating.",
+   tips:"Tailor's thimble has open top; domestic closed. Machine-punched dimples post-1850 are more regular than hand-punched."},
+];
+
+let selected = null;
+
+function renderTable(){
+  const period = document.getElementById('filterPeriod').value;
+  const mat = document.getElementById('filterMat').value;
+  const search = document.getElementById('search').value.toLowerCase();
+
+  const filtered = artifacts.filter(a=>{
+    if(period && a.period!==period) return false;
+    if(mat && a.mat!==mat) return false;
+    if(search){
+      const str=(a.type+a.period+a.mat+a.features+a.culture+a.date).toLowerCase();
+      if(!str.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('countLine').textContent = `${filtered.length} artifact${filtered.length!==1?'s':''} shown`;
+
+  const periodColors={
+    'Paleolithic':'#8b5cf6','Mesolithic':'#6366f1','Neolithic':'#0ea5e9',
+    'Bronze Age':'#f59e0b','Iron Age':'#ef4444','Roman':'#f97316',
+    'Medieval':'#10b981','Post-Medieval':'#6b7280'
+  };
+
+  const tbody = document.getElementById('artBody');
+  tbody.innerHTML='';
+  filtered.forEach((a,i)=>{
+    const col=periodColors[a.period]||'#6b7280';
+    tbody.innerHTML+=`<tr onclick="showDetail(${artifacts.indexOf(a)})" data-idx="${artifacts.indexOf(a)}">
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:${col}20;color:${col}">${a.period}</span></td>
+      <td style="font-weight:600;color:var(--tx)">${a.type}</td>
+      <td style="color:var(--mu)">${a.mat}</td>
+      <td style="color:var(--mu);font-size:12px;max-width:180px;">${a.features}</td>
+      <td style="color:var(--mu);white-space:nowrap;font-size:12px">${a.date}</td>
+      <td style="color:var(--mu);font-size:12px">${a.culture}</td>
+    </tr>`;
+  });
+}
+
+function showDetail(idx){
+  const a = artifacts[idx];
+  document.querySelectorAll('#artBody tr').forEach(r=>r.classList.remove('selected'));
+  document.querySelector(`#artBody tr[data-idx="${idx}"]`)?.classList.add('selected');
+  document.getElementById('d-type').textContent = a.type;
+  document.getElementById('d-period').textContent = a.period;
+  document.getElementById('d-mat').textContent = a.mat;
+  document.getElementById('d-date').textContent = a.date;
+  document.getElementById('d-culture').textContent = a.culture;
+  document.getElementById('d-desc').textContent = a.desc;
+  document.getElementById('d-tips').textContent = a.tips;
+  document.getElementById('detailPanel').style.display='';
+  document.getElementById('detailPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+renderTable();
+</script>
+</body>
+</html>

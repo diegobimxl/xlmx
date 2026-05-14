@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radiocarbon Dating — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tabs{display:flex;gap:4px;margin-bottom:16px;}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mu);background:transparent;border:1px solid var(--bd);}
+.tab.active{background:var(--acc);color:#000;border-color:var(--acc);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.info-box{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.25);border-radius:8px;padding:12px;font-size:12px;color:#fcd34d;line-height:1.6;margin-top:12px;}
+.warn{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px;font-size:12px;color:#fca5a5;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="/tools/">← Tools</a>
+<h1>Radiocarbon Dating</h1>
+<p class="sub">Category: Archeology — Conventional ¹⁴C age calculation. Results are uncalibrated BP; apply IntCal20 curve for calendar years.</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('pmc')">Activity (pMC)</div>
+  <div class="tab" onclick="switchTab('ratio')">C/C₀ Ratio</div>
+  <div class="tab" onclick="switchTab('ref')">Reference Table</div>
+</div>
+
+<!-- TAB 1: pMC -->
+<div class="tab-content active" id="tab-pmc">
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>¹⁴C Activity (% Modern Carbon, pMC)</label>
+        <input id="pmc" type="number" step="0.01" placeholder="e.g. 50.00" oninput="calcPMC()">
+      </div>
+      <div>
+        <label>Standard Error (± pMC)</label>
+        <input id="pmc_err" type="number" step="0.01" placeholder="e.g. 0.30" oninput="calcPMC()">
+      </div>
+    </div>
+    <div>
+      <label>Half-life Convention</label>
+      <select id="hl_pmc" onchange="calcPMC()">
+        <option value="8033">Cambridge (5730 yr) — k = 8033</option>
+        <option value="8267">Libby (5568 yr) — k = 8267</option>
+      </select>
+    </div>
+    <div class="result" id="res_pmc" style="display:none">
+      <div class="grid2">
+        <div>
+          <div class="r-label">CONVENTIONAL AGE</div>
+          <div class="r-val" id="age_pmc">—</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:4px;" id="age_pmc_unit">years BP</div>
+        </div>
+        <div>
+          <div class="r-label">± ERROR (1σ)</div>
+          <div class="r-val" id="err_pmc" style="font-size:20px">—</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:4px;">years</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--mu);" id="range_pmc"></div>
+    </div>
+    <div class="info-box">
+      Formula: Age = −8033 × ln(pMC / 100) &nbsp;|&nbsp; Error propagation: σ_age = 8033 × (σ_pMC / pMC)<br>
+      Calibration: Use IntCal20 (Reimer et al. 2020) to convert BP to calendar years. This tool gives uncalibrated BP only.
+    </div>
+    <div id="limit_warn_pmc" class="warn" style="display:none">Warning: age exceeds effective dating range (~50,000 BP). Results have very high uncertainty.</div>
+  </div>
+</div>
+
+<!-- TAB 2: Ratio -->
+<div class="tab-content" id="tab-ratio">
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>Remaining Fraction R = C/C₀ (0 – 1)</label>
+        <input id="ratio_r" type="number" step="0.001" min="0.0001" max="1" placeholder="e.g. 0.5000" oninput="calcRatio()">
+      </div>
+      <div>
+        <label>Standard Error (± fraction)</label>
+        <input id="ratio_err" type="number" step="0.0001" placeholder="e.g. 0.003" oninput="calcRatio()">
+      </div>
+    </div>
+    <div>
+      <label>Half-life Convention</label>
+      <select id="hl_ratio" onchange="calcRatio()">
+        <option value="8033">Cambridge (5730 yr) — k = 8033</option>
+        <option value="8267">Libby (5568 yr) — k = 8267</option>
+      </select>
+    </div>
+    <div class="result" id="res_ratio" style="display:none">
+      <div class="grid2">
+        <div>
+          <div class="r-label">CONVENTIONAL AGE</div>
+          <div class="r-val" id="age_ratio">—</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:4px;">years BP</div>
+        </div>
+        <div>
+          <div class="r-label">± ERROR (1σ)</div>
+          <div class="r-val" id="err_ratio" style="font-size:20px">—</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:4px;">years</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--mu);" id="range_ratio"></div>
+    </div>
+    <div class="info-box">
+      Equivalent formula: R = pMC/100, so Age = −8033 × ln(R)<br>
+      Error: σ_age = 8033 × (σ_R / R) &nbsp;|&nbsp; Apply IntCal20 for calendar-year calibration.
+    </div>
+    <div id="limit_warn_ratio" class="warn" style="display:none">Warning: age exceeds effective dating range (~50,000 BP). Results have very high uncertainty.</div>
+  </div>
+</div>
+
+<!-- TAB 3: Reference -->
+<div class="tab-content" id="tab-ref">
+  <div class="card">
+    <h2 style="font-size:14px;font-weight:600;margin-bottom:12px;">pMC → Conventional Age Reference</h2>
+    <table class="tbl" id="refTable">
+      <thead><tr>
+        <th>pMC (%)</th>
+        <th>Cambridge BP (k=8033)</th>
+        <th>Libby BP (k=8267)</th>
+        <th>Approx. Cal Period</th>
+      </tr></thead>
+      <tbody id="refBody"></tbody>
+    </table>
+    <div class="info-box" style="margin-top:16px;">
+      Effective dating range: ~100 BP (modern) to ~50,000 BP (pMC ≈ 0.2%).<br>
+      Below 0.2 pMC, contamination dominates. AMS can sometimes extend to ~55,000 BP under ideal conditions.
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['pmc','ratio','ref'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>{
+    c.classList.toggle('active',c.id==='tab-'+id);
+  });
+}
+
+function calcAge(pmc_val, err_val, k){
+  if(pmc_val<=0||pmc_val>110) return null;
+  const age = -k * Math.log(pmc_val/100);
+  const err = err_val>0 ? k*(err_val/pmc_val) : null;
+  return {age:Math.round(age), err:err?Math.round(err):null};
+}
+
+function calcPMC(){
+  const pmc = parseFloat(document.getElementById('pmc').value);
+  const err = parseFloat(document.getElementById('pmc_err').value)||0;
+  const k = parseFloat(document.getElementById('hl_pmc').value);
+  if(isNaN(pmc)||pmc<=0){document.getElementById('res_pmc').style.display='none';return;}
+  const r = calcAge(pmc,err,k);
+  if(!r) return;
+  document.getElementById('age_pmc').textContent = r.age.toLocaleString();
+  document.getElementById('err_pmc').textContent = r.err ? '± '+r.err.toLocaleString() : '—';
+  if(r.err) document.getElementById('range_pmc').textContent = `Range (1σ): ${(r.age-r.err).toLocaleString()} – ${(r.age+r.err).toLocaleString()} BP`;
+  document.getElementById('res_pmc').style.display='';
+  document.getElementById('limit_warn_pmc').style.display = r.age>50000?'':'none';
+}
+
+function calcRatio(){
+  const R = parseFloat(document.getElementById('ratio_r').value);
+  const err = parseFloat(document.getElementById('ratio_err').value)||0;
+  const k = parseFloat(document.getElementById('hl_ratio').value);
+  if(isNaN(R)||R<=0||R>1){document.getElementById('res_ratio').style.display='none';return;}
+  const r = calcAge(R*100,err*100,k);
+  if(!r) return;
+  document.getElementById('age_ratio').textContent = r.age.toLocaleString();
+  document.getElementById('err_ratio').textContent = r.err ? '± '+r.err.toLocaleString() : '—';
+  if(r.err) document.getElementById('range_ratio').textContent = `Range (1σ): ${(r.age-r.err).toLocaleString()} – ${(r.age+r.err).toLocaleString()} BP`;
+  document.getElementById('res_ratio').style.display='';
+  document.getElementById('limit_warn_ratio').style.display = r.age>50000?'':'none';
+}
+
+function buildRefTable(){
+  const refData = [
+    [100,0,'Modern (post-1950 AD)'],
+    [95,~424,'Early Medieval'],
+    [75,2312,'Bronze Age / Early Iron Age'],
+    [50,5570,'Neolithic'],
+    [25,11140,'Mesolithic / End of Pleistocene'],
+    [10,18542,'Upper Paleolithic'],
+    [5,24111,'Late Gravettian'],
+    [1,37023,'Middle Paleolithic (Neanderthal)'],
+    [0.5,43630,'Near limit of dating'],
+    [0.2,50000,'Practical detection limit'],
+  ];
+  const tbody = document.getElementById('refBody');
+  tbody.innerHTML='';
+  refData.forEach(([pmc,_,period])=>{
+    const age_c = pmc<=0?'>50000':Math.round(-8033*Math.log(pmc/100)).toLocaleString();
+    const age_l = pmc<=0?'>50000':Math.round(-8267*Math.log(pmc/100)).toLocaleString();
+    tbody.innerHTML+=`<tr>
+      <td style="color:var(--acc);font-weight:600">${pmc}</td>
+      <td>${age_c} BP</td>
+      <td>${age_l} BP</td>
+      <td style="color:var(--mu)">${period}</td>
+    </tr>`;
+  });
+}
+buildRefTable();
+</script>
+</body>
+</html>

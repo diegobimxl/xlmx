@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hash Rate Estimator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.proj-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;}
+.proj-item{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:14px;}
+.proj-val{font-size:18px;font-weight:700;}
+.proj-lbl{font-size:11px;color:var(--mu);margin-top:2px;}
+.pos{color:#22c55e;} .neg{color:#ef4444;}
+.btn-miner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:5px 10px;color:#ef4444;font-size:12px;cursor:pointer;margin-right:6px;margin-bottom:6px;}
+.btn-miner:hover{background:rgba(239,68,68,.2);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Hash Rate Estimator</h1>
+  <p class="sub">Cybersecurity / Mining — Profitability calculator for proof-of-work mining</p>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">LOAD PRESET</div>
+    <button class="btn-miner" onclick="load(110,3250,6.25,450e18)">Antminer S19 Pro</button>
+    <button class="btn-miner" onclick="load(126,3441,6.25,450e18)">Whatsminer M50</button>
+    <button class="btn-miner" onclick="load(200,3500,6.25,450e18)">Antminer S21</button>
+
+    <div class="grid2" style="margin-top:8px;">
+      <div>
+        <label>HASH RATE (TH/s)</label>
+        <input type="number" id="hr" value="110" min="0" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>POWER CONSUMPTION (W)</label>
+        <input type="number" id="power" value="3250" min="0" step="10" oninput="calc()">
+      </div>
+      <div>
+        <label>ELECTRICITY COST ($/kWh)</label>
+        <input type="number" id="elec" value="0.07" min="0" step="0.001" oninput="calc()">
+      </div>
+      <div>
+        <label>COIN PRICE ($)</label>
+        <input type="number" id="coinprice" value="65000" min="0" step="100" oninput="calc()">
+      </div>
+      <div>
+        <label>BLOCK REWARD (BTC)</label>
+        <input type="number" id="reward" value="6.25" min="0" step="0.01" oninput="calc()">
+      </div>
+      <div>
+        <label>NETWORK DIFFICULTY</label>
+        <input type="number" id="diff" value="450e18" step="1e18" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="proj-grid">
+      <div class="proj-item"><div class="proj-val" id="d-rev">—</div><div class="proj-lbl">Daily Revenue</div></div>
+      <div class="proj-item"><div class="proj-val neg" id="d-pow">—</div><div class="proj-lbl">Daily Power Cost</div></div>
+      <div class="proj-item"><div class="proj-val" id="d-prof">—</div><div class="proj-lbl">Daily Profit</div></div>
+      <div class="proj-item"><div class="proj-val" id="m-rev">—</div><div class="proj-lbl">Monthly Revenue</div></div>
+      <div class="proj-item"><div class="proj-val neg" id="m-pow">—</div><div class="proj-lbl">Monthly Power Cost</div></div>
+      <div class="proj-item"><div class="proj-val" id="m-prof">—</div><div class="proj-lbl">Monthly Profit</div></div>
+      <div class="proj-item"><div class="proj-val" id="y-rev">—</div><div class="proj-lbl">Annual Revenue</div></div>
+      <div class="proj-item"><div class="proj-val neg" id="y-pow">—</div><div class="proj-lbl">Annual Power Cost</div></div>
+      <div class="proj-item"><div class="proj-val" id="y-prof">—</div><div class="proj-lbl">Annual Profit</div></div>
+    </div>
+    <div class="result" style="margin-top:16px;display:flex;gap:24px;flex-wrap:wrap;">
+      <div><div class="r-label">BREAKEVEN ELECTRICITY ($/kWh)</div><div class="r-val" id="be-elec">—</div></div>
+      <div><div class="r-label">DAILY COINS MINED</div><div class="r-val" id="d-coins" style="font-size:18px;">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">REFERENCE — COMMON ASIC MINERS (2024)</div>
+    <table class="tbl">
+      <thead><tr><th>Miner</th><th>Hash Rate</th><th>Power</th><th>Efficiency</th></tr></thead>
+      <tbody>
+        <tr><td>Antminer S19 Pro</td><td>110 TH/s</td><td>3,250 W</td><td>29.5 J/TH</td></tr>
+        <tr><td>Whatsminer M50</td><td>126 TH/s</td><td>3,441 W</td><td>27.3 J/TH</td></tr>
+        <tr><td>Antminer S21</td><td>200 TH/s</td><td>3,500 W</td><td>17.5 J/TH</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+function fmt(v){return v>=0?'$'+v.toFixed(2):'−$'+Math.abs(v).toFixed(2);}
+function setProfit(id,v){const el=document.getElementById(id);el.textContent=fmt(v);el.className='proj-val '+(v>=0?'pos':'neg');}
+
+function calc(){
+  const hr=parseFloat(document.getElementById('hr').value)||0;
+  const power=parseFloat(document.getElementById('power').value)||0;
+  const elec=parseFloat(document.getElementById('elec').value)||0;
+  const coinprice=parseFloat(document.getElementById('coinprice').value)||0;
+  const reward=parseFloat(document.getElementById('reward').value)||6.25;
+  const diff=parseFloat(document.getElementById('diff').value)||450e18;
+
+  // Bitcoin mining formula: coins/day = (HR × 86400 × reward) / (diff × 2^32)
+  // Using standard formula: daily_blocks_found = HR_hashes_per_sec / (diff * 2^32 / 86400)
+  const hashPerSec=hr*1e12;
+  const dailyCoins=(hashPerSec*86400*reward)/(diff*Math.pow(2,32));
+  const dailyRev=dailyCoins*coinprice;
+  const dailyPowerCost=power/1000*24*elec;
+  const dailyProfit=dailyRev-dailyPowerCost;
+
+  document.getElementById('d-rev').textContent='$'+dailyRev.toFixed(2);
+  document.getElementById('d-pow').textContent='$'+dailyPowerCost.toFixed(2);
+  setProfit('d-prof',dailyProfit);
+  document.getElementById('m-rev').textContent='$'+(dailyRev*30).toFixed(2);
+  document.getElementById('m-pow').textContent='$'+(dailyPowerCost*30).toFixed(2);
+  setProfit('m-prof',dailyProfit*30);
+  document.getElementById('y-rev').textContent='$'+(dailyRev*365).toFixed(2);
+  document.getElementById('y-pow').textContent='$'+(dailyPowerCost*365).toFixed(2);
+  setProfit('y-prof',dailyProfit*365);
+
+  document.getElementById('d-coins').textContent=dailyCoins.toFixed(6)+' BTC';
+  const beElec=dailyRev/(power/1000*24);
+  document.getElementById('be-elec').textContent=isFinite(beElec)?'$'+beElec.toFixed(4):' N/A';
+}
+
+function load(hr,power,reward,diff){
+  document.getElementById('hr').value=hr;
+  document.getElementById('power').value=power;
+  document.getElementById('reward').value=reward;
+  document.getElementById('diff').value=diff;
+  calc();
+}
+calc();
+</script>
+</body>
+</html>

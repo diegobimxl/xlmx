@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PID Controller Guide — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,input[type=range]:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.formula{font-family:monospace;font-size:13px;color:var(--acc);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
+.tabs{display:flex;gap:8px;margin-bottom:20px;}
+.tab{padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:none;color:var(--mu);font-size:12px;cursor:pointer;transition:.15s;}
+.tab.active{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600;}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+canvas{display:block;width:100%;border-radius:8px;background:#0a0a12;border:1px solid var(--bd);}
+input[type=range]{padding:0;height:4px;accent-color:var(--acc);}
+.param-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.param-name{width:32px;font-weight:700;color:var(--acc);font-size:13px;}
+.param-val{width:70px;font-size:13px;color:var(--tx);text-align:right;}
+.effect-row{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
+.effect-label{color:var(--acc);font-weight:600;margin-bottom:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← XLMX Tools</a>
+  <h1>PID Controller Guide</h1>
+  <p class="sub">Category: Robotics — Ziegler-Nichols, Cohen-Coon, step response simulation</p>
+
+  <div class="card">
+    <label>SYSTEM TYPE</label>
+    <select id="sys-type">
+      <option>Temperature control</option>
+      <option>Position control</option>
+      <option>Speed control</option>
+      <option>Custom / Generic</option>
+    </select>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('zn')">Ziegler-Nichols</button>
+    <button class="tab" onclick="sw('cc')">Cohen-Coon</button>
+    <button class="tab" onclick="sw('manual')">Manual Tune</button>
+  </div>
+
+  <!-- Z-N -->
+  <div class="tab-panel active" id="tab-zn">
+    <div class="card">
+      <div class="formula">Z-N Oscillation Method: increase Kp until sustained oscillation, record Ku and Tu</div>
+      <div class="grid2">
+        <div>
+          <label>ULTIMATE GAIN Ku</label>
+          <input type="number" id="zn-ku" value="10" step="0.1" oninput="calcZN()">
+        </div>
+        <div>
+          <label>OSCILLATION PERIOD Tu (s)</label>
+          <input type="number" id="zn-tu" value="4" step="0.1" oninput="calcZN()">
+        </div>
+      </div>
+      <div class="result">
+        <table class="tbl">
+          <thead><tr><th>Controller</th><th>Kp</th><th>Ki (1/Ti)</th><th>Kd (Td)</th></tr></thead>
+          <tbody id="zn-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cohen-Coon -->
+  <div class="tab-panel" id="tab-cc">
+    <div class="card">
+      <div class="formula">Cohen-Coon: process gain K, dead time L, time constant τ from open-loop step test</div>
+      <div class="grid3">
+        <div>
+          <label>PROCESS GAIN K</label>
+          <input type="number" id="cc-k" value="2" step="0.1" oninput="calcCC()">
+        </div>
+        <div>
+          <label>DEAD TIME L (s)</label>
+          <input type="number" id="cc-l" value="1" step="0.1" oninput="calcCC()">
+        </div>
+        <div>
+          <label>TIME CONSTANT τ (s)</label>
+          <input type="number" id="cc-tau" value="10" step="0.1" oninput="calcCC()">
+        </div>
+      </div>
+      <div class="result">
+        <table class="tbl">
+          <thead><tr><th>Controller</th><th>Kp</th><th>Ti (s)</th><th>Td (s)</th></tr></thead>
+          <tbody id="cc-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual -->
+  <div class="tab-panel" id="tab-manual">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">Manual PID Parameters — Live Step Response Simulation</div>
+      <div class="param-row">
+        <div class="param-name">Kp</div>
+        <input type="range" id="kp" min="0" max="5" step="0.05" value="1.2" oninput="updateManual()" style="flex:1">
+        <div class="param-val" id="kp-val">1.20</div>
+      </div>
+      <div class="param-row">
+        <div class="param-name">Ki</div>
+        <input type="range" id="ki" min="0" max="2" step="0.01" value="0.3" oninput="updateManual()" style="flex:1">
+        <div class="param-val" id="ki-val">0.30</div>
+      </div>
+      <div class="param-row">
+        <div class="param-name">Kd</div>
+        <input type="range" id="kd" min="0" max="2" step="0.01" value="0.1" oninput="updateManual()" style="flex:1">
+        <div class="param-val" id="kd-val">0.10</div>
+      </div>
+      <label>PROCESS: GAIN K</label>
+      <input type="number" id="m-k" value="1" step="0.1" oninput="updateManual()">
+      <label>PROCESS: TIME CONSTANT τ (s)</label>
+      <input type="number" id="m-tau" value="5" step="0.1" oninput="updateManual()">
+      <label>PROCESS: DEAD TIME L (s)</label>
+      <input type="number" id="m-l" value="0.5" step="0.1" oninput="updateManual()">
+      <canvas id="step-canvas" height="200" style="margin-top:14px;"></canvas>
+      <div id="step-metrics" style="margin-top:10px;font-size:12px;color:var(--mu);"></div>
+    </div>
+  </div>
+
+  <!-- Tuning Effects Guide -->
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">Tuning Effect Guide</div>
+    <div class="effect-row"><div class="effect-label">Increase Kp (Proportional)</div>Faster response, reduces steady-state error. Too high → oscillation, instability.</div>
+    <div class="effect-row"><div class="effect-label">Increase Ki (Integral)</div>Eliminates steady-state error. Too high → overshoot, integrator windup, slow recovery.</div>
+    <div class="effect-row"><div class="effect-label">Increase Kd (Derivative)</div>Dampens overshoot, improves stability. Too high → amplifies noise, causes jitter.</div>
+    <div class="effect-row"><div class="effect-label">Rule of thumb: start P-only</div>Add I to kill steady-state error. Add D only if overshoot is a problem. Avoid D on noisy signals.</div>
+  </div>
+</div>
+<script>
+function sw(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['zn','cc','manual'][i]===id));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='manual')updateManual();
+}
+function f(v,d=3){return isNaN(v)||!isFinite(v)?'—':v.toFixed(d);}
+function calcZN(){
+  const ku=+document.getElementById('zn-ku').value,tu=+document.getElementById('zn-tu').value;
+  const rows=[
+    ['P', 0.5*ku, '—', '—'],
+    ['PI', 0.45*ku, f(1/(0.54*ku/tu)), '—'],
+    ['PID', 0.6*ku, f(1/(2*0.6*ku/tu)), f(0.6*ku*tu/8)]
+  ];
+  document.getElementById('zn-table').innerHTML=rows.map(r=>
+    `<tr><td>${r[0]}</td><td>${f(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`
+  ).join('');
+}
+function calcCC(){
+  const K=+document.getElementById('cc-k').value,L=+document.getElementById('cc-l').value,tau=+document.getElementById('cc-tau').value;
+  const r=L/tau;
+  const KpP=(1/(K*r))*(1+r/3);
+  const KpPI=(1/(K*r))*(0.9+r/12);
+  const TiPI=L*(30+3*r)/(9+20*r);
+  const KpPID=(1/(K*r))*(4/3+r/4);
+  const TiPID=L*(32+6*r)/(13+8*r);
+  const TdPID=L*4/(11+2*r);
+  const rows=[
+    ['P', f(KpP), '—', '—'],
+    ['PI', f(KpPI), f(TiPI), '—'],
+    ['PID', f(KpPID), f(TiPID), f(TdPID)]
+  ];
+  document.getElementById('cc-table').innerHTML=rows.map(r=>
+    `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`
+  ).join('');
+}
+function updateManual(){
+  const kp=+document.getElementById('kp').value,ki=+document.getElementById('ki').value,kd=+document.getElementById('kd').value;
+  document.getElementById('kp-val').textContent=kp.toFixed(2);
+  document.getElementById('ki-val').textContent=ki.toFixed(2);
+  document.getElementById('kd-val').textContent=kd.toFixed(2);
+  drawStep(kp,ki,kd);
+}
+function drawStep(kp,ki,kd){
+  const canvas=document.getElementById('step-canvas');
+  const W=canvas.offsetWidth||600,H=200;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const K=+document.getElementById('m-k').value||1;
+  const tau=+document.getElementById('m-tau').value||5;
+  const L=+document.getElementById('m-l').value||0.5;
+  // Simulate PID on 1st-order+deadtime FOPDT model using Euler integration
+  const dt=0.05,T=40,N=T/dt;
+  const setpoint=1;
+  let y=0,integral=0,prev_err=0;
+  // FOPDT: dy/dt = (K*u - y)/tau with dead time L approximated by Pade or delay buffer
+  const delay_steps=Math.round(L/dt);
+  const ubuf=new Array(delay_steps+1).fill(0);
+  const ys=[];
+  for(let i=0;i<N;i++){
+    const err=setpoint-y;
+    integral+=err*dt;
+    const deriv=(err-prev_err)/dt;
+    const u=kp*err+ki*integral+kd*deriv;
+    ubuf.push(u);const ud=ubuf.shift();
+    y+=dt*((K*Math.max(-10,Math.min(10,ud))-y)/tau);
+    prev_err=err;
+    ys.push(y);
+  }
+  const pad={l:36,r:16,t:16,b:28};
+  const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  const maxY=Math.max(1.5,Math.max(...ys));
+  const minY=Math.min(-0.1,Math.min(...ys));
+  const scX=i=>pad.l+i/N*pw;
+  const scY=v=>pad.t+ph-(v-minY)/(maxY-minY)*ph;
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){const y2=pad.t+ph*g/4;ctx.beginPath();ctx.moveTo(pad.l,y2);ctx.lineTo(W-pad.r,y2);ctx.stroke();}
+  // Setpoint
+  ctx.strokeStyle='rgba(255,255,255,.2)';ctx.setLineDash([4,4]);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,scY(1));ctx.lineTo(W-pad.r,scY(1));ctx.stroke();ctx.setLineDash([]);
+  // Response
+  ctx.strokeStyle='#22d3ee';ctx.lineWidth=2;ctx.beginPath();
+  ys.forEach((v,i)=>{i===0?ctx.moveTo(scX(i),scY(v)):ctx.lineTo(scX(i),scY(v));});
+  ctx.stroke();
+  // Labels
+  ctx.fillStyle='rgba(107,114,128,.8)';ctx.font='10px Inter,sans-serif';
+  ctx.fillText('0',pad.l-18,scY(0)+4);ctx.fillText('SP',pad.l-22,scY(1)+4);
+  ctx.fillText('t',W-pad.r,H-6);
+  // Metrics
+  const maxOvr=Math.max(...ys);
+  const os=((maxOvr-1)/1*100).toFixed(1);
+  const settleIdx=ys.findIndex((v,i)=>i>10&&ys.slice(i).every(x=>Math.abs(x-1)<0.05));
+  const settleT=settleIdx>0?(settleIdx*dt).toFixed(1)+'s':'> '+T+'s';
+  document.getElementById('step-metrics').textContent=
+    `Overshoot: ${os}%   |   Settle time (±5%): ${settleT}   |   Final value: ${ys[ys.length-1].toFixed(3)}`;
+}
+calcZN();calcCC();updateManual();
+</script>
+</body>
+</html>

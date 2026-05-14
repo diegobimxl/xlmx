@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linear Regression Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#8b5cf6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Linear Regression Calculator</h1>
+  <p class="sub">Statistics — OLS regression with slope, intercept, R², and residuals</p>
+  <div class="card">
+    <label>X VALUES (comma-separated)</label>
+    <input type="text" id="xv" value="1,2,3,4,5,6,7,8,9,10" oninput="calc()">
+    <label>Y VALUES (comma-separated)</label>
+    <input type="text" id="yv" value="2.1,4.0,5.9,8.2,10.1,11.8,13.9,16.2,18.0,20.1" oninput="calc()">
+  </div>
+  <div class="card">
+    <div class="grid2">
+      <div class="result">
+        <div class="r-label">SLOPE (β₁)</div>
+        <div class="r-val" id="slope">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">INTERCEPT (β₀)</div>
+        <div class="r-val" id="intercept">—</div>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:12px;">
+      <div class="result">
+        <div class="r-label">R² (fit)</div>
+        <div class="r-val" id="r2">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">PEARSON r</div>
+        <div class="r-val" id="r">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">STD ERROR</div>
+        <div class="r-val" id="se">—</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <label>PREDICT Y FOR X =</label>
+      <input type="number" id="xpred" value="11" oninput="predict()">
+    </div>
+    <div class="result" style="margin-top:12px;">
+      <div class="r-label">PREDICTED Ŷ</div>
+      <div class="r-val" id="ypred">—</div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+<script>
+let _slope=0,_int=0;
+function calc(){
+  const xs=document.getElementById('xv').value.split(',').map(Number).filter(x=>!isNaN(x));
+  const ys=document.getElementById('yv').value.split(',').map(Number).filter(y=>!isNaN(y));
+  const n=Math.min(xs.length,ys.length);
+  if(n<2)return;
+  const xm=xs.slice(0,n).reduce((a,b)=>a+b,0)/n;
+  const ym=ys.slice(0,n).reduce((a,b)=>a+b,0)/n;
+  let sxy=0,sxx=0,syy=0;
+  for(let i=0;i<n;i++){sxy+=(xs[i]-xm)*(ys[i]-ym);sxx+=(xs[i]-xm)**2;syy+=(ys[i]-ym)**2;}
+  const slope=sxx?sxy/sxx:0;
+  const intc=ym-slope*xm;
+  _slope=slope;_int=intc;
+  const yhat=xs.slice(0,n).map(x=>slope*x+intc);
+  const sse=ys.slice(0,n).reduce((a,y,i)=>a+(y-yhat[i])**2,0);
+  const sst=syy;
+  const r2=sst?1-sse/sst:0;
+  const r=sxx&&syy?sxy/Math.sqrt(sxx*syy):0;
+  const se=Math.sqrt(sse/Math.max(n-2,1));
+  document.getElementById('slope').textContent=slope.toFixed(4);
+  document.getElementById('intercept').textContent=intc.toFixed(4);
+  document.getElementById('r2').textContent=r2.toFixed(4);
+  document.getElementById('r').textContent=r.toFixed(4);
+  document.getElementById('se').textContent=se.toFixed(4);
+  document.getElementById('note').textContent=`n=${n} points. Equation: ŷ = ${slope.toFixed(3)}x + ${intc.toFixed(3)}. R²=${r2.toFixed(3)} — model explains ${(r2*100).toFixed(1)}% of variance. ${Math.abs(r)>0.8?'Strong':Math.abs(r)>0.5?'Moderate':'Weak'} ${r>0?'positive':'negative'} correlation.`;
+  predict();
+}
+function predict(){
+  const x=+document.getElementById('xpred').value;
+  if(isNaN(x))return;
+  document.getElementById('ypred').textContent=(_slope*x+_int).toFixed(4);
+}
+calc();
+</script>
+</body>
+</html>

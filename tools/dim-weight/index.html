@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dimensional Weight Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fbbf24;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+select option{background:#111;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tbl tr.hi td{color:var(--acc);font-weight:700;background:rgba(251,191,36,.05);}
+.result-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.result-row:last-child{border:none;}
+.r-label{color:var(--mu);font-size:12px;}
+.r-val{font-size:18px;font-weight:700;color:var(--acc);}
+.toggle-row{display:flex;gap:8px;margin-bottom:12px;}
+.toggle-btn{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:6px;padding:8px;text-align:center;cursor:pointer;font-size:12px;color:var(--mu);transition:all .15s;}
+.toggle-btn.active{background:rgba(251,191,36,.15);border-color:var(--acc);color:var(--acc);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Dimensional Weight Calculator</h1>
+  <p class="sub">Billable weight = max(actual weight, dimensional weight). Supports all major carrier divisors.</p>
+
+  <div class="card">
+    <div class="toggle-row">
+      <div class="toggle-btn active" id="btn-cm" onclick="setUnit('cm')">Centimeters / kg</div>
+      <div class="toggle-btn" id="btn-in" onclick="setUnit('in')">Inches / lbs</div>
+    </div>
+
+    <label>DIMENSIONS <span id="unit-label" style="font-weight:400;text-transform:none">L × W × H (cm)</span></label>
+    <div class="grid3">
+      <div><label>LENGTH</label><input type="number" id="len" min="0" step="any" value="40" oninput="calc()"></div>
+      <div><label>WIDTH</label><input type="number" id="wid" min="0" step="any" value="30" oninput="calc()"></div>
+      <div><label>HEIGHT</label><input type="number" id="hgt" min="0" step="any" value="25" oninput="calc()"></div>
+    </div>
+    <label>ACTUAL WEIGHT <span id="weight-unit-label" style="font-weight:400;text-transform:none">(kg)</span></label>
+    <input type="number" id="actual" min="0" step="any" value="5" oninput="calc()">
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;font-weight:600;">RESULTS BY DIVISOR</div>
+    <table class="tbl" id="results-table">
+      <thead><tr><th>Service Type</th><th>Divisor</th><th>Dim Weight</th><th>Billable Weight</th></tr></thead>
+      <tbody id="results-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;font-weight:600;">CARRIER DIVISOR REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Carrier</th><th>Service</th><th>Divisor (cm/kg)</th><th>Divisor (in/lbs)</th></tr></thead>
+      <tbody>
+        <tr><td>FedEx</td><td>International Air</td><td>5,000</td><td>139</td></tr>
+        <tr><td>FedEx</td><td>Ground US</td><td>5,000</td><td>139</td></tr>
+        <tr><td>UPS</td><td>International</td><td>5,000</td><td>139</td></tr>
+        <tr><td>UPS</td><td>Ground US</td><td>5,000</td><td>139</td></tr>
+        <tr><td>DHL</td><td>Express International</td><td>5,000</td><td>139</td></tr>
+        <tr><td>USPS</td><td>Priority Mail</td><td>—</td><td>166</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let unit="cm";
+
+function setUnit(u){
+  unit=u;
+  document.getElementById("btn-cm").classList.toggle("active",u==="cm");
+  document.getElementById("btn-in").classList.toggle("active",u==="in");
+  document.getElementById("unit-label").textContent=u==="cm"?"L × W × H (cm)":"L × W × H (in)";
+  document.getElementById("weight-unit-label").textContent=u==="cm"?"(kg)":"(lbs)";
+  calc();
+}
+
+function calc(){
+  const L=parseFloat(document.getElementById("len").value)||0;
+  const W=parseFloat(document.getElementById("wid").value)||0;
+  const H=parseFloat(document.getElementById("hgt").value)||0;
+  const actual=parseFloat(document.getElementById("actual").value)||0;
+  const vol=L*W*H;
+
+  // Divisors for (cm/kg): international air=5000, ground US=5000, domestic air=5000
+  // For inches/lbs: international=139, ground=166
+  let services;
+  if(unit==="cm"){
+    services=[
+      {name:"International Air",div:5000},
+      {name:"Ground US",div:5000},
+      {name:"Domestic Air",div:6000},
+    ];
+  } else {
+    services=[
+      {name:"International Air",div:139},
+      {name:"Ground US",div:166},
+      {name:"Domestic Air",div:194},
+    ];
+  }
+
+  const wUnit=unit==="cm"?"kg":"lbs";
+  const rows=services.map(s=>{
+    const dim=vol/s.div;
+    const bill=Math.max(actual,dim);
+    const isHi=dim>actual;
+    return `<tr class="${isHi?"hi":""}">
+      <td>${s.name}</td>
+      <td>${s.div}</td>
+      <td>${dim.toFixed(2)} ${wUnit}</td>
+      <td>${bill.toFixed(2)} ${wUnit}${isHi?' <span style="font-size:10px;color:var(--acc)">(DIM)</span>':''}</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("results-body").innerHTML=rows;
+}
+
+calc();
+</script>
+</body>
+</html>

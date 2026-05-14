@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RevPAR Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb923c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.month-row input{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:4px;padding:5px 7px;font-size:12px;width:100%;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>RevPAR Calculator</h1>
+  <p class="sub">Category: Hospitality — Revenue Per Available Room</p>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:4px">ROOM METRICS</div>
+    <div class="grid3">
+      <div>
+        <label>TOTAL AVAILABLE ROOMS</label>
+        <input type="number" id="avail" value="200" min="1" oninput="calc()">
+      </div>
+      <div>
+        <label>ROOMS OCCUPIED</label>
+        <input type="number" id="occ" value="150" min="0" oninput="syncOcc()">
+      </div>
+      <div>
+        <label>OCCUPANCY % (overrides above)</label>
+        <input type="number" id="occ_pct" value="75" min="0" max="100" step="0.1" oninput="syncPct()">
+      </div>
+    </div>
+    <div>
+      <label>AVERAGE DAILY RATE — ADR ($)</label>
+      <input type="number" id="adr" value="180" min="0" step="0.01" oninput="calc()">
+    </div>
+
+    <div class="grid3">
+      <div class="result">
+        <div class="r-label">RevPAR</div>
+        <div class="r-val" id="revpar">—</div>
+        <div style="color:var(--mu);font-size:12px">$/available room</div>
+      </div>
+      <div class="result">
+        <div class="r-label">OCCUPANCY</div>
+        <div class="r-val" id="occ_out">—</div>
+        <div style="color:var(--mu);font-size:12px">%</div>
+      </div>
+      <div class="result">
+        <div class="r-label">TOTAL ROOM REVENUE</div>
+        <div class="r-val" id="rev_total">—</div>
+        <div style="color:var(--mu);font-size:12px">$/night</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:16px">TRevPAR — TOTAL REVENUE PER AVAILABLE ROOM</div>
+    <div class="grid2">
+      <div>
+        <label>F&B REVENUE ($/night)</label>
+        <input type="number" id="fb_rev" value="4500" min="0" oninput="calcTrev()">
+      </div>
+      <div>
+        <label>OTHER REVENUE ($/night)</label>
+        <input type="number" id="other_rev" value="1200" min="0" oninput="calcTrev()">
+      </div>
+    </div>
+    <div class="result">
+      <div class="r-label">TRevPAR</div>
+      <div class="r-val" id="trevpar">—</div>
+      <div style="color:var(--mu);font-size:12px">$/available room/night</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">MONTHLY TRACKER — ADR & OCCUPANCY</div>
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>ADR ($)</th>
+          <th>Occ%</th>
+          <th>RevPAR</th>
+          <th>YoY ADR</th>
+          <th>YoY Occ</th>
+        </tr>
+      </thead>
+      <tbody id="monthly_body"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">INDUSTRY BENCHMARKS</div>
+    <table class="tbl">
+      <thead><tr><th>Segment</th><th>ADR Range</th><th>Occ%</th><th>RevPAR Range</th></tr></thead>
+      <tbody>
+        <tr><td>Luxury</td><td>$300 – $700+</td><td>65–75%</td><td>$195 – $525</td></tr>
+        <tr><td>Upper Upscale</td><td>$180 – $320</td><td>70–80%</td><td>$126 – $256</td></tr>
+        <tr><td>Upscale</td><td>$130 – $200</td><td>72–80%</td><td>$94 – $160</td></tr>
+        <tr><td>Midscale</td><td>$90 – $140</td><td>65–75%</td><td>$59 – $105</td></tr>
+        <tr><td>Economy</td><td>$60 – $95</td><td>60–72%</td><td>$36 – $68</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const defaultADR=[155,160,175,185,195,210,220,215,200,185,170,160];
+const defaultOcc=[65,68,72,76,80,82,85,84,78,74,68,66];
+const yoyADR=[148,152,168,178,188,200,212,208,193,178,162,154];
+const yoyOcc=[62,65,69,73,77,79,82,81,75,71,65,63];
+
+function buildMonthly(){
+  let html='';
+  months.forEach((m,i)=>{
+    const rp=(defaultADR[i]*defaultOcc[i]/100).toFixed(2);
+    const adrd=((defaultADR[i]-yoyADR[i])/yoyADR[i]*100).toFixed(1);
+    const occd=(defaultOcc[i]-yoyOcc[i]).toFixed(1);
+    const ac=parseFloat(adrd)>=0?'#34d399':'#f87171';
+    const oc=parseFloat(occd)>=0?'#34d399':'#f87171';
+    html+=`<tr class="month-row"><td>${m}</td><td><input type="number" value="${defaultADR[i]}" style="width:70px" oninput="recompute(this,${i})"></td><td><input type="number" value="${defaultOcc[i]}" style="width:55px" oninput="recompute(this,${i})"></td><td id="rp${i}" style="color:var(--acc)">$${rp}</td><td style="color:${ac}">${parseFloat(adrd)>=0?'+':''}${adrd}%</td><td style="color:${oc}">${parseFloat(occd)>=0?'+':''}${occd}pp</td></tr>`;
+  });
+  document.getElementById('monthly_body').innerHTML=html;
+}
+function recompute(el,i){
+  const row=el.closest('tr');
+  const inputs=row.querySelectorAll('input');
+  const adr=parseFloat(inputs[0].value)||0;
+  const occ=parseFloat(inputs[1].value)||0;
+  document.getElementById('rp'+i).textContent='$'+(adr*occ/100).toFixed(2);
+}
+function syncOcc(){
+  const avail=parseFloat(document.getElementById('avail').value)||1;
+  const occ=parseFloat(document.getElementById('occ').value)||0;
+  document.getElementById('occ_pct').value=(occ/avail*100).toFixed(1);
+  calc();
+}
+function syncPct(){
+  const avail=parseFloat(document.getElementById('avail').value)||1;
+  const pct=parseFloat(document.getElementById('occ_pct').value)||0;
+  document.getElementById('occ').value=Math.round(avail*pct/100);
+  calc();
+}
+function calc(){
+  const avail=parseFloat(document.getElementById('avail').value)||1;
+  const pct=parseFloat(document.getElementById('occ_pct').value)||0;
+  const adr=parseFloat(document.getElementById('adr').value)||0;
+  const revpar=adr*pct/100;
+  const total_rev=adr*(avail*pct/100);
+  document.getElementById('revpar').textContent='$'+revpar.toFixed(2);
+  document.getElementById('occ_out').textContent=pct.toFixed(1)+'%';
+  document.getElementById('rev_total').textContent='$'+total_rev.toFixed(0);
+  calcTrev();
+}
+function calcTrev(){
+  const avail=parseFloat(document.getElementById('avail').value)||1;
+  const pct=parseFloat(document.getElementById('occ_pct').value)||0;
+  const adr=parseFloat(document.getElementById('adr').value)||0;
+  const fb=parseFloat(document.getElementById('fb_rev').value)||0;
+  const other=parseFloat(document.getElementById('other_rev').value)||0;
+  const room_rev=adr*(avail*pct/100);
+  const trevpar=(room_rev+fb+other)/avail;
+  document.getElementById('trevpar').textContent='$'+trevpar.toFixed(2);
+}
+buildMonthly();calc();
+</script>
+</body>
+</html>

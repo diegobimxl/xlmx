@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heat Transfer Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f87171;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tabs{display:flex;gap:8px;margin-bottom:20px;}
+.tab{padding:8px 16px;border-radius:8px;border:1px solid var(--bd);background:none;color:var(--mu);font-size:13px;cursor:pointer;transition:.15s;}
+.tab.active{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.formula{font-family:monospace;font-size:13px;color:var(--acc);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
+.r-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← XLMX Tools</a>
+  <h1>Heat Transfer Calculator</h1>
+  <p class="sub">Category: Thermodynamics — Conduction, Convection, Radiation</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('cond')">Conduction</button>
+    <button class="tab" onclick="switchTab('conv')">Convection</button>
+    <button class="tab" onclick="switchTab('rad')">Radiation</button>
+  </div>
+
+  <!-- CONDUCTION -->
+  <div class="tab-panel active" id="tab-cond">
+    <div class="card">
+      <div class="formula">Q = k × A × ΔT / L</div>
+      <div class="grid2">
+        <div>
+          <label>THERMAL CONDUCTIVITY k (W/m·K)</label>
+          <input type="number" id="c-k" value="50" step="0.01" oninput="calcCond()">
+        </div>
+        <div>
+          <label>AREA A (m²)</label>
+          <input type="number" id="c-a" value="1" step="0.01" oninput="calcCond()">
+        </div>
+        <div>
+          <label>TEMPERATURE DIFFERENCE ΔT (°C)</label>
+          <input type="number" id="c-dt" value="20" step="0.1" oninput="calcCond()">
+        </div>
+        <div>
+          <label>THICKNESS L (m)</label>
+          <input type="number" id="c-l" value="0.1" step="0.001" oninput="calcCond()">
+        </div>
+      </div>
+      <div class="result">
+        <div class="r-grid">
+          <div><div class="r-label">HEAT TRANSFER RATE</div><div class="r-val" id="c-w">—</div><div style="color:var(--mu);font-size:11px;">Watts (W)</div></div>
+          <div><div class="r-label">IN KILOWATTS</div><div class="r-val" id="c-kw" style="font-size:20px;">—</div><div style="color:var(--mu);font-size:11px;">kW</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONVECTION -->
+  <div class="tab-panel" id="tab-conv">
+    <div class="card">
+      <div class="formula">Q = h × A × ΔT</div>
+      <div class="grid2">
+        <div>
+          <label>HEAT TRANSFER COEFF h (W/m²·K)</label>
+          <input type="number" id="v-h" value="25" step="0.1" oninput="calcConv()">
+        </div>
+        <div>
+          <label>AREA A (m²)</label>
+          <input type="number" id="v-a" value="2" step="0.01" oninput="calcConv()">
+        </div>
+        <div>
+          <label>TEMPERATURE DIFFERENCE ΔT (°C)</label>
+          <input type="number" id="v-dt" value="30" step="0.1" oninput="calcConv()">
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--mu);">Typical h values: Natural convection air 5–25 W/m²·K &nbsp;|&nbsp; Forced air 25–250 &nbsp;|&nbsp; Water 200–10000</div>
+      <div class="result">
+        <div class="r-grid">
+          <div><div class="r-label">HEAT TRANSFER RATE</div><div class="r-val" id="v-w">—</div><div style="color:var(--mu);font-size:11px;">Watts (W)</div></div>
+          <div><div class="r-label">IN KILOWATTS</div><div class="r-val" id="v-kw" style="font-size:20px;">—</div><div style="color:var(--mu);font-size:11px;">kW</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RADIATION -->
+  <div class="tab-panel" id="tab-rad">
+    <div class="card">
+      <div class="formula">Q = ε × σ × A × (T₁⁴ − T₂⁴) &nbsp; σ = 5.67×10⁻⁸ W/m²·K⁴</div>
+      <div class="grid2">
+        <div>
+          <label>EMISSIVITY ε (0–1)</label>
+          <input type="number" id="r-e" value="0.9" min="0" max="1" step="0.01" oninput="calcRad()">
+        </div>
+        <div>
+          <label>AREA A (m²)</label>
+          <input type="number" id="r-a" value="1" step="0.01" oninput="calcRad()">
+        </div>
+        <div>
+          <label>SURFACE TEMPERATURE T₁ (K)</label>
+          <input type="number" id="r-t1" value="500" step="1" oninput="calcRad()">
+        </div>
+        <div>
+          <label>AMBIENT TEMPERATURE T₂ (K)</label>
+          <input type="number" id="r-t2" value="300" step="1" oninput="calcRad()">
+        </div>
+      </div>
+      <div class="result">
+        <div class="r-grid">
+          <div><div class="r-label">RADIATIVE HEAT TRANSFER</div><div class="r-val" id="r-w">—</div><div style="color:var(--mu);font-size:11px;">Watts (W)</div></div>
+          <div><div class="r-label">IN KILOWATTS</div><div class="r-val" id="r-kw" style="font-size:20px;">—</div><div style="color:var(--mu);font-size:11px;">kW</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference Table -->
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">Material Thermal Conductivity Reference</div>
+    <table class="tbl">
+      <thead><tr><th>Material</th><th>k (W/m·K)</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Copper</td><td>385</td><td>Best metallic conductor</td></tr>
+        <tr><td>Aluminum</td><td>205</td><td>Structural + thermal use</td></tr>
+        <tr><td>Steel (carbon)</td><td>50</td><td>Structural, variable by alloy</td></tr>
+        <tr><td>Concrete</td><td>1.7</td><td>Varies with aggregate mix</td></tr>
+        <tr><td>Wood (oak)</td><td>0.17</td><td>Perpendicular to grain</td></tr>
+        <tr><td>Glass wool</td><td>0.04</td><td>Common insulation</td></tr>
+        <tr><td>Air (still)</td><td>0.026</td><td>At 25°C, 1 atm</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',['cond','conv','rad'][i]===id);});
+  document.querySelectorAll('.tab-panel').forEach(p=>{p.classList.remove('active');});
+  document.getElementById('tab-'+id).classList.add('active');
+}
+function fmt(v){if(isNaN(v)||!isFinite(v))return '—';return v>=1000?v.toLocaleString('en',{maximumFractionDigits:2}):v.toPrecision(4);}
+function calcCond(){
+  const k=+document.getElementById('c-k').value,a=+document.getElementById('c-a').value,
+        dt=+document.getElementById('c-dt').value,l=+document.getElementById('c-l').value;
+  const q=l>0?k*a*dt/l:0;
+  document.getElementById('c-w').textContent=fmt(q)+' W';
+  document.getElementById('c-kw').textContent=fmt(q/1000)+' kW';
+}
+function calcConv(){
+  const h=+document.getElementById('v-h').value,a=+document.getElementById('v-a').value,
+        dt=+document.getElementById('v-dt').value;
+  const q=h*a*dt;
+  document.getElementById('v-w').textContent=fmt(q)+' W';
+  document.getElementById('v-kw').textContent=fmt(q/1000)+' kW';
+}
+function calcRad(){
+  const e=+document.getElementById('r-e').value,a=+document.getElementById('r-a').value,
+        t1=+document.getElementById('r-t1').value,t2=+document.getElementById('r-t2').value;
+  const sigma=5.67e-8,q=e*sigma*a*(Math.pow(t1,4)-Math.pow(t2,4));
+  document.getElementById('r-w').textContent=fmt(q)+' W';
+  document.getElementById('r-kw').textContent=fmt(q/1000)+' kW';
+}
+calcCond();calcConv();calcRad();
+</script>
+</body>
+</html>

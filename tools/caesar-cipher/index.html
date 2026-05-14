@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caesar Cipher — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#6366f1;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Caesar Cipher</h1>
+  <p class="sub">Cryptography — Encode, decode, and brute-force Caesar/ROT cipher</p>
+  <div class="card">
+    <div class="toggle-row" style="display:flex;gap:8px;margin-bottom:16px;">
+      <button id="btn-enc" onclick="setMode('enc')" style="background:var(--acc);color:#000;border:1px solid var(--acc);padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">ENCODE</button>
+      <button id="btn-dec" onclick="setMode('dec')" style="background:none;color:var(--mu);border:1px solid var(--bd);padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;">DECODE</button>
+      <button id="btn-brute" onclick="setMode('brute')" style="background:none;color:var(--mu);border:1px solid var(--bd);padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;">BRUTE FORCE</button>
+    </div>
+    <label>INPUT TEXT</label>
+    <textarea id="input" rows="4" oninput="run()" placeholder="Type your message..."></textarea>
+    <div id="shift-row">
+      <label>SHIFT (1–25)</label>
+      <input type="number" id="shift" value="13" min="1" max="25" oninput="run()">
+    </div>
+  </div>
+  <div class="card">
+    <div id="out-single" style="display:none">
+      <div class="r-label">OUTPUT</div>
+      <textarea id="output" rows="4" readonly style="margin-top:8px;"></textarea>
+    </div>
+    <div id="out-brute" style="display:none">
+      <div class="r-label" style="margin-bottom:8px;">ALL 25 SHIFTS</div>
+      <div id="brute-list"></div>
+    </div>
+    <div class="note">Caesar cipher shifts each letter by a fixed amount. ROT-13 (shift=13) is self-inverse. Security: zero — trivially broken by frequency analysis. Common in CTF puzzles and ancient Roman dispatches.</div>
+  </div>
+</div>
+<script>
+let mode='enc';
+function setMode(m){
+  mode=m;
+  ['enc','dec','brute'].forEach(k=>{
+    const b=document.getElementById('btn-'+k);
+    b.style.background=k===m?'var(--acc)':'none';
+    b.style.color=k===m?'#000':'var(--mu)';
+  });
+  document.getElementById('shift-row').style.display=m==='brute'?'none':'block';
+  run();
+}
+function caesar(txt,shift){
+  return txt.split('').map(c=>{
+    if(/[a-zA-Z]/.test(c)){
+      const base=c<='Z'?65:97;
+      return String.fromCharCode((c.charCodeAt(0)-base+shift+26)%26+base);
+    }
+    return c;
+  }).join('');
+}
+function run(){
+  const txt=document.getElementById('input').value;
+  const shift=+document.getElementById('shift').value;
+  if(mode==='brute'){
+    document.getElementById('out-single').style.display='none';
+    document.getElementById('out-brute').style.display='block';
+    const list=document.getElementById('brute-list');
+    list.innerHTML=[...Array(25).keys()].map(i=>{
+      const s=i+1;
+      const res=caesar(txt,s);
+      return `<div style="display:flex;gap:12px;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <span style="color:var(--acc);font-weight:700;width:32px;font-size:12px;">+${s}</span>
+        <span style="font-size:13px;color:var(--tx);word-break:break-all;">${res}</span>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('out-single').style.display='block';
+    document.getElementById('out-brute').style.display='none';
+    const result=mode==='enc'?caesar(txt,shift):caesar(txt,26-shift);
+    document.getElementById('output').value=result;
+  }
+}
+run();
+</script>
+</body>
+</html>

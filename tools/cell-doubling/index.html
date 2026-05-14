@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cell Doubling Time — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#4ade80;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px;}
+.r-box{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:14px;}
+.r-label{font-size:10px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.r-unit{font-size:11px;color:var(--mu);margin-left:3px;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-family:monospace;font-size:12px;}
+.tbl td:first-child{font-family:"Inter",system-ui,sans-serif;color:var(--mu);}
+.tbl tr:nth-child(4) td{color:var(--acc);}
+.ref-tbl td:first-child{color:var(--tx);font-family:"Inter",system-ui,sans-serif;}
+.formula-box{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--mu);line-height:2;margin-bottom:16px;}
+.formula-box span{color:var(--tx);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Cell Doubling Time</h1>
+  <p class="sub">Calculate doubling time, growth rate, and population projections from cell counts.</p>
+
+  <div class="card">
+    <div class="formula-box">
+      <span>Td = t × ln(2) / ln(N₁/N₀)</span><br>
+      k = ln(2) / Td &nbsp;&nbsp; | &nbsp;&nbsp; Doublings = t / Td
+    </div>
+    <div class="grid3">
+      <div>
+        <label>INITIAL COUNT (N₀)</label>
+        <input type="number" id="n0" value="100000" min="1" step="any" oninput="calc()">
+      </div>
+      <div>
+        <label>FINAL COUNT (N₁)</label>
+        <input type="number" id="n1" value="800000" min="1" step="any" oninput="calc()">
+      </div>
+      <div>
+        <label>ELAPSED TIME (hours)</label>
+        <input type="number" id="elapsed" value="24" min="0.1" step="any" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="result-grid">
+      <div class="r-box">
+        <div class="r-label">DOUBLING TIME</div>
+        <div class="r-val" id="td">—<span class="r-unit">h</span></div>
+      </div>
+      <div class="r-box">
+        <div class="r-label">GROWTH RATE (k)</div>
+        <div class="r-val" id="k-val">—<span class="r-unit">h⁻¹</span></div>
+      </div>
+      <div class="r-box">
+        <div class="r-label">DOUBLINGS</div>
+        <div class="r-val" id="ndoub">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;font-weight:600;">PROJECTION TABLE (starting from N₀)</div>
+    <table class="tbl" id="proj-table">
+      <thead><tr><th>Doubling Times</th><th>Elapsed (h)</th><th>Cell Count</th><th>Fold Change</th></tr></thead>
+      <tbody id="proj-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;font-weight:600;">COMMON CELL LINE REFERENCE</div>
+    <table class="tbl ref-tbl">
+      <thead><tr><th>Cell Line</th><th>Typical Td</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>HeLa</td><td>~24 h</td><td>Human cervical carcinoma</td><td>Gold standard, highly robust</td></tr>
+        <tr><td>HEK293</td><td>~18 h</td><td>Human embryonic kidney</td><td>Transfection workhorse</td></tr>
+        <tr><td>CHO</td><td>~14 h</td><td>Chinese hamster ovary</td><td>Biopharmaceutical production</td></tr>
+        <tr><td>Jurkat</td><td>~20 h</td><td>Human T lymphocyte</td><td>Apoptosis / T-cell signaling</td></tr>
+        <tr><td>MCF-7</td><td>~29 h</td><td>Human breast carcinoma</td><td>Estrogen receptor positive</td></tr>
+        <tr><td>3T3</td><td>~20 h</td><td>Mouse fibroblast</td><td>Contact inhibition model</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function fmtCount(n){
+  if(n>=1e9) return (n/1e9).toFixed(2)+"×10⁹";
+  if(n>=1e6) return (n/1e6).toFixed(2)+"×10⁶";
+  if(n>=1e3) return (n/1e3).toFixed(1)+"×10³";
+  return n.toFixed(0);
+}
+
+function calc(){
+  const n0=parseFloat(document.getElementById("n0").value);
+  const n1=parseFloat(document.getElementById("n1").value);
+  const t=parseFloat(document.getElementById("elapsed").value);
+
+  if(isNaN(n0)||isNaN(n1)||isNaN(t)||n0<=0||n1<=n0||t<=0){
+    document.getElementById("td").innerHTML="—<span class='r-unit'>h</span>";
+    document.getElementById("k-val").innerHTML="—<span class='r-unit'>h⁻¹</span>";
+    document.getElementById("ndoub").textContent="—";
+    document.getElementById("proj-body").innerHTML="";
+    return;
+  }
+
+  const td=t*Math.LN2/Math.log(n1/n0);
+  const k=Math.LN2/td;
+  const ndoub=t/td;
+
+  document.getElementById("td").innerHTML=td.toFixed(2)+'<span class="r-unit">h</span>';
+  document.getElementById("k-val").innerHTML=k.toFixed(4)+'<span class="r-unit">h⁻¹</span>';
+  document.getElementById("ndoub").textContent=ndoub.toFixed(2);
+
+  const checkpoints=[1,2,3,5,7,10];
+  const rows=checkpoints.map(d=>{
+    const elapsed=d*td;
+    const count=n0*Math.pow(2,d);
+    const fold=count/n0;
+    const isMid=d===5;
+    return `<tr${isMid?' style="color:var(--acc)"':""}>
+      <td style="font-family:'Inter',system-ui,sans-serif;color:${isMid?"var(--acc)":"var(--mu)"}">×${d}</td>
+      <td>${elapsed.toFixed(1)} h</td>
+      <td>${fmtCount(count)}</td>
+      <td>${fold.toFixed(0)}×</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("proj-body").innerHTML=rows;
+}
+
+calc();
+</script>
+</body>
+</html>

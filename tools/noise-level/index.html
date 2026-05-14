@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Urban Noise Level Analyzer — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f43f5e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Urban Noise Level Analyzer</h1>
+  <p class="sub">Urban Planning — dB(A) calculations, distance attenuation, and zoning compliance</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>SOURCE NOISE LEVEL (dB(A))</label>
+        <input type="number" id="src" value="75" oninput="calc()">
+      </div>
+      <div>
+        <label>REFERENCE DISTANCE (m)</label>
+        <input type="number" id="d1" value="10" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>TARGET DISTANCE (m)</label>
+        <input type="number" id="d2" value="100" oninput="calc()">
+      </div>
+      <div>
+        <label>SOURCE TYPE</label>
+        <select id="stype" onchange="calc()">
+          <option value="point">Point source</option>
+          <option value="line">Line source (road/rail)</option>
+        </select>
+      </div>
+    </div>
+    <label>ZONING TYPE</label>
+    <select id="zone" onchange="calc()">
+      <option value="res">Residential (daytime limit 55 dB)</option>
+      <option value="mix">Mixed-use (daytime limit 65 dB)</option>
+      <option value="com">Commercial (daytime limit 70 dB)</option>
+      <option value="ind">Industrial (daytime limit 80 dB)</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="grid3">
+      <div class="result">
+        <div class="r-label">ATTENUATED LEVEL</div>
+        <div class="r-val" id="att">—</div>
+        <div class="r-sub">dB(A) at target</div>
+      </div>
+      <div class="result">
+        <div class="r-label">ATTENUATION</div>
+        <div class="r-val" id="atten">—</div>
+        <div class="r-sub">dB reduction</div>
+      </div>
+      <div class="result">
+        <div class="r-label">COMPLIANCE</div>
+        <div class="r-val" id="comp" style="font-size:16px;">—</div>
+      </div>
+    </div>
+    <div class="result" style="margin-top:12px;">
+      <div class="r-label">SAFE DISTANCE FOR COMPLIANCE (m)</div>
+      <div class="r-val" id="safe-d">—</div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+<script>
+const LIMITS={res:55,mix:65,com:70,ind:80};
+function calc(){
+  const src=+document.getElementById('src').value;
+  const d1=+document.getElementById('d1').value;
+  const d2=+document.getElementById('d2').value;
+  const stype=document.getElementById('stype').value;
+  const zone=document.getElementById('zone').value;
+  const limit=LIMITS[zone];
+  // Attenuation: point source -6dB per doubling; line source -3dB per doubling
+  const n=stype==='point'?2:1;
+  const atten=n*10*Math.log10(d2/d1);
+  const att=src-atten;
+  const compliant=att<=limit;
+  document.getElementById('att').textContent=att.toFixed(1);
+  document.getElementById('atten').textContent=atten.toFixed(1);
+  document.getElementById('comp').textContent=compliant?'✓ Compliant':'✗ Exceeds limit';
+  document.getElementById('comp').style.color=compliant?'var(--acc)':'#f87171';
+  // Safe distance
+  const safed=d1*Math.pow(10,(src-limit)/(n*10));
+  document.getElementById('safe-d').textContent=safed.toFixed(0);
+  const formula=stype==='point'?'-6 dB per doubling of distance (point source)':'-3 dB per doubling (line source)';
+  document.getElementById('note').textContent=`${formula}. At ${d2}m: ${att.toFixed(1)} dB(A) vs limit ${limit} dB(A). ${compliant?'Compliant':'Non-compliant — barrier, setback, or source reduction needed'}. Minimum setback for compliance: ${safed.toFixed(0)}m. Each +10 dB perceived as ~2x louder.`;
+}
+calc();
+</script>
+</body>
+</html>

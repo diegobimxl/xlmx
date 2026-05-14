@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telescope Resolution — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#818cf8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;}
+select option{background:#1a1a2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>Telescope Resolution</h1>
+  <p class="sub">Category: Astronomy — Rayleigh criterion: θ = 1.22 × λ/D</p>
+
+  <div class="card">
+    <div style="font-size:13px;color:var(--mu);margin-bottom:12px;font-weight:600;letter-spacing:.05em">RESOLUTION</div>
+    <div class="grid2">
+      <div>
+        <label>APERTURE (mm)</label>
+        <input type="number" id="ap" value="2400" min="1" max="100000" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>WAVELENGTH (nm)</label>
+        <input type="number" id="wl" value="550" min="10" max="100000000" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>TELESCOPE TYPE</label>
+        <select id="ttype" oninput="calc()">
+          <option value="reflecting">Reflecting (optical)</option>
+          <option value="refracting">Refracting (optical)</option>
+          <option value="radio">Radio</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="result">
+        <div class="r-label">θ (radians)</div>
+        <div class="r-val" id="theta_rad">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">θ (arcseconds)</div>
+        <div class="r-val" id="theta_as">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">θ (milliarcseconds)</div>
+        <div class="r-val" id="theta_mas">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;color:var(--mu);margin-bottom:12px;font-weight:600;letter-spacing:.05em">MINIMUM RESOLVABLE SEPARATION</div>
+    <table class="tbl">
+      <thead><tr><th>Target</th><th>Distance</th><th>Min. Separation</th></tr></thead>
+      <tbody id="sep_table"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;color:var(--mu);margin-bottom:12px;font-weight:600;letter-spacing:.05em">MAGNIFICATION</div>
+    <div class="grid2">
+      <div>
+        <label>OBJECTIVE FOCAL LENGTH (mm)</label>
+        <input type="number" id="fl_obj" value="12000" min="1" oninput="calcMag()">
+      </div>
+      <div>
+        <label>EYEPIECE FOCAL LENGTH (mm)</label>
+        <input type="number" id="fl_eye" value="25" min="1" oninput="calcMag()">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div class="result">
+        <div class="r-label">MAGNIFICATION</div>
+        <div class="r-val" id="mag">—</div>
+        <div style="color:var(--mu);font-size:12px">×</div>
+      </div>
+      <div class="result">
+        <div class="r-label">EXIT PUPIL</div>
+        <div class="r-val" id="exit_pupil">—</div>
+        <div style="color:var(--mu);font-size:12px">mm</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">FAMOUS TELESCOPES</div>
+    <table class="tbl">
+      <thead><tr><th>Telescope</th><th>Aperture</th><th>Type</th><th>θ @ 550nm (mas)</th></tr></thead>
+      <tbody>
+        <tr><td>Hubble Space Telescope</td><td>2.4 m</td><td>Reflecting</td><td>57.6</td></tr>
+        <tr><td>VLT (ESO)</td><td>8.2 m</td><td>Reflecting</td><td>16.9</td></tr>
+        <tr><td>JWST</td><td>6.5 m (eff)</td><td>Reflecting IR</td><td>~70 (2µm)</td></tr>
+        <tr><td>ELT (under construction)</td><td>39.3 m</td><td>Reflecting</td><td>3.5</td></tr>
+        <tr><td>Arecibo (decommissioned)</td><td>305 m</td><td>Radio (21cm)</td><td>87,000</td></tr>
+        <tr><td>FAST (China)</td><td>500 m</td><td>Radio</td><td>~40,000</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+function calc(){
+  const D=parseFloat(document.getElementById('ap').value)/1000;
+  const lambda=parseFloat(document.getElementById('wl').value)*1e-9;
+  if(!D||!lambda)return;
+  const theta=1.22*lambda/D;
+  const as=theta*(180/Math.PI)*3600;
+  document.getElementById('theta_rad').textContent=theta.toExponential(4);
+  document.getElementById('theta_as').textContent=as.toFixed(6);
+  document.getElementById('theta_mas').textContent=(as*1000).toFixed(4);
+  buildSep(theta);
+}
+function buildSep(theta){
+  const targets=[
+    {name:'Moon',dist:3.844e8},
+    {name:'Mars (mean)',dist:2.25e11},
+    {name:'Jupiter (mean)',dist:6.3e11},
+    {name:'Proxima Centauri',dist:4.014e16}
+  ];
+  const units=[
+    {t:1e3,u:'km'},
+    {t:1e6,u:'Mm'},
+    {t:1e9,u:'Gm'},
+    {t:9.461e15,u:'ly'}
+  ];
+  let html='';
+  targets.forEach((t,i)=>{
+    const sep=theta*t.dist;
+    const u=units[i];
+    html+=`<tr><td>${t.name}</td><td>${(t.dist/9.461e15<0.01)?(t.dist/1e9).toFixed(0)+' Gm':(t.dist/9.461e15).toFixed(4)+' ly'}</td><td>${(sep/u.t).toFixed(2)} ${u.u}</td></tr>`;
+  });
+  document.getElementById('sep_table').innerHTML=html;
+}
+function calcMag(){
+  const fo=parseFloat(document.getElementById('fl_obj').value)||0;
+  const fe=parseFloat(document.getElementById('fl_eye').value)||1;
+  const ap=parseFloat(document.getElementById('ap').value)||0;
+  const mag=fo/fe;
+  const ep=ap/mag;
+  document.getElementById('mag').textContent=mag.toFixed(1);
+  document.getElementById('exit_pupil').textContent=ep.toFixed(2);
+}
+calc();calcMag();
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Customer Acquisition Cost — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f97316;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.ch-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;}
+.ch-hdr{color:var(--mu);font-size:11px;font-weight:600;letter-spacing:.05em;padding:0 0 6px;}
+.btn-del{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:8px 10px;color:#ef4444;cursor:pointer;font-size:12px;}
+.btn-add{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:9px 18px;color:var(--acc);cursor:pointer;font-size:13px;font-weight:600;margin-top:8px;}
+.btn-add:hover{background:rgba(249,115,22,.2);}
+.cac-val{font-size:14px;font-weight:700;color:var(--acc);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Customer Acquisition Cost</h1>
+  <p class="sub">Marketing — Per-channel and blended CAC with payback period</p>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">CHANNELS</div>
+    <div class="ch-row">
+      <div class="ch-hdr">Channel</div>
+      <div class="ch-hdr">Total Spend ($)</div>
+      <div class="ch-hdr">New Customers</div>
+      <div class="ch-hdr">CAC</div>
+      <div></div>
+    </div>
+    <div id="channels"></div>
+    <button class="btn-add" onclick="addChannel()">+ Add Channel</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;gap:32px;flex-wrap:wrap;">
+      <div><div class="r-label">BLENDED CAC</div><div class="r-val" id="blended-cac">—</div></div>
+      <div><div class="r-label">TOTAL SPEND</div><div class="r-val" id="total-spend" style="font-size:20px;">—</div></div>
+      <div><div class="r-label">TOTAL CUSTOMERS</div><div class="r-val" id="total-custs" style="font-size:20px;">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px;">PAYBACK PERIOD</div>
+    <div class="grid2">
+      <div>
+        <label>AVG MONTHLY REVENUE PER CUSTOMER ($)</label>
+        <input type="number" id="arpu" value="99" min="0" step="1" oninput="calcPayback()">
+      </div>
+      <div>
+        <label>GROSS MARGIN (%)</label>
+        <input type="number" id="gm" value="70" min="0" max="100" step="1" oninput="calcPayback()">
+      </div>
+    </div>
+    <div class="result" style="display:flex;gap:32px;flex-wrap:wrap;">
+      <div><div class="r-label">PAYBACK PERIOD</div><div class="r-val" id="payback">—</div></div>
+      <div><div class="r-label">MONTHLY GROSS PROFIT / CUSTOMER</div><div class="r-val" id="mgp" style="font-size:20px;">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">BENCHMARK REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Segment</th><th>Typical CAC Range</th></tr></thead>
+      <tbody>
+        <tr><td>SaaS (SMB)</td><td>&lt; $1,000</td></tr>
+        <tr><td>E-commerce</td><td>$10 – $100</td></tr>
+        <tr><td>B2B Mid-Market</td><td>$500 – $5,000</td></tr>
+        <tr><td>B2B Enterprise</td><td>$1,000 – $10,000+</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+let cCount=0;
+const channels=[];
+
+function addChannel(name='',spend=0,custs=0){
+  cCount++;
+  const id=cCount;
+  const div=document.createElement('div');
+  div.className='ch-row';
+  div.id='ch'+id;
+  div.innerHTML=`
+    <input type="text" placeholder="e.g. Google Ads" value="${name}" oninput="calcRow(${id})">
+    <input type="number" placeholder="5000" value="${spend||''}" min="0" oninput="calcRow(${id})">
+    <input type="number" placeholder="50" value="${custs||''}" min="0" oninput="calcRow(${id})">
+    <div class="cac-val" id="cac${id}">—</div>
+    <button class="btn-del" onclick="removeChannel(${id})">x</button>
+  `;
+  document.getElementById('channels').appendChild(div);
+  channels.push(id);
+  calcRow(id);
+}
+
+function removeChannel(id){
+  document.getElementById('ch'+id).remove();
+  const idx=channels.indexOf(id);
+  if(idx>-1) channels.splice(idx,1);
+  calcBlended();
+}
+
+function calcRow(id){
+  const row=document.getElementById('ch'+id);
+  if(!row) return;
+  const inputs=row.querySelectorAll('input[type="number"]');
+  const spend=parseFloat(inputs[0].value)||0;
+  const custs=parseFloat(inputs[1].value)||0;
+  const cac=custs>0?spend/custs:0;
+  document.getElementById('cac'+id).textContent=custs>0?'$'+cac.toFixed(2):'—';
+  calcBlended();
+}
+
+function calcBlended(){
+  let totalSpend=0,totalCusts=0;
+  document.querySelectorAll('.ch-row:not(:first-child)').forEach(row=>{
+    const inputs=row.querySelectorAll('input[type="number"]');
+    totalSpend+=parseFloat(inputs[0].value)||0;
+    totalCusts+=parseFloat(inputs[1].value)||0;
+  });
+  document.getElementById('total-spend').textContent='$'+totalSpend.toLocaleString(undefined,{minimumFractionDigits:0});
+  document.getElementById('total-custs').textContent=totalCusts.toLocaleString();
+  const blended=totalCusts>0?totalSpend/totalCusts:0;
+  document.getElementById('blended-cac').textContent=totalCusts>0?'$'+blended.toFixed(2):'—';
+  calcPayback();
+}
+
+function calcPayback(){
+  const arpu=parseFloat(document.getElementById('arpu').value)||0;
+  const gm=parseFloat(document.getElementById('gm').value)||0;
+  const cacEl=document.getElementById('blended-cac').textContent;
+  const cac=parseFloat(cacEl.replace('$',''))||0;
+  const mgp=arpu*(gm/100);
+  document.getElementById('mgp').textContent=mgp>0?'$'+mgp.toFixed(2):'—';
+  if(mgp>0&&cac>0){
+    const months=cac/mgp;
+    document.getElementById('payback').textContent=months.toFixed(1)+' mo';
+  } else {
+    document.getElementById('payback').textContent='—';
+  }
+}
+
+addChannel('Google Ads',12000,85);
+addChannel('LinkedIn',8000,22);
+addChannel('Content/SEO',3500,40);
+</script>
+</body>
+</html>

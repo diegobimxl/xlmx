@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Art Movement Timeline — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb7185;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.timeline{position:relative;padding-left:28px;}
+.timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--bd);}
+.tm-item{position:relative;margin-bottom:20px;}
+.tm-dot{position:absolute;left:-28px;top:10px;width:14px;height:14px;border-radius:50%;background:var(--acc);border:2px solid var(--bg);flex-shrink:0;}
+.tm-card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px 18px;}
+.tm-card:hover{border-color:rgba(251,113,133,.35);}
+.tm-years{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.05em;margin-bottom:4px;}
+.tm-name{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:6px;}
+.tm-artists{font-size:12px;color:var(--mu);margin-bottom:6px;}
+.tm-artists strong{color:rgba(251,113,133,.8);font-weight:600;}
+.tm-chars{font-size:12px;color:var(--tx);line-height:1.6;opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Art Movement Timeline</h1>
+  <p class="sub">15 major movements from Gothic to Contemporary — key dates, artists, and defining characteristics.</p>
+
+  <div class="timeline" id="timeline"></div>
+</div>
+
+<script>
+const movements=[
+  {years:"1100–1400",name:"Gothic",artists:"Anonymous cathedral architects, Cimabue, Duccio",chars:"Pointed arches, ribbed vaults, stained glass, hierarchical religious iconography, elongated figures expressing spiritual transcendence."},
+  {years:"1400–1600",name:"Renaissance",artists:"Leonardo da Vinci, Michelangelo, Raphael, Botticelli, Donatello",chars:"Revival of classical antiquity, mathematical perspective, humanism, sfumato technique, anatomical precision, balanced composition."},
+  {years:"1600–1750",name:"Baroque",artists:"Caravaggio, Rembrandt, Rubens, Velázquez, Bernini",chars:"Dramatic light and shadow (chiaroscuro), dynamic movement, emotional intensity, grandeur, Counter-Reformation themes, theatrical compositions."},
+  {years:"1720–1780",name:"Rococo",artists:"Watteau, Fragonard, Boucher, Tiepolo",chars:"Ornate decoration, pastel palette, playful and erotic themes, asymmetrical design, aristocratic leisure, delicate curves and gilding."},
+  {years:"1750–1850",name:"Neoclassicism",artists:"Jacques-Louis David, Ingres, Antonio Canova, John Flaxman",chars:"Return to Greek and Roman ideals, moral seriousness, clean lines, restrained color, heroic subject matter, rejection of Baroque excess."},
+  {years:"1800–1880",name:"Romanticism",artists:"Delacroix, Géricault, Caspar David Friedrich, Turner, Goya",chars:"Emotional individualism, sublime nature, nationalism, the exotic, dramatic color, rejection of rationalism, focus on feeling over reason."},
+  {years:"1860–1890",name:"Impressionism",artists:"Monet, Renoir, Degas, Pissarro, Manet",chars:"Capturing fleeting light and atmosphere with loose brushwork, plein air painting, modern urban life, rejection of academic finish."},
+  {years:"1886–1910",name:"Post-Impressionism",artists:"Cézanne, Van Gogh, Gauguin, Seurat",chars:"Individual expression beyond Impressionism, geometric structure, symbolic color, pointillism, bridging academic tradition and modernism."},
+  {years:"1907–1940",name:"Cubism",artists:"Picasso, Braque, Léger, Juan Gris",chars:"Multiple simultaneous viewpoints, fragmented forms, geometric abstraction, rejection of perspective, analytical and synthetic phases."},
+  {years:"1905–1930",name:"Expressionism",artists:"Munch, Kirchner, Kandinsky, Ernst Ludwig Kirchner, Franz Marc",chars:"Distortion of reality for emotional effect, vivid colors, anxiety and alienation themes, inner psychological experience over outer appearance."},
+  {years:"1924–1950",name:"Surrealism",artists:"Dalí, Magritte, Ernst, Miró, Frida Kahlo",chars:"Dream logic, unconscious imagery, Freudian symbolism, irrational juxtapositions, automatism, blurring of fantasy and reality."},
+  {years:"1940–1960",name:"Abstract Expressionism",artists:"Pollock, de Kooning, Rothko, Franz Kline, Lee Krasner",chars:"Large-scale abstraction, spontaneous gesture, emotional raw energy, action painting, color field, New York as global art center."},
+  {years:"1950–1970",name:"Pop Art",artists:"Warhol, Lichtenstein, Jasper Johns, Rauschenberg, Hockney",chars:"Mass media imagery, commercial culture, repetition, irony, consumer society critique, bold flat color, celebrity and commodity icons."},
+  {years:"1960–1980",name:"Minimalism",artists:"Donald Judd, Dan Flavin, Sol LeWitt, Frank Stella, Agnes Martin",chars:"Reduction to essential geometric form, industrial materials, impersonal execution, viewer/space relationship, rejection of emotional expression."},
+  {years:"1970–present",name:"Contemporary Art",artists:"Ai Weiwei, Damien Hirst, Kara Walker, Jeff Koons, Banksy",chars:"Pluralist and global, conceptual frameworks, new media and installation, identity politics, post-colonialism, market-driven and critique of same."},
+];
+
+const tl=document.getElementById("timeline");
+tl.innerHTML=movements.map(m=>`
+  <div class="tm-item">
+    <div class="tm-dot"></div>
+    <div class="tm-card">
+      <div class="tm-years">${m.years}</div>
+      <div class="tm-name">${m.name}</div>
+      <div class="tm-artists"><strong>Key Artists:</strong> ${m.artists}</div>
+      <div class="tm-chars">${m.chars}</div>
+    </div>
+  </div>
+`).join("");
+</script>
+</body>
+</html>

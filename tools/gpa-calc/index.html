@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GPA Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#34d399;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;color:var(--tx);font-size:13px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+select option{background:#111;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.course-row{display:grid;grid-template-columns:1fr 100px 80px 32px;gap:8px;align-items:center;margin-bottom:8px;}
+.del-btn{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:6px;width:28px;height:28px;color:var(--mu);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.del-btn:hover{color:#fb7185;}
+.add-btn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:8px;padding:8px 16px;color:var(--acc);font-size:13px;cursor:pointer;margin-top:8px;}
+.add-btn:hover{background:rgba(52,211,153,.15);}
+.gpa-display{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+.gpa-box{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:14px;}
+.gpa-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.gpa-val{font-size:34px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:5px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.req-result{font-size:20px;font-weight:700;color:var(--acc);margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>GPA Calculator</h1>
+  <p class="sub">4.0 scale — add courses, get weighted and unweighted GPA instantly.</p>
+
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 100px 80px 32px;gap:8px;margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;padding:0 2px;">COURSE NAME</div>
+      <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;">GRADE</div>
+      <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;">CREDITS</div>
+      <div></div>
+    </div>
+    <div id="courses"></div>
+    <button class="add-btn" onclick="addCourse()">+ Add Course</button>
+
+    <div class="gpa-display">
+      <div class="gpa-box">
+        <div class="gpa-label">WEIGHTED GPA (CREDIT-WEIGHTED)</div>
+        <div class="gpa-val" id="w-gpa">—</div>
+      </div>
+      <div class="gpa-box">
+        <div class="gpa-label">UNWEIGHTED GPA (SIMPLE AVG)</div>
+        <div class="gpa-val" id="uw-gpa">—</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:var(--mu);">Total credits: <span id="total-creds" style="color:var(--tx)">0</span> &nbsp;|&nbsp; Courses: <span id="course-count" style="color:var(--tx)">0</span></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--acc);margin-bottom:14px;">What GPA Do I Need?</div>
+    <div class="grid2">
+      <div>
+        <label>CURRENT GPA</label>
+        <input type="number" id="cur-gpa" min="0" max="4" step="0.01" placeholder="e.g. 3.2" oninput="calcNeeded()">
+      </div>
+      <div>
+        <label>CURRENT CREDITS EARNED</label>
+        <input type="number" id="cur-creds" min="0" placeholder="e.g. 60" oninput="calcNeeded()">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>TARGET GPA</label>
+        <input type="number" id="target-gpa" min="0" max="4" step="0.01" placeholder="e.g. 3.5" oninput="calcNeeded()">
+      </div>
+      <div>
+        <label>REMAINING CREDITS</label>
+        <input type="number" id="rem-creds" min="0" placeholder="e.g. 60" oninput="calcNeeded()">
+      </div>
+    </div>
+    <div class="req-result" id="req-result">—</div>
+    <div style="font-size:12px;color:var(--mu);margin-top:4px;" id="req-msg"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;font-weight:600;">GRADE POINT REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Letter</th><th>GPA Points</th><th>Letter</th><th>GPA Points</th></tr></thead>
+      <tbody>
+        <tr><td>A+</td><td>4.0</td><td>C+</td><td>2.3</td></tr>
+        <tr><td>A</td><td>4.0</td><td>C</td><td>2.0</td></tr>
+        <tr><td>A−</td><td>3.7</td><td>C−</td><td>1.7</td></tr>
+        <tr><td>B+</td><td>3.3</td><td>D+</td><td>1.3</td></tr>
+        <tr><td>B</td><td>3.0</td><td>D</td><td>1.0</td></tr>
+        <tr><td>B−</td><td>2.7</td><td>F</td><td>0.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const gradeMap={"A+":4.0,"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,"C-":1.7,"D+":1.3,"D":1.0,"F":0.0};
+const grades=Object.keys(gradeMap);
+let courseId=0;
+const courseData={};
+
+function addCourse(){
+  const id=++courseId;
+  courseData[id]={name:"",grade:"A",credits:3};
+  const div=document.createElement("div");
+  div.className="course-row";
+  div.id="course-"+id;
+  div.innerHTML=`
+    <input type="text" placeholder="Course name" oninput="courseData[${id}].name=this.value;recalc()" value="">
+    <select onchange="courseData[${id}].grade=this.value;recalc()">
+      ${grades.map(g=>`<option value="${g}"${g==="A"?" selected":""}>${g}</option>`).join("")}
+    </select>
+    <input type="number" min="0.5" max="6" step="0.5" value="3" style="text-align:center" oninput="courseData[${id}].credits=parseFloat(this.value)||0;recalc()">
+    <div class="del-btn" onclick="removeCourse(${id})">×</div>
+  `;
+  document.getElementById("courses").appendChild(div);
+  recalc();
+}
+
+function removeCourse(id){
+  const el=document.getElementById("course-"+id);
+  if(el) el.remove();
+  delete courseData[id];
+  recalc();
+}
+
+function recalc(){
+  const ids=Object.keys(courseData);
+  if(!ids.length){
+    document.getElementById("w-gpa").textContent="—";
+    document.getElementById("uw-gpa").textContent="—";
+    document.getElementById("total-creds").textContent="0";
+    document.getElementById("course-count").textContent="0";
+    return;
+  }
+  let totalPts=0,totalCreds=0,sumGpa=0,count=0;
+  ids.forEach(id=>{
+    const d=courseData[id];
+    const pts=gradeMap[d.grade]||0;
+    const cr=d.credits||0;
+    totalPts+=pts*cr;
+    totalCreds+=cr;
+    sumGpa+=pts;
+    count++;
+  });
+  const wGpa=totalCreds>0?(totalPts/totalCreds):0;
+  const uwGpa=count>0?(sumGpa/count):0;
+  document.getElementById("w-gpa").textContent=wGpa.toFixed(3);
+  document.getElementById("uw-gpa").textContent=uwGpa.toFixed(3);
+  document.getElementById("total-creds").textContent=totalCreds.toFixed(1);
+  document.getElementById("course-count").textContent=count;
+}
+
+function calcNeeded(){
+  const cg=parseFloat(document.getElementById("cur-gpa").value);
+  const cc=parseFloat(document.getElementById("cur-creds").value);
+  const tg=parseFloat(document.getElementById("target-gpa").value);
+  const rc=parseFloat(document.getElementById("rem-creds").value);
+  if(isNaN(cg)||isNaN(cc)||isNaN(tg)||isNaN(rc)){
+    document.getElementById("req-result").textContent="—";
+    document.getElementById("req-msg").textContent="";
+    return;
+  }
+  const needed=(tg*(cc+rc)-cg*cc)/rc;
+  if(needed>4.0){
+    document.getElementById("req-result").textContent="Not achievable";
+    document.getElementById("req-msg").textContent="Target GPA exceeds what is mathematically possible with remaining credits.";
+  } else if(needed<0){
+    document.getElementById("req-result").textContent="Already achieved";
+    document.getElementById("req-msg").textContent="You have already surpassed the target GPA.";
+  } else {
+    document.getElementById("req-result").textContent=needed.toFixed(3)+" required";
+    document.getElementById("req-msg").textContent=`You need a ${needed.toFixed(2)} average GPA over the remaining ${rc} credits.`;
+  }
+}
+
+// Start with 3 courses
+addCourse();addCourse();addCourse();
+</script>
+</body>
+</html>

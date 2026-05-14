@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One-Time Pad Demo — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#6366f1;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>One-Time Pad Demo</h1>
+  <p class="sub">Cryptography — OTP encryption demo with key generation and XOR visualization</p>
+  <div class="card">
+    <label>PLAINTEXT MESSAGE (ASCII)</label>
+    <input type="text" id="plain" value="HELLO XLMX" oninput="run()" maxlength="40">
+    <button onclick="genKey()" style="margin-top:12px;padding:8px 16px;background:var(--acc);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">GENERATE RANDOM KEY</button>
+    <label style="margin-top:12px;">KEY (hex, same length as message)</label>
+    <input type="text" id="key" placeholder="auto-generated above" oninput="run()">
+  </div>
+  <div class="card">
+    <div id="out-table"></div>
+    <div class="result" style="margin-top:12px;">
+      <div class="r-label">CIPHERTEXT (hex)</div>
+      <div id="cipher" style="font-size:14px;font-weight:700;color:var(--acc);word-break:break-all;margin-top:4px;"></div>
+    </div>
+    <div class="result" style="margin-top:8px;">
+      <div class="r-label">DECODED BACK (verify)</div>
+      <div id="decoded" style="font-size:14px;color:var(--tx);margin-top:4px;"></div>
+    </div>
+    <div class="note">A true OTP is unbreakable (Shannon, 1949) IF: key is truly random, at least as long as message, used only once, and kept secret. Any of these violated = insecure. This demo uses crypto.getRandomValues() for key generation.</div>
+  </div>
+</div>
+<script>
+function genKey(){
+  const plain=document.getElementById('plain').value;
+  const bytes=new Uint8Array(plain.length);
+  crypto.getRandomValues(bytes);
+  document.getElementById('key').value=Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('');
+  run();
+}
+function run(){
+  const plain=document.getElementById('plain').value;
+  const keyHex=document.getElementById('key').value;
+  if(!keyHex||keyHex.length<plain.length*2)return;
+  const keyBytes=keyHex.match(/.{1,2}/g).map(b=>parseInt(b,16));
+  const plainBytes=Array.from(plain).map(c=>c.charCodeAt(0));
+  const cipher=plainBytes.map((b,i)=>b^keyBytes[i]);
+  const cipherHex=cipher.map(b=>b.toString(16).padStart(2,'0')).join(' ');
+  const decoded=cipher.map((b,i)=>String.fromCharCode(b^keyBytes[i])).join('');
+  document.getElementById('cipher').textContent=cipherHex.toUpperCase();
+  document.getElementById('decoded').textContent=decoded;
+  const tbl=document.getElementById('out-table');
+  tbl.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px;"><tr><th style="text-align:left;color:var(--mu);padding:4px 6px;border-bottom:1px solid var(--bd);">CHAR</th><th style="text-align:center;color:var(--mu);padding:4px 6px;border-bottom:1px solid var(--bd);">PLAIN</th><th style="text-align:center;color:var(--mu);padding:4px 6px;border-bottom:1px solid var(--bd);">KEY</th><th style="text-align:center;color:var(--mu);padding:4px 6px;border-bottom:1px solid var(--bd);">XOR</th><th style="text-align:center;color:var(--mu);padding:4px 6px;border-bottom:1px solid var(--bd);">CIPHER</th></tr>'+
+  plainBytes.slice(0,10).map((b,i)=>`<tr><td style="padding:4px 6px;color:var(--tx);">${plain[i]===''?' (sp)':plain[i]}</td><td style="text-align:center;padding:4px 6px;">${b.toString(16).toUpperCase().padStart(2,'0')}</td><td style="text-align:center;padding:4px 6px;color:var(--mu);">${keyBytes[i].toString(16).toUpperCase().padStart(2,'0')}</td><td style="text-align:center;padding:4px 6px;">⊕</td><td style="text-align:center;padding:4px 6px;color:var(--acc);">${cipher[i].toString(16).toUpperCase().padStart(2,'0')}</td></tr>`).join('')+'</table>'+(plain.length>10?`<div style="color:var(--mu);font-size:11px;margin-top:4px;">Showing first 10 of ${plain.length} chars</div>`:'');
+}
+document.getElementById('key').value='';
+run();
+</script>
+</body>
+</html>

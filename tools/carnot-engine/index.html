@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carnot Efficiency — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f87171;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.formula{font-family:monospace;font-size:13px;color:var(--acc);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
+.toggle-row{display:flex;gap:8px;align-items:center;margin-bottom:16px;}
+.toggle-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:none;color:var(--mu);font-size:12px;cursor:pointer;}
+.toggle-btn.active{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600;}
+.bar-track{background:rgba(255,255,255,.05);border-radius:4px;height:18px;width:100%;margin:4px 0;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;background:var(--acc);transition:.3s;}
+.bar-fill.real{background:#6b7280;}
+.engine-row{display:flex;align-items:center;gap:12px;margin:6px 0;}
+.engine-name{width:150px;font-size:12px;color:var(--mu);}
+.engine-pct{font-size:12px;font-weight:600;color:var(--tx);width:48px;text-align:right;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← XLMX Tools</a>
+  <h1>Carnot Efficiency Calculator</h1>
+  <p class="sub">Category: Thermodynamics — Ideal cycle limits, COP, real-world comparison</p>
+
+  <div class="card">
+    <div class="formula">η = 1 − T_C / T_H &nbsp; (temperatures in Kelvin)</div>
+    <div class="toggle-row">
+      <span style="font-size:12px;color:var(--mu);">INPUT UNIT:</span>
+      <button class="toggle-btn active" id="btn-c" onclick="setUnit('C')">°C</button>
+      <button class="toggle-btn" id="btn-k" onclick="setUnit('K')">K</button>
+    </div>
+    <div class="grid2">
+      <div>
+        <label id="lbl-th">HOT RESERVOIR T_H (°C)</label>
+        <input type="number" id="th" value="400" oninput="calc()">
+      </div>
+      <div>
+        <label id="lbl-tc">COLD RESERVOIR T_C (°C)</label>
+        <input type="number" id="tc" value="25" oninput="calc()">
+      </div>
+    </div>
+    <label>INPUT HEAT Q_H PER CYCLE (J)</label>
+    <input type="number" id="qh" value="1000" oninput="calc()">
+
+    <div class="result">
+      <div class="grid3">
+        <div><div class="r-label">CARNOT EFFICIENCY</div><div class="r-val" id="eta">—</div></div>
+        <div><div class="r-label">WORK OUTPUT W</div><div class="r-val" id="work" style="font-size:20px;">—</div><div style="color:var(--mu);font-size:11px;">Joules</div></div>
+        <div><div class="r-label">HEAT REJECTED Q_C</div><div class="r-val" id="qc" style="font-size:20px;">—</div><div style="color:var(--mu);font-size:11px;">Joules</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">Coefficient of Performance (same temperatures)</div>
+    <div class="formula">COP_HP = T_H / (T_H − T_C) &nbsp;|&nbsp; COP_refrig = T_C / (T_H − T_C)</div>
+    <div class="grid2">
+      <div class="result">
+        <div class="r-label">COP HEAT PUMP</div>
+        <div class="r-val" id="cop-hp">—</div>
+        <div style="color:var(--mu);font-size:11px;">W of heat per W of work</div>
+      </div>
+      <div class="result">
+        <div class="r-label">COP REFRIGERATOR</div>
+        <div class="r-val" id="cop-rf">—</div>
+        <div style="color:var(--mu);font-size:11px;">W of cooling per W of work</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px;">Real-world vs Carnot Comparison</div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:16px;">Your Carnot limit shown in red · Typical real-world ranges in grey</div>
+    <div id="engine-bars"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:8px;">Temperature-Entropy Diagram — Key Concepts</div>
+    <div style="font-size:13px;color:var(--mu);line-height:1.7;">
+      The Carnot cycle forms a <span style="color:var(--tx);">perfect rectangle</span> on a T-S diagram. Four reversible processes: isothermal expansion at T_H (heat absorbed), adiabatic expansion, isothermal compression at T_C (heat rejected), adiabatic compression. Area enclosed = net work output. No real engine can exceed this rectangle's efficiency for given T_H and T_C. The ratio T_C/T_H defines the irreducible fraction of energy that must be rejected — this is not a design flaw, it is a law.
+    </div>
+  </div>
+</div>
+<script>
+let unit='C';
+function setUnit(u){
+  unit=u;
+  document.getElementById('btn-c').classList.toggle('active',u==='C');
+  document.getElementById('btn-k').classList.toggle('active',u==='K');
+  const lh=document.getElementById('lbl-th'),lc=document.getElementById('lbl-tc');
+  lh.textContent='HOT RESERVOIR T_H ('+(u==='C'?'°C':'K')+')';
+  lc.textContent='COLD RESERVOIR T_C ('+(u==='C'?'°C':'K')+')';
+  if(u==='C'){document.getElementById('th').value=400;document.getElementById('tc').value=25;}
+  else{document.getElementById('th').value=673;document.getElementById('tc').value=298;}
+  calc();
+}
+function toK(v){return unit==='C'?v+273.15:v;}
+function fmt(v,d=2){return isNaN(v)||!isFinite(v)?'—':v.toFixed(d);}
+const engines=[
+  {name:'Steam turbine',min:40,max:45},
+  {name:'Gas turbine',min:35,max:45},
+  {name:'Otto (theoretical)',min:56,max:56},
+  {name:'Combined cycle',min:55,max:60},
+  {name:'Diesel engine',min:35,max:42},
+  {name:'Nuclear plant',min:30,max:35},
+];
+function calc(){
+  const TH=toK(+document.getElementById('th').value);
+  const TC=toK(+document.getElementById('tc').value);
+  const QH=+document.getElementById('qh').value;
+  if(TH<=TC||TH<=0||TC<=0){
+    ['eta','work','qc','cop-hp','cop-rf'].forEach(id=>document.getElementById(id).textContent='—');
+    return;
+  }
+  const eta=(1-TC/TH)*100;
+  const W=QH*(1-TC/TH);
+  const QC=QH-W;
+  const copHP=TH/(TH-TC);
+  const copRF=TC/(TH-TC);
+  document.getElementById('eta').textContent=fmt(eta)+'%';
+  document.getElementById('work').textContent=fmt(W)+' J';
+  document.getElementById('qc').textContent=fmt(QC)+' J';
+  document.getElementById('cop-hp').textContent=fmt(copHP);
+  document.getElementById('cop-rf').textContent=fmt(copRF);
+  // bars
+  const cont=document.getElementById('engine-bars');
+  cont.innerHTML='';
+  // Carnot bar
+  const crow=document.createElement('div');crow.className='engine-row';
+  crow.innerHTML=`<div class="engine-name" style="color:var(--acc);font-weight:600;">Carnot limit</div><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:${Math.min(eta,100)}%"></div></div><div class="engine-pct" style="color:var(--acc)">${fmt(eta)}%</div>`;
+  cont.appendChild(crow);
+  engines.forEach(e=>{
+    const row=document.createElement('div');row.className='engine-row';
+    const midPct=(e.min+e.max)/2;
+    const label=e.min===e.max?`${e.min}%`:`${e.min}–${e.max}%`;
+    row.innerHTML=`<div class="engine-name">${e.name}</div><div class="bar-track" style="flex:1"><div class="bar-fill real" style="width:${Math.min(midPct,100)}%"></div></div><div class="engine-pct">${label}</div>`;
+    cont.appendChild(row);
+  });
+}
+calc();
+</script>
+</body>
+</html>

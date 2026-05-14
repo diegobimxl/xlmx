@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Big Five Personality Scorer — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#ec4899;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input[type=range]{width:100%;accent-color:var(--acc);background:transparent;cursor:pointer;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.trait-row{margin-bottom:20px;}
+.trait-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.trait-name{font-weight:700;font-size:14px;color:var(--tx);}
+.trait-score-label{font-size:13px;color:var(--acc);font-weight:600;}
+.trait-desc{font-size:12px;color:var(--mu);margin-top:4px;line-height:1.6;}
+.bar-bg{height:6px;background:rgba(255,255,255,.08);border-radius:3px;margin:8px 0;}
+.bar-fill{height:6px;background:var(--acc);border-radius:3px;transition:width .2s;}
+.summary-box{background:rgba(236,72,153,.07);border:1px solid rgba(236,72,153,.2);border-radius:10px;padding:16px;margin-top:8px;}
+.summary-box p{font-size:13px;line-height:1.7;color:var(--tx);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Big Five Personality Scorer</h1>
+  <p class="sub">OCEAN model — adjust each trait slider to score your personality profile.</p>
+
+  <div class="card">
+    <div class="trait-row">
+      <div class="trait-header">
+        <span class="trait-name">O — Openness to Experience</span>
+        <span class="trait-score-label" id="o-lbl">50 · Average</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" oninput="update()" id="O">
+      <div class="bar-bg"><div class="bar-fill" id="o-bar" style="width:50%"></div></div>
+      <p class="trait-desc">Curiosity, creativity, and openness to new ideas and experiences. High scorers are imaginative and adventurous; low scorers prefer routine and convention.</p>
+    </div>
+
+    <div class="trait-row">
+      <div class="trait-header">
+        <span class="trait-name">C — Conscientiousness</span>
+        <span class="trait-score-label" id="c-lbl">50 · Average</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" oninput="update()" id="C">
+      <div class="bar-bg"><div class="bar-fill" id="c-bar" style="width:50%"></div></div>
+      <p class="trait-desc">Organization, dependability, and self-discipline. High scorers are diligent and goal-oriented; low scorers are more flexible and spontaneous.</p>
+    </div>
+
+    <div class="trait-row">
+      <div class="trait-header">
+        <span class="trait-name">E — Extraversion</span>
+        <span class="trait-score-label" id="e-lbl">50 · Average</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" oninput="update()" id="E">
+      <div class="bar-bg"><div class="bar-fill" id="e-bar" style="width:50%"></div></div>
+      <p class="trait-desc">Sociability, assertiveness, and positive emotionality. High scorers thrive in social settings; low scorers (introverts) prefer solitude and deep focus.</p>
+    </div>
+
+    <div class="trait-row">
+      <div class="trait-header">
+        <span class="trait-name">A — Agreeableness</span>
+        <span class="trait-score-label" id="a-lbl">50 · Average</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" oninput="update()" id="A">
+      <div class="bar-bg"><div class="bar-fill" id="a-bar" style="width:50%"></div></div>
+      <p class="trait-desc">Compassion, cooperation, and trust. High scorers are warm and conflict-averse; low scorers are more competitive and challenging.</p>
+    </div>
+
+    <div class="trait-row">
+      <div class="trait-header">
+        <span class="trait-name">N — Neuroticism</span>
+        <span class="trait-score-label" id="n-lbl">50 · Average</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" oninput="update()" id="N">
+      <div class="bar-bg"><div class="bar-fill" id="n-bar" style="width:50%"></div></div>
+      <p class="trait-desc">Emotional instability, anxiety, and moodiness. High scorers experience strong negative emotions; low scorers are emotionally stable and resilient.</p>
+    </div>
+  </div>
+
+  <div class="result">
+    <div class="r-label">PROFILE SUMMARY</div>
+    <div class="summary-box">
+      <p id="summary">Adjust the sliders above to generate your personality profile interpretation.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function label(v){
+  if(v<=20) return "Very Low";
+  if(v<=40) return "Low";
+  if(v<=60) return "Average";
+  if(v<=80) return "High";
+  return "Very High";
+}
+
+function update(){
+  const O=+document.getElementById("O").value;
+  const C=+document.getElementById("C").value;
+  const E=+document.getElementById("E").value;
+  const A=+document.getElementById("A").value;
+  const N=+document.getElementById("N").value;
+
+  [["O",O],["C",C],["E",E],["A",A],["N",N]].forEach(([k,v])=>{
+    document.getElementById(k.toLowerCase()+"-lbl").textContent = v+" · "+label(v);
+    document.getElementById(k.toLowerCase()+"-bar").style.width = v+"%";
+  });
+
+  const parts=[];
+  if(O>60) parts.push("Your high Openness suggests a creative, intellectually curious mind drawn to novel ideas.");
+  else if(O<40) parts.push("Low Openness points to a pragmatic, conventional thinker who values reliability over novelty.");
+  else parts.push("Moderate Openness indicates a balance between curiosity and practicality.");
+
+  if(C>60) parts.push("High Conscientiousness signals strong self-discipline and organized goal pursuit.");
+  else if(C<40) parts.push("Low Conscientiousness reflects a spontaneous, flexible approach — structure may feel constraining.");
+  else parts.push("Average Conscientiousness means you're organized when needed but not rigidly so.");
+
+  if(E>60) parts.push("High Extraversion: you recharge through social interaction and thrive in group environments.");
+  else if(E<40) parts.push("Low Extraversion (introversion): you work best alone and need solitude to recharge.");
+  else parts.push("Ambivert range on Extraversion — comfortable in both social and solo contexts.");
+
+  if(A>60) parts.push("High Agreeableness makes you cooperative and empathetic, though watch for conflict avoidance at your own expense.");
+  else if(A<40) parts.push("Low Agreeableness: you're direct, competitive, and willing to challenge others — useful in negotiation, abrasive in collaboration.");
+  else parts.push("Moderate Agreeableness balances cooperation with healthy assertiveness.");
+
+  if(N>60) parts.push("High Neuroticism means you experience emotional volatility; stress management and recovery routines are high leverage.");
+  else if(N<40) parts.push("Low Neuroticism indicates emotional stability and resilience under pressure.");
+  else parts.push("Moderate Neuroticism — emotionally responsive without being overwhelmed.");
+
+  document.getElementById("summary").textContent = parts.join(" ");
+}
+update();
+</script>
+</body>
+</html>

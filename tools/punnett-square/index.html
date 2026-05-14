@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Punnett Square Generator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#34d399;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:20px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:center;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);text-align:center;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tabs{display:flex;gap:4px;margin-bottom:20px;}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--mu);border:1px solid var(--bd);background:transparent;}
+.tab.active{background:var(--acc);color:#030307;border-color:var(--acc);}
+.p-grid{display:grid;gap:2px;margin:16px auto;}
+.p-cell{display:flex;align-items:center;justify-content:center;border-radius:6px;font-weight:700;font-size:14px;}
+.hom-dom{background:rgba(52,211,153,.25);color:#34d399;}
+.het{background:rgba(52,211,153,.10);color:#a7f3d0;}
+.hom-rec{background:rgba(255,255,255,.05);color:#6b7280;}
+.header-cell{background:transparent;color:var(--mu);font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>Punnett Square Generator</h1>
+  <p class="sub">Category: Genetics — Complete dominance, mono and dihybrid crosses</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('mono')">Monohybrid</button>
+    <button class="tab" onclick="setMode('di')">Dihybrid</button>
+  </div>
+
+  <div id="mono_inputs" class="card">
+    <div class="grid2">
+      <div>
+        <label>PARENT 1 GENOTYPE (e.g. Aa, AA, aa)</label>
+        <input type="text" id="p1_mono" value="Aa" maxlength="2" oninput="calcMono()">
+      </div>
+      <div>
+        <label>PARENT 2 GENOTYPE</label>
+        <input type="text" id="p2_mono" value="Aa" maxlength="2" oninput="calcMono()">
+      </div>
+    </div>
+    <div id="punnett_mono" style="margin-top:16px"></div>
+    <div id="ratios_mono" style="margin-top:16px"></div>
+  </div>
+
+  <div id="di_inputs" class="card" style="display:none">
+    <div class="grid2">
+      <div>
+        <label>PARENT 1 TRAIT 1 (e.g. Aa)</label>
+        <input type="text" id="p1t1" value="Aa" maxlength="2" oninput="calcDi()">
+      </div>
+      <div>
+        <label>PARENT 1 TRAIT 2 (e.g. Bb)</label>
+        <input type="text" id="p1t2" value="Bb" maxlength="2" oninput="calcDi()">
+      </div>
+      <div>
+        <label>PARENT 2 TRAIT 1</label>
+        <input type="text" id="p2t1" value="Aa" maxlength="2" oninput="calcDi()">
+      </div>
+      <div>
+        <label>PARENT 2 TRAIT 2</label>
+        <input type="text" id="p2t2" value="Bb" maxlength="2" oninput="calcDi()">
+      </div>
+    </div>
+    <div id="punnett_di" style="margin-top:16px"></div>
+    <div id="ratios_di" style="margin-top:16px"></div>
+  </div>
+</div>
+<script>
+let mode='mono';
+function setMode(m){
+  mode=m;
+  document.getElementById('mono_inputs').style.display=m==='mono'?'block':'none';
+  document.getElementById('di_inputs').style.display=m==='di'?'block':'none';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&m==='mono')||(i===1&&m==='di')));
+  if(m==='mono')calcMono(); else calcDi();
+}
+function getGametes(geno){
+  if(geno.length<2)return[];
+  const a=geno[0],b=geno[1];
+  if(a===b)return[a];
+  return[a,b];
+}
+function cellClass(geno){
+  const upper=geno.split('').filter(c=>c===c.toUpperCase()&&c.match(/[A-Z]/)).length;
+  const lower=geno.split('').filter(c=>c===c.toLowerCase()&&c.match(/[a-z]/)).length;
+  if(upper===geno.length)return'hom-dom';
+  if(lower===geno.length)return'hom-rec';
+  return'het';
+}
+function calcMono(){
+  const p1=document.getElementById('p1_mono').value.trim();
+  const p2=document.getElementById('p2_mono').value.trim();
+  if(p1.length<2||p2.length<2)return;
+  const g1=getGametes(p1),g2=getGametes(p2);
+  const size=Math.max(g1.length,g2.length);
+  const cells=[];
+  g1.forEach(a=>g2.forEach(b=>{
+    const sorted=[a,b].sort((x,y)=>x.toLowerCase()===y.toLowerCase()?x<y?1:-1:0).join('');
+    cells.push(sorted);
+  }));
+  let html=`<div class="p-grid" style="grid-template-columns:repeat(${g2.length+1},52px);width:${(g2.length+1)*54}px">`;
+  html+=`<div class="p-cell header-cell"></div>`;
+  g2.forEach(g=>html+=`<div class="p-cell header-cell">${g}</div>`);
+  g1.forEach((ga,i)=>{
+    html+=`<div class="p-cell header-cell">${ga}</div>`;
+    g2.forEach(gb=>{
+      const sorted=[ga,gb].sort((x,y)=>x.toLowerCase()===y.toLowerCase()?x<y?1:-1:0).join('');
+      html+=`<div class="p-cell ${cellClass(sorted)}" style="height:52px">${sorted}</div>`;
+    });
+  });
+  html+='</div>';
+  document.getElementById('punnett_mono').innerHTML=html;
+  const counts={};
+  cells.forEach(c=>{counts[c]=(counts[c]||0)+1;});
+  const total=cells.length;
+  let rhtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  rhtml+=`<div class="result"><div class="r-label">GENOTYPE RATIOS</div>`;
+  Object.entries(counts).forEach(([k,v])=>rhtml+=`<div style="font-size:13px;margin-top:4px;color:var(--tx)">${k}: <span style="color:var(--acc)">${v}/${total}</span></div>`);
+  rhtml+='</div>';
+  const dom=cells.filter(c=>cellClass(c)!=='hom-rec').length;
+  const rec=cells.filter(c=>cellClass(c)==='hom-rec').length;
+  rhtml+=`<div class="result"><div class="r-label">PHENOTYPE RATIOS</div><div style="font-size:13px;margin-top:4px;color:var(--tx)">Dominant: <span style="color:var(--acc)">${dom}/${total}</span></div><div style="font-size:13px;margin-top:4px;color:var(--tx)">Recessive: <span style="color:var(--acc)">${rec}/${total}</span></div></div>`;
+  rhtml+='</div>';
+  document.getElementById('ratios_mono').innerHTML=rhtml;
+}
+function diGametes(t1,t2){
+  const g1=getGametes(t1),g2=getGametes(t2);
+  const combo=[];
+  g1.forEach(a=>g2.forEach(b=>combo.push(a+b)));
+  return combo;
+}
+function calcDi(){
+  const p1t1=document.getElementById('p1t1').value.trim();
+  const p1t2=document.getElementById('p1t2').value.trim();
+  const p2t1=document.getElementById('p2t1').value.trim();
+  const p2t2=document.getElementById('p2t2').value.trim();
+  if([p1t1,p1t2,p2t1,p2t2].some(x=>x.length<2))return;
+  const g1=diGametes(p1t1,p1t2);
+  const g2=diGametes(p2t1,p2t2);
+  const cells=[];
+  g1.forEach(a=>g2.forEach(b=>{
+    const t1pair=[a[0],b[0]].sort((x,y)=>x.toLowerCase()===y.toLowerCase()?x<y?1:-1:0).join('');
+    const t2pair=[a[1],b[1]].sort((x,y)=>x.toLowerCase()===y.toLowerCase()?x<y?1:-1:0).join('');
+    cells.push(t1pair+t2pair);
+  }));
+  let html=`<div class="p-grid" style="grid-template-columns:repeat(${g2.length+1},64px);width:${(g2.length+1)*66}px">`;
+  html+=`<div class="p-cell header-cell"></div>`;
+  g2.forEach(g=>html+=`<div class="p-cell header-cell" style="font-size:11px">${g}</div>`);
+  g1.forEach((ga)=>{
+    html+=`<div class="p-cell header-cell" style="font-size:11px">${ga}</div>`;
+    g2.forEach(gb=>{
+      const t1pair=[ga[0],gb[0]].sort((x,y)=>x.toLowerCase()===y.toLowerCase()?x<y?1:-1:0).join('');
+      const t2pair=[ga[1],gb[1]].sort((x,y)=>x.toLowerCase()===y.toLowerCase()?x<y?1:-1:0).join('');
+      const combo=t1pair+t2pair;
+      const cls=cellClass(t1pair)==='hom-rec'&&cellClass(t2pair)==='hom-rec'?'hom-rec':cellClass(t1pair)==='hom-dom'&&cellClass(t2pair)==='hom-dom'?'hom-dom':'het';
+      html+=`<div class="p-cell ${cls}" style="height:52px;font-size:11px">${combo}</div>`;
+    });
+  });
+  html+='</div>';
+  document.getElementById('punnett_di').innerHTML=html;
+  const counts={};
+  cells.forEach(c=>{counts[c]=(counts[c]||0)+1;});
+  const total=cells.length;
+  let rhtml='<div class="result" style="margin-top:8px"><div class="r-label">GENOTYPE RATIOS (top 6)</div>';
+  Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8).forEach(([k,v])=>rhtml+=`<div style="font-size:12px;margin-top:4px">${k}: <span style="color:var(--acc)">${v}/${total}</span></div>`);
+  rhtml+='</div>';
+  const domDom=cells.filter(c=>{
+    const t1=c.slice(0,2),t2=c.slice(2,4);
+    return cellClass(t1)!=='hom-rec'&&cellClass(t2)!=='hom-rec';
+  }).length;
+  rhtml+=`<div class="result" style="margin-top:8px"><div class="r-label">DOMINANT BOTH TRAITS</div><div class="r-val">${domDom}/${total}</div></div>`;
+  document.getElementById('ratios_di').innerHTML=rhtml;
+}
+calcMono();
+</script>
+</body>
+</html>

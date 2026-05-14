@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grant Budget Builder — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb7185;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1.5fr 2fr 1fr auto;gap:10px;align-items:end;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+btn,button{background:var(--acc);color:#000;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;}
+button.sec{background:rgba(255,255,255,.07);color:var(--tx);}
+button.del{background:transparent;color:var(--mu);border:none;cursor:pointer;font-size:16px;padding:4px 8px;}
+button.del:hover{color:#fb7185;}
+.warn{background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.35);border-radius:8px;padding:12px 14px;font-size:13px;color:#fb7185;margin-top:12px;}
+.ok{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:8px;padding:12px 14px;font-size:13px;color:#34d399;margin-top:12px;}
+.row-item{display:grid;grid-template-columns:1.5fr 2fr 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.cat-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(251,113,133,.15);color:#fb7185;font-weight:600;}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+.summary-row.total{font-weight:700;font-size:15px;border-top:1px solid var(--bd);margin-top:6px;padding-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Back</a>
+  <h1>Grant Budget Builder</h1>
+  <p class="sub">Category-based budget with indirect cost (MTDC) and funder compliance check</p>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">ADD LINE ITEM</div>
+    <div class="grid3">
+      <div>
+        <label>Category</label>
+        <select id="cat">
+          <option value="Personnel">Personnel</option>
+          <option value="Fringe">Fringe Benefits</option>
+          <option value="Travel">Travel</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Supplies">Supplies</option>
+          <option value="Contractual">Contractual</option>
+          <option value="Other Direct">Other Direct</option>
+          <option value="Indirect">Indirect (F&A)</option>
+        </select>
+      </div>
+      <div>
+        <label>Description</label>
+        <input type="text" id="desc" placeholder="e.g. PI salary 20% effort">
+      </div>
+      <div>
+        <label>Amount ($)</label>
+        <input type="number" id="amt" placeholder="0" min="0">
+      </div>
+      <div style="margin-top:18px;">
+        <button onclick="addItem()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">LINE ITEMS</div>
+    <div id="itemList">
+      <div style="color:var(--mu);font-size:13px;text-align:center;padding:20px 0;">No items yet. Add a line item above.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>Indirect Cost Rate (%)</label>
+        <input type="number" id="icr" value="26" min="0" max="100" step="0.1" oninput="recalc()">
+      </div>
+      <div>
+        <label>Funder Cap Check</label>
+        <select id="funder" onchange="recalc()">
+          <option value="none">None</option>
+          <option value="26">NIH (26%)</option>
+          <option value="15">Foundation (15%)</option>
+          <option value="30">USAID (~30%)</option>
+          <option value="10">Some Foundations (10%)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="summary" style="margin-top:20px;"></div>
+    <div id="compliance" style="margin-top:4px;"></div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:4px;">
+    <button onclick="exportTable()">Export Summary</button>
+    <button class="sec" onclick="clearAll()">Clear All</button>
+  </div>
+</div>
+
+<script>
+let items = [];
+const CATS = ["Personnel","Fringe","Travel","Equipment","Supplies","Contractual","Other Direct","Indirect"];
+
+function addItem(){
+  const cat = document.getElementById('cat').value;
+  const desc = document.getElementById('desc').value.trim();
+  const amt = parseFloat(document.getElementById('amt').value) || 0;
+  if(!desc || amt <= 0){alert('Please enter a description and amount greater than 0.');return;}
+  items.push({cat, desc, amt, id: Date.now()});
+  document.getElementById('desc').value='';
+  document.getElementById('amt').value='';
+  render();
+}
+
+function removeItem(id){
+  items = items.filter(i=>i.id!==id);
+  render();
+}
+
+function render(){
+  const list = document.getElementById('itemList');
+  if(!items.length){
+    list.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px 0;">No items yet. Add a line item above.</div>';
+    document.getElementById('summary').innerHTML='';
+    document.getElementById('compliance').innerHTML='';
+    return;
+  }
+  let html = `<div style="display:grid;grid-template-columns:1.5fr 2fr 1fr auto;gap:10px;padding:6px 8px;">
+    <span style="font-size:11px;color:var(--mu);font-weight:600;letter-spacing:.05em;">CATEGORY</span>
+    <span style="font-size:11px;color:var(--mu);font-weight:600;letter-spacing:.05em;">DESCRIPTION</span>
+    <span style="font-size:11px;color:var(--mu);font-weight:600;letter-spacing:.05em;">AMOUNT</span>
+    <span></span>
+  </div>`;
+  items.forEach(item=>{
+    html+=`<div class="row-item">
+      <span class="cat-badge">${item.cat}</span>
+      <span style="font-size:13px;">${item.desc}</span>
+      <span style="font-size:13px;">$${item.amt.toLocaleString('en-US',{minimumFractionDigits:2})}</span>
+      <button class="del" onclick="removeItem(${item.id})">×</button>
+    </div>`;
+  });
+  list.innerHTML = html;
+  recalc();
+}
+
+function recalc(){
+  const totals = {};
+  CATS.forEach(c=>totals[c]=0);
+  items.forEach(i=>{ totals[i.cat] = (totals[i.cat]||0) + i.amt; });
+
+  const icr = parseFloat(document.getElementById('icr').value)||0;
+  const funderCap = document.getElementById('funder').value;
+
+  // MTDC: excludes Equipment and Contractual > $25K
+  const contrAmt = totals['Contractual'];
+  const contrMTDC = Math.max(0, contrAmt - 25000);
+  const eqMTDC = 0;
+  const mtdc = (totals['Personnel']||0) + (totals['Fringe']||0) + (totals['Travel']||0) +
+                (totals['Supplies']||0) + (totals['Other Direct']||0) + contrMTDC;
+
+  const autoIndirect = mtdc * (icr/100);
+  const manualIndirect = totals['Indirect']||0;
+  const indirectUsed = manualIndirect > 0 ? manualIndirect : autoIndirect;
+
+  const directTotal = Object.entries(totals).filter(([k])=>k!=='Indirect').reduce((s,[,v])=>s+v,0);
+  const grandTotal = directTotal + (manualIndirect > 0 ? 0 : autoIndirect);
+  const overheadRatio = grandTotal > 0 ? (indirectUsed / grandTotal)*100 : 0;
+
+  const sumDiv = document.getElementById('summary');
+  let shtml = '';
+  CATS.filter(c=>totals[c]>0).forEach(c=>{
+    shtml += `<div class="summary-row"><span>${c}</span><span>$${totals[c].toLocaleString('en-US',{minimumFractionDigits:2})}</span></div>`;
+  });
+  if(manualIndirect===0 && icr>0){
+    shtml+=`<div class="summary-row" style="color:var(--mu);font-size:12px;"><span>F&A (auto @ ${icr}% of MTDC $${mtdc.toLocaleString()})</span><span>$${autoIndirect.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div>`;
+  }
+  shtml+=`<div class="summary-row total"><span>Total Budget</span><span>$${grandTotal.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div>`;
+  shtml+=`<div class="summary-row" style="margin-top:6px;"><span style="color:var(--mu);font-size:12px;">MTDC Base</span><span style="color:var(--mu);font-size:12px;">$${mtdc.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div>`;
+  shtml+=`<div class="summary-row"><span style="color:var(--mu);font-size:12px;">Overhead Ratio</span><span style="color:var(--mu);font-size:12px;">${overheadRatio.toFixed(1)}%</span></div>`;
+  sumDiv.innerHTML = shtml;
+
+  const comp = document.getElementById('compliance');
+  if(funderCap!=='none'){
+    const cap = parseFloat(funderCap);
+    if(overheadRatio > cap){
+      comp.innerHTML=`<div class="warn">Overhead ratio ${overheadRatio.toFixed(1)}% exceeds funder cap of ${cap}%. Reduce indirect costs or increase direct costs to comply.</div>`;
+    } else {
+      comp.innerHTML=`<div class="ok">Overhead ratio ${overheadRatio.toFixed(1)}% is within funder cap of ${cap}%. Compliant.</div>`;
+    }
+  } else {
+    comp.innerHTML='';
+  }
+}
+
+function exportTable(){
+  if(!items.length){alert('No items to export.');return;}
+  let csv='Category,Description,Amount\n';
+  items.forEach(i=>{ csv+=`"${i.cat}","${i.desc}",${i.amt}\n`; });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='grant-budget.csv';
+  a.click();
+}
+
+function clearAll(){
+  if(confirm('Clear all line items?')){items=[];render();}
+}
+</script>
+</body>
+</html>

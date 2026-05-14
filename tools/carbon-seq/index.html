@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carbon Sequestration Estimator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#84cc16;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+btn,button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Carbon Sequestration Estimator</h1>
+  <p class="sub">Ecology — Forest and land carbon storage calculations</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>FOREST TYPE</label>
+        <select id="ftype" onchange="calc()">
+          <option value="tropical">Tropical rainforest</option>
+          <option value="temperate">Temperate forest</option>
+          <option value="boreal">Boreal forest</option>
+          <option value="mangrove">Mangrove</option>
+          <option value="grassland">Grassland / savanna</option>
+        </select>
+      </div>
+      <div>
+        <label>AREA (hectares)</label>
+        <input type="number" id="area" value="100" min="0.1" step="0.1" oninput="calc()">
+      </div>
+    </div>
+    <label>AVERAGE TREE AGE (years)</label>
+    <input type="number" id="age" value="30" min="1" oninput="calc()">
+  </div>
+  <div class="card">
+    <div class="grid3">
+      <div class="result">
+        <div class="r-label">STORED CARBON</div>
+        <div class="r-val" id="sc">—</div>
+        <div class="r-sub">tonnes C</div>
+      </div>
+      <div class="result">
+        <div class="r-label">STORED CO₂ eq.</div>
+        <div class="r-val" id="co2">—</div>
+        <div class="r-sub">tonnes CO₂</div>
+      </div>
+      <div class="result">
+        <div class="r-label">ANNUAL UPTAKE</div>
+        <div class="r-val" id="ann">—</div>
+        <div class="r-sub">tCO₂/yr</div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+<script>
+// tonnes C/ha/yr sequestration rates (above + below ground)
+const RATES={tropical:6.8,temperate:3.2,boreal:1.4,mangrove:10.5,grassland:0.9};
+// tonnes C/ha standing stock at maturity
+const STOCK={tropical:250,temperate:150,boreal:80,mangrove:200,grassland:20};
+function calc(){
+  const ft=document.getElementById('ftype').value;
+  const area=+document.getElementById('area').value;
+  const age=+document.getElementById('age').value;
+  const rate=RATES[ft];
+  const stock=STOCK[ft];
+  const maturity={tropical:80,temperate:60,boreal:100,mangrove:30,grassland:10}[ft];
+  const frac=Math.min(age/maturity,1);
+  const stored=(stock*frac*area).toFixed(0);
+  const co2eq=(stored*3.667).toFixed(0);
+  const annual=(rate*area).toFixed(1);
+  document.getElementById('sc').textContent=Number(stored).toLocaleString();
+  document.getElementById('co2').textContent=Number(co2eq).toLocaleString();
+  document.getElementById('ann').textContent=Number(annual).toLocaleString();
+  document.getElementById('note').textContent=`${ft.charAt(0).toUpperCase()+ft.slice(1)} at ${age} yrs (${Math.round(frac*100)}% of maturity). Annual rate: ${rate} tC/ha/yr. ${area} ha stores ~${Number(co2eq).toLocaleString()} tCO₂ equivalent. Carbon × 3.667 = CO₂. Values use IPCC Tier 1 defaults.`;
+}
+calc();
+</script>
+</body>
+</html>

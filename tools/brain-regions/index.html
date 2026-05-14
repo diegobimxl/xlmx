@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brain Region Reference — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a855f7;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+btn,button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Brain Region Reference</h1>
+  <p class="sub">Neuroscience — Lobes, structures, and primary functions</p>
+  <div class="card">
+    <label>SELECT REGION</label>
+    <select id="region" onchange="show()">
+      <option value="">— choose —</option>
+      <optgroup label="Cerebral Lobes">
+        <option value="frontal">Frontal Lobe</option>
+        <option value="parietal">Parietal Lobe</option>
+        <option value="temporal">Temporal Lobe</option>
+        <option value="occipital">Occipital Lobe</option>
+      </optgroup>
+      <optgroup label="Subcortical">
+        <option value="hippocampus">Hippocampus</option>
+        <option value="amygdala">Amygdala</option>
+        <option value="thalamus">Thalamus</option>
+        <option value="basal">Basal Ganglia</option>
+        <option value="cerebellum">Cerebellum</option>
+        <option value="brainstem">Brainstem</option>
+      </optgroup>
+    </select>
+  </div>
+  <div class="card" id="out" style="display:none">
+    <div style="font-size:16px;font-weight:700;color:var(--acc);margin-bottom:8px;" id="rname"></div>
+    <div style="font-size:13px;color:var(--mu);margin-bottom:12px;" id="rloc"></div>
+    <div style="font-size:13px;color:var(--tx);line-height:1.8;" id="rfunc"></div>
+    <div class="note" id="rnote"></div>
+  </div>
+</div>
+<script>
+const DATA={
+  frontal:{name:"Frontal Lobe",loc:"Anterior cortex, behind forehead",func:"Executive function (planning, decision-making, impulse control), voluntary motor control (primary motor cortex), Broca's area (speech production), working memory, personality, social behavior.",note:"Largest lobe. Prefrontal cortex is among the last regions to mature — full development into mid-20s. Damage → personality change, poor judgment, motor deficits."},
+  parietal:{name:"Parietal Lobe",loc:"Superior cortex, behind frontal lobe",func:"Somatosensory processing (touch, pain, temperature, proprioception), spatial orientation, numerical reasoning, attention, integrating sensory and visual inputs.",note:"Primary somatosensory cortex (postcentral gyrus) maps the body — the 'sensory homunculus'. Angular gyrus links language and number processing."},
+  temporal:{name:"Temporal Lobe",loc:"Lateral cortex, above ears",func:"Auditory processing (primary auditory cortex), language comprehension (Wernicke's area), face recognition, memory consolidation (via hippocampus), emotion processing.",note:"Wernicke's area damage → receptive aphasia — speech is fluent but meaningless. Temporal lobe epilepsy can cause déjà vu and complex hallucinations."},
+  occipital:{name:"Occipital Lobe",loc:"Posterior cortex, back of skull",func:"Primary visual processing — color, shape, motion, depth, orientation. V1–V5 visual areas decode raw signals from the lateral geniculate nucleus.",note:"Damage causes cortical blindness even with intact eyes. Visual information splits into 'what' (temporal pathway) and 'where/how' (parietal pathway)."},
+  hippocampus:{name:"Hippocampus",loc:"Medial temporal lobe (bilateral)",func:"Encoding new long-term memories (declarative/episodic), spatial navigation (cognitive maps), consolidating short-term to long-term memory during sleep.",note:"H.M. case: bilateral hippocampectomy → anterograde amnesia (no new memories) but intact procedural learning. Neurogenesis occurs here in adults."},
+  amygdala:{name:"Amygdala",loc:"Medial temporal lobe, anterior to hippocampus",func:"Fear conditioning, threat detection, emotional memory enhancement, social signal processing (facial expressions), aggression, reward learning.",note:"Almond-shaped. Activates fight-or-flight. Hyperactive in anxiety disorders. Modulates memory consolidation — emotional events remembered more vividly."},
+  thalamus:{name:"Thalamus",loc:"Central diencephalon, atop brainstem",func:"Sensory relay station (all senses except olfaction), motor coordination relay, consciousness and arousal regulation, gating information to cortex.",note:"'Gateway to the cortex.' Thalamocortical loops implicated in consciousness, sleep rhythms (spindles), and synchronized gamma oscillations."},
+  basal:{name:"Basal Ganglia",loc:"Deep cerebral nuclei (striatum, globus pallidus, substantia nigra, subthalamic nucleus)",func:"Motor learning and habit formation, reward-based learning (dopamine circuits), action selection, procedural memory, motivation.",note:"Parkinson's disease: dopaminergic degeneration in substantia nigra nigrostriatal pathway. Huntington's: striatal neurodegeneration → involuntary movements."},
+  cerebellum:{name:"Cerebellum",loc:"Posterior fossa, below occipital lobe",func:"Motor coordination and balance, fine-tuning of voluntary movements, timing, procedural learning, cerebellar cognitive affective syndrome.",note:"Contains ~80% of brain's neurons despite being 10% of volume. Damage causes ataxia (uncoordinated gait). Emerging role in cognition and language."},
+  brainstem:{name:"Brainstem",loc:"Connects brain to spinal cord (midbrain, pons, medulla)",func:"Vital autonomic functions (respiration, heart rate, blood pressure), cranial nerve nuclei (III–XII), RAS (reticular activating system for consciousness), pain modulation.",note:"Midbrain: superior/inferior colliculi (visual/auditory reflexes). Pons: sleep, REM. Medulla: breathing, swallowing. Lesion here is often fatal."}
+};
+function show(){
+  const k=document.getElementById('region').value;
+  const out=document.getElementById('out');
+  if(!k){out.style.display='none';return;}
+  const d=DATA[k];
+  out.style.display='block';
+  document.getElementById('rname').textContent=d.name;
+  document.getElementById('rloc').textContent='Location: '+d.loc;
+  document.getElementById('rfunc').textContent=d.func;
+  document.getElementById('rnote').textContent=d.note;
+}
+</script>
+</body>
+</html>

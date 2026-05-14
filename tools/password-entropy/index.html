@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Password Entropy Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.meter-track{height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin:8px 0;}
+.meter-fill{height:100%;border-radius:5px;transition:width .3s,background .3s;}
+.chip{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:2px;}
+.chip.on{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);}
+.chip.off{background:rgba(255,255,255,.04);color:var(--mu);border:1px solid var(--bd);}
+.warn{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#ef4444;margin-top:10px;}
+.stat-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+.stat-item .sv{font-size:18px;font-weight:700;color:var(--acc);}
+.stat-item .sl{font-size:11px;color:var(--mu);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>Password Entropy Calculator</h1>
+  <p class="sub">Cybersecurity — Measure password strength via information entropy</p>
+
+  <div class="card">
+    <label style="margin-top:0;">PASSWORD</label>
+    <input type="text" id="pwd" placeholder="Type a password..." oninput="calc()" autocomplete="off" spellcheck="false">
+    <div id="warn-common" style="display:none;" class="warn">Common password detected — this appears in top-20 most used passwords.</div>
+
+    <div style="margin-top:14px;">
+      <div class="r-label">CHARACTER SETS DETECTED</div>
+      <div id="chips" style="margin-top:6px;"></div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div class="r-label">STRENGTH</div>
+      <div class="meter-track"><div class="meter-fill" id="meter" style="width:0%;"></div></div>
+      <div id="strength-lbl" style="font-size:13px;font-weight:600;color:var(--mu);">Enter a password</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stat-row">
+      <div class="stat-item"><div class="sv" id="entropy">—</div><div class="sl">Entropy (bits)</div></div>
+      <div class="stat-item"><div class="sv" id="pool">—</div><div class="sl">Pool Size</div></div>
+      <div class="stat-item"><div class="sv" id="length">—</div><div class="sl">Length</div></div>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="r-label">ESTIMATED CRACK TIME</div>
+      <table class="tbl" style="margin-top:8px;">
+        <thead><tr><th>Attack Speed</th><th>Time to Crack</th></tr></thead>
+        <tbody>
+          <tr><td>1 Billion guesses/sec (online)</td><td id="crack1b">—</td></tr>
+          <tr><td>1 Trillion guesses/sec (offline GPU)</td><td id="crack1t">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+const common=['123456','password','123456789','12345678','12345','1234567','password1','abc123','qwerty','111111','123123','admin','letmein','monkey','1234','dragon','master','login','hello','welcome'];
+
+function formatTime(secs){
+  if(!isFinite(secs)) return 'Heat death of universe';
+  if(secs<1) return 'Instant';
+  if(secs<60) return secs.toFixed(1)+' sec';
+  if(secs<3600) return (secs/60).toFixed(1)+' min';
+  if(secs<86400) return (secs/3600).toFixed(1)+' hr';
+  if(secs<31536000) return (secs/86400).toFixed(1)+' days';
+  if(secs<3.15e9) return (secs/31536000).toFixed(1)+' years';
+  if(secs<3.15e12) return (secs/31536000/1000).toFixed(1)+' thousand yrs';
+  if(secs<3.15e15) return (secs/31536000/1e6).toFixed(1)+' million yrs';
+  if(secs<3.15e18) return (secs/31536000/1e9).toFixed(1)+' billion yrs';
+  return '> trillion years';
+}
+
+function calc(){
+  const pwd=document.getElementById('pwd').value;
+  const len=pwd.length;
+  document.getElementById('length').textContent=len;
+
+  const hasLower=/[a-z]/.test(pwd);
+  const hasUpper=/[A-Z]/.test(pwd);
+  const hasDigit=/[0-9]/.test(pwd);
+  const hasSymbol=/[^a-zA-Z0-9]/.test(pwd);
+
+  let pool=0;
+  if(hasLower) pool+=26;
+  if(hasUpper) pool+=26;
+  if(hasDigit) pool+=10;
+  if(hasSymbol) pool+=32;
+  if(pool===0) pool=1;
+
+  document.getElementById('pool').textContent=pool;
+
+  const chipDefs=[
+    {lbl:'a–z (26)',on:hasLower},
+    {lbl:'A–Z (26)',on:hasUpper},
+    {lbl:'0–9 (10)',on:hasDigit},
+    {lbl:'Symbols (32)',on:hasSymbol},
+  ];
+  document.getElementById('chips').innerHTML=chipDefs.map(c=>`<span class="chip ${c.on?'on':'off'}">${c.lbl}</span>`).join('');
+
+  const entropy=len>0?len*Math.log2(pool):0;
+  document.getElementById('entropy').textContent=entropy.toFixed(1)+' bits';
+
+  const totalCombinations=Math.pow(pool,len);
+  const crack1b=totalCombinations/1e9;
+  const crack1t=totalCombinations/1e12;
+  document.getElementById('crack1b').textContent=formatTime(crack1b);
+  document.getElementById('crack1t').textContent=formatTime(crack1t);
+
+  let strength,color,pct;
+  if(len===0){strength='Enter a password';color='var(--mu)';pct=0;}
+  else if(entropy<28){strength='Very Weak';color='#ef4444';pct=10;}
+  else if(entropy<36){strength='Weak';color='#f97316';pct=28;}
+  else if(entropy<50){strength='Fair';color='#eab308';pct=52;}
+  else if(entropy<64){strength='Strong';color='#22c55e';pct=76;}
+  else{strength='Very Strong';color='#22d3ee';pct=100;}
+
+  document.getElementById('strength-lbl').textContent=strength;
+  document.getElementById('strength-lbl').style.color=color;
+  document.getElementById('meter').style.width=pct+'%';
+  document.getElementById('meter').style.background=color;
+
+  const isCommon=common.includes(pwd.toLowerCase());
+  document.getElementById('warn-common').style.display=isCommon?'block':'none';
+}
+</script>
+</body>
+</html>

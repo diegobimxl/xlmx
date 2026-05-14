@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Statistical Test Selector — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#8b5cf6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Statistical Test Selector</h1>
+  <p class="sub">Statistics — Choose the right test based on your data structure</p>
+  <div class="card">
+    <label>WHAT ARE YOU COMPARING?</label>
+    <select id="goal" onchange="decide()">
+      <option value="">— select —</option>
+      <option value="means">Means / averages</option>
+      <option value="proportions">Proportions / percentages</option>
+      <option value="relationship">Relationship between variables</option>
+      <option value="distribution">Distribution / normality</option>
+      <option value="survival">Time-to-event / survival</option>
+    </select>
+    <label>NUMBER OF GROUPS</label>
+    <select id="groups" onchange="decide()">
+      <option value="1">1 group</option>
+      <option value="2">2 groups</option>
+      <option value="3">3+ groups</option>
+    </select>
+    <label>DATA TYPE</label>
+    <select id="dtype" onchange="decide()">
+      <option value="cont">Continuous (interval/ratio)</option>
+      <option value="ord">Ordinal (ranked)</option>
+      <option value="cat">Categorical (nominal)</option>
+    </select>
+    <label>SAMPLES RELATED?</label>
+    <select id="paired" onchange="decide()">
+      <option value="ind">Independent (unrelated groups)</option>
+      <option value="dep">Paired / repeated measures</option>
+    </select>
+    <label>DISTRIBUTION ASSUMPTION</label>
+    <select id="dist" onchange="decide()">
+      <option value="normal">Normal (or n > 30)</option>
+      <option value="non">Non-normal / small sample</option>
+    </select>
+  </div>
+  <div class="card" id="out" style="display:none">
+    <div style="font-size:13px;font-weight:600;color:var(--acc);margin-bottom:8px;">RECOMMENDED TEST</div>
+    <div id="test" style="font-size:22px;font-weight:700;color:var(--tx);margin-bottom:8px;"></div>
+    <div id="desc" style="font-size:13px;color:var(--mu);line-height:1.7;"></div>
+    <div class="note" id="alts"></div>
+  </div>
+</div>
+<script>
+const TESTS={
+  means_1_cont_ind_normal:{test:"One-sample t-test",desc:"Compares one group mean to a known/hypothesized value. Assumes normality.",alts:"Non-normal alternative: Wilcoxon signed-rank test."},
+  means_1_cont_dep_normal:{test:"One-sample t-test",desc:"Compares one group mean to a known/hypothesized value.",alts:""},
+  means_2_cont_ind_normal:{test:"Independent t-test",desc:"Compares means of two unrelated groups. Assumes equal variance (check with Levene's) or use Welch's t-test.",alts:"Non-normal: Mann-Whitney U. Effect size: Cohen's d."},
+  means_2_cont_dep_normal:{test:"Paired t-test",desc:"Compares means of two related measurements (pre/post, matched pairs). Differences must be normal.",alts:"Non-normal: Wilcoxon signed-rank."},
+  means_3_cont_ind_normal:{test:"One-way ANOVA",desc:"Compares means across 3+ independent groups. Assumes normality and homoscedasticity.",alts:"Post-hoc: Tukey HSD. Non-normal: Kruskal-Wallis. Unequal variances: Welch's ANOVA."},
+  means_3_cont_dep_normal:{test:"Repeated Measures ANOVA",desc:"Compares 3+ related measurements from the same subjects.",alts:"Non-normal: Friedman test."},
+  means_2_cont_ind_non:{test:"Mann-Whitney U",desc:"Non-parametric test comparing ranks of two independent groups. Does not assume normality.",alts:"Parametric alternative (if normal): independent t-test."},
+  means_2_cont_dep_non:{test:"Wilcoxon Signed-Rank",desc:"Non-parametric paired comparison. Tests if median differences equal zero.",alts:""},
+  means_3_cont_ind_non:{test:"Kruskal-Wallis",desc:"Non-parametric ANOVA equivalent. Compares ranks across 3+ groups.",alts:"Post-hoc: Dunn's test with Bonferroni correction."},
+  means_3_cont_dep_non:{test:"Friedman Test",desc:"Non-parametric repeated measures test for 3+ related groups.",alts:""},
+  proportions_1_cat_ind_normal:{test:"Chi-square goodness-of-fit",desc:"Tests if observed frequencies match expected proportions.",alts:"Small expected counts (< 5): Fisher's exact test."},
+  proportions_2_cat_ind_normal:{test:"Chi-square test of independence",desc:"Tests association between two categorical variables in a contingency table.",alts:"Small samples: Fisher's exact. Effect size: Cramér's V."},
+  proportions_2_cat_dep_normal:{test:"McNemar's Test",desc:"Paired proportions — e.g. before/after binary outcome on same subjects.",alts:""},
+  proportions_3_cat_ind_normal:{test:"Chi-square test (multi-way)",desc:"Tests independence of categorical variables with 3+ categories.",alts:""},
+  relationship_2_cont_ind_normal:{test:"Pearson Correlation",desc:"Measures linear relationship between two continuous variables. r ranges −1 to +1.",alts:"Non-linear or non-normal: Spearman's rho. Multiple predictors: regression."},
+  relationship_2_cont_ind_non:{test:"Spearman's Rho",desc:"Non-parametric correlation using ranks. Captures monotonic (not just linear) relationships.",alts:"Parametric: Pearson r."},
+  relationship_2_ord_ind_non:{test:"Spearman's Rho",desc:"Appropriate for ordinal data. Correlates ranked values.",alts:""},
+  distribution_1_cont_ind_normal:{test:"Shapiro-Wilk Test",desc:"Tests whether a sample comes from a normal distribution. Best for n < 50.",alts:"Larger samples: Kolmogorov-Smirnov or Anderson-Darling. Visual: Q-Q plot."},
+  survival_2_cont_ind_non:{test:"Log-Rank Test",desc:"Compares survival curves between two groups. Used with Kaplan-Meier curves.",alts:"Multiple covariates: Cox proportional hazards regression."},
+};
+function decide(){
+  const g=document.getElementById('goal').value;
+  const gr=document.getElementById('groups').value;
+  const dt=document.getElementById('dtype').value;
+  const pa=document.getElementById('paired').value;
+  const di=document.getElementById('dist').value;
+  if(!g)return;
+  const key=`${g}_${gr}_${dt}_${pa}_${di}`;
+  // Try progressively shorter keys
+  const keys=[key,`${g}_${gr}_${dt}_${pa}`,`${g}_${gr}_${dt}`,`${g}_${gr}`,`${g}`];
+  let found=null;
+  for(const k of keys){if(TESTS[k]){found=TESTS[k];break;}}
+  const out=document.getElementById('out');
+  if(found){
+    out.style.display='block';
+    document.getElementById('test').textContent=found.test;
+    document.getElementById('desc').textContent=found.desc;
+    document.getElementById('alts').textContent=found.alts||'No common alternatives for this configuration.';
+  } else {
+    out.style.display='block';
+    document.getElementById('test').textContent='Consult a statistician';
+    document.getElementById('desc').textContent='This combination is uncommon or requires custom analysis. Consider reframing your research question.';
+    document.getElementById('alts').textContent='Key parameters: goal='+g+', groups='+gr+', type='+dt+', paired='+pa+', dist='+di;
+  }
+}
+</script>
+</body>
+</html>

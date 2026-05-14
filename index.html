@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XLMX — Engineer's Utility Library</title><!-- v2 -->
+<title>XLMX — Engineer's Utility Library</title>
 <style>
 :root{
   --bg:#030307;--bg2:#07070f;--sf:rgba(255,255,255,.025);--bd:rgba(255,255,255,.06);--bd2:rgba(255,255,255,.11);
@@ -596,6 +596,123 @@ var TOOLS=[
   {n:'IPv4 Subnet Calculator',d:'CIDR subnet mask, network address, broadcast, host range, and usable IPs.',c:'Networking',s:'live',u:'/tools/subnet-calc/'},
   {n:'Bandwidth & Transfer Calculator',d:'File transfer time, throughput efficiency, and bandwidth requirement.',c:'Networking',s:'live',u:'/tools/bandwidth-calc/'},
   {n:'IP Address Classifier',d:'IP class, private/public range, loopback, and multicast identification.',c:'Networking',s:'live',u:'/tools/ip-class/'},
+  // -- Psychology ------------------------------------------------
+  {n:'Big Five Personality Scorer',d:'Rate yourself on Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.',c:'Psychology',s:'live',u:'/tools/big-five/'},
+  {n:'Cognitive Bias Reference',d:'Searchable guide to 60+ cognitive biases with definitions, examples, and debiasing tips.',c:'Psychology',s:'live',u:'/tools/cognitive-bias/'},
+  {n:'Burnout Index Calculator',d:'Maslach-based burnout scale: emotional exhaustion, depersonalization, and personal efficacy.',c:'Psychology',s:'live',u:'/tools/stress-burnout/'},
+  // -- Fine Arts -------------------------------------------------
+  {n:'Color Theory Wheel',d:'Interactive RYB/RGB color wheel with complementary, triadic, and analogous palette generator.',c:'Fine Arts',s:'live',u:'/tools/color-wheel/'},
+  {n:'Golden Ratio Composer',d:'Apply the golden ratio to canvas proportions, typography scale, and layout grids.',c:'Fine Arts',s:'live',u:'/tools/golden-ratio-art/'},
+  {n:'Art Movement Timeline',d:'Interactive chronology of major art movements from 1400 to present with key works.',c:'Fine Arts',s:'live',u:'/tools/art-movements/'},
+  // -- Education -------------------------------------------------
+  {n:"Bloom\'s Taxonomy Builder",d:'Learning objectives by cognitive level with Bloom verb bank for curriculum design.',c:'Education',s:'live',u:'/tools/blooms-verbs/'},
+  {n:'Flesch Reading Ease',d:'Paste text to get Flesch-Kincaid reading ease score and grade level.',c:'Education',s:'live',u:'/tools/reading-ease/'},
+  {n:'GPA Calculator',d:'Weighted and unweighted GPA from letter grades with 4.0 and percentage scale support.',c:'Education',s:'live',u:'/tools/gpa-calc/'},
+  // -- Logistics -------------------------------------------------
+  {n:'Dimensional Weight Calculator',d:'Compare actual vs dimensional weight for air and ground freight to find billable weight.',c:'Logistics',s:'live',u:'/tools/dim-weight/'},
+  {n:'Route Cost Estimator',d:'Multi-stop route fuel cost, driver time, and total delivery cost by vehicle type.',c:'Logistics',s:'live',u:'/tools/delivery-route/'},
+  {n:'Warehouse Capacity Planner',d:'Pallet count, rack configuration, aisle layout, and utilization percentage.',c:'Logistics',s:'live',u:'/tools/warehouse-cap/'},
+  // -- Biotech ---------------------------------------------------
+  {n:'PCR Primer Tm Calculator',d:'Melting temperature for DNA primers using nearest-neighbor thermodynamics.',c:'Biotech',s:'live',u:'/tools/primer-tm/'},
+  {n:'Dilution Series Calculator',d:'Serial dilution factors, concentrations, and volumes for any lab protocol.',c:'Biotech',s:'live',u:'/tools/dilution-calc/'},
+  {n:'Cell Doubling Time',d:'Exponential growth doubling time from two cell count time points.',c:'Biotech',s:'live',u:'/tools/cell-doubling/'},
+  // -- Sociology -------------------------------------------------
+  {n:'Gini Coefficient Calculator',d:'Income distribution inequality index from population income deciles.',c:'Sociology',s:'live',u:'/tools/gini-index/'},
+  {n:'Likert Scale Analyzer',d:'Aggregate and visualize Likert survey responses with mean, mode, and distribution.',c:'Sociology',s:'live',u:'/tools/likert-analyzer/'},
+  {n:'Social Network Density',d:'Network ties, density index, clustering coefficient, and reach for any social graph.',c:'Sociology',s:'live',u:'/tools/social-network/'},
+  // -- Cybersecurity ---------------------------------------------
+  {n:'Password Entropy Calculator',d:'Bits of entropy, crack time estimate, and strength rating for any password.',c:'Cybersecurity',s:'live',u:'/tools/password-entropy/'},
+  {n:'CVSS v3.1 Score Calculator',d:'Common Vulnerability Scoring System 3.1 base, temporal, and environmental score.',c:'Cybersecurity',s:'live',u:'/tools/cvss-calc/'},
+  {n:'Hash Rate Estimator',d:'Mining profitability from hash rate, power draw, electricity cost, and coin price.',c:'Cybersecurity',s:'live',u:'/tools/hash-rate/'},
+  // -- Marketing -------------------------------------------------
+  {n:'Customer Acquisition Cost',d:'CAC by channel from total spend and new customers acquired, with payback period.',c:'Marketing',s:'live',u:'/tools/cac-calc/'},
+  {n:'LTV:CAC Ratio Calculator',d:'Customer lifetime value to acquisition cost ratio with revenue and churn inputs.',c:'Marketing',s:'live',u:'/tools/ltv-cac/'},
+  {n:'A/B Test Significance',d:'Statistical significance for conversion rate tests with confidence level and sample size.',c:'Marketing',s:'live',u:'/tools/ab-test-sig/'},
+  // -- Linguistics -----------------------------------------------
+  {n:'Syllable Counter',d:'Syllable and estimated phoneme count for any English word or passage.',c:'Linguistics',s:'live',u:'/tools/syllable-counter/'},
+  {n:'Lexical Density Calculator',d:'Content-to-function word ratio measuring text complexity and information density.',c:'Linguistics',s:'live',u:'/tools/lexical-density/'},
+  {n:'Language Family Tree',d:'Reference guide to major language families with branch explorer and speaker counts.',c:'Linguistics',s:'live',u:'/tools/lang-family/'},
+  // -- Governance ------------------------------------------------
+  {n:'Legislative Process Reference',d:'Bill-to-law stages for US, Westminster, and federal systems with interactive flowchart.',c:'Governance',s:'live',u:'/tools/bill-to-law/'},
+  {n:'Budget Allocation Visualizer',d:'Government or org budget by category with proportional bar chart and % breakdown.',c:'Governance',s:'live',u:'/tools/budget-allocation/'},
+  {n:'Voting Power Index',d:'Banzhaf voting power index for weighted voting coalitions.',c:'Governance',s:'live',u:'/tools/voting-power/'},
+  // -- Renewables ------------------------------------------------
+  {n:'Wind Turbine Output Estimator',d:'Power output from wind speed using Betz limit and turbine efficiency curve.',c:'Renewables',s:'live',u:'/tools/wind-power/'},
+  {n:'Hydroelectric Power Calculator',d:'Power output from head height and flow rate for run-of-river and reservoir systems.',c:'Renewables',s:'live',u:'/tools/hydro-calc/'},
+  {n:'LCOE Calculator',d:'Levelized cost of energy for solar, wind, gas, and nuclear with lifetime NPV.',c:'Renewables',s:'live',u:'/tools/lcoe-calc/'},
+  // -- Astronomy -------------------------------------------------
+  {n:'Planet Distance Calculator',d:'Distance in AU and light-travel time between any two solar system bodies.',c:'Astronomy',s:'live',u:'/tools/planet-distance/'},
+  {n:'Stellar Magnitude Calculator',d:'Convert between apparent and absolute magnitude using the distance modulus.',c:'Astronomy',s:'live',u:'/tools/stellar-magnitude/'},
+  {n:'Telescope Resolution',d:'Rayleigh criterion angular resolution for any aperture and wavelength.',c:'Astronomy',s:'live',u:'/tools/telescope-res/'},
+  // -- Anthropology ----------------------------------------------
+  {n:"Cultural Dimensions (Hofstede)",d:"Hofstede\'s 6 cultural dimensions comparison for any two countries.",c:'Anthropology',s:'live',u:'/tools/hofstede-score/'},
+  {n:'Kinship Terminology Reference',d:'Crow, Omaha, Hawaiian, Eskimo, and Sudanese kinship systems with term diagrams.',c:'Anthropology',s:'live',u:'/tools/kinship-ref/'},
+  {n:'Archaeological Dating Methods',d:'C-14, dendrochronology, thermoluminescence, and K-Ar dating method comparison.',c:'Anthropology',s:'live',u:'/tools/dating-methods/'},
+  // -- Chemistry (add) -------------------------------------------
+  {n:'Stoichiometry Calculator',d:'Molar ratios, limiting reagent, theoretical yield, and percent yield from a balanced equation.',c:'Chemistry',s:'live',u:'/tools/stoichiometry/'},
+  {n:'Combined Gas Laws',d:"Boyle\'s, Charles\'s, Gay-Lussac\'s, and combined P-V-T solver.",c:'Chemistry',s:'live',u:'/tools/gas-laws/'},
+  // -- Genetics --------------------------------------------------
+  {n:'Punnett Square Generator',d:'Monohybrid and dihybrid cross genotype and phenotype ratios with probability table.',c:'Genetics',s:'live',u:'/tools/punnett-square/'},
+  {n:'Hardy-Weinberg Calculator',d:'Allele frequency equilibrium, genotype ratios, and deviation from HWE.',c:'Genetics',s:'live',u:'/tools/hardy-weinberg/'},
+  {n:'DNA GC Content',d:'GC%, AT%, and estimated melting temperature from any nucleotide sequence.',c:'Genetics',s:'live',u:'/tools/gc-content/'},
+  // -- Hospitality -----------------------------------------------
+  {n:'RevPAR Calculator',d:'Revenue per available room from occupancy rate and average daily rate.',c:'Hospitality',s:'live',u:'/tools/revpar-calc/'},
+  {n:'ADR & Occupancy Tracker',d:'Average daily rate, occupancy %, revenue, and YoY performance comparison.',c:'Hospitality',s:'live',u:'/tools/adr-occupancy/'},
+  {n:'F&B Cost Percentage',d:'Food and beverage cost ratio from sales and COGS for restaurant operations.',c:'Hospitality',s:'live',u:'/tools/fb-cost/'},
+  // -- Thermodynamics --------------------------------------------
+  {n:'Heat Transfer Calculator',d:'Conduction, convection, and radiation heat flux with material and geometry inputs.',c:'Thermodynamics',s:'live',u:'/tools/heat-transfer/'},
+  {n:'Carnot Efficiency',d:'Ideal heat engine efficiency from hot and cold reservoir temperatures.',c:'Thermodynamics',s:'live',u:'/tools/carnot-engine/'},
+  {n:'Entropy Change',d:'dS for isothermal expansion, isobaric phase change, and ideal gas mixing.',c:'Thermodynamics',s:'live',u:'/tools/entropy-calc/'},
+  // -- Robotics --------------------------------------------------
+  {n:'Servo Torque Calculator',d:'Required motor torque from load, arm length, gear ratio, and safety factor.',c:'Robotics',s:'live',u:'/tools/servo-torque/'},
+  {n:'PID Controller Guide',d:'Kp, Ki, Kd tuning with Ziegler-Nichols rules and step response visualization.',c:'Robotics',s:'live',u:'/tools/pid-tuner/'},
+  {n:'Robot Arm Reach',d:'2-link planar arm forward kinematics: end-effector XY position from joint angles.',c:'Robotics',s:'live',u:'/tools/arm-reach/'},
+  // -- Neuroscience ----------------------------------------------
+  {n:'Neurotransmitter Reference',d:'Major neurotransmitters, functions, receptor types, and associated disorders.',c:'Neuroscience',s:'live',u:'/tools/neuro-ref/'},
+  {n:'Action Potential Simulator',d:'Threshold, depolarization, repolarization, and refractory period visualization.',c:'Neuroscience',s:'live',u:'/tools/action-potential/'},
+  {n:'Brain Region Atlas',d:'Functional map of cerebral lobes, limbic structures, and brainstem with detail panels.',c:'Neuroscience',s:'live',u:'/tools/brain-regions/'},
+  // -- Ecology ---------------------------------------------------
+  {n:'Biodiversity Indices',d:'Shannon entropy, Simpson diversity, and species richness from sample count data.',c:'Ecology',s:'live',u:'/tools/biodiversity/'},
+  {n:'Carbon Sequestration Estimator',d:'CO2 sequestered per year by forest type, tree species, and land area.',c:'Ecology',s:'live',u:'/tools/carbon-seq/'},
+  {n:'Trophic Energy Flow',d:'10% rule biomass pyramid and energy transfer efficiency between trophic levels.',c:'Ecology',s:'live',u:'/tools/trophic-flow/'},
+  // -- Journalism ------------------------------------------------
+  {n:'Fog & Flesch Readability',d:'Gunning Fog Index and Flesch-Kincaid grade level from pasted article text.',c:'Journalism',s:'live',u:'/tools/fog-index/'},
+  {n:'Source Credibility Checker',d:'SIFT method checklist: Stop, Investigate, Find better coverage, Trace claims.',c:'Journalism',s:'live',u:'/tools/source-check/'},
+  {n:'Interview Question Builder',d:'Structured question framework by interview type: profile, investigative, broadcast.',c:'Journalism',s:'live',u:'/tools/interview-q/'},
+  // -- Statistics (add) ------------------------------------------
+  {n:'Hypothesis Test Selector',d:'Decision tree to choose the right statistical test by data type and research question.',c:'Statistics',s:'live',u:'/tools/test-selector/'},
+  {n:'Linear Regression Calculator',d:'Slope, intercept, R2, and residuals from X/Y data pairs with scatter plot.',c:'Statistics',s:'live',u:'/tools/linear-reg/'},
+  // -- Philanthropy ----------------------------------------------
+  {n:'Grant Budget Builder',d:'Program, admin, and indirect cost ratio with funder overhead cap compliance.',c:'Philanthropy',s:'live',u:'/tools/grant-budget/'},
+  {n:'Charitable Impact Estimator',d:'Cost per outcome by cause area using DALY and GiveWell-style benchmarks.',c:'Philanthropy',s:'live',u:'/tools/impact-calc/'},
+  {n:'Foundation Payout Calculator',d:'IRS 5% minimum distribution rule, qualifying distributions, and carryover tracker.',c:'Philanthropy',s:'live',u:'/tools/payout-calc/'},
+  // -- Geopolitics -----------------------------------------------
+  {n:'GDP & Military Spend',d:'NATO 2% threshold and military expenditure as % of GDP by country.',c:'Geopolitics',s:'live',u:'/tools/gdp-military/'},
+  {n:'Trade Dependency Score',d:'Import/export as % of GDP with trade balance and top trading partner breakdown.',c:'Geopolitics',s:'live',u:'/tools/trade-depend/'},
+  {n:'National Power Index',d:'Multi-factor power score: GDP, population, military, technology, and geography.',c:'Geopolitics',s:'live',u:'/tools/power-index/'},
+  // -- Materials Science -----------------------------------------
+  {n:"Young\'s Modulus Reference",d:"Young\'s modulus, yield strength, and UTS for 15 common engineering materials.",c:'Materials Science',s:'live',u:'/tools/stress-strain/'},
+  {n:'Thermal Expansion Calculator',d:'Linear and volumetric expansion from temperature change and thermal expansion coefficient.',c:'Materials Science',s:'live',u:'/tools/thermal-expand/'},
+  {n:'Material Fatigue Estimator',d:'S-N curve cycles-to-failure and endurance limit for metals and polymers.',c:'Materials Science',s:'live',u:'/tools/fatigue-calc/'},
+  // -- Urban Planning (add) --------------------------------------
+  {n:'Heat Island Mitigation Score',d:'Urban heat island reduction from surface albedo, vegetation cover, and cool pavement.',c:'Urban Planning',s:'live',u:'/tools/heat-island/'},
+  {n:'Noise Level Estimator',d:'dB attenuation by distance, barrier height, and ground absorption coefficient.',c:'Urban Planning',s:'live',u:'/tools/noise-level/'},
+  // -- Oceanography ----------------------------------------------
+  {n:'Wave Energy Calculator',d:'Ocean wave energy density and power per unit crest length from height and period.',c:'Oceanography',s:'live',u:'/tools/wave-energy/'},
+  {n:'Seawater Density',d:'Seawater density from temperature, salinity, and depth using simplified EOS-80.',c:'Oceanography',s:'live',u:'/tools/seawater-density/'},
+  {n:'Ocean Acidification Index',d:'Seawater pH and aragonite saturation from dissolved CO2 concentration.',c:'Oceanography',s:'live',u:'/tools/ocean-ph/'},
+  // -- Cryptography ----------------------------------------------
+  {n:'Caesar Cipher',d:'Encrypt and decrypt text with ROT-N shift cipher and full alphabet visualization.',c:'Cryptography',s:'live',u:'/tools/caesar-cipher/'},
+  {n:'Key Length Security',d:'Bits of security for RSA, AES, ECC, and DH with NIST recommendations.',c:'Cryptography',s:'live',u:'/tools/key-security/'},
+  {n:'One-Time Pad',d:'XOR-based OTP key generator with encode/decode and key entropy strength check.',c:'Cryptography',s:'live',u:'/tools/otp-gen/'},
+  // -- Archeology ------------------------------------------------
+  {n:'Stratigraphy Recorder',d:'Layer-by-layer excavation log with depth, context, finds, and Harris Matrix view.',c:'Archeology',s:'live',u:'/tools/stratigraphy/'},
+  {n:'Radiocarbon Dating',d:'C-14 decay activity ratio to calibrated calendar years before present.',c:'Archeology',s:'live',u:'/tools/c14-dating/'},
+  {n:'Artifact Classification',d:'Typological reference from Paleolithic through Post-Medieval with key attributes.',c:'Archeology',s:'live',u:'/tools/artifact-class/'},
+  // -- E-commerce ------------------------------------------------
+  {n:'E-commerce Profit Margins',d:'Selling price, COGS, platform fees, and net margin for DTC and marketplace channels.',c:'E-commerce',s:'live',u:'/tools/ec-margins/'},
+  {n:'Conversion Rate Optimizer',d:'CVR, revenue per visitor, and A/B revenue lift from funnel stage inputs.',c:'E-commerce',s:'live',u:'/tools/conversion-rate/'},
+  {n:'Customer Lifetime Value',d:'CLV from ARPU, gross margin, and monthly churn rate with cohort projection.',c:'E-commerce',s:'live',u:'/tools/clv-calc/'},
   // -- Other --
   {n:'Accessibility Compliance Checklist',d:'ADA/IBC checklist fong',s:'soon'}
 ];
@@ -646,7 +763,34 @@ var CAT_COLORS={
   "Travel":               {bg:"rgba(56,189,248,.09)",  bd:"rgba(56,189,248,.3)",   tx:"#38bdf8",  ic:"✈"},
   "Python":               {bg:"rgba(250,204,21,.09)",  bd:"rgba(250,204,21,.3)",   tx:"#facc15",  ic:"Py"},
   "Health":               {bg:"rgba(74,222,128,.09)",  bd:"rgba(74,222,128,.3)",   tx:"#4ade80",  ic:"♥"},
-  "Networking":           {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⌬"}
+  "Networking":           {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⌬"},
+  "Psychology":           {bg:"rgba(236,72,153,.09)",  bd:"rgba(236,72,153,.3)",   tx:"#ec4899",  ic:"⊕"},
+  "Fine Arts":            {bg:"rgba(251,113,133,.09)", bd:"rgba(251,113,133,.3)",  tx:"#fb7185",  ic:"✏"},
+  "Education":            {bg:"rgba(52,211,153,.09)",  bd:"rgba(52,211,153,.3)",   tx:"#34d399",  ic:"⊙"},
+  "Logistics":            {bg:"rgba(251,191,36,.09)",  bd:"rgba(251,191,36,.3)",   tx:"#fbbf24",  ic:"⊛"},
+  "Biotech":              {bg:"rgba(74,222,128,.09)",  bd:"rgba(74,222,128,.3)",   tx:"#4ade80",  ic:"⚕"},
+  "Sociology":            {bg:"rgba(167,139,250,.09)", bd:"rgba(167,139,250,.3)",  tx:"#a78bfa",  ic:"⊹"},
+  "Cybersecurity":        {bg:"rgba(239,68,68,.09)",   bd:"rgba(239,68,68,.3)",    tx:"#ef4444",  ic:"⊗"},
+  "Marketing":            {bg:"rgba(249,115,22,.09)",  bd:"rgba(249,115,22,.3)",   tx:"#f97316",  ic:"◈"},
+  "Linguistics":          {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⌖"},
+  "Governance":           {bg:"rgba(148,163,184,.09)", bd:"rgba(148,163,184,.3)",  tx:"#94a3b8",  ic:"⊓"},
+  "Renewables":           {bg:"rgba(16,185,129,.09)",  bd:"rgba(16,185,129,.3)",   tx:"#10b981",  ic:"⚡"},
+  "Astronomy":            {bg:"rgba(99,102,241,.09)",  bd:"rgba(99,102,241,.3)",   tx:"#818cf8",  ic:"★"},
+  "Anthropology":         {bg:"rgba(217,119,6,.09)",   bd:"rgba(217,119,6,.3)",    tx:"#d97706",  ic:"⊕"},
+  "Genetics":             {bg:"rgba(52,211,153,.09)",  bd:"rgba(52,211,153,.3)",   tx:"#34d399",  ic:"◈"},
+  "Hospitality":          {bg:"rgba(251,146,60,.09)",  bd:"rgba(251,146,60,.3)",   tx:"#fb923c",  ic:"⌂"},
+  "Thermodynamics":       {bg:"rgba(239,68,68,.09)",   bd:"rgba(239,68,68,.3)",    tx:"#f87171",  ic:"∿"},
+  "Robotics":             {bg:"rgba(34,211,238,.09)",  bd:"rgba(34,211,238,.3)",   tx:"#22d3ee",  ic:"⚙"},
+  "Neuroscience":         {bg:"rgba(168,85,247,.09)",  bd:"rgba(168,85,247,.3)",   tx:"#a855f7",  ic:"⊛"},
+  "Ecology":              {bg:"rgba(132,204,22,.09)",  bd:"rgba(132,204,22,.3)",   tx:"#84cc16",  ic:"⚘"},
+  "Journalism":           {bg:"rgba(249,115,22,.09)",  bd:"rgba(249,115,22,.3)",   tx:"#f97316",  ic:"✎"},
+  "Philanthropy":         {bg:"rgba(251,113,133,.09)", bd:"rgba(251,113,133,.3)",  tx:"#fb7185",  ic:"♥"},
+  "Geopolitics":          {bg:"rgba(200,169,110,.09)", bd:"rgba(200,169,110,.3)",  tx:"#c8a96e",  ic:"◉"},
+  "Materials Science":    {bg:"rgba(245,158,11,.09)",  bd:"rgba(245,158,11,.3)",   tx:"#f59e0b",  ic:"◫"},
+  "Oceanography":         {bg:"rgba(14,165,233,.09)",  bd:"rgba(14,165,233,.3)",   tx:"#0ea5e9",  ic:"⌬"},
+  "Cryptography":         {bg:"rgba(99,102,241,.09)",  bd:"rgba(99,102,241,.3)",   tx:"#6366f1",  ic:"⊞"},
+  "Archeology":           {bg:"rgba(217,119,6,.09)",   bd:"rgba(217,119,6,.3)",    tx:"#d97706",  ic:"⌛"},
+  "E-commerce":           {bg:"rgba(34,197,94,.09)",   bd:"rgba(34,197,94,.3)",    tx:"#22c55e",  ic:"◇"}
 };
 function catColor(c){return CAT_COLORS[c]||{bg:"rgba(255,255,255,.05)",bd:"rgba(255,255,255,.15)",tx:"#9ca3af"};}
 

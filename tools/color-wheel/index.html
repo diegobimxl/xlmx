@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Color Theory Wheel — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb7185;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input[type=range]{width:100%;accent-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.hue-display{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.hue-swatch{width:48px;height:48px;border-radius:8px;border:1px solid var(--bd);}
+.hue-val{font-size:22px;font-weight:700;color:var(--acc);}
+.palette-section{margin-top:16px;}
+.palette-title{font-size:11px;color:var(--mu);letter-spacing:.05em;font-weight:600;margin-bottom:10px;text-transform:uppercase;}
+.swatches{display:flex;gap:10px;flex-wrap:wrap;}
+.swatch-item{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.swatch-box{width:56px;height:56px;border-radius:8px;border:1px solid var(--bd);}
+.swatch-hex{font-size:10px;color:var(--mu);font-family:monospace;}
+.swatch-label{font-size:10px;color:var(--mu);}
+canvas{display:block;margin:16px auto 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Color Theory Wheel</h1>
+  <p class="sub">Select a base hue to explore color harmony relationships.</p>
+
+  <div class="card">
+    <label>BASE HUE (0–360°)</label>
+    <div class="hue-display">
+      <div class="hue-swatch" id="base-swatch"></div>
+      <div>
+        <div class="hue-val"><span id="hue-deg">0</span>°</div>
+        <div id="base-hex" style="font-size:12px;color:var(--mu);font-family:monospace"></div>
+      </div>
+    </div>
+    <input type="range" min="0" max="360" value="0" id="hue-slider" oninput="update()">
+
+    <canvas id="wheel" width="240" height="240"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="palette-section">
+      <div class="palette-title">Complementary (180°)</div>
+      <div class="swatches" id="comp"></div>
+    </div>
+    <div class="palette-section" style="margin-top:20px;">
+      <div class="palette-title">Triadic (120° / 240°)</div>
+      <div class="swatches" id="triadic"></div>
+    </div>
+    <div class="palette-section" style="margin-top:20px;">
+      <div class="palette-title">Analogous (±30°)</div>
+      <div class="swatches" id="analogous"></div>
+    </div>
+    <div class="palette-section" style="margin-top:20px;">
+      <div class="palette-title">Split-Complementary (150° / 210°)</div>
+      <div class="swatches" id="split"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function hslToHex(h,s,l){
+  h=((h%360)+360)%360;
+  s/=100; l/=100;
+  const a=s*Math.min(l,1-l);
+  const f=n=>{const k=(n+h/30)%12;const c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,"0");};
+  return "#"+f(0)+f(8)+f(4);
+}
+
+function swatch(hue, labelText){
+  const hex=hslToHex(hue,70,55);
+  return `<div class="swatch-item">
+    <div class="swatch-box" style="background:${hex}"></div>
+    <div class="swatch-hex">${hex}</div>
+    <div class="swatch-label">${labelText}</div>
+  </div>`;
+}
+
+function drawWheel(markedHue){
+  const canvas=document.getElementById("wheel");
+  const ctx=canvas.getContext("2d");
+  const cx=120,cy=120,r=108;
+  ctx.clearRect(0,0,240,240);
+  for(let deg=0;deg<360;deg++){
+    const rad=deg*Math.PI/180;
+    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    grad.addColorStop(0,"rgba(255,255,255,0.9)");
+    grad.addColorStop(1,`hsl(${deg},100%,50%)`);
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,rad,(deg+2)*Math.PI/180);
+    ctx.closePath();
+    ctx.fillStyle=`hsl(${deg},80%,55%)`;
+    ctx.fill();
+  }
+  // marker
+  const mRad=markedHue*Math.PI/180;
+  const mx=cx+Math.cos(mRad)*r*0.82;
+  const my=cy+Math.sin(mRad)*r*0.82;
+  ctx.beginPath();ctx.arc(mx,my,7,0,2*Math.PI);
+  ctx.fillStyle="#fff";ctx.fill();
+  ctx.lineWidth=2;ctx.strokeStyle="#000";ctx.stroke();
+}
+
+function update(){
+  const h=+document.getElementById("hue-slider").value;
+  document.getElementById("hue-deg").textContent=h;
+  const hex=hslToHex(h,70,55);
+  document.getElementById("base-swatch").style.background=hex;
+  document.getElementById("base-hex").textContent=hex;
+
+  document.getElementById("comp").innerHTML=
+    swatch(h,"Base")+swatch(h+180,"Complement");
+
+  document.getElementById("triadic").innerHTML=
+    swatch(h,"Base")+swatch(h+120,"Triad 1")+swatch(h+240,"Triad 2");
+
+  document.getElementById("analogous").innerHTML=
+    swatch(h-30,"−30°")+swatch(h,"Base")+swatch(h+30,"+30°");
+
+  document.getElementById("split").innerHTML=
+    swatch(h,"Base")+swatch(h+150,"Split 1")+swatch(h+210,"Split 2");
+
+  drawWheel(h);
+}
+
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warehouse Capacity Planner — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fbbf24;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+select option{background:#111;}
+input[type=range]{accent-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
+.r-box{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:14px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-unit{font-size:12px;color:var(--mu);margin-left:4px;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.util-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Warehouse Capacity Planner</h1>
+  <p class="sub">Estimate total pallet positions from warehouse dimensions and racking parameters.</p>
+
+  <div class="card">
+    <div style="font-size:12px;color:var(--mu);font-weight:600;letter-spacing:.05em;margin-bottom:12px;">WAREHOUSE DIMENSIONS</div>
+    <div class="grid3">
+      <div><label>LENGTH (m)</label><input type="number" id="wlen" value="100" min="1" step="any" oninput="calc()"></div>
+      <div><label>WIDTH (m)</label><input type="number" id="wwid" value="50" min="1" step="any" oninput="calc()"></div>
+      <div><label>CLEAR HEIGHT (m)</label><input type="number" id="whgt" value="10" min="1" step="any" oninput="calc()"></div>
+    </div>
+    <div class="grid2">
+      <div><label>AISLE WIDTH (m)</label><input type="number" id="aisle" value="3.5" min="1" step="any" oninput="calc()"></div>
+      <div><label>AISLE FACTOR (%)</label><input type="number" id="aisle-pct" value="35" min="10" max="60" step="1" oninput="calc()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;color:var(--mu);font-weight:600;letter-spacing:.05em;margin-bottom:12px;">PALLET & RACKING</div>
+    <div class="grid2">
+      <div>
+        <label>PALLET TYPE</label>
+        <select id="pallet-type" onchange="setPallet()">
+          <option value="1.2,0.8">Standard (1200×800mm)</option>
+          <option value="1.2,1.0">EUR (1200×1000mm)</option>
+          <option value="1.219,1.016">GMA (48×40 in)</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div id="custom-pallet-area" style="display:none">
+        <label>CUSTOM (L×W m)</label>
+        <div class="grid2">
+          <input type="number" id="p-len" value="1.2" step="0.01" oninput="calc()">
+          <input type="number" id="p-wid" value="0.8" step="0.01" oninput="calc()">
+        </div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><label>RACK LEVEL HEIGHT (m)</label><input type="number" id="rack-h" value="1.5" min="0.5" step="any" oninput="calc()"></div>
+      <div><label>RACK LEVELS</label><input type="number" id="rack-lvl" value="4" min="1" max="20" step="1" oninput="calc()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="result-grid">
+      <div class="r-box"><div class="r-label">GROSS AREA</div><div class="r-val" id="gross-area">—<span class="r-unit">m²</span></div></div>
+      <div class="r-box"><div class="r-label">NET STORAGE AREA</div><div class="r-val" id="net-area">—<span class="r-unit">m²</span></div></div>
+      <div class="r-box"><div class="r-label">PALLETS PER LEVEL</div><div class="r-val" id="ppl">—</div></div>
+      <div class="r-box"><div class="r-label">TOTAL PALLET POSITIONS</div><div class="r-val" id="total-pos">—</div></div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div class="util-row">
+        <span style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;">TARGET UTILIZATION</span>
+        <span style="font-size:13px;color:var(--acc);font-weight:700;" id="util-pct-label">85%</span>
+      </div>
+      <input type="range" min="50" max="100" value="85" id="util-slider" oninput="calcUtil()">
+      <div style="margin-top:12px;font-size:13px;color:var(--mu)">Usable positions: <span style="color:var(--acc);font-weight:700;font-size:18px" id="usable-pos">—</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;font-weight:600;">STANDARD PALLET SIZE REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Type</th><th>Length (mm)</th><th>Width (mm)</th><th>Common Region</th></tr></thead>
+      <tbody>
+        <tr><td>Standard ISO</td><td>1200</td><td>800</td><td>Europe (EUR1)</td></tr>
+        <tr><td>EUR (ISO 2)</td><td>1200</td><td>1000</td><td>Europe (EUR2)</td></tr>
+        <tr><td>GMA</td><td>1219</td><td>1016</td><td>North America</td></tr>
+        <tr><td>Asia Pacific</td><td>1100</td><td>1100</td><td>Asia</td></tr>
+        <tr><td>Australia</td><td>1165</td><td>1165</td><td>Australia</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let palletL=1.2, palletW=0.8;
+
+function setPallet(){
+  const val=document.getElementById("pallet-type").value;
+  const customArea=document.getElementById("custom-pallet-area");
+  if(val==="custom"){
+    customArea.style.display="block";
+  } else {
+    customArea.style.display="none";
+    const [l,w]=val.split(",").map(Number);
+    palletL=l; palletW=w;
+    calc();
+  }
+}
+
+let totalPositions=0;
+
+function calc(){
+  const val=document.getElementById("pallet-type").value;
+  if(val==="custom"){
+    palletL=parseFloat(document.getElementById("p-len").value)||1.2;
+    palletW=parseFloat(document.getElementById("p-wid").value)||0.8;
+  }
+
+  const wlen=parseFloat(document.getElementById("wlen").value)||100;
+  const wwid=parseFloat(document.getElementById("wwid").value)||50;
+  const gross=wlen*wwid;
+  const aislePct=parseFloat(document.getElementById("aisle-pct").value)||35;
+  const netPct=(100-aislePct)/100;
+  const net=gross*netPct;
+
+  const rackLvl=parseInt(document.getElementById("rack-lvl").value)||4;
+  const rackH=parseFloat(document.getElementById("rack-h").value)||1.5;
+
+  // Pallets per m² of net area
+  const palletArea=(palletL+0.1)*(palletW+0.1); // 10cm clearance each side
+  const palletsPerLevel=Math.floor(net/palletArea);
+  totalPositions=palletsPerLevel*rackLvl;
+
+  document.getElementById("gross-area").innerHTML=gross.toFixed(0)+'<span class="r-unit">m²</span>';
+  document.getElementById("net-area").innerHTML=net.toFixed(0)+'<span class="r-unit">m²</span>';
+  document.getElementById("ppl").textContent=palletsPerLevel.toLocaleString();
+  document.getElementById("total-pos").textContent=totalPositions.toLocaleString();
+
+  calcUtil();
+}
+
+function calcUtil(){
+  const pct=parseInt(document.getElementById("util-slider").value)||85;
+  document.getElementById("util-pct-label").textContent=pct+"%";
+  const usable=Math.floor(totalPositions*pct/100);
+  document.getElementById("usable-pos").textContent=usable.toLocaleString();
+}
+
+calc();
+</script>
+</body>
+</html>

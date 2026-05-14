@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GDP & Military Spend — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#c8a96e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+button{background:var(--acc);color:#000;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+button.sec{background:rgba(255,255,255,.07);color:var(--tx);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;}
+.tbl th:hover{color:var(--acc);}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tbl tr:hover td{background:rgba(255,255,255,.03);}
+.nato-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:8px;background:rgba(200,169,110,.15);color:#c8a96e;font-weight:600;margin-left:4px;}
+.warn{color:#fb7185;}
+.ok{color:#34d399;}
+.pct-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06);width:80px;display:inline-block;vertical-align:middle;margin-right:6px;}
+.pct-fill{height:6px;border-radius:3px;}
+canvas{margin-top:12px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Back</a>
+  <h1>GDP & Military Spend</h1>
+  <p class="sub">2023 data — 20 countries/blocs. NATO 2% threshold highlighted. Click headers to sort.</p>
+
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <div style="flex:1;min-width:160px;">
+        <label style="margin-top:0;">Search</label>
+        <input type="text" id="search" placeholder="Filter countries..." oninput="renderTable()">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:18px;">
+        <input type="checkbox" id="natoOnly" onchange="renderTable()" style="width:auto;">
+        <label for="natoOnly" style="margin:0;font-size:13px;color:var(--tx);">NATO members only</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table class="tbl" id="mainTable">
+      <thead>
+        <tr>
+          <th onclick="sortBy('country')">Country</th>
+          <th onclick="sortBy('gdp')">GDP ($T) ▾</th>
+          <th onclick="sortBy('mil')">Mil. Spend ($B)</th>
+          <th onclick="sortBy('pct')">% of GDP</th>
+          <th>NATO 2%</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">CUSTOM COUNTRY CALCULATOR</div>
+    <div class="grid3">
+      <div><label>Country Name</label><input type="text" id="cName" placeholder="My Country"></div>
+      <div><label>GDP ($T)</label><input type="number" id="cGDP" placeholder="1.5" step="0.01"></div>
+      <div><label>Military Spend ($B)</label><input type="number" id="cMil" placeholder="50"></div>
+    </div>
+    <button style="margin-top:14px;" onclick="calcCustom()">Calculate</button>
+    <div id="customResult" style="margin-top:12px;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">MILITARY % OF GDP — BAR CHART</div>
+    <canvas id="barChart" height="320"></canvas>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {country:"USA", gdp:25.4, mil:858, nato:true},
+  {country:"China", gdp:17.7, mil:224, nato:false},
+  {country:"Russia", gdp:2.2, mil:109, nato:false},
+  {country:"Germany", gdp:4.1, mil:66, nato:true},
+  {country:"UK", gdp:3.1, mil:68, nato:true},
+  {country:"France", gdp:2.9, mil:56, nato:true},
+  {country:"India", gdp:3.7, mil:84, nato:false},
+  {country:"Japan", gdp:4.2, mil:43, nato:false},
+  {country:"Saudi Arabia", gdp:1.1, mil:75, nato:false},
+  {country:"Ukraine", gdp:0.16, mil:35, nato:false},
+  {country:"Poland", gdp:0.69, mil:21, nato:true},
+  {country:"South Korea", gdp:1.7, mil:46, nato:false},
+  {country:"Australia", gdp:1.7, mil:32, nato:false},
+  {country:"Canada", gdp:2.1, mil:24, nato:true},
+  {country:"Israel", gdp:0.52, mil:24, nato:false},
+  {country:"Turkey", gdp:1.1, mil:18, nato:true},
+  {country:"Brazil", gdp:2.0, mil:20, nato:false},
+  {country:"NATO Total", gdp:43.8, mil:1265, nato:true},
+  {country:"EU Total", gdp:16.6, mil:240, nato:false},
+  {country:"Mexico", gdp:1.3, mil:8, nato:false},
+].map(d=>({...d, pct: (d.mil/(d.gdp*1000))*100}));
+
+let sortKey='gdp', sortDir=-1;
+
+function sortBy(k){
+  if(sortKey===k) sortDir*=-1;
+  else{sortKey=k;sortDir=-1;}
+  renderTable();
+}
+
+function renderTable(){
+  const search = document.getElementById('search').value.toLowerCase();
+  const natoOnly = document.getElementById('natoOnly').checked;
+  let rows = DATA.filter(d=>{
+    if(natoOnly && !d.nato) return false;
+    if(search && !d.country.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    if(sortKey==='country') return sortDir*(a.country.localeCompare(b.country));
+    return sortDir*(a[sortKey]-b[sortKey]);
+  });
+  const maxPct = Math.max(...rows.map(r=>r.pct));
+  let html='';
+  rows.forEach(r=>{
+    const pct = r.pct;
+    const meets = pct >= 2;
+    const barW = Math.min(100, (pct/maxPct)*100);
+    html+=`<tr>
+      <td>${r.country}${r.nato?'<span class="nato-badge">NATO</span>':''}</td>
+      <td>$${r.gdp.toFixed(1)}T</td>
+      <td>$${r.mil}B</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="pct-bar"><div class="pct-fill" style="width:${barW}%;background:${pct>=2?'#34d399':'#c8a96e'};height:6px;border-radius:3px;"></div></div>
+          <span class="${pct>=2?'ok':'warn'}">${pct.toFixed(2)}%</span>
+        </div>
+      </td>
+      <td>${r.nato?(meets?'<span class="ok">✓ Meets</span>':'<span class="warn">✗ Below</span>'):'—'}</td>
+    </tr>`;
+  });
+  document.getElementById('tableBody').innerHTML = html;
+  drawChart(rows);
+}
+
+function calcCustom(){
+  const name = document.getElementById('cName').value||'Custom';
+  const gdp = parseFloat(document.getElementById('cGDP').value)||0;
+  const mil = parseFloat(document.getElementById('cMil').value)||0;
+  if(!gdp||!mil){alert('Enter GDP and military spend.');return;}
+  const pct = (mil/(gdp*1000))*100;
+  document.getElementById('customResult').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div><div class="r-label">${name.toUpperCase()}</div></div>
+      <div><div class="r-label">% OF GDP</div><div class="r-val">${pct.toFixed(2)}%</div></div>
+      <div><div class="r-label">NATO 2% STATUS</div><div class="r-val ${pct>=2?'ok':'warn'}" style="font-size:18px;">${pct>=2?'Meets':'Below'} 2%</div></div>
+    </div>`;
+}
+
+function drawChart(rows){
+  const canvas = document.getElementById('barChart');
+  const W = canvas.parentElement.offsetWidth - 40;
+  canvas.width = W;
+  const ctx = canvas.getContext('2d');
+  const data = rows.filter(r=>!r.country.includes('Total')).slice(0,16);
+  const barH = 16, gap = 6, labelW = 120, margin = 10;
+  canvas.height = data.length*(barH+gap)+40;
+  ctx.clearRect(0,0,W,canvas.height);
+  const maxPct = Math.max(...data.map(d=>d.pct), 3);
+  const chartW = W - labelW - margin - 60;
+  data.forEach((d,i)=>{
+    const y = i*(barH+gap)+20;
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.font='11px Inter,system-ui,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(d.country, labelW-6, y+barH-2);
+    const bw = (d.pct/maxPct)*chartW;
+    ctx.fillStyle = d.pct>=2?'#34d399':'#c8a96e';
+    ctx.beginPath();
+    ctx.roundRect(labelW, y, bw, barH, 3);
+    ctx.fill();
+    // 2% line
+    const line2 = labelW + (2/maxPct)*chartW;
+    ctx.strokeStyle='rgba(251,113,133,0.5)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(line2,15);ctx.lineTo(line2,canvas.height-10);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.textAlign='left';
+    ctx.fillText(d.pct.toFixed(1)+'%', labelW+bw+4, y+barH-2);
+  });
+  ctx.fillStyle='rgba(251,113,133,0.7)';
+  ctx.font='10px Inter,system-ui,sans-serif';
+  ctx.textAlign='center';
+  const line2 = labelW + (2/maxPct)*chartW;
+  ctx.fillText('2%', line2, 12);
+}
+
+renderTable();
+</script>
+</body>
+</html>

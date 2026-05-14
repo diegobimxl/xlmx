@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A/B Test Significance — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f97316;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.sig-row{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;}
+.sig-box{flex:1;min-width:120px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:12px;text-align:center;}
+.sig-pct{font-size:15px;font-weight:700;}
+.sig-lbl{font-size:11px;color:var(--mu);margin-top:4px;}
+.verdict{padding:14px 18px;border-radius:8px;font-size:14px;font-weight:600;margin-top:12px;}
+.metric-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+.mbox .mv{font-size:18px;font-weight:700;color:var(--acc);}
+.mbox .ml{font-size:11px;color:var(--mu);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>A/B Test Significance</h1>
+  <p class="sub">Marketing — Two-proportion z-test for conversion rate experiments</p>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">CONTROL (A)</div>
+        <label style="margin-top:0;">VISITORS</label>
+        <input type="number" id="cv" value="5000" min="1" oninput="calc()">
+        <label>CONVERSIONS</label>
+        <input type="number" id="cc" value="250" min="0" oninput="calc()">
+        <div style="font-size:22px;font-weight:700;color:var(--acc);margin-top:12px;" id="cr-a">—</div>
+        <div style="font-size:11px;color:var(--mu);">Conversion Rate</div>
+      </div>
+      <div>
+        <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">VARIANT (B)</div>
+        <label style="margin-top:0;">VISITORS</label>
+        <input type="number" id="vv" value="5000" min="1" oninput="calc()">
+        <label>CONVERSIONS</label>
+        <input type="number" id="vc" value="312" min="0" oninput="calc()">
+        <div style="font-size:22px;font-weight:700;color:var(--acc);margin-top:12px;" id="cr-b">—</div>
+        <div style="font-size:11px;color:var(--mu);">Conversion Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="metric-row">
+      <div class="mbox"><div class="mv" id="uplift">—</div><div class="ml">Relative Uplift</div></div>
+      <div class="mbox"><div class="mv" id="zscore">—</div><div class="ml">Z-Score</div></div>
+      <div class="mbox"><div class="mv" id="pval">—</div><div class="ml">p-Value (two-tailed)</div></div>
+    </div>
+    <div class="sig-row">
+      <div class="sig-box"><div class="sig-pct" id="s90">—</div><div class="sig-lbl">90% Confidence</div></div>
+      <div class="sig-box"><div class="sig-pct" id="s95">—</div><div class="sig-lbl">95% Confidence</div></div>
+      <div class="sig-box"><div class="sig-pct" id="s99">—</div><div class="sig-lbl">99% Confidence</div></div>
+    </div>
+    <div id="verdict" class="verdict">—</div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:4px;">MINIMUM DETECTABLE EFFECT</div>
+    <div style="font-size:13px;color:var(--mu);margin-bottom:10px;">At 95% confidence, 80% power, with current sample size</div>
+    <div style="font-size:20px;font-weight:700;color:var(--acc);" id="mde">—</div>
+    <div style="font-size:11px;color:var(--mu);margin-top:2px;">relative change detectable with current sample</div>
+  </div>
+</div>
+<script>
+// Standard normal CDF approximation (Abramowitz & Stegun)
+function normCDF(z){
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const sign=z<0?-1:1;
+  const x=Math.abs(z);
+  const t=1/(1+p*x);
+  const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return 0.5*(1+sign*y);
+}
+
+function sigCheck(z,alpha){
+  const pval=2*(1-normCDF(Math.abs(z)));
+  return pval<=alpha;
+}
+
+function calc(){
+  const cv=parseFloat(document.getElementById('cv').value)||1;
+  const cc=parseFloat(document.getElementById('cc').value)||0;
+  const vv=parseFloat(document.getElementById('vv').value)||1;
+  const vc=parseFloat(document.getElementById('vc').value)||0;
+
+  const pa=cc/cv;
+  const pb=vc/vv;
+  document.getElementById('cr-a').textContent=(pa*100).toFixed(2)+'%';
+  document.getElementById('cr-b').textContent=(pb*100).toFixed(2)+'%';
+
+  const uplift=pa>0?(pb-pa)/pa*100:0;
+  document.getElementById('uplift').textContent=(uplift>=0?'+':'')+uplift.toFixed(2)+'%';
+  document.getElementById('uplift').style.color=uplift>0?'#22c55e':uplift<0?'#ef4444':'var(--acc)';
+
+  // Two-proportion z-test
+  const pPool=(cc+vc)/(cv+vv);
+  const se=Math.sqrt(pPool*(1-pPool)*(1/cv+1/vv));
+  const z=se>0?(pb-pa)/se:0;
+  const pval=2*(1-normCDF(Math.abs(z)));
+
+  document.getElementById('zscore').textContent=z.toFixed(3);
+  document.getElementById('pval').textContent=pval.toFixed(4);
+
+  function sigBadge(pass){
+    return pass
+      ?'<span style="color:#22c55e;font-weight:700;">Significant</span>'
+      :'<span style="color:#ef4444;">Not Significant</span>';
+  }
+  document.getElementById('s90').innerHTML=sigBadge(sigCheck(z,0.10));
+  document.getElementById('s95').innerHTML=sigBadge(sigCheck(z,0.05));
+  document.getElementById('s99').innerHTML=sigBadge(sigCheck(z,0.01));
+
+  const sig95=sigCheck(z,0.05);
+  const verdEl=document.getElementById('verdict');
+  if(sig95){
+    const dir=pb>pa?'B outperforms A':'A outperforms B';
+    verdEl.textContent=`Statistically significant at 95% confidence. ${dir} by ${Math.abs(uplift).toFixed(1)}% (relative).`;
+    verdEl.style.background='rgba(34,197,94,.08)';
+    verdEl.style.color='#22c55e';
+    verdEl.style.border='1px solid rgba(34,197,94,.2)';
+  } else {
+    verdEl.textContent=`Not statistically significant at 95% confidence. Collect more data or accept null hypothesis.`;
+    verdEl.style.background='rgba(239,68,68,.08)';
+    verdEl.style.color='#ef4444';
+    verdEl.style.border='1px solid rgba(239,68,68,.2)';
+  }
+
+  // MDE at 95% confidence, 80% power: z_alpha=1.96, z_beta=0.842
+  const z_a=1.96,z_b=0.842;
+  const avgN=(cv+vv)/2;
+  const p_avg=(pa+pb)/2;
+  const mde=(z_a+z_b)*Math.sqrt(2*p_avg*(1-p_avg)/avgN)/pa*100;
+  document.getElementById('mde').textContent=isFinite(mde)?'±'+mde.toFixed(1)+'% relative':'N/A';
+}
+calc();
+</script>
+</body>
+</html>

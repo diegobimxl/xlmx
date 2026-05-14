@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entropy Change Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f87171;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{padding:7px 13px;border-radius:8px;border:1px solid var(--bd);background:none;color:var(--mu);font-size:12px;cursor:pointer;transition:.15s;}
+.tab.active{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.formula{font-family:monospace;font-size:13px;color:var(--acc);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
+.sign-pos{color:#4ade80;} .sign-neg{color:#f87171;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← XLMX Tools</a>
+  <h1>Entropy Change Calculator</h1>
+  <p class="sub">Category: Thermodynamics — ΔS for four process types</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('iso')">Isothermal</button>
+    <button class="tab" onclick="sw('phase')">Phase Change</button>
+    <button class="tab" onclick="sw('gas')">Ideal Gas</button>
+    <button class="tab" onclick="sw('mix')">Mixing</button>
+  </div>
+
+  <!-- Tab 1: Isothermal -->
+  <div class="tab-panel active" id="tab-iso">
+    <div class="card">
+      <div class="formula">ΔS = Q_rev / T</div>
+      <div class="grid2">
+        <div>
+          <label>HEAT TRANSFERRED Q_rev (J)</label>
+          <input type="number" id="i-q" value="5000" oninput="calcIso()">
+        </div>
+        <div>
+          <label>TEMPERATURE T (K)</label>
+          <input type="number" id="i-t" value="300" oninput="calcIso()">
+        </div>
+      </div>
+      <div class="result">
+        <div class="r-label">ENTROPY CHANGE ΔS</div>
+        <div class="r-val" id="i-ds">—</div>
+        <div style="color:var(--mu);font-size:11px;margin-top:4px;">J/K</div>
+        <div id="i-note" style="margin-top:10px;font-size:12px;color:var(--mu);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Phase Change -->
+  <div class="tab-panel" id="tab-phase">
+    <div class="card">
+      <div class="formula">ΔS = n × ΔH / T</div>
+      <div class="grid2">
+        <div>
+          <label>ENTHALPY OF PHASE CHANGE ΔH (J/mol)</label>
+          <input type="number" id="p-dh" value="40700" oninput="calcPhase()">
+        </div>
+        <div>
+          <label>TRANSITION TEMPERATURE T (K)</label>
+          <input type="number" id="p-t" value="373.15" oninput="calcPhase()">
+        </div>
+        <div>
+          <label>MOLES n</label>
+          <input type="number" id="p-n" value="1" step="0.01" oninput="calcPhase()">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--mu);margin-top:10px;">Reference: Water vaporization ΔH = 40700 J/mol at 373 K &nbsp;|&nbsp; Water fusion ΔH = 6010 J/mol at 273 K</div>
+      <div class="result">
+        <div class="r-label">ENTROPY CHANGE ΔS</div>
+        <div class="r-val" id="p-ds">—</div>
+        <div style="color:var(--mu);font-size:11px;margin-top:4px;">J/K total &nbsp;|&nbsp; <span id="p-ds-mol">—</span> J/(mol·K)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Ideal Gas -->
+  <div class="tab-panel" id="tab-gas">
+    <div class="card">
+      <div class="formula">Isothermal: ΔS = n·R·ln(V₂/V₁) &nbsp;|&nbsp; Isochoric: ΔS = n·Cv·ln(T₂/T₁)</div>
+      <div style="margin-bottom:14px;">
+        <label>PROCESS TYPE</label>
+        <select id="g-type" onchange="calcGas()">
+          <option value="iso">Isothermal expansion (constant T)</option>
+          <option value="isov">Isochoric (constant V)</option>
+        </select>
+      </div>
+      <div id="g-iso-inputs">
+        <div class="grid2">
+          <div><label>MOLES n</label><input type="number" id="g-n" value="1" step="0.1" oninput="calcGas()"></div>
+          <div><label>V₂/V₁ VOLUME RATIO</label><input type="number" id="g-vr" value="2" step="0.1" oninput="calcGas()"></div>
+        </div>
+      </div>
+      <div id="g-isov-inputs" style="display:none;">
+        <div class="grid2">
+          <div><label>MOLES n</label><input type="number" id="g-n2" value="1" step="0.1" oninput="calcGas()"></div>
+          <div><label>Cv (J/mol·K) — monatomic 12.47, diatomic 20.79</label><input type="number" id="g-cv" value="20.79" oninput="calcGas()"></div>
+          <div><label>INITIAL TEMPERATURE T₁ (K)</label><input type="number" id="g-t1" value="300" oninput="calcGas()"></div>
+          <div><label>FINAL TEMPERATURE T₂ (K)</label><input type="number" id="g-t2" value="400" oninput="calcGas()"></div>
+        </div>
+      </div>
+      <div class="result">
+        <div class="r-label">ENTROPY CHANGE ΔS</div>
+        <div class="r-val" id="g-ds">—</div>
+        <div style="color:var(--mu);font-size:11px;margin-top:4px;">J/K</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Mixing -->
+  <div class="tab-panel" id="tab-mix">
+    <div class="card">
+      <div class="formula">ΔS_mix = −n·R·Σ(xᵢ·ln(xᵢ))</div>
+      <div style="font-size:12px;color:var(--mu);margin-bottom:14px;">Enter mole fractions for each component (must sum to 1.0)</div>
+      <div id="mix-inputs"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button onclick="addComponent()" style="padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-size:12px;cursor:pointer;">+ Add Component</button>
+        <span id="mix-sum-note" style="font-size:12px;color:var(--mu);align-self:center;"></span>
+      </div>
+      <div>
+        <label>TOTAL MOLES n</label>
+        <input type="number" id="m-n" value="1" step="0.1" oninput="calcMix()">
+      </div>
+      <div class="result">
+        <div class="r-label">ENTROPY OF MIXING ΔS_mix</div>
+        <div class="r-val" id="m-ds">—</div>
+        <div style="color:var(--mu);font-size:11px;margin-top:4px;">J/K</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference -->
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">Standard Molar Entropies S° at 298 K</div>
+    <table class="tbl">
+      <thead><tr><th>Substance</th><th>State</th><th>S° (J/mol·K)</th></tr></thead>
+      <tbody>
+        <tr><td>H₂O</td><td>liquid</td><td>69.9</td></tr>
+        <tr><td>H₂O</td><td>gas</td><td>188.7</td></tr>
+        <tr><td>CO₂</td><td>gas</td><td>213.8</td></tr>
+        <tr><td>N₂</td><td>gas</td><td>191.6</td></tr>
+        <tr><td>O₂</td><td>gas</td><td>205.2</td></tr>
+        <tr><td>CH₄</td><td>gas</td><td>186.3</td></tr>
+        <tr><td>C (graphite)</td><td>solid</td><td>5.7</td></tr>
+        <tr><td>Fe</td><td>solid</td><td>27.3</td></tr>
+        <tr><td>NaCl</td><td>solid</td><td>72.1</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const R=8.314;
+function sw(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['iso','phase','gas','mix'][i]===id));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+function fmt(v){return isNaN(v)||!isFinite(v)?'—':v.toFixed(4);}
+function sign(v){if(isNaN(v))return '';return v>0?'(positive — disorder increases)':'(negative — disorder decreases)';}
+
+function calcIso(){
+  const q=+document.getElementById('i-q').value,t=+document.getElementById('i-t').value;
+  const ds=t>0?q/t:NaN;
+  document.getElementById('i-ds').textContent=fmt(ds)+' J/K';
+  document.getElementById('i-note').textContent=sign(ds);
+}
+function calcPhase(){
+  const dh=+document.getElementById('p-dh').value,t=+document.getElementById('p-t').value,n=+document.getElementById('p-n').value;
+  const dsMol=t>0?dh/t:NaN,dsTotal=dsMol*n;
+  document.getElementById('p-ds').textContent=fmt(dsTotal)+' J/K';
+  document.getElementById('p-ds-mol').textContent=fmt(dsMol);
+}
+function calcGas(){
+  const type=document.getElementById('g-type').value;
+  document.getElementById('g-iso-inputs').style.display=type==='iso'?'':'none';
+  document.getElementById('g-isov-inputs').style.display=type==='isov'?'':'none';
+  let ds=NaN;
+  if(type==='iso'){
+    const n=+document.getElementById('g-n').value,vr=+document.getElementById('g-vr').value;
+    ds=vr>0?n*R*Math.log(vr):NaN;
+  } else {
+    const n=+document.getElementById('g-n2').value,cv=+document.getElementById('g-cv').value,
+          t1=+document.getElementById('g-t1').value,t2=+document.getElementById('g-t2').value;
+    ds=t1>0&&t2>0?n*cv*Math.log(t2/t1):NaN;
+  }
+  document.getElementById('g-ds').textContent=fmt(ds)+' J/K';
+}
+
+// Mixing
+let components=[{x:0.5,name:'A'},{x:0.5,name:'B'}];
+function renderMixInputs(){
+  const cont=document.getElementById('mix-inputs');
+  cont.innerHTML='';
+  components.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='grid2';row.style.marginBottom='8px';
+    row.innerHTML=`<div><label>COMPONENT ${i+1} NAME</label><input type="text" value="${c.name}" oninput="components[${i}].name=this.value"></div><div><label>MOLE FRACTION x${i+1}</label><input type="number" value="${c.x}" step="0.01" min="0" max="1" oninput="components[${i}].x=+this.value;calcMix()"></div>`;
+    cont.appendChild(row);
+  });
+  calcMix();
+}
+function addComponent(){if(components.length<8){components.push({x:0,name:String.fromCharCode(65+components.length)});renderMixInputs();}}
+function calcMix(){
+  const n=+document.getElementById('m-n').value;
+  const sum=components.reduce((a,c)=>a+c.x,0);
+  document.getElementById('mix-sum-note').textContent=`Sum = ${sum.toFixed(4)}${Math.abs(sum-1)>0.01?' ⚠ should be 1.0':''}`;
+  let S=0;
+  components.forEach(c=>{if(c.x>0)S+=c.x*Math.log(c.x);});
+  const ds=-n*R*S;
+  document.getElementById('m-ds').textContent=fmt(ds)+' J/K';
+}
+renderMixInputs();
+calcIso();calcPhase();calcGas();
+</script>
+</body>
+</html>

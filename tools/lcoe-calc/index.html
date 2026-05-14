@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LCOE Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#10b981;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+canvas{display:block;margin-top:12px;}
+select option{background:#1a1a2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>LCOE Calculator</h1>
+  <p class="sub">Category: Renewables — Levelized Cost of Energy ($/MWh)</p>
+
+  <div class="card">
+    <label>TECHNOLOGY PRESET</label>
+    <select id="preset" oninput="applyPreset()">
+      <option value="custom">Custom</option>
+      <option value="solar">Solar PV</option>
+      <option value="wind" selected>Wind Onshore</option>
+      <option value="gas">Natural Gas (CCGT)</option>
+      <option value="nuclear">Nuclear</option>
+      <option value="coal">Coal</option>
+      <option value="hydro">Hydro</option>
+    </select>
+
+    <div class="grid2">
+      <div>
+        <label>INSTALLED COST ($/kW)</label>
+        <input type="number" id="capex" value="1500" min="0" oninput="calc()">
+      </div>
+      <div>
+        <label>CAPACITY FACTOR (%)</label>
+        <input type="number" id="cf" value="35" min="1" max="100" oninput="calc()">
+      </div>
+      <div>
+        <label>O&M COST ($/kW·yr)</label>
+        <input type="number" id="om" value="40" min="0" oninput="calc()">
+      </div>
+      <div>
+        <label>FUEL COST ($/MWh, 0=renewables)</label>
+        <input type="number" id="fuel" value="0" min="0" oninput="calc()">
+      </div>
+      <div>
+        <label>DISCOUNT RATE (%)</label>
+        <input type="number" id="rate" value="7" min="0.1" max="30" step="0.1" oninput="calc()">
+      </div>
+      <div>
+        <label>PROJECT LIFE (years)</label>
+        <input type="number" id="life" value="25" min="1" max="60" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="result">
+        <div class="r-label">LCOE</div>
+        <div class="r-val" id="lcoe">—</div>
+        <div style="color:var(--mu);font-size:12px">$/MWh</div>
+      </div>
+      <div class="result">
+        <div class="r-label">CAPITAL RECOVERY FACTOR</div>
+        <div class="r-val" id="crf">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">LEVELIZED CAPEX</div>
+        <div class="r-val" id="lcapex">—</div>
+        <div style="color:var(--mu);font-size:12px">$/MWh</div>
+      </div>
+      <div class="result">
+        <div class="r-label">LEVELIZED O&M</div>
+        <div class="r-val" id="lom">—</div>
+        <div style="color:var(--mu);font-size:12px">$/MWh</div>
+      </div>
+    </div>
+
+    <div class="result" style="margin-top:12px">
+      <div class="r-label">TOTAL LIFETIME COST (per kW installed)</div>
+      <div class="r-val" id="total_life">—</div>
+      <div style="color:var(--mu);font-size:12px">$/kW (NPV)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:8px">TECHNOLOGY COMPARISON ($/MWh typical ranges)</div>
+    <canvas id="chart" width="660" height="220"></canvas>
+  </div>
+</div>
+<script>
+const presets={
+  solar:{capex:1100,cf:22,om:17,fuel:0,rate:6,life:30},
+  wind:{capex:1500,cf:35,om:40,fuel:0,rate:7,life:25},
+  gas:{capex:900,cf:55,om:20,fuel:25,rate:8,life:25},
+  nuclear:{capex:7000,cf:90,om:120,fuel:8,rate:8,life:60},
+  coal:{capex:3500,cf:65,om:35,fuel:20,rate:8,life:40},
+  hydro:{capex:2500,cf:45,om:15,fuel:0,rate:6,life:50}
+};
+function applyPreset(){
+  const p=document.getElementById('preset').value;
+  if(p==='custom')return;
+  const d=presets[p];
+  document.getElementById('capex').value=d.capex;
+  document.getElementById('cf').value=d.cf;
+  document.getElementById('om').value=d.om;
+  document.getElementById('fuel').value=d.fuel;
+  document.getElementById('rate').value=d.rate;
+  document.getElementById('life').value=d.life;
+  calc();
+}
+function calc(){
+  const capex=parseFloat(document.getElementById('capex').value)||0;
+  const cf=parseFloat(document.getElementById('cf').value)/100||0;
+  const om=parseFloat(document.getElementById('om').value)||0;
+  const fuel=parseFloat(document.getElementById('fuel').value)||0;
+  const r=parseFloat(document.getElementById('rate').value)/100||0;
+  const n=parseFloat(document.getElementById('life').value)||1;
+  const crf=r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  const annualEnergy=8760*cf;
+  const lcapex=(crf*capex)/annualEnergy*1000;
+  const lom=om/annualEnergy*1000;
+  const lcoe=lcapex+lom+fuel;
+  const total_life=capex+om*n;
+  document.getElementById('crf').textContent=crf.toFixed(5);
+  document.getElementById('lcoe').textContent=lcoe.toFixed(2);
+  document.getElementById('lcapex').textContent=lcapex.toFixed(2);
+  document.getElementById('lom').textContent=lom.toFixed(2);
+  document.getElementById('total_life').textContent=total_life.toFixed(0);
+  drawChart();
+}
+function drawChart(){
+  const c=document.getElementById('chart');
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const data=[
+    {label:'Solar PV',min:30,max:80,color:'#fbbf24'},
+    {label:'Wind',min:25,max:65,color:'#10b981'},
+    {label:'Gas CCGT',min:45,max:100,color:'#f87171'},
+    {label:'Nuclear',min:80,max:180,color:'#818cf8'},
+    {label:'Coal',min:65,max:150,color:'#9ca3af'},
+    {label:'Hydro',min:25,max:90,color:'#38bdf8'},
+  ];
+  const maxVal=200;
+  const barH=24, gap=8, left=90, top=10;
+  ctx.font='12px Inter,system-ui,sans-serif';
+  data.forEach((d,i)=>{
+    const y=top+i*(barH+gap);
+    const x1=left+(d.min/maxVal)*(c.width-left-20);
+    const x2=left+(d.max/maxVal)*(c.width-left-20);
+    ctx.fillStyle='rgba(255,255,255,0.06)';
+    ctx.fillRect(left,y,c.width-left-20,barH);
+    ctx.fillStyle=d.color+'55';
+    ctx.fillRect(x1,y,x2-x1,barH);
+    ctx.fillStyle=d.color;
+    ctx.fillRect(x1,y,3,barH);
+    ctx.fillRect(x2-3,y,3,barH);
+    ctx.fillStyle='#6b7280';
+    ctx.textAlign='right';
+    ctx.fillText(d.label,left-8,y+16);
+    ctx.fillStyle='#e2e8f0';
+    ctx.textAlign='left';
+    ctx.fillText(`$${d.min}–$${d.max}`,x2+6,y+16);
+  });
+}
+applyPreset();
+</script>
+</body>
+</html>

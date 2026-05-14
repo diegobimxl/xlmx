@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ADR & Occupancy Tracker — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb923c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px;}
+.kpi{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;}
+.kpi-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.kpi-val{font-size:24px;font-weight:700;color:var(--acc);}
+.kpi-change{font-size:12px;margin-top:4px;font-weight:600;}
+.up{color:#34d399;}
+.down{color:#f87171;}
+.flat{color:#6b7280;}
+.period-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+.derived{background:rgba(255,255,255,.02);border-radius:6px;padding:10px;margin-top:10px;}
+.derived-label{font-size:11px;color:var(--mu);}
+.derived-val{font-size:16px;font-weight:700;color:var(--acc);margin-top:2px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>ADR & Occupancy Tracker</h1>
+  <p class="sub">Category: Hospitality — Period comparison with YoY delta</p>
+
+  <div class="cols">
+    <div class="card">
+      <div class="period-title">This Period</div>
+      <label>TOTAL ROOM REVENUE ($)</label>
+      <input type="number" id="rev_a" value="54000" min="0" oninput="calc()">
+      <label>ROOMS SOLD</label>
+      <input type="number" id="sold_a" value="300" min="0" oninput="calc()">
+      <label>TOTAL ROOMS AVAILABLE</label>
+      <input type="number" id="avail_a" value="400" min="0" oninput="calc()">
+      <div class="derived">
+        <div class="derived-label">ADR</div>
+        <div class="derived-val" id="adr_a">—</div>
+      </div>
+      <div class="derived">
+        <div class="derived-label">OCCUPANCY</div>
+        <div class="derived-val" id="occ_a">—</div>
+      </div>
+      <div class="derived">
+        <div class="derived-label">RevPAR</div>
+        <div class="derived-val" id="rp_a">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="period-title">Last Period</div>
+      <label>TOTAL ROOM REVENUE ($)</label>
+      <input type="number" id="rev_b" value="48000" min="0" oninput="calc()">
+      <label>ROOMS SOLD</label>
+      <input type="number" id="sold_b" value="270" min="0" oninput="calc()">
+      <label>TOTAL ROOMS AVAILABLE</label>
+      <input type="number" id="avail_b" value="400" min="0" oninput="calc()">
+      <div class="derived">
+        <div class="derived-label">ADR</div>
+        <div class="derived-val" id="adr_b">—</div>
+      </div>
+      <div class="derived">
+        <div class="derived-label">OCCUPANCY</div>
+        <div class="derived-val" id="occ_b">—</div>
+      </div>
+      <div class="derived">
+        <div class="derived-label">RevPAR</div>
+        <div class="derived-val" id="rp_b">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:8px">KPI SUMMARY — PERIOD OVER PERIOD</div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">ADR</div>
+        <div class="kpi-val" id="kpi_adr">—</div>
+        <div class="kpi-change" id="kpi_adr_d">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">OCCUPANCY</div>
+        <div class="kpi-val" id="kpi_occ">—</div>
+        <div class="kpi-change" id="kpi_occ_d">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">RevPAR</div>
+        <div class="kpi-val" id="kpi_rp">—</div>
+        <div class="kpi-change" id="kpi_rp_d">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">DETAILED COMPARISON</div>
+    <table class="tbl">
+      <thead><tr><th>Metric</th><th>This Period</th><th>Last Period</th><th>Change</th><th>% Change</th></tr></thead>
+      <tbody id="detail_tbl"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+function delta(a,b){return a-b;}
+function pct(a,b){if(!b)return'—';const d=((a-b)/b*100);return (d>=0?'+':'')+d.toFixed(1)+'%';}
+function colorClass(a,b){if(a>b)return'up';if(a<b)return'down';return'flat';}
+function fmt(v,prefix='$'){return prefix+v.toFixed(2);}
+function calc(){
+  const revA=parseFloat(document.getElementById('rev_a').value)||0;
+  const soldA=parseFloat(document.getElementById('sold_a').value)||1;
+  const availA=parseFloat(document.getElementById('avail_a').value)||1;
+  const revB=parseFloat(document.getElementById('rev_b').value)||0;
+  const soldB=parseFloat(document.getElementById('sold_b').value)||1;
+  const availB=parseFloat(document.getElementById('avail_b').value)||1;
+  const adrA=revA/soldA, adrB=revB/soldB;
+  const occA=soldA/availA*100, occB=soldB/availB*100;
+  const rpA=adrA*occA/100, rpB=adrB*occB/100;
+  document.getElementById('adr_a').textContent='$'+adrA.toFixed(2);
+  document.getElementById('occ_a').textContent=occA.toFixed(1)+'%';
+  document.getElementById('rp_a').textContent='$'+rpA.toFixed(2);
+  document.getElementById('adr_b').textContent='$'+adrB.toFixed(2);
+  document.getElementById('occ_b').textContent=occB.toFixed(1)+'%';
+  document.getElementById('rp_b').textContent='$'+rpB.toFixed(2);
+  document.getElementById('kpi_adr').textContent='$'+adrA.toFixed(2);
+  document.getElementById('kpi_occ').textContent=occA.toFixed(1)+'%';
+  document.getElementById('kpi_rp').textContent='$'+rpA.toFixed(2);
+  function setDelta(id,a,b,prefix='$'){
+    const d=a-b;const el=document.getElementById(id);
+    el.textContent=(d>=0?'+':'')+prefix+Math.abs(d).toFixed(2)+' vs last period';
+    el.className='kpi-change '+colorClass(a,b);
+  }
+  setDelta('kpi_adr_d',adrA,adrB);
+  document.getElementById('kpi_occ_d').textContent=(occA-occB>=0?'+':'')+((occA-occB).toFixed(1))+'pp vs last period';
+  document.getElementById('kpi_occ_d').className='kpi-change '+colorClass(occA,occB);
+  setDelta('kpi_rp_d',rpA,rpB);
+  const rows=[
+    ['Total Room Revenue','$'+revA.toFixed(0),'$'+revB.toFixed(0),(revA-revB>=0?'+$':'-$')+Math.abs(revA-revB).toFixed(0),pct(revA,revB)],
+    ['Rooms Sold',soldA,soldB,(soldA-soldB>=0?'+':'')+Math.round(soldA-soldB).toString(),pct(soldA,soldB)],
+    ['ADR','$'+adrA.toFixed(2),'$'+adrB.toFixed(2),(adrA-adrB>=0?'+$':'-$')+Math.abs(adrA-adrB).toFixed(2),pct(adrA,adrB)],
+    ['Occupancy',occA.toFixed(1)+'%',occB.toFixed(1)+'%',(occA-occB>=0?'+':'')+((occA-occB).toFixed(1))+'pp',pct(occA,occB)],
+    ['RevPAR','$'+rpA.toFixed(2),'$'+rpB.toFixed(2),(rpA-rpB>=0?'+$':'-$')+Math.abs(rpA-rpB).toFixed(2),pct(rpA,rpB)],
+  ];
+  let html='';
+  rows.forEach(([label,a,b,ch,pctv])=>{
+    const clr=ch.startsWith('+')||ch.startsWith('+$')?'#34d399':ch.startsWith('-')||ch.startsWith('-$')?'#f87171':'#6b7280';
+    html+=`<tr><td>${label}</td><td>${a}</td><td>${b}</td><td style="color:${clr}">${ch}</td><td style="color:${clr}">${pctv}</td></tr>`;
+  });
+  document.getElementById('detail_tbl').innerHTML=html;
+}
+calc();
+</script>
+</body>
+</html>

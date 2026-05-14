@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Archaeological Dating Methods — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--mu);border:1px solid var(--bd);background:transparent;}
+.tab.active{background:var(--acc);color:#030307;border-color:var(--acc);}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.note{font-size:12px;color:var(--mu);margin-top:10px;line-height:1.6;background:rgba(255,255,255,.02);padding:10px;border-radius:8px;border-left:3px solid var(--acc);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>Archaeological Dating Methods</h1>
+  <p class="sub">Category: Anthropology — Absolute and relative dating techniques</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0)">Radiocarbon C-14</button>
+    <button class="tab" onclick="showTab(1)">Dendrochronology</button>
+    <button class="tab" onclick="showTab(2)">TL / OSL</button>
+    <button class="tab" onclick="showTab(3)">K-Ar</button>
+  </div>
+
+  <div id="tab0" class="tab-content active">
+    <div class="card">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:12px">t = −8033 × ln(A/100) — Libby half-life 5568 yr</div>
+      <label>MEASURED ¹⁴C ACTIVITY (% of modern carbon)</label>
+      <input type="number" id="c14" value="50" min="0.001" max="100" step="0.1" oninput="calcC14()">
+      <div class="result">
+        <div class="r-label">CONVENTIONAL RADIOCARBON AGE</div>
+        <div class="r-val" id="c14_age">—</div>
+        <div style="color:var(--mu);font-size:12px">years BP (before present = before 1950)</div>
+      </div>
+      <div class="result" style="margin-top:12px">
+        <div class="r-label">USING CAMBRIDGE HALF-LIFE (5730 yr)</div>
+        <div class="r-val" id="c14_age2">—</div>
+        <div style="color:var(--mu);font-size:12px">years BP</div>
+      </div>
+      <div class="note">Activity 100% = modern reference (AD 1950). Effective range: ~50,000 years BP. Calibration required to convert BP to calendar years (use IntCal curves). Below ~1% activity (~40,000 yr) results are unreliable.</div>
+    </div>
+  </div>
+
+  <div id="tab1" class="tab-content">
+    <div class="card">
+      <div style="font-size:14px;color:var(--tx);margin-bottom:12px;font-weight:600">Dendrochronology (Tree-Ring Dating)</div>
+      <p style="color:var(--mu);font-size:13px;line-height:1.7">Each tree ring represents one year of growth. Ring width and density vary with climate. By matching overlapping sequences from living trees, historical timber, and sub-fossil wood, a master chronology is built.</p>
+      <div class="result" style="margin-top:16px">
+        <div class="r-label">MAXIMUM CHRONOLOGY EXTENT</div>
+        <div class="r-val">~14,000</div>
+        <div style="color:var(--mu);font-size:12px">years (Hohenheim oak/pine chronology)</div>
+      </div>
+      <div class="note" style="margin-top:12px">Most useful for dating wooden structures, ships, panel paintings, and waterlogged organic remains. Also used to calibrate ¹⁴C curves. Cannot directly date non-wood materials. Error: ±1 year when ring counted from felling date.</div>
+      <table class="tbl" style="margin-top:16px">
+        <thead><tr><th>Species</th><th>Region</th><th>Chronology Length</th></tr></thead>
+        <tbody>
+          <tr><td>Oak (Quercus)</td><td>Central Europe</td><td>~12,000 yr</td></tr>
+          <tr><td>Bristlecone Pine</td><td>Western USA</td><td>~9,000 yr</td></tr>
+          <tr><td>Subfossil pine</td><td>Ireland</td><td>~7,000 yr</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content">
+    <div class="card">
+      <div style="font-size:14px;color:var(--tx);margin-bottom:12px;font-weight:600">Thermoluminescence (TL) & Optically Stimulated Luminescence (OSL)</div>
+      <p style="color:var(--mu);font-size:13px;line-height:1.7">Ionizing radiation from natural radioactivity displaces electrons into traps in mineral crystals. When heated (TL) or exposed to light (OSL), trapped electrons are released as light. The intensity reveals accumulated dose since last reset event.</p>
+      <div class="result" style="margin-top:16px">
+        <div class="r-label">EFFECTIVE DATE RANGE</div>
+        <div class="r-val">10 ka – 1 Ma</div>
+        <div style="color:var(--mu);font-size:12px">kiloyears to megayears</div>
+      </div>
+      <div class="note" style="margin-top:12px">TL: resets at firing (ceramics, burnt flint). OSL: resets at sun exposure (sediment burial). Typical error: ±5–10%. Requires measurement of environmental dose rate. Used for sediment dating, fired ceramics, brick, and tile.</div>
+    </div>
+  </div>
+
+  <div id="tab3" class="tab-content">
+    <div class="card">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:12px">t = (1/λ) × ln(1 + ⁴⁰Ar/⁴⁰K) — λ = 5.543×10⁻¹⁰ yr⁻¹</div>
+      <label>⁴⁰Ar / ⁴⁰K RATIO</label>
+      <input type="number" id="kar" value="0.001" min="0" step="0.0001" oninput="calcKAr()">
+      <div class="result">
+        <div class="r-label">CALCULATED AGE</div>
+        <div class="r-val" id="kar_age">—</div>
+        <div style="color:var(--mu);font-size:12px" id="kar_unit">years</div>
+      </div>
+      <div class="note" style="margin-top:12px">Half-life of ⁴⁰K = 1.25 Ga. Effective range: ~100,000 yr to 4.6 Ga. Requires volcanic material (lava, ash, pumice). Assumes all ⁴⁰Ar at time of formation was zero (complete outgassing). Used extensively for dating early hominid sites in East Africa.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">METHOD COMPARISON</div>
+    <table class="tbl">
+      <thead><tr><th>Method</th><th>Material</th><th>Range</th><th>Typical Error</th><th>Key Assumption</th></tr></thead>
+      <tbody>
+        <tr><td>Radiocarbon C-14</td><td>Organic (bone, wood, charcoal)</td><td>300 – 50,000 yr</td><td>±30–200 yr</td><td>Constant atmospheric ¹⁴C</td></tr>
+        <tr><td>Dendrochronology</td><td>Wood</td><td>1 – 14,000 yr</td><td>±1 yr (ideal)</td><td>One ring per year</td></tr>
+        <tr><td>TL / OSL</td><td>Minerals, ceramics</td><td>10 ka – 1 Ma</td><td>±5–10%</td><td>Complete reset at event</td></tr>
+        <tr><td>K-Ar / Ar-Ar</td><td>Volcanic rock, ash</td><td>100 ka – 4.6 Ga</td><td>±1–2%</td><td>Zero Ar at formation</td></tr>
+        <tr><td>U-Th Series</td><td>Coral, speleothem</td><td>1 ka – 500 ka</td><td>±1–5%</td><td>Closed system</td></tr>
+        <tr><td>Fission Track</td><td>Volcanic glass, apatite</td><td>1 ka – 1 Ga</td><td>±5–15%</td><td>Track retention constant</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+function showTab(n){
+  document.querySelectorAll('.tab-content').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+}
+function calcC14(){
+  const A=parseFloat(document.getElementById('c14').value);
+  if(!A||A<=0)return;
+  const t1=-8033*Math.log(A/100);
+  const t2=-8267*Math.log(A/100);
+  document.getElementById('c14_age').textContent=Math.round(t1).toLocaleString();
+  document.getElementById('c14_age2').textContent=Math.round(t2).toLocaleString();
+}
+function calcKAr(){
+  const ratio=parseFloat(document.getElementById('kar').value);
+  if(isNaN(ratio)||ratio<0)return;
+  const lambda=5.543e-10;
+  const t=(1/lambda)*Math.log(1+ratio);
+  let val,unit;
+  if(t<1e6){val=(t/1000).toFixed(1);unit='thousand years (ka)';}
+  else if(t<1e9){val=(t/1e6).toFixed(3);unit='million years (Ma)';}
+  else{val=(t/1e9).toFixed(4);unit='billion years (Ga)';}
+  document.getElementById('kar_age').textContent=val;
+  document.getElementById('kar_unit').textContent=unit;
+}
+calcC14();calcKAr();
+</script>
+</body>
+</html>

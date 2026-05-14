@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Key Length & Security Estimator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#6366f1;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Key Length & Security Estimator</h1>
+  <p class="sub">Cryptography — Equivalent security bits for symmetric, RSA, and ECC keys</p>
+  <div class="card">
+    <label>KEY TYPE</label>
+    <select id="ktype" onchange="calc()">
+      <option value="sym">Symmetric (AES, ChaCha20)</option>
+      <option value="rsa">RSA / DH / DSA</option>
+      <option value="ecc">ECC (elliptic curve)</option>
+    </select>
+    <label>KEY LENGTH (bits)</label>
+    <input type="number" id="klen" value="256" oninput="calc()">
+  </div>
+  <div class="card">
+    <div class="grid2">
+      <div class="result">
+        <div class="r-label">SECURITY LEVEL (bits)</div>
+        <div class="r-val" id="sec">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">RECOMMENDED UNTIL</div>
+        <div class="r-val" id="year" style="font-size:18px;">—</div>
+      </div>
+    </div>
+    <div class="result" style="margin-top:12px;">
+      <div class="r-label">ASSESSMENT</div>
+      <div id="assessment" style="font-size:14px;color:var(--tx);margin-top:6px;line-height:1.6;"></div>
+    </div>
+    <div id="equiv" class="note"></div>
+  </div>
+</div>
+<script>
+function calc(){
+  const t=document.getElementById('ktype').value;
+  const k=+document.getElementById('klen').value;
+  let sec,year,assess,equiv;
+  if(t==='sym'){
+    sec=k; // 1:1 for symmetric
+    if(k>=256){year='2050+';assess='Quantum-resistant (exceeds AES-256 recommendation). Best-in-class.';}
+    else if(k>=192){year='2040+';assess='Very strong. AES-192. Exceeds NIST recommendations for TOP SECRET.';}
+    else if(k>=128){year='2030+';assess='Strong. AES-128. Adequate for most data through 2030+. Grover's algorithm halves effective bits — AES-256 preferred for long-term.';}
+    else if(k>=112){year='~2030';assess='Adequate. Legacy 3DES territory. Plan to migrate.';}
+    else{year='Deprecated';assess='Weak. Do not use for new systems.';}
+    equiv=`Equivalent RSA key: ~${k<=128?3072:k<=192?7680:15360} bits. Equivalent ECC: ~${Math.round(k/2)} bits.`;
+  } else if(t==='rsa'){
+    sec=Math.log2(Math.exp(1.923*(Math.log(k)**0.333)*(Math.log(Math.log(k))**-0.333)));
+    if(k>=4096){year='2040+';assess='Strong. 4096-bit RSA. Exceeds NIST recommendations. Use for long-lived certificates.';}
+    else if(k>=3072){year='2031+';assess='Adequate. 3072-bit RSA meets NIST post-2030 recommendations.';}
+    else if(k>=2048){year='~2030';assess='Minimum. 2048-bit RSA is current baseline. Migrate to 3072+ for new deployments.';}
+    else{year='Deprecated';assess='Insufficient. Do not use for new systems.';}
+    equiv=`Equivalent symmetric: ~${Math.round(sec)} bits. Equivalent ECC: ~${Math.round(sec/2)} bits (ECC is far more efficient).`;
+  } else {
+    sec=k/2;
+    if(k>=521){year='2050+';assess='Extremely strong. P-521 or equivalent. Overkill for most uses — fine for ultra-high-security.';}
+    else if(k>=384){year='2040+';assess='Very strong. P-384. NSA Suite B TOP SECRET equivalent.';}
+    else if(k>=256){year='2030+';assess='Strong. P-256/Curve25519. NIST recommended. 128-bit security.';}
+    else if(k>=224){year='~2030';assess='Adequate for near-term use.';}
+    else{year='Deprecated';assess='Too short for modern use.';}
+    equiv=`ECC advantage: ${Math.round(k)} ECC ≈ ${k>=256?3072:k>=384?7680:15360} RSA bits. Much shorter keys = faster operations, smaller certificates.`;
+  }
+  document.getElementById('sec').textContent=Math.round(sec);
+  document.getElementById('year').textContent=year;
+  document.getElementById('assessment').textContent=assess;
+  document.getElementById('equiv').textContent=equiv;
+}
+calc();
+</script>
+</body>
+</html>

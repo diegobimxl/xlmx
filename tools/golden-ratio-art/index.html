@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Golden Ratio Composer — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb7185;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tbl tr.base td{color:var(--acc);font-weight:700;}
+.phi{font-size:32px;font-weight:700;color:var(--acc);}
+canvas{display:block;margin:16px auto;border-radius:8px;}
+.type-scale-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.type-name{color:var(--mu);font-size:11px;width:80px;}
+.type-size{color:var(--acc);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Golden Ratio Composer</h1>
+  <p class="sub">φ = 1.61803398875 — generate harmonic scales from any base value.</p>
+
+  <div class="card">
+    <label>BASE VALUE (px, pt, mm, or any unit)</label>
+    <input type="number" id="base" value="100" min="0.1" step="any" oninput="update()">
+    <div style="margin-top:16px;">
+      <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;">GOLDEN RATIO φ</div>
+      <div class="phi">1.61803…</div>
+    </div>
+    <table class="tbl" style="margin-top:20px;">
+      <thead><tr><th>Step</th><th>Multiplier</th><th>Value</th><th>Direction</th></tr></thead>
+      <tbody id="scale-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <label>BASE FONT SIZE (px)</label>
+    <input type="number" id="font-base" value="16" min="1" step="any" oninput="update()">
+    <div style="margin-top:14px;">
+      <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;">TYPOGRAPHIC SCALE</div>
+      <div id="type-scale"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;">GOLDEN RECTANGLE SPIRAL</div>
+    <canvas id="spiral" width="640" height="320"></canvas>
+  </div>
+</div>
+
+<script>
+const PHI=1.6180339887498948482;
+
+function fmt(v){return v>=1?v.toFixed(3):v.toFixed(4);}
+
+function update(){
+  const base=parseFloat(document.getElementById("base").value)||100;
+  const fontBase=parseFloat(document.getElementById("font-base").value)||16;
+
+  // Scale table
+  const rows=[];
+  for(let i=-5;i<=5;i++){
+    const mult=Math.pow(PHI,i);
+    const val=base*mult;
+    rows.push({step:i,mult:fmt(mult),val:fmt(val),dir:i<0?"Smaller":i===0?"Base":"Larger"});
+  }
+  document.getElementById("scale-body").innerHTML=rows.map(r=>`
+    <tr class="${r.step===0?"base":""}">
+      <td>${r.step>0?"+"+r.step:r.step}</td>
+      <td style="font-family:monospace">${r.mult}</td>
+      <td style="font-weight:600">${r.val}</td>
+      <td style="color:var(--mu)">${r.dir}</td>
+    </tr>
+  `).join("");
+
+  // Typography scale
+  const typeLabels=["xs","sm","base","md","lg","xl","2xl"];
+  let ts="";
+  for(let i=-2;i<=4;i++){
+    const sz=fontBase*Math.pow(PHI,i);
+    ts+=`<div class="type-scale-row">
+      <span class="type-name">${typeLabels[i+2]||"t"+(i+2)}</span>
+      <span class="type-size">${sz.toFixed(1)}px</span>
+      <span style="font-size:${Math.min(sz,48)}px;color:var(--tx);line-height:1;opacity:.7">Ag</span>
+    </div>`;
+  }
+  document.getElementById("type-scale").innerHTML=ts;
+
+  drawSpiral(base);
+}
+
+function drawSpiral(base){
+  const canvas=document.getElementById("spiral");
+  const ctx=canvas.getContext("2d");
+  ctx.clearRect(0,0,640,320);
+  ctx.fillStyle="rgba(255,255,255,.02)";
+  ctx.fillRect(0,0,640,320);
+
+  const maxW=580;
+  const W=Math.min(maxW, maxW);
+  const H=W/PHI;
+  const ox=(640-W)/2;
+  const oy=(320-H)/2;
+
+  ctx.strokeStyle="rgba(251,113,133,.4)";
+  ctx.lineWidth=1;
+  ctx.strokeRect(ox,oy,W,H);
+
+  // Draw nested rectangles
+  let x=ox,y=oy,w=W,h=H;
+  const colors=["rgba(251,113,133,.6)","rgba(251,191,36,.5)","rgba(52,211,153,.5)","rgba(129,140,248,.5)","rgba(236,72,153,.5)"];
+  ctx.lineWidth=1.5;
+  for(let i=0;i<6;i++){
+    ctx.strokeStyle=colors[i%colors.length];
+    ctx.strokeRect(x,y,w,h);
+    if(w>h){
+      const sq=h;
+      // Draw square
+      ctx.strokeStyle=colors[i%colors.length]+"80";
+      ctx.strokeRect(x,y,sq,sq);
+      // Arc
+      ctx.beginPath();
+      ctx.arc(x+sq,y+sq,sq,Math.PI,1.5*Math.PI);
+      ctx.strokeStyle=colors[i%colors.length];
+      ctx.stroke();
+      x+=sq; w-=sq;
+    } else {
+      const sq=w;
+      ctx.strokeStyle=colors[i%colors.length]+"80";
+      ctx.strokeRect(x,y,sq,sq);
+      ctx.beginPath();
+      ctx.arc(x,y+sq,sq,1.5*Math.PI,2*Math.PI);
+      ctx.strokeStyle=colors[i%colors.length];
+      ctx.stroke();
+      y+=sq; h-=sq;
+    }
+    if(w<2||h<2) break;
+  }
+}
+
+update();
+</script>
+</body>
+</html>

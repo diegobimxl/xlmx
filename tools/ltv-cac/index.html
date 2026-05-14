@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LTV:CAC Ratio Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#f97316;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;}
+.metric-strip{display:flex;gap:20px;flex-wrap:wrap;}
+.metric-box{flex:1;min-width:100px;}
+.mv{font-size:20px;font-weight:700;color:var(--acc);}
+.ml{font-size:11px;color:var(--mu);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">&#8592; All Tools</a>
+  <h1>LTV:CAC Ratio Calculator</h1>
+  <p class="sub">Marketing — Customer lifetime value vs acquisition cost</p>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>AVG MONTHLY REVENUE / CUSTOMER ($)</label>
+        <input type="number" id="arpu" value="149" min="0" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>GROSS MARGIN (%)</label>
+        <input type="number" id="gm" value="75" min="0" max="100" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>MONTHLY CHURN RATE (%)</label>
+        <input type="number" id="churn" value="2.5" min="0.01" max="100" step="0.1" oninput="calc()">
+      </div>
+      <div>
+        <label>CUSTOMER ACQUISITION COST ($)</label>
+        <input type="number" id="cac" value="850" min="0" step="10" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="metric-strip">
+      <div class="metric-box"><div class="mv" id="ltv">—</div><div class="ml">LTV ($)</div></div>
+      <div class="metric-box"><div class="mv" id="ratio">—</div><div class="ml">LTV:CAC Ratio</div></div>
+      <div class="metric-box"><div class="mv" id="payback">—</div><div class="ml">Payback (months)</div></div>
+      <div class="metric-box"><div class="mv" id="avg-life">—</div><div class="ml">Avg Customer Life</div></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+      <div class="r-label">VERDICT</div>
+      <div id="badge">—</div>
+    </div>
+    <div id="interp" style="font-size:13px;color:var(--mu);margin-top:8px;"></div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">SENSITIVITY — LTV:CAC AT VARIOUS CHURN RATES</div>
+    <table class="tbl">
+      <thead><tr><th>Churn Rate</th><th>LTV</th><th>LTV:CAC</th><th>Payback</th><th>Status</th></tr></thead>
+      <tbody id="sens-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:10px;">INTERPRETATION GUIDE</div>
+    <table class="tbl">
+      <thead><tr><th>LTV:CAC</th><th>Assessment</th></tr></thead>
+      <tbody>
+        <tr><td>&lt; 1</td><td style="color:#ef4444;">Unsustainable — spending more to acquire than customers are worth</td></tr>
+        <tr><td>1 – 3</td><td style="color:#f97316;">Acceptable — watch churn, optimize channels</td></tr>
+        <tr><td>3 – 5</td><td style="color:#22c55e;">Good — healthy unit economics</td></tr>
+        <tr><td>&gt; 5</td><td style="color:#22d3ee;">Excellent — may be underinvesting in growth</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const churnRates=[1,2,3,5,10];
+
+function calc(){
+  const arpu=parseFloat(document.getElementById('arpu').value)||0;
+  const gm=parseFloat(document.getElementById('gm').value)||0;
+  const churn=parseFloat(document.getElementById('churn').value)||0.01;
+  const cac=parseFloat(document.getElementById('cac').value)||0;
+
+  const gmDec=gm/100;
+  const churnDec=churn/100;
+  const ltv=(arpu*gmDec)/churnDec;
+  const ratio=cac>0?ltv/cac:0;
+  const payback=arpu*gmDec>0?cac/(arpu*gmDec):0;
+  const avgLife=1/churnDec;
+
+  document.getElementById('ltv').textContent='$'+ltv.toFixed(0);
+  document.getElementById('ratio').textContent=ratio.toFixed(2)+'x';
+  document.getElementById('payback').textContent=payback.toFixed(1)+' mo';
+  document.getElementById('avg-life').textContent=(avgLife/12).toFixed(1)+' yrs';
+
+  let sev,col,desc;
+  if(ratio<1){sev='Unsustainable';col='#ef4444';desc='Acquisition cost exceeds lifetime value. Reduce CAC or increase margin/retention immediately.';}
+  else if(ratio<3){sev='Acceptable';col='#f97316';desc='Unit economics are positive but thin. Focus on churn reduction and channel efficiency.';}
+  else if(ratio<5){sev='Good';col='#22c55e';desc='Healthy unit economics. Scale growth with confidence.';}
+  else{sev='Excellent';col='#22d3ee';desc='Strong economics — you may be under-investing in acquisition. Consider scaling spend.';}
+
+  document.getElementById('badge').innerHTML=`<span class="badge" style="background:${col}22;color:${col};border:1px solid ${col}44;">${sev}</span>`;
+  document.getElementById('interp').textContent=desc;
+
+  // Sensitivity table
+  const tbody=document.getElementById('sens-body');
+  tbody.innerHTML=churnRates.map(cr=>{
+    const cd=cr/100;
+    const l=(arpu*gmDec)/cd;
+    const r=cac>0?l/cac:0;
+    const p=arpu*gmDec>0?cac/(arpu*gmDec):0;
+    const active=Math.abs(cr-churn)<0.001;
+    const rCol=r<1?'#ef4444':r<3?'#f97316':r<5?'#22c55e':'#22d3ee';
+    return `<tr style="${active?'background:rgba(249,115,22,.08);':''}">
+      <td>${cr}%${active?' (current)':''}</td>
+      <td>$${l.toFixed(0)}</td>
+      <td style="color:${rCol};font-weight:700;">${r.toFixed(2)}x</td>
+      <td>${p.toFixed(1)} mo</td>
+      <td style="color:${rCol};">${r<1?'Unsustainable':r<3?'Acceptable':r<5?'Good':'Excellent'}</td>
+    </tr>`;
+  }).join('');
+}
+calc();
+</script>
+</body>
+</html>

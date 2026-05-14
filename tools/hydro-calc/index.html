@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hydroelectric Power Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#10b981;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+select option{background:#1a1a2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>Hydroelectric Power Calculator</h1>
+  <p class="sub">Category: Renewables — P = ρ × g × H × Q × η_t × η_g</p>
+
+  <div class="card">
+    <label>TURBINE TYPE</label>
+    <select id="turbtype" oninput="setDefaults()">
+      <option value="pelton">Pelton — High head, low flow</option>
+      <option value="francis" selected>Francis — Medium head/flow</option>
+      <option value="kaplan">Kaplan — Low head, high flow</option>
+    </select>
+
+    <div class="grid2">
+      <div>
+        <label>NET HEAD H (m)</label>
+        <input type="number" id="head" value="50" min="0.1" max="2000" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>FLOW RATE Q (m³/s)</label>
+        <input type="number" id="flow" value="5" min="0.01" max="10000" step="0.1" oninput="calc()">
+      </div>
+      <div>
+        <label>TURBINE EFFICIENCY η_t</label>
+        <input type="number" id="eta_t" value="0.85" min="0.1" max="0.97" step="0.01" oninput="calc()">
+      </div>
+      <div>
+        <label>GENERATOR EFFICIENCY η_g</label>
+        <input type="number" id="eta_g" value="0.95" min="0.1" max="0.99" step="0.01" oninput="calc()">
+      </div>
+      <div>
+        <label>CAPACITY FACTOR (%)</label>
+        <input type="number" id="cf" value="50" min="1" max="100" step="1" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="result">
+        <div class="r-label">POWER OUTPUT</div>
+        <div class="r-val" id="power">—</div>
+        <div style="color:var(--mu);font-size:12px">kW</div>
+      </div>
+      <div class="result">
+        <div class="r-label">POWER OUTPUT</div>
+        <div class="r-val" id="power_mw">—</div>
+        <div style="color:var(--mu);font-size:12px">MW</div>
+      </div>
+      <div class="result">
+        <div class="r-label">ANNUAL ENERGY</div>
+        <div class="r-val" id="annual">—</div>
+        <div style="color:var(--mu);font-size:12px">GWh/yr</div>
+      </div>
+      <div class="result">
+        <div class="r-label">HYDRAULIC POWER (no losses)</div>
+        <div class="r-val" id="hydro">—</div>
+        <div style="color:var(--mu);font-size:12px">kW</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:12px">TURBINE TYPE REFERENCE</div>
+    <table class="tbl">
+      <thead><tr><th>Type</th><th>Head Range</th><th>Flow Range</th><th>Typical η</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr><td>Pelton</td><td>100 – 2000 m</td><td>0.1 – 50 m³/s</td><td>0.85 – 0.92</td><td>Mountain hydro</td></tr>
+        <tr><td>Francis</td><td>10 – 650 m</td><td>1 – 1000 m³/s</td><td>0.82 – 0.93</td><td>General purpose</td></tr>
+        <tr><td>Kaplan</td><td>2 – 40 m</td><td>10 – 5000 m³/s</td><td>0.80 – 0.92</td><td>Run-of-river, tidal</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const defaults={pelton:{h:300,q:1,et:0.90},francis:{h:50,q:5,et:0.85},kaplan:{h:10,q:200,et:0.88}};
+function setDefaults(){
+  const t=document.getElementById('turbtype').value;
+  document.getElementById('head').value=defaults[t].h;
+  document.getElementById('flow').value=defaults[t].q;
+  document.getElementById('eta_t').value=defaults[t].et;
+  calc();
+}
+function calc(){
+  const H=parseFloat(document.getElementById('head').value)||0;
+  const Q=parseFloat(document.getElementById('flow').value)||0;
+  const et=parseFloat(document.getElementById('eta_t').value)||0;
+  const eg=parseFloat(document.getElementById('eta_g').value)||0;
+  const cf=parseFloat(document.getElementById('cf').value)||0;
+  const rho=1000, g=9.81;
+  const Ph=rho*g*H*Q/1000;
+  const P=Ph*et*eg;
+  const annual=P*8760*(cf/100)/1e6;
+  document.getElementById('hydro').textContent=Ph.toFixed(1);
+  document.getElementById('power').textContent=P.toFixed(1);
+  document.getElementById('power_mw').textContent=(P/1000).toFixed(3);
+  document.getElementById('annual').textContent=annual.toFixed(3);
+}
+calc();
+</script>
+</body>
+</html>

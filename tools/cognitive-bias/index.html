@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cognitive Bias Reference — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#ec4899;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;line-height:1.5;}
+.tbl tr:hover td{background:rgba(255,255,255,.03);}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.Memory{background:rgba(236,72,153,.15);color:#ec4899;}
+.Decision{background:rgba(251,191,36,.15);color:#fbbf24;}
+.Social{background:rgba(52,211,153,.15);color:#34d399;}
+.Perception{background:rgba(129,140,248,.15);color:#818cf8;}
+.count{color:var(--mu);font-size:12px;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Cognitive Bias Reference</h1>
+  <p class="sub">20 biases that distort thinking — search by name, category, or keyword.</p>
+
+  <div class="card">
+    <input type="text" id="search" placeholder="Search biases..." oninput="filter()">
+    <p class="count" id="count">Showing 20 of 20 biases</p>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:18%">Name</th>
+          <th style="width:14%">Category</th>
+          <th style="width:38%">Description</th>
+          <th>Debiasing Tip</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const biases=[
+  {name:"Confirmation Bias",cat:"Decision",desc:"Favoring information that confirms existing beliefs while ignoring contradicting evidence.",tip:"Actively seek disconfirming evidence; assign a devil's advocate before decisions."},
+  {name:"Availability Heuristic",cat:"Memory",desc:"Judging probability by how easily examples come to mind, skewing toward vivid or recent events.",tip:"Ask for base-rate data before estimating likelihood; distrust gut probability on rare events."},
+  {name:"Anchoring Effect",cat:"Decision",desc:"Over-relying on the first piece of information encountered when making decisions.",tip:"Generate your own estimate before seeing any anchor; consider multiple reference points."},
+  {name:"Dunning-Kruger Effect",cat:"Perception",desc:"Low-ability individuals overestimate their competence; experts underestimate theirs.",tip:"Seek external feedback calibration; track prediction accuracy over time."},
+  {name:"Sunk Cost Fallacy",cat:"Decision",desc:"Continuing a behavior due to past investments (time, money) rather than future value.",tip:"Frame every decision as 'if starting fresh today, would I choose this?' Ignore sunk costs."},
+  {name:"Halo Effect",cat:"Social",desc:"One positive trait (e.g. attractiveness) causes globally positive impressions of unrelated traits.",tip:"Evaluate each attribute independently; use structured assessment rubrics."},
+  {name:"In-group Bias",cat:"Social",desc:"Favoring members of one's own group over outsiders, often unconsciously.",tip:"Use blind review processes; explicitly consider out-group perspectives."},
+  {name:"Hindsight Bias",cat:"Memory",desc:"After an event, believing you 'knew it all along' — distorting memory of prior uncertainty.",tip:"Keep a decision journal with pre-event probability estimates to reference later."},
+  {name:"Optimism Bias",cat:"Perception",desc:"Overestimating the likelihood of positive outcomes and underestimating negative ones.",tip:"Use reference-class forecasting; compare to base rates of similar projects or ventures."},
+  {name:"Framing Effect",cat:"Decision",desc:"Drawing different conclusions from identical information depending on how it is presented.",tip:"Reframe problems in multiple ways (gain vs. loss) before deciding."},
+  {name:"Fundamental Attribution Error",cat:"Social",desc:"Attributing others' behavior to character while attributing your own to circumstances.",tip:"Before judging, ask what situational pressures the other person may be facing."},
+  {name:"Recency Bias",cat:"Memory",desc:"Weighting recent events more heavily than older ones when assessing trends or performance.",tip:"Extend your analysis window; plot long-term data before drawing conclusions."},
+  {name:"Groupthink",cat:"Social",desc:"Desire for harmony in a group overrides realistic appraisal of alternatives.",tip:"Assign a formal dissenter role; allow anonymous pre-vote submissions."},
+  {name:"Bandwagon Effect",cat:"Social",desc:"Adopting beliefs or behaviors because others do, regardless of personal evidence.",tip:"Form your own position before polling others; examine why the crowd might be wrong."},
+  {name:"Status Quo Bias",cat:"Decision",desc:"Preference for the current state of affairs; change perceived as a loss rather than a gain.",tip:"Evaluate the cost of inaction explicitly; ask 'what is the opportunity cost of staying?'"},
+  {name:"Narrative Fallacy",cat:"Perception",desc:"Constructing coherent stories from random events, creating false causal explanations.",tip:"Distinguish correlation from causation; look for alternative explanations before story-building."},
+  {name:"Planning Fallacy",cat:"Decision",desc:"Underestimating time and costs needed to complete projects despite knowledge of past overruns.",tip:"Use reference-class forecasting; multiply estimates by 1.5–2× as a starting rule."},
+  {name:"Curse of Knowledge",cat:"Perception",desc:"Experts assume others share their knowledge, impairing communication and instruction.",tip:"Explain concepts to a novice; use the Feynman technique to test your own clarity."},
+  {name:"Peak-End Rule",cat:"Memory",desc:"Judging an experience by its most intense point and its end, ignoring duration.",tip:"When evaluating outcomes, reconstruct the full timeline rather than relying on emotional peaks."},
+  {name:"Illusion of Control",cat:"Perception",desc:"Overestimating personal influence over external, chance-driven outcomes.",tip:"Separate variables you control from those you don't; track prediction accuracy against random baselines."},
+];
+
+function catClass(c){
+  if(c==="Decision") return "Decision";
+  if(c==="Memory") return "Memory";
+  if(c==="Social") return "Social";
+  return "Perception";
+}
+
+function render(data){
+  const tb=document.getElementById("tbody");
+  tb.innerHTML=data.map(b=>`<tr>
+    <td style="font-weight:600">${b.name}</td>
+    <td><span class="badge ${catClass(b.cat)}">${b.cat}</span></td>
+    <td>${b.desc}</td>
+    <td style="color:var(--mu)">${b.tip}</td>
+  </tr>`).join("");
+  document.getElementById("count").textContent=`Showing ${data.length} of ${biases.length} biases`;
+}
+
+function filter(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const filtered=biases.filter(b=>
+    b.name.toLowerCase().includes(q)||
+    b.cat.toLowerCase().includes(q)||
+    b.desc.toLowerCase().includes(q)||
+    b.tip.toLowerCase().includes(q)
+  );
+  render(filtered);
+}
+
+render(biases);
+</script>
+</body>
+</html>

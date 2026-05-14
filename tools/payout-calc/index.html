@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foundation Payout Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb7185;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+button{background:var(--acc);color:#000;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;margin-top:12px;}
+button.sec{background:rgba(255,255,255,.07);color:var(--tx);}
+.warn{background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.35);border-radius:8px;padding:12px 14px;font-size:13px;color:#fb7185;margin-top:12px;}
+.ok{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:8px;padding:12px 14px;font-size:13px;color:#34d399;margin-top:12px;}
+.year-row{display:grid;grid-template-columns:60px 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
+.surplus{color:#34d399;}
+.deficit{color:#fb7185;}
+.note-box{background:rgba(255,255,255,.02);border:1px solid var(--bd);border-radius:8px;padding:14px;font-size:12px;color:var(--mu);margin-top:4px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Back</a>
+  <h1>Foundation Payout Calculator</h1>
+  <p class="sub">IRC §4942 minimum distribution requirement tracker with carryover logic</p>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;">CURRENT YEAR</div>
+    <div class="grid3">
+      <div>
+        <label>Net Investment Assets ($)</label>
+        <input type="number" id="assets" placeholder="10000000" value="10000000" oninput="calcSingle()">
+      </div>
+      <div>
+        <label>Target Payout Rate (%)</label>
+        <input type="number" id="rate" value="5" min="1" max="20" step="0.1" oninput="calcSingle()">
+      </div>
+      <div>
+        <label>Actual Distributions ($)</label>
+        <input type="number" id="actual" placeholder="500000" value="520000" oninput="calcSingle()">
+      </div>
+    </div>
+    <div id="singleResult"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;">MULTI-YEAR TRACKER (up to 5 years)</div>
+      <button class="sec" style="margin-top:0;padding:6px 12px;font-size:12px;" onclick="addYear()">+ Add Year</button>
+    </div>
+    <div id="yearHeader" class="year-row" style="padding-bottom:6px;border-bottom:1px solid var(--bd);">
+      <span style="font-size:11px;color:var(--mu);font-weight:600;">YEAR</span>
+      <span style="font-size:11px;color:var(--mu);font-weight:600;">NET ASSETS ($)</span>
+      <span style="font-size:11px;color:var(--mu);font-weight:600;">REQUIRED ($)</span>
+      <span style="font-size:11px;color:var(--mu);font-weight:600;">ACTUAL ($)</span>
+      <span style="font-size:11px;color:var(--mu);font-weight:600;">+/- ($)</span>
+      <span></span>
+    </div>
+    <div id="yearList"></div>
+    <div id="carryoverNote"></div>
+  </div>
+
+  <div class="note-box">
+    <strong style="color:var(--tx);">IRS Compliance — IRC §4942</strong><br>
+    Private foundations must distribute at least 5% of the fair market value of non-charitable-use assets each year as "qualifying distributions." Qualifying distributions include grants, reasonable administrative expenses, and program-related investments (PRIs). Failure to meet the minimum results in a 30% excise tax on the undistributed amount. Excess distributions from prior years can be carried forward one year to satisfy the current year minimum. Consult qualified tax counsel for your specific situation.
+  </div>
+</div>
+
+<script>
+let years = [];
+
+function fmt(n){return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+function calcSingle(){
+  const assets = parseFloat(document.getElementById('assets').value)||0;
+  const rate = parseFloat(document.getElementById('rate').value)||5;
+  const actual = parseFloat(document.getElementById('actual').value)||0;
+  const required = assets * (rate/100);
+  const diff = actual - required;
+  const div = document.getElementById('singleResult');
+  div.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;">
+      <div><div class="r-label">REQUIRED MIN.</div><div class="r-val" style="font-size:20px;">${fmt(required)}</div></div>
+      <div><div class="r-label">ACTUAL DIST.</div><div class="r-val" style="font-size:20px;">${fmt(actual)}</div></div>
+      <div><div class="r-label">SURPLUS / DEFICIT</div><div class="r-val ${diff>=0?'':'deficit'}" style="font-size:20px;color:${diff>=0?'#34d399':'#fb7185'}">${diff>=0?'+':''}${fmt(diff)}</div></div>
+    </div>
+    ${diff<0?`<div class="warn">Shortfall of ${fmt(Math.abs(diff))}. Excise tax exposure: ${fmt(Math.abs(diff)*0.30)} (30% of undistributed amount per IRC §4942).</div>`:`<div class="ok">Compliant. Excess of ${fmt(diff)} eligible for 1-year carryover to next year's minimum.</div>`}
+  `;
+}
+
+function addYear(){
+  if(years.length>=5){alert('Maximum 5 years supported.');return;}
+  const assets = parseFloat(document.getElementById('assets').value)||0;
+  const rate = parseFloat(document.getElementById('rate').value)||5;
+  const actual = parseFloat(document.getElementById('actual').value)||0;
+  const yr = new Date().getFullYear() - years.length;
+  years.unshift({yr, assets, rate, actual, id:Date.now()});
+  renderYears();
+}
+
+function removeYear(id){years=years.filter(y=>y.id!==id);renderYears();}
+
+function renderYears(){
+  const list = document.getElementById('yearList');
+  if(!years.length){list.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:18px 0;">Add years using the button above.</div>';document.getElementById('carryoverNote').innerHTML='';return;}
+  let html='';
+  let carryover=0;
+  let carryoverYear=null;
+  years.slice().reverse().forEach((y,i)=>{
+    const required = y.assets*(y.rate/100);
+    const effectiveRequired = Math.max(0, required - carryover);
+    const diff = y.actual - required;
+    const carryApplied = Math.min(carryover, required);
+    carryover = diff>0?diff:0;
+    carryoverYear = diff>0?y.yr:null;
+    html+=`<div class="year-row">
+      <span style="font-weight:600;">${y.yr}</span>
+      <span>$${(y.assets/1e6).toFixed(2)}M</span>
+      <span>${fmt(required)}</span>
+      <span>${fmt(y.actual)}</span>
+      <span class="${diff>=0?'surplus':'deficit'}">${diff>=0?'+':''}${fmt(diff)}</span>
+      <button style="margin-top:0;padding:4px 10px;font-size:12px;background:rgba(255,255,255,.06);color:var(--mu);" onclick="removeYear(${y.id})">×</button>
+    </div>`;
+  });
+  list.innerHTML=html;
+  const co=document.getElementById('carryoverNote');
+  if(carryover>0&&carryoverYear){
+    co.innerHTML=`<div style="font-size:12px;color:var(--mu);margin-top:12px;">Carryover from ${carryoverYear}: ${fmt(carryover)} eligible to offset ${carryoverYear+1} minimum.</div>`;
+  } else {co.innerHTML='';}
+}
+
+calcSingle();
+</script>
+</body>
+</html>

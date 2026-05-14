@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-commerce Profit Margins — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;}
+.metric{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:12px;}
+.bar-bg{height:6px;background:rgba(255,255,255,.08);border-radius:3px;margin-top:6px;}
+.bar-fill{height:6px;border-radius:3px;background:var(--acc);}
+.neg{color:#f87171;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="/tools/">← Tools</a>
+<h1>E-commerce Profit Margins</h1>
+<p class="sub">Category: E-commerce — Full margin stack, breakeven calculator, and channel comparison.</p>
+
+<div class="card">
+  <h2 style="font-size:15px;font-weight:600;margin-bottom:4px;">Product Economics</h2>
+  <div class="grid2">
+    <div>
+      <label>Selling Price ($)</label>
+      <input id="price" type="number" step="0.01" placeholder="29.99" oninput="calc()">
+    </div>
+    <div>
+      <label>COGS — Product Cost ($)</label>
+      <input id="cogs" type="number" step="0.01" placeholder="8.00" oninput="calc()">
+    </div>
+  </div>
+  <div class="grid3">
+    <div>
+      <label>Shipping Cost ($)</label>
+      <input id="ship" type="number" step="0.01" placeholder="4.50" oninput="calc()">
+    </div>
+    <div>
+      <label>Payment Processing (%)</label>
+      <input id="proc_pct" type="number" step="0.1" value="2.9" oninput="calc()">
+    </div>
+    <div>
+      <label>Fixed Fee per Txn ($)</label>
+      <input id="proc_fix" type="number" step="0.01" value="0.30" oninput="calc()">
+    </div>
+  </div>
+  <div class="grid2">
+    <div>
+      <label>Platform</label>
+      <select id="platform" onchange="setPlatformFee()">
+        <option value="15">Amazon (15%)</option>
+        <option value="2">Shopify (2%)</option>
+        <option value="6.5">Etsy (6.5%)</option>
+        <option value="0">DTC / Own Site (0%)</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </div>
+    <div>
+      <label>Platform Fee (%)</label>
+      <input id="plat_pct" type="number" step="0.1" value="15" oninput="calc()">
+    </div>
+  </div>
+  <div>
+    <label>Return Rate (%)</label>
+    <input id="return_rate" type="number" step="0.1" value="5" oninput="calc()">
+  </div>
+</div>
+
+<div class="card" id="resultsCard" style="display:none;">
+  <h2 style="font-size:15px;font-weight:600;margin-bottom:12px;">Margin Breakdown</h2>
+  <div class="metric-row">
+    <div class="metric">
+      <div class="r-label">NET REVENUE</div>
+      <div class="r-val" id="net_rev" style="font-size:20px">—</div>
+    </div>
+    <div class="metric">
+      <div class="r-label">GROSS PROFIT</div>
+      <div class="r-val" id="gross_profit" style="font-size:20px">—</div>
+    </div>
+    <div class="metric">
+      <div class="r-label">NET PROFIT</div>
+      <div class="r-val" id="net_profit" style="font-size:20px">—</div>
+    </div>
+    <div class="metric">
+      <div class="r-label">FEES TOTAL</div>
+      <div class="r-val" id="fees_total" style="font-size:20px;color:var(--mu)">—</div>
+    </div>
+  </div>
+  <div class="metric-row" style="grid-template-columns:1fr 1fr;margin-top:12px;">
+    <div class="metric">
+      <div class="r-label">GROSS MARGIN</div>
+      <div class="r-val" id="gross_margin">—</div>
+      <div class="bar-bg"><div class="bar-fill" id="gm_bar" style="width:0%"></div></div>
+    </div>
+    <div class="metric">
+      <div class="r-label">NET MARGIN</div>
+      <div class="r-val" id="net_margin">—</div>
+      <div class="bar-bg"><div class="bar-fill" id="nm_bar" style="width:0%;background:#22c55e"></div></div>
+    </div>
+  </div>
+  <div style="margin-top:16px;font-size:12px;">
+    <table class="tbl">
+      <tbody id="stackBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2 style="font-size:15px;font-weight:600;margin-bottom:12px;">Breakeven Calculator</h2>
+  <div class="grid2">
+    <div>
+      <label>Target Net Margin (%)</label>
+      <input id="target_margin" type="number" step="0.5" value="20" oninput="calcBreakeven()">
+    </div>
+    <div style="display:flex;align-items:flex-end;">
+      <div class="result" style="width:100%;margin-top:0;padding:12px;">
+        <div class="r-label">MIN SELLING PRICE</div>
+        <div class="r-val" id="breakeven_price" style="font-size:22px">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 style="font-size:15px;font-weight:600;margin-bottom:12px;">Channel Comparison</h2>
+  <p style="color:var(--mu);font-size:12px;margin-bottom:12px;">Same product across channels (uses your COGS, shipping, processing inputs above)</p>
+  <table class="tbl">
+    <thead><tr>
+      <th>Channel</th><th>Platform Fee</th><th>Net Profit</th><th>Net Margin</th><th>Breakeven Price</th>
+    </tr></thead>
+    <tbody id="channelBody"></tbody>
+  </table>
+</div>
+
+</div>
+<script>
+const channels = [
+  {name:'Amazon',fee:15},
+  {name:'Shopify',fee:2},
+  {name:'Etsy',fee:6.5},
+  {name:'DTC',fee:0},
+];
+
+function setPlatformFee(){
+  const sel = document.getElementById('platform');
+  if(sel.value==='custom') return;
+  document.getElementById('plat_pct').value = sel.value;
+  calc();
+}
+
+function getInputs(){
+  return {
+    price: parseFloat(document.getElementById('price').value)||0,
+    cogs: parseFloat(document.getElementById('cogs').value)||0,
+    ship: parseFloat(document.getElementById('ship').value)||0,
+    proc_pct: parseFloat(document.getElementById('proc_pct').value)||0,
+    proc_fix: parseFloat(document.getElementById('proc_fix').value)||0,
+    plat_pct: parseFloat(document.getElementById('plat_pct').value)||0,
+    return_rate: parseFloat(document.getElementById('return_rate').value)||0,
+  };
+}
+
+function calcMargins(inp, plat_pct_override){
+  const plat = plat_pct_override !== undefined ? plat_pct_override : inp.plat_pct;
+  const net_rev = inp.price * (1 - inp.return_rate/100);
+  const gross_profit = net_rev - inp.cogs - inp.ship;
+  const proc_fee = net_rev * (inp.proc_pct/100) + inp.proc_fix;
+  const plat_fee = net_rev * (plat/100);
+  const net_profit = gross_profit - proc_fee - plat_fee;
+  const gross_margin = inp.price > 0 ? (gross_profit/net_rev)*100 : 0;
+  const net_margin = inp.price > 0 ? (net_profit/net_rev)*100 : 0;
+  return {net_rev, gross_profit, net_profit, gross_margin, net_margin, proc_fee, plat_fee, fees: proc_fee+plat_fee};
+}
+
+function fmt(v){return '$'+v.toFixed(2);}
+function fmtPct(v){return v.toFixed(1)+'%';}
+
+function calc(){
+  const inp = getInputs();
+  if(!inp.price || !inp.cogs){document.getElementById('resultsCard').style.display='none';return;}
+  const r = calcMargins(inp);
+  document.getElementById('resultsCard').style.display='';
+  document.getElementById('net_rev').textContent = fmt(r.net_rev);
+  document.getElementById('gross_profit').textContent = fmt(r.gross_profit);
+  const npEl = document.getElementById('net_profit');
+  npEl.textContent = fmt(r.net_profit);
+  npEl.className = r.net_profit < 0 ? 'r-val neg' : 'r-val';
+  document.getElementById('fees_total').textContent = fmt(r.fees);
+  const gm = document.getElementById('gross_margin');
+  gm.textContent = fmtPct(r.gross_margin);
+  gm.className = r.gross_margin < 0 ? 'r-val neg' : 'r-val';
+  const nm = document.getElementById('net_margin');
+  nm.textContent = fmtPct(r.net_margin);
+  nm.className = r.net_margin < 0 ? 'r-val neg' : 'r-val';
+  document.getElementById('gm_bar').style.width = Math.max(0,Math.min(100,r.gross_margin))+'%';
+  document.getElementById('nm_bar').style.width = Math.max(0,Math.min(100,r.net_margin))+'%';
+  document.getElementById('nm_bar').style.background = r.net_margin < 0 ? '#f87171' : '#22c55e';
+
+  const rows = [
+    ['Selling Price', fmt(inp.price),''],
+    ['× (1 − Return Rate)', `× ${(1-inp.return_rate/100).toFixed(3)}`,''],
+    ['= Net Revenue', fmt(r.net_rev),'100%'],
+    ['− COGS', fmt(-inp.cogs), fmtPct(-inp.cogs/r.net_rev*100)],
+    ['− Shipping', fmt(-inp.ship), fmtPct(-inp.ship/r.net_rev*100)],
+    ['= Gross Profit', fmt(r.gross_profit), fmtPct(r.gross_margin)],
+    ['− Payment Processing', fmt(-r.proc_fee), fmtPct(-r.proc_fee/r.net_rev*100)],
+    ['− Platform Fee', fmt(-r.plat_fee), fmtPct(-r.plat_fee/r.net_rev*100)],
+    ['= Net Profit', fmt(r.net_profit), fmtPct(r.net_margin)],
+  ];
+  document.getElementById('stackBody').innerHTML = rows.map(([l,v,p])=>
+    `<tr><td style="color:var(--mu)">${l}</td><td style="text-align:right;font-weight:${l.startsWith('=')?'700':'400'};color:${l.startsWith('=')?'var(--tx)':'var(--mu)'}">${v}</td><td style="text-align:right;color:var(--mu);font-size:12px">${p}</td></tr>`
+  ).join('');
+
+  calcBreakeven();
+  calcChannels();
+}
+
+function calcBreakeven(){
+  const inp = getInputs();
+  const tm = parseFloat(document.getElementById('target_margin').value)||20;
+  // net_profit/net_rev = tm/100
+  // net_rev*(1 - tm/100) = cogs + ship + proc_fix + proc_pct*net_rev + plat_pct*net_rev
+  // net_rev*(1 - tm/100 - proc_pct/100 - plat_pct/100) = cogs + ship + proc_fix
+  // net_rev = (cogs+ship+proc_fix) / (1 - tm/100 - proc_pct/100 - plat_pct/100)
+  // price = net_rev / (1 - return_rate/100)
+  const denom = 1 - tm/100 - inp.proc_pct/100 - inp.plat_pct/100;
+  if(denom <= 0){document.getElementById('breakeven_price').textContent='N/A';return;}
+  const net_rev_needed = (inp.cogs + inp.ship + inp.proc_fix) / denom;
+  const price_needed = net_rev_needed / (1 - inp.return_rate/100);
+  document.getElementById('breakeven_price').textContent = fmt(price_needed);
+}
+
+function calcChannels(){
+  const inp = getInputs();
+  const tm = parseFloat(document.getElementById('target_margin').value)||20;
+  const tbody = document.getElementById('channelBody');
+  tbody.innerHTML = channels.map(ch=>{
+    const r = calcMargins(inp, ch.fee);
+    const denom = 1 - tm/100 - inp.proc_pct/100 - ch.fee/100;
+    const be = denom>0 ? fmt((inp.cogs+inp.ship+inp.proc_fix)/denom/(1-inp.return_rate/100)) : 'N/A';
+    const npColor = r.net_profit<0?'#f87171':'#22c55e';
+    const nmColor = r.net_margin<0?'#f87171':'#22c55e';
+    return `<tr>
+      <td style="font-weight:600">${ch.name}</td>
+      <td style="color:var(--mu)">${ch.fee}%</td>
+      <td style="color:${npColor};font-weight:600">${fmt(r.net_profit)}</td>
+      <td style="color:${nmColor};font-weight:600">${fmtPct(r.net_margin)}</td>
+      <td style="color:var(--mu)">${be}</td>
+    </tr>`;
+  }).join('');
+}
+
+// init
+document.getElementById('price').value='29.99';
+document.getElementById('cogs').value='8.00';
+document.getElementById('ship').value='4.50';
+calc();
+</script>
+</body>
+</html>

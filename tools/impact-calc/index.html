@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Charitable Impact Estimator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#fb7185;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+button{background:var(--acc);color:#000;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;margin-top:12px;}
+.conf-high{color:#34d399;}
+.conf-med{color:#f59e0b;}
+.conf-low{color:#fb7185;}
+.bar-bg{background:rgba(255,255,255,.06);border-radius:4px;height:8px;width:100%;margin-top:4px;}
+.bar-fg{background:var(--acc);border-radius:4px;height:8px;transition:width .4s;}
+.cause-card{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px;}
+.cause-name{font-weight:600;font-size:14px;margin-bottom:4px;}
+.cause-meta{font-size:12px;color:var(--mu);margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Back</a>
+  <h1>Charitable Impact Estimator</h1>
+  <p class="sub">GiveWell-style cost-effectiveness estimates across cause areas</p>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>Donation Amount ($)</label>
+        <input type="number" id="donation" value="1000" min="1" oninput="calc()">
+      </div>
+      <div>
+        <label>Primary Cause Area</label>
+        <select id="cause" onchange="calc()">
+          <option value="health">Global Health</option>
+          <option value="education">Education</option>
+          <option value="animals">Animal Welfare</option>
+          <option value="climate">Climate</option>
+          <option value="criminal">Criminal Justice</option>
+          <option value="mental">Mental Health</option>
+          <option value="poverty">Poverty Alleviation</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="primary" class="card"></div>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:14px;">CROSS-CAUSE COMPARISON (normalized to your donation)</div>
+    <div id="comparison"></div>
+    <p style="font-size:11px;color:var(--mu);margin-top:14px;">DALY = Disability-Adjusted Life Year. Estimates are central-case approximations based on GiveWell and Open Philanthropy research. Confidence levels reflect evidence base quality. Past cost-effectiveness may not reflect marginal donations.</p>
+  </div>
+</div>
+
+<script>
+const CAUSES = {
+  health: {
+    name: "Global Health",
+    metric: "lives saved (malaria nets ~$4,500/life)",
+    metricShort: "lives saved",
+    per1000: 1/4.5,
+    dalysper1000: 30,
+    desc: "Malaria nets (Against Malaria Foundation), vitamin A supplementation, deworming. Highly cost-effective due to low-cost interventions in high-disease-burden settings.",
+    conf: "High",
+    unit: "lives",
+    cpUnit: 4500
+  },
+  education: {
+    name: "Education",
+    metric: "years of additional schooling (~$100/year avg)",
+    metricShort: "years schooling",
+    per1000: 10,
+    dalysper1000: 2,
+    desc: "Direct primary education, tutoring programs, conditional cash transfers. Evidence quality varies significantly by program and context.",
+    conf: "Medium",
+    unit: "school-years",
+    cpUnit: 100
+  },
+  animals: {
+    name: "Animal Welfare",
+    metric: "farm animal years improved (~$5/animal-year)",
+    metricShort: "animal-years improved",
+    per1000: 200,
+    dalysper1000: 0.5,
+    desc: "Corporate cage-free campaigns, welfare reforms in factory farming. Very high reach per dollar but significant uncertainty in welfare weights.",
+    conf: "Low",
+    unit: "animal-years",
+    cpUnit: 5
+  },
+  climate: {
+    name: "Climate",
+    metric: "tonnes CO₂e avoided (~$50/tonne avg)",
+    metricShort: "tonnes CO₂e avoided",
+    per1000: 20,
+    dalysper1000: 1,
+    desc: "Policy advocacy, clean energy R&D, direct carbon removal. Cost-effectiveness varies enormously. Best opportunities may be in policy leverage.",
+    conf: "Low",
+    unit: "tCO₂e",
+    cpUnit: 50
+  },
+  criminal: {
+    name: "Criminal Justice",
+    metric: "years of incarceration reduced (est. ~$3,000/year)",
+    metricShort: "incarceration-years reduced",
+    per1000: 0.33,
+    dalysper1000: 1.5,
+    desc: "Policy reform, reentry support, legal aid. Significant uncertainty and context-dependence. Often higher leverage through systemic change.",
+    conf: "Low",
+    unit: "incarceration-years",
+    cpUnit: 3000
+  },
+  mental: {
+    name: "Mental Health",
+    metric: "depression/anxiety cases treated (~$1,000/case)",
+    metricShort: "cases treated",
+    per1000: 1,
+    dalysper1000: 3,
+    desc: "Therapy access, crisis lines, StrongMinds (group therapy in Uganda). Mental health is underfunded relative to burden; evidence base growing.",
+    conf: "Medium",
+    unit: "cases",
+    cpUnit: 1000
+  },
+  poverty: {
+    name: "Poverty Alleviation",
+    metric: "people lifted above $2.15/day threshold (est. ~$2,000/person)",
+    metricShort: "people reached",
+    per1000: 0.5,
+    dalysper1000: 4,
+    desc: "Direct cash transfers (GiveDirectly), microfinance, livelihood programs. Cash transfers have strong evidence; multiplier effects vary.",
+    conf: "High",
+    unit: "people",
+    cpUnit: 2000
+  }
+};
+
+function confColor(c){return c==='High'?'conf-high':c==='Medium'?'conf-med':'conf-low';}
+
+function calc(){
+  const amt = parseFloat(document.getElementById('donation').value)||0;
+  const key = document.getElementById('cause').value;
+  const c = CAUSES[key];
+  const factor = amt/1000;
+  const outcomes = (c.per1000 * factor);
+  const dalys = (c.dalysper1000 * factor);
+
+  let outStr = outcomes >= 0.01 ? outcomes.toLocaleString('en-US',{maximumFractionDigits:2}) : outcomes.toFixed(4);
+
+  const primDiv = document.getElementById('primary');
+  primDiv.innerHTML = `
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:14px;">PRIMARY ESTIMATE — ${c.name.toUpperCase()}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div>
+        <div class="r-label">ESTIMATED OUTCOMES</div>
+        <div class="r-val">${outStr}</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:2px;">${c.metricShort}</div>
+      </div>
+      <div>
+        <div class="r-label">DALY EQUIVALENT</div>
+        <div class="r-val">${dalys >= 0.01 ? dalys.toLocaleString('en-US',{maximumFractionDigits:2}) : dalys.toFixed(4)}</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:2px;">DALYs averted (est.)</div>
+      </div>
+      <div>
+        <div class="r-label">CONFIDENCE</div>
+        <div class="r-val ${confColor(c.conf)}" style="font-size:20px;">${c.conf}</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:2px;">evidence base</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:8px;">${c.desc}</div>
+    <div style="font-size:12px;color:var(--mu);">Cost per ${c.unit}: ~$${c.cpUnit.toLocaleString()}</div>
+  `;
+
+  const compDiv = document.getElementById('comparison');
+  const allDalys = Object.entries(CAUSES).map(([k,v])=>({k,v,d:v.dalysper1000*(amt/1000)}));
+  const maxD = Math.max(...allDalys.map(x=>x.d));
+  let html = '';
+  allDalys.sort((a,b)=>b.d-a.d).forEach(({k,v,d})=>{
+    const pct = maxD>0?(d/maxD)*100:0;
+    const active = k===key;
+    html+=`<div class="cause-card" style="${active?'border-color:var(--acc);':'' }">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="cause-name" style="${active?'color:var(--acc)':''}">${v.name}</div>
+          <div class="cause-meta">${d>=0.01?d.toLocaleString('en-US',{maximumFractionDigits:2}):d.toFixed(4)} DALYs averted · <span class="${confColor(v.conf)}">${v.conf} confidence</span></div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:var(--mu);">$${v.cpUnit.toLocaleString()}/${v.unit}</div>
+      </div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${pct.toFixed(1)}%"></div></div>
+    </div>`;
+  });
+  compDiv.innerHTML = html;
+}
+
+calc();
+</script>
+</body>
+</html>

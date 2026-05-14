@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>National Power Index — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#c8a96e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:720px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+button{background:var(--acc);color:#000;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;margin-right:6px;}
+button.sec{background:rgba(255,255,255,.07);color:var(--tx);}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:28px;font-weight:700;color:var(--acc);}
+canvas{display:block;margin:0 auto;}
+.country-col{padding:16px;}
+.score-bar-bg{height:8px;background:rgba(255,255,255,.06);border-radius:4px;margin-top:6px;}
+.score-bar-fg{height:8px;border-radius:4px;background:var(--acc);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Back</a>
+  <h1>National Power Index</h1>
+  <p class="sub">Weighted composite power score — compare two countries with radar chart</p>
+
+  <div class="card">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;">PRESETS</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <button class="sec" onclick="loadPreset('A','USA')">USA → A</button>
+      <button class="sec" onclick="loadPreset('A','China')">China → A</button>
+      <button class="sec" onclick="loadPreset('A','Russia')">Russia → A</button>
+      <button class="sec" onclick="loadPreset('B','USA')">USA → B</button>
+      <button class="sec" onclick="loadPreset('B','China')">China → B</button>
+      <button class="sec" onclick="loadPreset('B','India')">India → B</button>
+      <button class="sec" onclick="loadPreset('B','Brazil')">Brazil → B</button>
+      <button class="sec" onclick="loadPreset('B','EU')">EU → B</button>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div style="color:var(--acc);font-weight:700;font-size:13px;margin-bottom:8px;">COUNTRY A</div>
+      <label>Name</label><input id="aName" value="USA" oninput="calc()">
+      <label>GDP PPP ($T)</label><input type="number" id="aGdp" value="25.4" step="0.1" oninput="calc()">
+      <label>Population (M)</label><input type="number" id="aPop" value="335" oninput="calc()">
+      <label>Military Spend ($B)</label><input type="number" id="aMil" value="858" oninput="calc()">
+      <label>Nuclear (0=No, 1=Yes)</label><input type="number" id="aNuc" value="1" min="0" max="1" oninput="calc()">
+      <label>UNSC Perm. Seat (0/1)</label><input type="number" id="aUnsc" value="1" min="0" max="1" oninput="calc()">
+      <label>Soft Power (0–100)</label><input type="number" id="aSoft" value="75" min="0" max="100" oninput="calc()">
+      <label>Territory (km²)</label><input type="number" id="aTerr" value="9834000" oninput="calc()">
+      <label>Coastline (km)</label><input type="number" id="aCoast" value="19924" oninput="calc()">
+      <div style="margin-top:16px;"><div class="r-label">POWER INDEX</div><div class="r-val" id="aScore">—</div><div class="score-bar-bg"><div class="score-bar-fg" id="aBar" style="width:0%"></div></div></div>
+    </div>
+    <div class="card">
+      <div style="color:#60a5fa;font-weight:700;font-size:13px;margin-bottom:8px;">COUNTRY B</div>
+      <label>Name</label><input id="bName" value="China" oninput="calc()">
+      <label>GDP PPP ($T)</label><input type="number" id="bGdp" value="30.1" step="0.1" oninput="calc()">
+      <label>Population (M)</label><input type="number" id="bPop" value="1412" oninput="calc()">
+      <label>Military Spend ($B)</label><input type="number" id="bMil" value="224" oninput="calc()">
+      <label>Nuclear (0=No, 1=Yes)</label><input type="number" id="bNuc" value="1" min="0" max="1" oninput="calc()">
+      <label>UNSC Perm. Seat (0/1)</label><input type="number" id="bUnsc" value="1" min="0" max="1" oninput="calc()">
+      <label>Soft Power (0–100)</label><input type="number" id="bSoft" value="55" min="0" max="100" oninput="calc()">
+      <label>Territory (km²)</label><input type="number" id="bTerr" value="9597000" oninput="calc()">
+      <label>Coastline (km)</label><input type="number" id="bCoast" value="14500" oninput="calc()">
+      <div style="margin-top:16px;"><div class="r-label">POWER INDEX</div><div class="r-val" id="bScore" style="color:#60a5fa;">—</div><div class="score-bar-bg"><div class="score-bar-fg" id="bBar" style="width:0%;background:#60a5fa;"></div></div></div>
+    </div>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.05em;margin-bottom:12px;">RADAR COMPARISON</div>
+    <canvas id="radar" width="500" height="400"></canvas>
+  </div>
+
+  <div class="card" style="font-size:12px;color:var(--mu);line-height:1.7;">
+    Weights: GDP 30% · Military 25% · Population 15% · Nuclear 10% · UNSC 5% · Soft Power 10% · Territory+Coastline 5%. Normalization uses reference maxima (USA benchmarks). This is a heuristic composite — geopolitical reality involves far greater complexity.
+  </div>
+</div>
+
+<script>
+const PRESETS = {
+  USA:   {gdp:25.4, pop:335,  mil:858,  nuc:1, unsc:1, soft:75, terr:9834000, coast:19924},
+  China: {gdp:30.1, pop:1412, mil:224,  nuc:1, unsc:1, soft:55, terr:9597000, coast:14500},
+  Russia:{gdp:4.5,  pop:144,  mil:109,  nuc:1, unsc:1, soft:40, terr:17098000,coast:37650},
+  EU:    {gdp:22.0, pop:447,  mil:300,  nuc:1, unsc:0, soft:65, terr:4234000, coast:68000},
+  India: {gdp:11.9, pop:1430, mil:84,   nuc:1, unsc:0, soft:45, terr:3287000, coast:7517},
+  Brazil:{gdp:3.7,  pop:215,  mil:20,   nuc:0, unsc:0, soft:40, terr:8516000, coast:7491},
+};
+const NORMS = {gdp:30,pop:1500,mil:900,soft:100,terr:17100000,coast:70000};
+
+function loadPreset(side, name){
+  const p=PRESETS[name];
+  if(!p)return;
+  const s=side;
+  document.getElementById(s+'Name').value=name;
+  document.getElementById(s+'Gdp').value=p.gdp;
+  document.getElementById(s+'Pop').value=p.pop;
+  document.getElementById(s+'Mil').value=p.mil;
+  document.getElementById(s+'Nuc').value=p.nuc;
+  document.getElementById(s+'Unsc').value=p.unsc;
+  document.getElementById(s+'Soft').value=p.soft;
+  document.getElementById(s+'Terr').value=p.terr;
+  document.getElementById(s+'Coast').value=p.coast;
+  calc();
+}
+
+function getVals(s){
+  return{
+    gdp: parseFloat(document.getElementById(s+'Gdp').value)||0,
+    pop: parseFloat(document.getElementById(s+'Pop').value)||0,
+    mil: parseFloat(document.getElementById(s+'Mil').value)||0,
+    nuc: parseFloat(document.getElementById(s+'Nuc').value)||0,
+    unsc:parseFloat(document.getElementById(s+'Unsc').value)||0,
+    soft:parseFloat(document.getElementById(s+'Soft').value)||0,
+    terr:parseFloat(document.getElementById(s+'Terr').value)||0,
+    coast:parseFloat(document.getElementById(s+'Coast').value)||0,
+  };
+}
+
+function computeScore(v){
+  const n={
+    gdp: Math.min(1,v.gdp/NORMS.gdp),
+    pop: Math.min(1,v.pop/NORMS.pop),
+    mil: Math.min(1,v.mil/NORMS.mil),
+    nuc: v.nuc,
+    unsc:v.unsc,
+    soft:Math.min(1,v.soft/NORMS.soft),
+    terr:Math.min(1,(v.terr+v.coast*10)/NORMS.terr),
+  };
+  const score = n.gdp*30 + n.mil*25 + n.pop*15 + n.nuc*10 + n.unsc*5 + n.soft*10 + n.terr*5;
+  return{score:Math.round(score),n};
+}
+
+function calc(){
+  const va=getVals('A'), vb=getVals('B');
+  const ra=computeScore(va), rb=computeScore(vb);
+  const maxS=Math.max(ra.score,rb.score,1);
+  document.getElementById('aScore').textContent=ra.score;
+  document.getElementById('bScore').textContent=rb.score;
+  document.getElementById('aBar').style.width=(ra.score/100*100)+'%';
+  document.getElementById('bBar').style.width=(rb.score/100*100)+'%';
+  drawRadar(ra.n, rb.n,
+    document.getElementById('aName').value||'A',
+    document.getElementById('bName').value||'B');
+}
+
+function drawRadar(na, nb, nameA, nameB){
+  const canvas=document.getElementById('radar');
+  const W=canvas.width, H=canvas.height;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2, cy=H/2, R=155;
+  const labels=['GDP','Military','Population','Nuclear','UNSC','Soft Power','Geo'];
+  const valsA=[na.gdp,na.mil,na.pop,na.nuc,na.unsc,na.soft,na.terr];
+  const valsB=[nb.gdp,nb.mil,nb.pop,nb.nuc,nb.unsc,nb.soft,nb.terr];
+  const N=labels.length;
+  // Grid rings
+  [0.25,0.5,0.75,1].forEach(r=>{
+    ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const angle=(-Math.PI/2)+(2*Math.PI*i/N);
+      const x=cx+R*r*Math.cos(angle), y=cy+R*r*Math.sin(angle);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle='rgba(255,255,255,0.07)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+  });
+  // Axes
+  labels.forEach((_,i)=>{
+    const angle=(-Math.PI/2)+(2*Math.PI*i/N);
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+R*Math.cos(angle),cy+R*Math.sin(angle));
+    ctx.strokeStyle='rgba(255,255,255,0.1)';
+    ctx.stroke();
+    const lx=cx+(R+22)*Math.cos(angle), ly=cy+(R+22)*Math.sin(angle);
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.font='11px Inter,system-ui';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(labels[i],lx,ly);
+  });
+  // Plot A
+  function plotPoly(vals,color,fill){
+    ctx.beginPath();
+    vals.forEach((v,i)=>{
+      const angle=(-Math.PI/2)+(2*Math.PI*i/N);
+      const x=cx+R*v*Math.cos(angle), y=cy+R*v*Math.sin(angle);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle=color;
+    ctx.lineWidth=2;
+    ctx.stroke();
+    ctx.fillStyle=fill;
+    ctx.fill();
+  }
+  plotPoly(valsA,'#c8a96e','rgba(200,169,110,0.15)');
+  plotPoly(valsB,'#60a5fa','rgba(96,165,250,0.12)');
+  // Legend
+  ctx.fillStyle='#c8a96e';ctx.fillRect(cx-80,H-30,14,4);
+  ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='11px Inter';ctx.textAlign='left';
+  ctx.fillText(nameA,cx-62,H-26);
+  ctx.fillStyle='#60a5fa';ctx.fillRect(cx+10,H-30,14,4);
+  ctx.fillStyle='rgba(255,255,255,0.7)';ctx.fillText(nameB,cx+28,H-26);
+}
+
+calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gas Laws Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a855f7;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Gas Laws Calculator</h1>
+  <p class="sub">Chemistry — Ideal gas, Boyle's, Charles's, Gay-Lussac's, and combined gas law</p>
+  <div class="card">
+    <label>GAS LAW</label>
+    <select id="law" onchange="setLaw()">
+      <option value="ideal">Ideal Gas Law: PV = nRT</option>
+      <option value="boyle">Boyle's Law: P₁V₁ = P₂V₂ (T constant)</option>
+      <option value="charles">Charles's Law: V₁/T₁ = V₂/T₂ (P constant)</option>
+      <option value="gaylussac">Gay-Lussac's: P₁/T₁ = P₂/T₂ (V constant)</option>
+      <option value="combined">Combined Gas Law: P₁V₁/T₁ = P₂V₂/T₂</option>
+    </select>
+    <div id="inputs" style="margin-top:16px;"></div>
+    <button onclick="solve()" style="margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;">SOLVE</button>
+  </div>
+  <div class="card" id="out" style="display:none">
+    <div class="r-label">RESULT</div>
+    <div class="r-val" id="result">—</div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+<script>
+const R=0.08206; // L·atm/mol·K
+const FORMS={
+  ideal:{fields:[{id:'P',label:'PRESSURE (atm)',v:'1'},{id:'V',label:'VOLUME (L)',v:'22.4'},{id:'n',label:'MOLES (n)',v:'1'},{id:'T',label:'TEMPERATURE (K)',v:'273.15'}],solve:function(f){
+    const P=f.P,V=f.V,n=f.n,T=f.T;
+    const blanks=Object.entries({P,V,n,T}).filter(([k,v])=>v===null).map(([k])=>k);
+    if(blanks.length!==1)return{val:'Provide exactly 3 values',unit:''};
+    const k=blanks[0];
+    if(k==='P')return{val:((n||1)*R*(T||273.15)/(V||22.4)).toFixed(4),unit:'atm'};
+    if(k==='V')return{val:((n||1)*R*(T||273.15)/(P||1)).toFixed(4),unit:'L'};
+    if(k==='n')return{val:((P||1)*(V||22.4)/(R*(T||273.15))).toFixed(4),unit:'mol'};
+    if(k==='T')return{val:((P||1)*(V||22.4)/((n||1)*R)).toFixed(4),unit:'K'};
+  }},
+  boyle:{fields:[{id:'P1',label:'P₁ (atm)',v:'2'},{id:'V1',label:'V₁ (L)',v:'5'},{id:'P2',label:'P₂ (atm)',v:'4'},{id:'V2',label:'V₂ (L) — SOLVE',v:''}],solve:function(f){
+    if(f.V2===null&&f.P1!==null&&f.V1!==null&&f.P2!==null)return{val:((f.P1*f.V1)/f.P2).toFixed(4),unit:'L'};
+    if(f.P2===null&&f.P1!==null&&f.V1!==null&&f.V2!==null)return{val:((f.P1*f.V1)/f.V2).toFixed(4),unit:'atm'};
+    return{val:'Leave P₂ or V₂ blank to solve',unit:''};
+  }},
+  charles:{fields:[{id:'V1',label:'V₁ (L)',v:'10'},{id:'T1',label:'T₁ (K)',v:'273'},{id:'V2',label:'V₂ (L) — SOLVE',v:''},{id:'T2',label:'T₂ (K)',v:'373'}],solve:function(f){
+    if(f.V2===null)return{val:((f.V1*f.T2)/f.T1).toFixed(4),unit:'L'};
+    if(f.T2===null)return{val:((f.T1*f.V2)/f.V1).toFixed(4),unit:'K'};
+    return{val:'Leave V₂ or T₂ blank to solve',unit:''};
+  }},
+  gaylussac:{fields:[{id:'P1',label:'P₁ (atm)',v:'1'},{id:'T1',label:'T₁ (K)',v:'300'},{id:'P2',label:'P₂ (atm) — SOLVE',v:''},{id:'T2',label:'T₂ (K)',v:'600'}],solve:function(f){
+    if(f.P2===null)return{val:((f.P1*f.T2)/f.T1).toFixed(4),unit:'atm'};
+    if(f.T2===null)return{val:((f.T1*f.P2)/f.P1).toFixed(4),unit:'K'};
+    return{val:'Leave P₂ or T₂ blank to solve',unit:''};
+  }},
+  combined:{fields:[{id:'P1',label:'P₁',v:'2'},{id:'V1',label:'V₁ (L)',v:'5'},{id:'T1',label:'T₁ (K)',v:'300'},{id:'P2',label:'P₂',v:'4'},{id:'V2',label:'V₂ (L) — SOLVE',v:''},{id:'T2',label:'T₂ (K)',v:'400'}],solve:function(f){
+    if(f.V2===null)return{val:((f.P1*f.V1*f.T2)/(f.T1*f.P2)).toFixed(4),unit:'L'};
+    if(f.T2===null)return{val:((f.P2*f.V2*f.T1)/(f.P1*f.V1)).toFixed(4),unit:'K'};
+    if(f.P2===null)return{val:((f.P1*f.V1*f.T2)/(f.T1*f.V2)).toFixed(4),unit:'atm'};
+    return{val:'Leave one of P₂, V₂, T₂ blank to solve',unit:''};
+  }}
+};
+let currentLaw='ideal';
+function setLaw(){
+  currentLaw=document.getElementById('law').value;
+  const form=FORMS[currentLaw];
+  document.getElementById('inputs').innerHTML=form.fields.map(f=>`
+    <div style="margin-bottom:10px;">
+      <label>${f.label}</label>
+      <input type="number" id="${f.id}" value="${f.v}" step="any" style="padding:8px;">
+    </div>`).join('');
+  document.getElementById('out').style.display='none';
+}
+function solve(){
+  const form=FORMS[currentLaw];
+  const vals={};
+  form.fields.forEach(f=>{
+    const el=document.getElementById(f.id);
+    vals[f.id]=el.value===''?null:+el.value;
+  });
+  const res=form.solve(vals);
+  document.getElementById('out').style.display='block';
+  document.getElementById('result').textContent=res.val+(res.unit?' '+res.unit:'');
+  document.getElementById('note').textContent={ideal:'R = 0.08206 L·atm/mol·K. At STP (0°C, 1 atm): 1 mol ideal gas = 22.4 L. At SATP (25°C, 1 bar): 24.8 L.',boyle:'P₁V₁ = P₂V₂ — inverse relationship at constant T. Deeper scuba: halved volume at double pressure.',charles:'V ∝ T (Kelvin). Always use absolute temperature. Balloon shrinks in cold, expands in heat.',gaylussac:'P ∝ T (Kelvin). Pressure cooker, autoclave, tire pressure in winter.',combined:'All three together. Leave one variable blank and solve.'}[currentLaw];
+}
+setLaw();
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Servo Torque Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.formula{font-family:monospace;font-size:13px;color:var(--acc);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
+.joint-row{background:rgba(255,255,255,.02);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:10px;}
+.joint-title{font-size:12px;font-weight:600;color:var(--acc);margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← XLMX Tools</a>
+  <h1>Servo Torque Calculator</h1>
+  <p class="sub">Category: Robotics — Required torque, unit conversion, multi-link arm</p>
+
+  <div class="card">
+    <div class="formula">τ = (m × g × L) / G × SF &nbsp; g = 9.81 m/s²</div>
+    <div class="grid2">
+      <div>
+        <label>LOAD MASS (g)</label>
+        <input type="number" id="mass" value="200" step="1" oninput="calc()">
+      </div>
+      <div>
+        <label>ARM LENGTH (cm)</label>
+        <input type="number" id="arm" value="15" step="0.1" oninput="calc()">
+      </div>
+      <div>
+        <label>GEAR RATIO (output/input)</label>
+        <input type="number" id="gear" value="1" step="0.1" min="0.01" oninput="calc()">
+      </div>
+      <div>
+        <label>SAFETY FACTOR (default 2×)</label>
+        <input type="number" id="sf" value="2" step="0.1" min="1" oninput="calc()">
+      </div>
+    </div>
+    <div class="result">
+      <div class="grid3">
+        <div>
+          <div class="r-label">TORQUE REQUIRED</div>
+          <div class="r-val" id="t-ncm">—</div>
+          <div style="color:var(--mu);font-size:11px;">N·cm</div>
+        </div>
+        <div>
+          <div class="r-label">IN kg·cm</div>
+          <div class="r-val" id="t-kgcm" style="font-size:20px;">—</div>
+          <div style="color:var(--mu);font-size:11px;">kg·cm</div>
+        </div>
+        <div>
+          <div class="r-label">IN oz·in</div>
+          <div class="r-val" id="t-ozin" style="font-size:20px;">—</div>
+          <div style="color:var(--mu);font-size:11px;">oz·in</div>
+        </div>
+      </div>
+      <div id="stall-note" style="margin-top:12px;font-size:12px;color:var(--mu);padding-top:12px;border-top:1px solid var(--bd);"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px;">Servo Selection Guide by Torque</div>
+    <table class="tbl">
+      <thead><tr><th>Class</th><th>Torque Range</th><th>Typical Use</th></tr></thead>
+      <tbody>
+        <tr><td>Micro</td><td>&lt; 1.5 kg·cm</td><td>Small grippers, lightweight mechanisms</td></tr>
+        <tr><td>Standard</td><td>1.5 – 5 kg·cm</td><td>Light robot arms, pan-tilt systems</td></tr>
+        <tr><td>High-torque</td><td>5 – 15 kg·cm</td><td>Medium robot limbs, load-bearing joints</td></tr>
+        <tr><td>Heavy duty</td><td>15 – 40 kg·cm</td><td>Hexapods, industrial arms</td></tr>
+        <tr><td>Industrial</td><td>&gt; 40 kg·cm</td><td>Full robot arms, heavy payloads</td></tr>
+      </tbody>
+    </table>
+    <div id="servo-rec" style="margin-top:12px;font-size:13px;color:var(--acc);font-weight:600;"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px;">Multi-Link Arm — Up to 3 Joints</div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:14px;">Each joint must support its own load plus all distal loads. Torque calculated at each joint.</div>
+    <div id="joints-container"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="addJoint()" id="add-btn" style="padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-size:12px;cursor:pointer;">+ Add Joint</button>
+      <button onclick="removeJoint()" id="rem-btn" style="padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:7px;color:var(--mu);font-size:12px;cursor:pointer;">− Remove</button>
+    </div>
+    <div id="multi-results" style="margin-top:14px;"></div>
+  </div>
+</div>
+<script>
+const g=9.81;
+function ncmToKgcm(v){return v/9.81;}
+function ncmToOzin(v){return v*0.141612;}
+function fmt(v,d=2){return isNaN(v)||!isFinite(v)?'—':v.toFixed(d);}
+function calc(){
+  const m=+document.getElementById('mass').value/1000; // kg
+  const l=+document.getElementById('arm').value/100; // m
+  const gr=+document.getElementById('gear').value||1;
+  const sf=+document.getElementById('sf').value||1;
+  const tau_Nm=m*g*l/gr*sf; // N·m
+  const tau_Ncm=tau_Nm*100;
+  const tau_kgcm=ncmToKgcm(tau_Ncm);
+  const tau_ozin=ncmToOzin(tau_Ncm);
+  document.getElementById('t-ncm').textContent=fmt(tau_Ncm)+' N·cm';
+  document.getElementById('t-kgcm').textContent=fmt(tau_kgcm);
+  document.getElementById('t-ozin').textContent=fmt(tau_ozin);
+  document.getElementById('stall-note').textContent=
+    `Note: Select a servo with stall torque ≥ ${fmt(tau_kgcm)} kg·cm. Continuous operating torque should remain below ~75% of stall torque rating to avoid motor damage.`;
+  // Recommendation
+  const tiers=[
+    {max:1.5,name:'Micro servo'},
+    {max:5,name:'Standard servo'},
+    {max:15,name:'High-torque servo'},
+    {max:40,name:'Heavy-duty servo'},
+    {max:Infinity,name:'Industrial servo / gearmotor'}
+  ];
+  const rec=tiers.find(t=>tau_kgcm<=t.max);
+  document.getElementById('servo-rec').textContent=rec?`Recommended class for ${fmt(tau_kgcm)} kg·cm: ${rec.name}`:'';
+}
+
+// Multi-link
+let joints=[{mass:100,arm:10},{mass:150,arm:12}];
+function renderJoints(){
+  const cont=document.getElementById('joints-container');
+  cont.innerHTML='';
+  joints.forEach((j,i)=>{
+    const d=document.createElement('div');d.className='joint-row';
+    d.innerHTML=`<div class="joint-title">Joint ${i+1} (proximal end of link ${i+1})</div><div class="grid2"><div><label>LOAD MASS AT LINK ${i+1} TIP (g)</label><input type="number" value="${j.mass}" oninput="joints[${i}].mass=+this.value;calcMulti()"></div><div><label>ARM LENGTH (cm)</label><input type="number" value="${j.arm}" oninput="joints[${i}].arm=+this.value;calcMulti()"></div></div>`;
+    cont.appendChild(d);
+  });
+  calcMulti();
+  document.getElementById('add-btn').disabled=joints.length>=3;
+  document.getElementById('rem-btn').disabled=joints.length<=1;
+}
+function addJoint(){if(joints.length<3){joints.push({mass:100,arm:10});renderJoints();}}
+function removeJoint(){if(joints.length>1){joints.pop();renderJoints();}}
+function calcMulti(){
+  const sf=+document.getElementById('sf').value||1;
+  const gr=+document.getElementById('gear').value||1;
+  const res=document.getElementById('multi-results');
+  let html='<table class="tbl"><thead><tr><th>Joint</th><th>Torque (N·cm)</th><th>kg·cm</th><th>oz·in</th></tr></thead><tbody>';
+  for(let i=0;i<joints.length;i++){
+    // Torque at joint i = sum of all loads at joints i..end × their arm lengths
+    let tau_Ncm=0;
+    for(let j=i;j<joints.length;j++){
+      tau_Ncm+=joints[j].mass/1000*g*joints[j].arm/100*100; // N·m → N·cm
+    }
+    tau_Ncm=tau_Ncm/gr*sf;
+    html+=`<tr><td>Joint ${i+1}</td><td>${fmt(tau_Ncm)}</td><td>${fmt(ncmToKgcm(tau_Ncm))}</td><td>${fmt(ncmToOzin(tau_Ncm))}</td></tr>`;
+  }
+  html+='</tbody></table>';
+  res.innerHTML=html;
+}
+renderJoints();
+calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hardy-Weinberg Calculator — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#34d399;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:22px;font-weight:700;color:var(--acc);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+canvas{display:block;margin-top:12px;}
+.verdict{padding:12px 16px;border-radius:8px;margin-top:12px;font-weight:600;font-size:13px;}
+.hwe-yes{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:#34d399;}
+.hwe-no{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#f87171;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← XLMX Tools</a>
+  <h1>Hardy-Weinberg Calculator</h1>
+  <p class="sub">Category: Genetics — p² + 2pq + q² = 1</p>
+
+  <div class="card">
+    <label>ALLELE FREQUENCY p (0 to 1)</label>
+    <input type="range" id="p_range" min="0.01" max="0.99" step="0.01" value="0.6" oninput="syncP(this.value)">
+    <input type="number" id="p_val" value="0.6" min="0.01" max="0.99" step="0.01" oninput="syncP(this.value)">
+
+    <div class="grid3" style="margin-top:16px">
+      <div class="result">
+        <div class="r-label">p (allele A)</div>
+        <div class="r-val" id="p_out">0.600</div>
+      </div>
+      <div class="result">
+        <div class="r-label">q (allele a)</div>
+        <div class="r-val" id="q_out">0.400</div>
+      </div>
+      <div class="result">
+        <div class="r-label">p + q</div>
+        <div class="r-val">1.000</div>
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-top:12px">
+      <div class="result">
+        <div class="r-label">p² — AA (homozygous dom)</div>
+        <div class="r-val" id="p2">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">2pq — Aa (heterozygous)</div>
+        <div class="r-val" id="pq2">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">q² — aa (homozygous rec)</div>
+        <div class="r-val" id="q2">—</div>
+      </div>
+    </div>
+
+    <canvas id="bar" width="660" height="100"></canvas>
+  </div>
+
+  <div class="card">
+    <div style="color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:4px">CHI-SQUARE TEST FOR HWE DEVIATION</div>
+    <div style="color:var(--mu);font-size:12px;margin-bottom:16px">Enter observed counts to test if population is in Hardy-Weinberg Equilibrium</div>
+    <div class="grid3">
+      <div>
+        <label>OBSERVED AA count</label>
+        <input type="number" id="obs_aa" value="360" min="0" oninput="calcChi()">
+      </div>
+      <div>
+        <label>OBSERVED Aa count</label>
+        <input type="number" id="obs_aa2" value="480" min="0" oninput="calcChi()">
+      </div>
+      <div>
+        <label>OBSERVED aa count</label>
+        <input type="number" id="obs_aa3" value="160" min="0" oninput="calcChi()">
+      </div>
+    </div>
+    <div id="chi_results" style="margin-top:16px"></div>
+  </div>
+</div>
+<script>
+function syncP(v){
+  const p=Math.min(0.99,Math.max(0.01,parseFloat(v)||0.6));
+  document.getElementById('p_range').value=p;
+  document.getElementById('p_val').value=p;
+  calc(p);
+}
+function calc(p){
+  const q=1-p;
+  document.getElementById('p_out').textContent=p.toFixed(3);
+  document.getElementById('q_out').textContent=q.toFixed(3);
+  document.getElementById('p2').textContent=(p*p).toFixed(4);
+  document.getElementById('pq2').textContent=(2*p*q).toFixed(4);
+  document.getElementById('q2').textContent=(q*q).toFixed(4);
+  drawBar(p,q);
+  calcChi();
+}
+function drawBar(p,q){
+  const c=document.getElementById('bar');
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const data=[{label:'AA (p²)',val:p*p,color:'#34d399'},{label:'Aa (2pq)',val:2*p*q,color:'#a7f3d0'},{label:'aa (q²)',val:q*q,color:'rgba(255,255,255,0.2)'}];
+  let x=20;
+  const W=c.width-40,H=60,top=10;
+  data.forEach(d=>{
+    const w=d.val*W;
+    ctx.fillStyle=d.color;
+    ctx.fillRect(x,top,w,H);
+    if(w>40){
+      ctx.fillStyle='#030307';
+      ctx.font='11px Inter,system-ui,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(d.label,x+w/2,top+H/2+4);
+    }
+    x+=w;
+  });
+}
+function calcChi(){
+  const p=parseFloat(document.getElementById('p_val').value)||0.6;
+  const q=1-p;
+  const aa=parseFloat(document.getElementById('obs_aa').value)||0;
+  const aa2=parseFloat(document.getElementById('obs_aa2').value)||0;
+  const aa3=parseFloat(document.getElementById('obs_aa3').value)||0;
+  const n=aa+aa2+aa3;
+  if(n===0)return;
+  const eAA=p*p*n, eAa=2*p*q*n, eaa=q*q*n;
+  const chi2=Math.pow(aa-eAA,2)/eAA+Math.pow(aa2-eAa,2)/eAa+Math.pow(aa3-eaa,2)/eaa;
+  const inHWE=chi2<3.841;
+  let html=`<table class="tbl"><thead><tr><th>Genotype</th><th>Observed</th><th>Expected</th><th>(O-E)²/E</th></tr></thead><tbody>`;
+  html+=`<tr><td>AA</td><td>${aa}</td><td>${eAA.toFixed(2)}</td><td>${(Math.pow(aa-eAA,2)/eAA).toFixed(4)}</td></tr>`;
+  html+=`<tr><td>Aa</td><td>${aa2}</td><td>${eAa.toFixed(2)}</td><td>${(Math.pow(aa2-eAa,2)/eAa).toFixed(4)}</td></tr>`;
+  html+=`<tr><td>aa</td><td>${aa3}</td><td>${eaa.toFixed(2)}</td><td>${(Math.pow(aa3-eaa,2)/eaa).toFixed(4)}</td></tr>`;
+  html+=`<tr><td colspan="3" style="color:var(--mu)">χ² statistic (df=1, critical=3.841)</td><td style="font-weight:700;color:var(--acc)">${chi2.toFixed(4)}</td></tr>`;
+  html+='</tbody></table>';
+  html+=`<div class="verdict ${inHWE?'hwe-yes':'hwe-no'}">${inHWE?'Population is in Hardy-Weinberg Equilibrium (p > 0.05)':'Population deviates from Hardy-Weinberg Equilibrium (p < 0.05)'}</div>`;
+  document.getElementById('chi_results').innerHTML=html;
+}
+syncP(0.6);
+</script>
+</body>
+</html>

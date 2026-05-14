@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Customer Lifetime Value — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.result{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-top:16px;}
+.r-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.r-val{font-size:26px;font-weight:700;color:var(--acc);}
+.r-sub{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:12px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:12px;}
+button{display:inline-block;margin-top:16px;padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;}
+button:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Customer Lifetime Value</h1>
+  <p class="sub">E-commerce — CLV, payback period, and retention economics</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>AVG ORDER VALUE ($)</label>
+        <input type="number" id="aov" value="85" oninput="calc()">
+      </div>
+      <div>
+        <label>PURCHASE FREQUENCY (orders/yr)</label>
+        <input type="number" id="freq" value="3.5" step="0.1" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>GROSS MARGIN (%)</label>
+        <input type="number" id="gm" value="40" oninput="calc()">
+      </div>
+      <div>
+        <label>CUSTOMER LIFESPAN (years)</label>
+        <input type="number" id="life" value="3" step="0.5" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label>DISCOUNT RATE (%/yr)</label>
+        <input type="number" id="dr" value="10" oninput="calc()">
+      </div>
+      <div>
+        <label>CAC ($)</label>
+        <input type="number" id="cac" value="45" oninput="calc()">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="grid3">
+      <div class="result">
+        <div class="r-label">SIMPLE CLV</div>
+        <div class="r-val" id="clv-s">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">DISCOUNTED CLV</div>
+        <div class="r-val" id="clv-d">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">LTV:CAC RATIO</div>
+        <div class="r-val" id="ratio">—</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:12px;">
+      <div class="result">
+        <div class="r-label">CAC PAYBACK (months)</div>
+        <div class="r-val" id="payback">—</div>
+      </div>
+      <div class="result">
+        <div class="r-label">ANNUAL VALUE / CUSTOMER</div>
+        <div class="r-val" id="annual">—</div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+<script>
+function calc(){
+  const aov=+document.getElementById('aov').value;
+  const freq=+document.getElementById('freq').value;
+  const gm=+document.getElementById('gm').value/100;
+  const life=+document.getElementById('life').value;
+  const dr=+document.getElementById('dr').value/100;
+  const cac=+document.getElementById('cac').value;
+  const annual=aov*freq*gm;
+  const clvS=(annual*life).toFixed(0);
+  // Discounted CLV
+  let clvD=0;
+  for(let t=1;t<=life;t++)clvD+=annual/Math.pow(1+dr,t);
+  const ratio=(clvD/cac).toFixed(1);
+  const payback=annual>0?((cac/(annual/12))).toFixed(1):'—';
+  document.getElementById('clv-s').textContent='$'+Number(clvS).toLocaleString();
+  document.getElementById('clv-d').textContent='$'+clvD.toFixed(0);
+  document.getElementById('ratio').textContent=ratio+'x';
+  document.getElementById('payback').textContent=payback+' mo';
+  document.getElementById('annual').textContent='$'+annual.toFixed(0);
+  const health=ratio>=3?'Healthy (>3x)':ratio>=1?'Marginal (1–3x)':'Unsustainable (<1x)';
+  document.getElementById('note').textContent=`LTV:CAC ${ratio}x — ${health}. SaaS benchmark: ≥3x = healthy, ≥5x = great. CAC payback ${payback} months (target: <12 for growth-stage). Annual gross contribution: $${annual.toFixed(0)}/customer. Increasing retention by 5% can raise CLV by 25–95%.`;
+}
+calc();
+</script>
+</body>
+</html>

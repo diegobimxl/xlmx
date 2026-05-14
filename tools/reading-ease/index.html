@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flesch Reading Ease — XLMX</title>
+<style>
+:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#34d399;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:700px;margin:0 auto;}
+h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;}
+textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;resize:vertical;min-height:160px;line-height:1.6;}
+textarea:focus{border-color:var(--acc);}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+.stat-box{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:8px;padding:12px;}
+.stat-label{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.stat-val{font-size:22px;font-weight:700;color:var(--acc);}
+.score-display{display:flex;align-items:flex-end;gap:16px;margin-bottom:16px;}
+.big-score{font-size:52px;font-weight:700;color:var(--acc);line-height:1;}
+.score-meta{padding-bottom:6px;}
+.score-cat{font-size:16px;font-weight:600;color:var(--tx);}
+.score-grade{font-size:13px;color:var(--mu);}
+.gauge-bg{height:10px;background:rgba(255,255,255,.08);border-radius:5px;margin:16px 0 8px;}
+.gauge-fill{height:10px;border-radius:5px;transition:width .3s,background .3s;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tbl tr.active td{color:var(--acc);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/tools/">← Library</a>
+  <h1>Flesch Reading Ease</h1>
+  <p class="sub">Paste text to calculate readability score and grade level in real time.</p>
+
+  <div class="card">
+    <label>TEXT INPUT</label>
+    <textarea id="text" placeholder="Paste or type your text here..." oninput="calc()"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="grid3">
+      <div class="stat-box"><div class="stat-label">WORDS</div><div class="stat-val" id="wc">0</div></div>
+      <div class="stat-box"><div class="stat-label">SENTENCES</div><div class="stat-val" id="sc">0</div></div>
+      <div class="stat-box"><div class="stat-label">SYLLABLES</div><div class="stat-val" id="sylc">0</div></div>
+    </div>
+
+    <div class="score-display">
+      <div class="big-score" id="fre-score">—</div>
+      <div class="score-meta">
+        <div class="score-cat" id="fre-cat">Enter text above</div>
+        <div class="score-grade">FK Grade: <span id="fk-grade" style="color:var(--acc)">—</span></div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.04em;">READABILITY SCALE</div>
+    <div class="gauge-bg"><div class="gauge-fill" id="gauge" style="width:0%;background:var(--acc)"></div></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:10px;font-weight:600;">SCORE REFERENCE</div>
+    <table class="tbl" id="ref-table">
+      <thead><tr><th>Score Range</th><th>Difficulty</th><th>Typical Audience</th></tr></thead>
+      <tbody>
+        <tr data-min="90" data-max="100"><td>90–100</td><td>Very Easy</td><td>5th grade, everyday conversation</td></tr>
+        <tr data-min="80" data-max="90"><td>80–90</td><td>Easy</td><td>6th grade, casual reading</td></tr>
+        <tr data-min="70" data-max="80"><td>70–80</td><td>Fairly Easy</td><td>7th grade</td></tr>
+        <tr data-min="60" data-max="70"><td>60–70</td><td>Standard</td><td>8th–9th grade, plain English</td></tr>
+        <tr data-min="50" data-max="60"><td>50–60</td><td>Fairly Difficult</td><td>10th–12th grade</td></tr>
+        <tr data-min="30" data-max="50"><td>30–50</td><td>Difficult</td><td>College level</td></tr>
+        <tr data-min="0" data-max="30"><td>0–30</td><td>Very Difficult</td><td>Professional / academic</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function countSyllables(word){
+  word=word.toLowerCase().replace(/[^a-z]/g,"");
+  if(!word.length) return 0;
+  if(word.length<=3) return 1;
+  word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,"");
+  word=word.replace(/^y/,"");
+  const m=word.match(/[aeiouy]{1,2}/g);
+  return m?m.length:1;
+}
+
+function calc(){
+  const text=document.getElementById("text").value;
+  const words=text.trim().split(/\s+/).filter(w=>w.length>0);
+  const wc=words.length;
+  const sentences=text.split(/[.!?]+/).filter(s=>s.trim().length>0).length;
+  const sc=Math.max(sentences,1);
+  const sylc=words.reduce((a,w)=>a+countSyllables(w),0);
+
+  document.getElementById("wc").textContent=wc;
+  document.getElementById("sc").textContent=sc;
+  document.getElementById("sylc").textContent=sylc;
+
+  if(wc<5){
+    document.getElementById("fre-score").textContent="—";
+    document.getElementById("fre-cat").textContent="Enter text above";
+    document.getElementById("fk-grade").textContent="—";
+    document.getElementById("gauge").style.width="0%";
+    return;
+  }
+
+  const fre=206.835-1.015*(wc/sc)-84.6*(sylc/wc);
+  const fk=0.39*(wc/sc)+11.8*(sylc/wc)-15.59;
+  const freClamp=Math.max(0,Math.min(100,fre));
+
+  document.getElementById("fre-score").textContent=freClamp.toFixed(1);
+  document.getElementById("fk-grade").textContent=Math.max(0,fk).toFixed(1);
+  document.getElementById("gauge").style.width=freClamp+"%";
+
+  let cat,color;
+  if(freClamp>=90){cat="Very Easy";color="#34d399";}
+  else if(freClamp>=80){cat="Easy";color="#4ade80";}
+  else if(freClamp>=70){cat="Fairly Easy";color="#a3e635";}
+  else if(freClamp>=60){cat="Standard";color="#fbbf24";}
+  else if(freClamp>=50){cat="Fairly Difficult";color="#fb923c";}
+  else if(freClamp>=30){cat="Difficult";color="#f87171";}
+  else{cat="Very Difficult";color="#ec4899";}
+
+  document.getElementById("fre-cat").textContent=cat;
+  document.getElementById("gauge").style.background=color;
+  document.getElementById("fre-score").style.color=color;
+
+  document.querySelectorAll("#ref-table tbody tr").forEach(r=>{
+    const mn=+r.dataset.min,mx=+r.dataset.max;
+    r.classList.toggle("active",freClamp>=mn&&freClamp<mx);
+  });
+}
+</script>
+</body>
+</html>
