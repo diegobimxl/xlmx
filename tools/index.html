@@ -1088,9 +1088,6 @@ function catAffinity(a,b){
   var ta=CAT_TAGS[a]||{},tb=CAT_TAGS[b]||{},s=0;
   Object.keys(ta).forEach(function(k){if(tb[k])s+=ta[k]*tb[k];});
   return s;
-},tb=CAT_TAGS[b]||{},s=0;
-  Object.keys(ta).forEach(function(k){if(tb[k])s+=ta[k]*tb[k];});
-  return s;
 }
 
 function _applyCol(i,state){
