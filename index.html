@@ -844,7 +844,7 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
     y=Math.max(_BR+4,Math.min(H-_BR-4,y));
 
     var body=Matter.Bodies.circle(x,y,_BR,{
-      restitution:0.72,friction:0,frictionAir:0.018,frictionStatic:0,label:cat
+      restitution:0.72,friction:0,frictionAir:0.010,frictionStatic:0,label:cat
     });
     Matter.Body.setVelocity(body,{x:(Math.random()-0.5)*0.4,y:(Math.random()-0.5)*0.4});
     Matter.World.add(world,body);
@@ -922,14 +922,14 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
       var _selCat=_bubbleCats[_activeCatIdx];
       _physBodies.forEach(function(b,i){
         if(i===_activeCatIdx||b.isStatic||_bubbleCats[i]==='All'||i===_molIdx)return;
-        var _aff=Math.min(catAffinity(_selCat,_bubbleCats[i]),2.0)/2.0;
+        var _aff=catAffinity(_selCat,_bubbleCats[i]);
         var _fdx=_sb.position.x-b.position.x;
         var _fdy=_sb.position.y-b.position.y;
         var _fd=Math.sqrt(_fdx*_fdx+_fdy*_fdy)||1;
-        var _fmag=(_aff-0.25)*0.00060;
+        var _fmag=(_aff-0.5)*0.0080;
         Matter.Body.applyForce(b,b.position,{x:(_fdx/_fd)*_fmag*b.mass,y:(_fdy/_fd)*_fmag*b.mass});
         var _spd=Math.sqrt(b.velocity.x*b.velocity.x+b.velocity.y*b.velocity.y);
-        if(_spd>9)Matter.Body.setVelocity(b,{x:b.velocity.x*0.78,y:b.velocity.y*0.78});
+        if(_spd>28)Matter.Body.setVelocity(b,{x:b.velocity.x*0.88,y:b.velocity.y*0.88});
       });
     }
 
@@ -949,7 +949,7 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
 
       if(i===_molIdx){
         if(dist<240&&dist>0){
-          var _fm=0.0025*(1-dist/240);
+          var _fm=0.015*(1-dist/240);
           Matter.Body.applyForce(body,body.position,{x:-(dx/dist)*_fm*body.mass,y:-(dy/dist)*_fm*body.mass});
           if(Math.sqrt(body.velocity.x*body.velocity.x+body.velocity.y*body.velocity.y)<5){
             Matter.Body.setVelocity(body,{x:body.velocity.x+(Math.random()-0.5)*2.5,y:body.velocity.y+(Math.random()-0.5)*2.5});
@@ -1000,24 +1000,32 @@ var _dragIdx=-1,_mX=0,_mY=0,_vX=0,_vY=0;
 var _impactTmr={},_arenaEl=null,_eventsAttached=false,_rafId=0;
 var _forceMode=false,_activeCatIdx=-1,_molIdx=-1;
 var CAT_TAGS={
-  'Architecture':{aec:1,design:0.6,structural:0.8},
-  'BIM':{aec:1,tech:0.8,ops:0.4},
-  'Construction':{aec:1,structural:0.9,ops:0.3},
-  'Engineering':{aec:0.9,structural:1,tech:0.5},
-  'VDC & Coordination':{aec:0.8,tech:0.9,ops:0.5},
-  'Facades':{aec:0.9,design:0.8,structural:0.7,hospitality:0.3},
-  'Design':{design:1,art:0.7,aec:0.3},
-  'Code Compliance':{aec:0.7,ops:0.5,legal:0.5,structural:0.6,design:0.3},
-  'Accessibility':{design:0.6,ops:0.4,legal:0.4},
-  'Finance':{financial:1,ops:0.3},
-  'Real Estate & Development':{financial:0.9,aec:0.3,ops:0.2},
-  'Calculators':{financial:0.6,aec:0.5,tech:0.3},
-  'Project Management':{ops:1,aec:0.2,financial:0.2},
-  'Legal':{legal:1,ops:0.7,financial:0.3},
-  'General Productivity':{ops:0.9,tech:0.3},
-  'Documentation':{ops:0.8,aec:0.2,legal:0.3},
-  'Hospitality':{hospitality:1,design:0.5,financial:0.4,aec:0.3},
-  'Leisure':{leisure:1,art:0.3}
+  'Architecture'    :{aec:1,   built:1,   design:0.8, structural:0.8, math:0.4, viz:0.6},
+  'BIM'             :{aec:1,   built:0.9, tech:1,     ops:0.5,        viz:0.6},
+  'Construction'    :{aec:1,   built:1,   structural:1,ops:0.4,       math:0.5},
+  'Engineering'     :{aec:0.9, built:0.9, structural:1,tech:0.8,      math:0.9},
+  'VDC & Coordination':{aec:0.9,built:0.8,tech:1,    ops:0.6,        viz:0.7},
+  'Facades'         :{aec:1,   built:1,   design:0.9, structural:0.8, viz:0.7, hospitality:0.3},
+  'Structural'      :{aec:1,   built:1,   structural:1,math:0.9,      tech:0.6},
+  'MEP'             :{aec:1,   built:1,   structural:0.6,tech:0.7,    math:0.6},
+  'Design'          :{design:1,art:0.8,   viz:1,      aec:0.4},
+  'Code Compliance' :{aec:0.7, built:0.8, legal:0.7,  structural:0.6, ops:0.5},
+  'Accessibility'   :{design:0.6,built:0.5,legal:0.5, ops:0.4},
+  'Finance'         :{financial:1,math:0.8,ops:0.4},
+  'Real Estate & Development':{financial:0.8,built:1, aec:0.6, geo:0.5, math:0.5, ops:0.3},
+  'Calculators'     :{math:1,  financial:0.6,aec:0.6, built:0.3,      structural:0.6,tech:0.5,ops:0.3},
+  'Project Management':{ops:1, aec:0.4,   financial:0.3,tech:0.3},
+  'Legal'           :{legal:1, ops:0.6,   financial:0.4},
+  'General Productivity':{ops:1,tech:0.4, math:0.2},
+  'Documentation'   :{ops:0.9, aec:0.3,   legal:0.4,  tech:0.3},
+  'Hospitality'     :{hospitality:1,design:0.6,financial:0.5,built:0.5,aec:0.3},
+  'GIS'             :{geo:1,   tech:0.8,  built:0.6,  aec:0.4,        math:0.5},
+  'Maps'            :{geo:1,   tech:0.7,  built:0.5,  aec:0.4,        math:0.3},
+  'Landscape'       :{aec:0.7, built:0.8, design:0.8, art:0.5,        geo:0.5},
+  'Interiors'       :{aec:0.8, built:0.9, design:1,   hospitality:0.5,viz:0.7},
+  'Urban Planning'  :{aec:0.8, built:1,   geo:0.9,    financial:0.3,  ops:0.4},
+  'Sustainability'  :{aec:0.6, built:0.7, structural:0.5,tech:0.5,    math:0.4},
+  'Leisure'         :{leisure:1,art:0.5}
 };
 function catAffinity(a,b){
   var ta=CAT_TAGS[a]||{},tb=CAT_TAGS[b]||{},s=0;
@@ -1084,7 +1092,20 @@ function setCat(c){
   var _hs=document.getElementById("heroSearch");if(_hs)_hs.value="";
   var _sc2=document.getElementById("srchClear");if(_sc2)_sc2.classList.remove("vis");
   if(c==='All'){_forceMode=false;_activeCatIdx=-1;renderCats();}
-  else{_activeCatIdx=_bubbleCats.indexOf(c);_forceMode=(_activeCatIdx>=0);}
+  else{
+    _activeCatIdx=_bubbleCats.indexOf(c);_forceMode=(_activeCatIdx>=0);
+    if(_forceMode){
+      var _ks=_physBodies[_activeCatIdx];
+      if(_ks)_physBodies.forEach(function(b,i){
+        if(i===_activeCatIdx||b.isStatic||_bubbleCats[i]==='All'||i===_molIdx)return;
+        var _ka=catAffinity(_bubbleCats[_activeCatIdx],_bubbleCats[i]);
+        var _kfx=_ks.position.x-b.position.x,_kfy=_ks.position.y-b.position.y;
+        var _kd=Math.sqrt(_kfx*_kfx+_kfy*_kfy)||1;
+        var _kv=Math.max(-5,Math.min(8,(_ka-0.5)*3.5));
+        Matter.Body.setVelocity(b,{x:(_kfx/_kd)*_kv,y:(_kfy/_kd)*_kv});
+      });
+    }
+  }
   _syncBubbleActive();renderGrid();explored.add(c);updatePower();
 }
 function onSearch(v){curQ=v.toLowerCase().trim();curCat="All";var _sc2=document.getElementById("srchClear");if(_sc2)_sc2.classList.toggle("vis",!!v);_syncBubbleActive();renderGrid();}
