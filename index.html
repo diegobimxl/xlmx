@@ -864,6 +864,25 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
     _bubbleEls.push(el);
   });
 
+  // === The Meaning of Life — easter egg ===
+  (function(){
+    var _mx=W*0.68,_my=H*0.42;
+    var _mb=Matter.Bodies.circle(_mx,_my,_BR,{
+      restitution:0.94,friction:0,frictionAir:0.004,frictionStatic:0,label:'mol'
+    });
+    Matter.Body.setVelocity(_mb,{x:2.4,y:-2.1});
+    Matter.World.add(world,_mb);
+    _molIdx=_physBodies.length;
+    _physBodies.push(_mb);
+    _bubbleCats.push('The Meaning of Life');
+    var _mel=document.createElement('div');
+    _mel.className='cat-bubble';
+    _mel.style.cssText='width:'+(_BR*2)+'px;height:'+(_BR*2)+'px;background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.55);color:#facc15;box-shadow:0 0 18px rgba(250,204,21,.22);';
+    _mel.innerHTML='<span class="bic">∞</span><span class="bname" style="font-size:5.5px;line-height:1.2;letter-spacing:0">The Meaning of Life</span><span class="bcnt">42</span>';
+    arena.appendChild(_mel);
+    _bubbleEls.push(_mel);
+  })();
+
   Matter.Events.on(_physEngine,'collisionStart',function(ev){
     ev.pairs.forEach(function(pair){
       [pair.bodyA,pair.bodyB].forEach(function(b){
@@ -900,18 +919,17 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
 
     if(_forceMode&&_activeCatIdx>=0&&_activeCatIdx<_physBodies.length){
       var _sb=_physBodies[_activeCatIdx];
-      var _sc=CAT_CLUSTERS[_bubbleCats[_activeCatIdx]]||'none';
+      var _selCat=_bubbleCats[_activeCatIdx];
       _physBodies.forEach(function(b,i){
-        if(i===_activeCatIdx||b.isStatic||_bubbleCats[i]==='All')return;
-        var _tc=CAT_CLUSTERS[_bubbleCats[i]]||'other';
-        var _same=_tc===_sc;
+        if(i===_activeCatIdx||b.isStatic||_bubbleCats[i]==='All'||i===_molIdx)return;
+        var _aff=Math.min(catAffinity(_selCat,_bubbleCats[i]),2.0)/2.0;
         var _fdx=_sb.position.x-b.position.x;
         var _fdy=_sb.position.y-b.position.y;
         var _fd=Math.sqrt(_fdx*_fdx+_fdy*_fdy)||1;
-        var _mag=_same?0.00022:-0.00016;
-        Matter.Body.applyForce(b,b.position,{x:(_fdx/_fd)*_mag*b.mass,y:(_fdy/_fd)*_mag*b.mass});
+        var _fmag=(_aff-0.25)*0.00060;
+        Matter.Body.applyForce(b,b.position,{x:(_fdx/_fd)*_fmag*b.mass,y:(_fdy/_fd)*_fmag*b.mass});
         var _spd=Math.sqrt(b.velocity.x*b.velocity.x+b.velocity.y*b.velocity.y);
-        if(_spd>7)Matter.Body.setVelocity(b,{x:b.velocity.x*0.82,y:b.velocity.y*0.82});
+        if(_spd>9)Matter.Body.setVelocity(b,{x:b.velocity.x*0.78,y:b.velocity.y*0.78});
       });
     }
 
@@ -926,9 +944,19 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
       var px=body.position.x-_BR,py=body.position.y-_BR;
       var dx=mx-body.position.x,dy=my-body.position.y;
       var dist=Math.sqrt(dx*dx+dy*dy);
+      var _isActive=(_bubbleCats[i]===curCat&&curCat!=='All'&&i!==_molIdx);
       var sc=1.0;
 
-      if(_impactTmr[i]){
+      if(i===_molIdx){
+        if(dist<240&&dist>0){
+          var _fm=0.0025*(1-dist/240);
+          Matter.Body.applyForce(body,body.position,{x:-(dx/dist)*_fm*body.mass,y:-(dy/dist)*_fm*body.mass});
+          if(Math.sqrt(body.velocity.x*body.velocity.x+body.velocity.y*body.velocity.y)<5){
+            Matter.Body.setVelocity(body,{x:body.velocity.x+(Math.random()-0.5)*2.5,y:body.velocity.y+(Math.random()-0.5)*2.5});
+          }
+        }
+        _applyCol(i,'hover');
+      }else if(_impactTmr[i]){
         _applyCol(i,'impact');sc=1.08;
       }else if(i===_dragIdx){
         _applyCol(i,'drag');sc=1.18;
@@ -941,6 +969,7 @@ var _hip=document.getElementById("heroSearch");if(_hip)_hip.placeholder="Search 
         _applyCol(i,'idle');
       }
 
+      if(_isActive&&sc<2.0)sc=2.0;
       el.style.transform='translate('+px.toFixed(1)+'px,'+py.toFixed(1)+'px) scale('+sc.toFixed(3)+')';
     });
 
@@ -969,14 +998,32 @@ function _syncBubbleActive(){
 var _BR=31,_physEngine=null,_physBodies=[],_bubbleEls=[],_bubbleCats=[];
 var _dragIdx=-1,_mX=0,_mY=0,_vX=0,_vY=0;
 var _impactTmr={},_arenaEl=null,_eventsAttached=false,_rafId=0;
-var _forceMode=false,_activeCatIdx=-1;
-var CAT_CLUSTERS={
-  'Architecture':'aec','BIM':'aec','Construction':'aec','Engineering':'aec','VDC & Coordination':'aec',
-  'Design':'design','Code Compliance':'design','Accessibility':'design','Facades':'design',
-  'Finance':'financial','Real Estate & Development':'financial','Calculators':'financial',
-  'Project Management':'ops','Legal':'ops','General Productivity':'ops','Documentation':'ops',
-  'Leisure':'leisure'
+var _forceMode=false,_activeCatIdx=-1,_molIdx=-1;
+var CAT_TAGS={
+  'Architecture':{aec:1,design:0.6,structural:0.8},
+  'BIM':{aec:1,tech:0.8,ops:0.4},
+  'Construction':{aec:1,structural:0.9,ops:0.3},
+  'Engineering':{aec:0.9,structural:1,tech:0.5},
+  'VDC & Coordination':{aec:0.8,tech:0.9,ops:0.5},
+  'Facades':{aec:0.9,design:0.8,structural:0.7,hospitality:0.3},
+  'Design':{design:1,art:0.7,aec:0.3},
+  'Code Compliance':{aec:0.7,ops:0.5,legal:0.5,structural:0.6,design:0.3},
+  'Accessibility':{design:0.6,ops:0.4,legal:0.4},
+  'Finance':{financial:1,ops:0.3},
+  'Real Estate & Development':{financial:0.9,aec:0.3,ops:0.2},
+  'Calculators':{financial:0.6,aec:0.5,tech:0.3},
+  'Project Management':{ops:1,aec:0.2,financial:0.2},
+  'Legal':{legal:1,ops:0.7,financial:0.3},
+  'General Productivity':{ops:0.9,tech:0.3},
+  'Documentation':{ops:0.8,aec:0.2,legal:0.3},
+  'Hospitality':{hospitality:1,design:0.5,financial:0.4,aec:0.3},
+  'Leisure':{leisure:1,art:0.3}
 };
+function catAffinity(a,b){
+  var ta=CAT_TAGS[a]||{},tb=CAT_TAGS[b]||{},s=0;
+  Object.keys(ta).forEach(function(k){if(tb[k])s+=ta[k]*tb[k];});
+  return s;
+}
 
 function _applyCol(i,state){
   var el=_bubbleEls[i];if(!el)return;
@@ -1036,7 +1083,7 @@ function setCat(c){
   curCat=c;curQ="";
   var _hs=document.getElementById("heroSearch");if(_hs)_hs.value="";
   var _sc2=document.getElementById("srchClear");if(_sc2)_sc2.classList.remove("vis");
-  if(c==='All'){_forceMode=false;_activeCatIdx=-1;}
+  if(c==='All'){_forceMode=false;_activeCatIdx=-1;renderCats();}
   else{_activeCatIdx=_bubbleCats.indexOf(c);_forceMode=(_activeCatIdx>=0);}
   _syncBubbleActive();renderGrid();explored.add(c);updatePower();
 }
