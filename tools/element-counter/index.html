@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Model Element Counter — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#38bdf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>Model Element Counter</h1><p class="sub">BIM — Log and track element counts by category</p>
+<div class="card">
+  <div class="g2">
+    <div><label>PROJECT / MODEL NAME</label><input id="model" value="Project A — Architectural" oninput="render()"></div>
+    <div><label>REPORTING DATE</label><input type="date" id="date" oninput="render()"></div>
+  </div>
+</div>
+<div class="card">
+  <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">ELEMENT COUNTS</div>
+  <table class="tbl">
+    <tr><th>CATEGORY</th><th style="text-align:right;">EXPECTED</th><th style="text-align:right;">ACTUAL</th><th style="text-align:right;">DELTA</th><th style="text-align:center;">STATUS</th></tr>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="g3" style="margin-top:16px;">
+    <div class="res"><div class="rl">TOTAL ELEMENTS</div><div class="rv" id="t-act">—</div></div>
+    <div class="res"><div class="rl">COMPLIANCE</div><div class="rv" id="t-pct">—</div></div>
+    <div class="res"><div class="rl">CATEGORIES OK</div><div class="rv" id="t-ok">—</div></div>
+  </div>
+</div>
+</div><script>const CATS=[
+  {n:'Walls',exp:450},{n:'Doors',exp:120},{n:'Windows',exp:180},{n:'Floors',exp:30},
+  {n:'Ceilings',exp:30},{n:'Roofs',exp:5},{n:'Stairs',exp:8},{n:'Railings',exp:12},
+  {n:'Structural Columns',exp:60},{n:'Structural Framing',exp:200},{n:'Rooms',exp:80},{n:'Curtain Walls',exp:15}
+];
+const actuals={};
+CATS.forEach(c=>{actuals[c.n]=c.exp;});
+function render(){
+  const rows=CATS.map(c=>{
+    const act=actuals[c.n]||0;
+    const delta=act-c.exp;
+    const pct=c.exp>0?(act/c.exp*100):100;
+    const status=pct>=90?'<span class="tag pass">OK</span>':pct>=75?'<span class="tag warn">LOW</span>':'<span class="tag fail">GAP</span>';
+    return `<tr>
+      <td>${c.n}</td>
+      <td style="text-align:right;color:var(--mu);">${c.exp}</td>
+      <td style="text-align:right;"><input type="number" value="${act}" min="0" style="width:80px;padding:4px 8px;text-align:right;" oninput="actuals['${c.n}']=+this.value;updateTotals()"></td>
+      <td style="text-align:right;color:${delta>=0?'#4ade80':'#f87171'};">${delta>=0?'+':''}${delta}</td>
+      <td style="text-align:center;">${status}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rows').innerHTML=rows;
+  updateTotals();
+}
+function updateTotals(){
+  const totalAct=CATS.reduce((a,c)=>a+(actuals[c.n]||0),0);
+  const totalExp=CATS.reduce((a,c)=>a+c.exp,0);
+  const pct=(totalAct/totalExp*100).toFixed(1);
+  const ok=CATS.filter(c=>(actuals[c.n]||0)/c.exp>=0.9).length;
+  document.getElementById('t-act').textContent=totalAct.toLocaleString();
+  document.getElementById('t-pct').textContent=pct+'%';
+  document.getElementById('t-ok').textContent=ok+'/'+CATS.length;
+}
+render();</script></body></html>

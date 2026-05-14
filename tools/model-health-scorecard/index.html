@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Model Health Scorecard — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#38bdf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>Model Health Scorecard</h1><p class="sub">BIM — Score your Revit model on naming, worksets, linked files, and coordination readiness</p>
+<div class="card">
+  <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:16px;">Rate each dimension 0–100</div>
+  <div id="sliders"></div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">OVERALL SCORE</div><div class="rv" id="total">—</div></div>
+    <div class="res"><div class="rl">GRADE</div><div class="rv" id="grade" style="font-size:18px;">—</div></div>
+    <div class="res"><div class="rl">WEAKEST AREA</div><div class="rv" id="weak" style="font-size:14px;">—</div></div>
+  </div>
+  <div id="breakdown" style="margin-top:16px;"></div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>const DIMS=[
+  {k:'naming',l:'Naming Conventions',d:'Elements, families, views follow project standards',w:20},
+  {k:'worksets',l:'Workset Structure',d:'Worksets defined, elements assigned, no Default pile-up',w:15},
+  {k:'links',l:'Linked Models',d:'Links current, monitored, paths resolved',w:15},
+  {k:'warnings',l:'Model Warnings',d:'Critical warnings resolved, minor warnings documented',w:20},
+  {k:'views',l:'View & Sheet Discipline',d:'Views on sheets, no orphan views, clean browser',w:10},
+  {k:'lod',l:'LOD Compliance',d:'Elements match contracted LOD for current phase',w:20},
+];
+const scores={};
+function build(){
+  document.getElementById('sliders').innerHTML=DIMS.map(d=>`
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <span style="font-weight:600;font-size:13px;color:var(--tx);">${d.l}</span>
+        <span style="color:var(--acc);font-weight:700;" id="lbl-${d.k}">50</span>
+      </div>
+      <input type="range" min="0" max="100" value="50" oninput="upd('${d.k}',this.value)" id="s-${d.k}">
+      <div style="font-size:11px;color:var(--mu);margin-top:2px;">${d.d} · Weight: ${d.w}%</div>
+    </div>`).join('');
+  DIMS.forEach(d=>{scores[d.k]=50;});calc();
+}
+function upd(k,v){scores[k]=+v;document.getElementById('lbl-'+k).textContent=v;calc();}
+function calc(){
+  const weighted=DIMS.reduce((a,d)=>a+scores[d.k]*d.w/100,0);
+  const grade=weighted>=90?'A+':weighted>=80?'A':weighted>=70?'B':weighted>=60?'C':weighted>=50?'D':'F';
+  const weak=DIMS.reduce((a,d)=>scores[d.k]<scores[a.k]?d:a);
+  document.getElementById('total').textContent=weighted.toFixed(0)+'/100';
+  document.getElementById('grade').textContent=grade;
+  document.getElementById('weak').textContent=weak.l;
+  const bars=DIMS.map(d=>`<div style="margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+    <span style="width:160px;font-size:12px;color:var(--mu);">${d.l}</span>
+    <div style="flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:8px;overflow:hidden;">
+      <div style="width:${scores[d.k]}%;height:100%;background:${scores[d.k]>=70?'var(--acc)':scores[d.k]>=50?'#fbbf24':'#f87171'};transition:.2s;"></div>
+    </div>
+    <span style="width:30px;text-align:right;font-size:12px;color:var(--tx);">${scores[d.k]}</span>
+  </div>`).join('');
+  document.getElementById('breakdown').innerHTML=bars;
+  const recs=DIMS.filter(d=>scores[d.k]<60).map(d=>d.l).join(', ');
+  document.getElementById('note').textContent=`Weighted score: ${weighted.toFixed(0)}/100 (${grade}). ${recs?'Priority fixes: '+recs+'.':'All dimensions passing.'} BIM models below 70 are not coordination-ready. Run this checklist before each coordination milestone.`;
+}
+build();</script></body></html>

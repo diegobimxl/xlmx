@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIM Role & Responsibility Matrix — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#38bdf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>BIM Role & Responsibility Matrix</h1><p class="sub">BIM — Assign tasks by discipline and project phase</p>
+<div class="card">
+  <div id="matrix-container" style="overflow-x:auto;"></div>
+  <div class="note">R = Responsible · A = Accountable · C = Consulted · I = Informed. Click any cell to cycle through RACI values. Export or screenshot for contract attachment.</div>
+</div>
+</div><script>const ROLES=['BIM Manager','Architect','Structural','MEP','Civil','Contractor','Client'];
+const TASKS=[
+  'BEP Authoring','CDE Administration','Model Authoring','Clash Detection',
+  'Model Review','LOD Compliance','Issue Management','Client Reporting',
+  'Coordination Meetings','Handover Package'
+];
+const VALS=['','R','A','C','I'];
+const COLORS={'R':'rgba(56,189,248,.2)','A':'rgba(168,85,247,.2)','C':'rgba(34,197,94,.2)','I':'rgba(107,114,128,.15)','':"rgba(255,255,255,.02)"};
+const grid={};
+TASKS.forEach(t=>ROLES.forEach(r=>{grid[t+'|'+r]=''}));
+function render(){
+  let h='<table class="tbl" style="min-width:700px;"><tr><th style="min-width:180px;">TASK</th>';
+  ROLES.forEach(r=>{h+=`<th style="text-align:center;min-width:90px;">${r}</th>`;});
+  h+='</tr>';
+  TASKS.forEach(t=>{
+    h+=`<tr><td style="font-weight:500;color:var(--tx);">${t}</td>`;
+    ROLES.forEach(r=>{
+      const v=grid[t+'|'+r];
+      h+=`<td style="text-align:center;background:${COLORS[v]||COLORS['']};cursor:pointer;" onclick="cycle('${t}','${r}')">
+        <span style="font-weight:700;font-size:13px;color:${v?'var(--acc)':'var(--bd)'};">${v||'·'}</span></td>`;
+    });
+    h+='</tr>';
+  });
+  document.getElementById('matrix-container').innerHTML=h+'</table>';
+}
+function cycle(t,r){
+  const cur=VALS.indexOf(grid[t+'|'+r]);
+  grid[t+'|'+r]=VALS[(cur+1)%VALS.length];
+  render();
+}
+render();</script></body></html>

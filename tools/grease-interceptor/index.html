@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grease Interceptor Sizing — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Grease Interceptor Sizing</h1><p class="sub">Engineering — Size grease interceptors per PDI standards</p>
+<div class="card">
+  <div id="fixtures-list"></div>
+  <button onclick="addFix()" style="background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--bd);">+ Add Fixture</button>
+  <div class="g2" style="margin-top:16px;">
+    <div>
+      <label>DRAINAGE RATE</label>
+      <select id="drate" onchange="calc()">
+        <option value="1">1 min — fastest drain (pot sinks)</option>
+        <option value="2" selected>2 min — normal (3-comp sinks)</option>
+        <option value="4">4 min — slow (floor drains)</option>
+      </select>
+    </div>
+    <div><label>RETENTION TIME (min)</label><input type="number" id="ret" value="24" min="12" max="36" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">FLOW RATE</div><div class="rv" id="flow">—</div><div class="rs">GPM</div></div>
+    <div class="res"><div class="rl">REQUIRED SIZE</div><div class="rv" id="size">—</div><div class="rs">gal capacity</div></div>
+    <div class="res"><div class="rl">PDI RATING</div><div class="rv" id="pdi">—</div><div class="rs">GPM unit</div></div>
+  </div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>// PDI G-101 fixture volumes (gallons)
+const FIXTURES=[
+  {n:'3-Compartment Sink',vol:21,qty:1},
+  {n:'2-Compartment Sink',vol:14,qty:1},
+  {n:'Pre-rinse Unit',vol:14,qty:1},
+];
+let fixtures=[...FIXTURES];
+function addFix(){
+  const TYPES=[{n:'3-Comp Sink',v:21},{n:'2-Comp Sink',v:14},{n:'Pre-rinse',v:14},{n:'Mop Sink',v:8},{n:'Floor Drain',v:0},{n:'Pot Filler',v:8}];
+  fixtures.push({n:'3-Compartment Sink',vol:21,qty:1});renderFixtures();
+}
+function renderFixtures(){
+  document.getElementById('fixtures-list').innerHTML=`<table class="tbl"><tr><th>FIXTURE</th><th style="text-align:right;">VOL (gal)</th><th style="text-align:right;">QTY</th><th style="text-align:right;">TOTAL GAL</th></tr>
+    ${fixtures.map((f,i)=>`<tr>
+      <td><input value="${f.n}" oninput="fixtures[${i}].n=this.value" style="padding:5px 8px;"></td>
+      <td style="text-align:right;"><input type="number" value="${f.vol}" oninput="fixtures[${i}].vol=+this.value;calc()" style="padding:5px 8px;width:70px;text-align:right;"></td>
+      <td style="text-align:right;"><input type="number" value="${f.qty}" min="1" oninput="fixtures[${i}].qty=+this.value;calc()" style="padding:5px 8px;width:55px;text-align:right;"></td>
+      <td style="text-align:right;color:var(--acc);">${(f.vol*f.qty).toFixed(0)}</td>
+    </tr>`).join('')}</table>`;
+  calc();
+}
+function calc(){
+  const drate=+document.getElementById('drate').value;
+  const ret=+document.getElementById('ret').value;
+  const totalVol=fixtures.reduce((a,f)=>a+f.vol*f.qty,0);
+  const flow=(totalVol/drate).toFixed(1);
+  const required=(+flow*ret).toFixed(0);
+  const pdiSizes=[10,15,20,25,35,50,75,100];
+  const pdiRating=pdiSizes.find(s=>s>=+flow)||100;
+  document.getElementById('flow').textContent=flow;
+  document.getElementById('size').textContent=required;
+  document.getElementById('pdi').textContent=pdiRating+' GPM';
+  document.getElementById('note').textContent=`PDI G-101 sizing: Total fixture volume ${totalVol} gal ÷ ${drate} min drain rate = ${flow} GPM. Required capacity: ${flow} GPM × ${ret} min = ${required} gal. PDI rating: ${pdiRating} GPM unit. Hydromechanical GI required when combined flow exceeds 15 GPM. Verify with local plumbing authority — some jurisdictions require larger sizing.`;
+}
+renderFixtures();</script></body></html>

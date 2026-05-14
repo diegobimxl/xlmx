@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ISO 19650 File Namer — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#38bdf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>ISO 19650 File Namer</h1><p class="sub">BIM — Generate compliant container naming strings</p>
+<div class="card">
+  <div class="g2">
+    <div><label>PROJECT ID</label><input id="proj" value="PRJ" oninput="gen()"></div>
+    <div><label>ORIGINATOR</label><input id="orig" value="BIMXL" oninput="gen()"></div>
+  </div>
+  <div class="g2">
+    <div>
+      <label>VOLUME / SYSTEM</label>
+      <select id="vol" onchange="gen()">
+        <option value="ZZ">ZZ — Entire Project</option>
+        <option value="A1">A1 — Block A / Level 1</option>
+        <option value="B2">B2 — Block B / Level 2</option>
+        <option value="XX">XX — Cross-discipline</option>
+      </select>
+    </div>
+    <div>
+      <label>LEVEL / LOCATION</label>
+      <select id="lvl" onchange="gen()">
+        <option value="ZZ">ZZ — Entire building</option>
+        <option value="B1">B1 — Basement 1</option>
+        <option value="G0">G0 — Ground floor</option>
+        <option value="01">01 — Level 1</option>
+        <option value="RF">RF — Roof</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div>
+      <label>FUNCTIONAL TYPE</label>
+      <select id="type" onchange="gen()">
+        <option value="M3">M3 — BIM Model</option>
+        <option value="DR">DR — Drawing</option>
+        <option value="SP">SP — Specification</option>
+        <option value="RP">RP — Report</option>
+        <option value="CP">CP — Calculation</option>
+        <option value="SH">SH — Schedule</option>
+      </select>
+    </div>
+    <div>
+      <label>DISCIPLINE</label>
+      <select id="disc" onchange="gen()">
+        <option value="A">A — Architecture</option>
+        <option value="S">S — Structural</option>
+        <option value="M">M — Mechanical</option>
+        <option value="E">E — Electrical</option>
+        <option value="P">P — Plumbing</option>
+        <option value="C">C — Civil</option>
+        <option value="L">L — Landscape</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div><label>DESCRIPTION (max 20 chars)</label><input id="desc" value="GroundFloorPlan" maxlength="20" oninput="gen()"></div>
+    <div>
+      <label>REVISION</label>
+      <select id="rev" onchange="gen()">
+        <option value="S0">S0 — Work in Progress</option>
+        <option value="S1">S1 — For Coordination</option>
+        <option value="S2">S2 — For Information</option>
+        <option value="S3">S3 — For Review/Approval</option>
+        <option value="S4">S4 — For Construction</option>
+        <option value="A0">A0 — As Built</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="rl">GENERATED FILENAME</div>
+  <div id="filename" style="font-family:monospace;font-size:18px;color:var(--acc);word-break:break-all;margin:10px 0;letter-spacing:.05em;"></div>
+  <div class="rl" style="margin-top:12px;">BREAKDOWN</div>
+  <div id="breakdown" style="font-size:12px;color:var(--mu);line-height:2;margin-top:6px;"></div>
+  <div class="note">ISO 19650-2 Annex A naming convention: Project–Originator–Volume–Level–Type–Discipline–Description–Status.RevNumber</div>
+</div>
+</div><script>function gen(){
+  const proj=document.getElementById('proj').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)||'PRJ';
+  const orig=document.getElementById('orig').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)||'ORIG';
+  const vol=document.getElementById('vol').value;
+  const lvl=document.getElementById('lvl').value;
+  const type=document.getElementById('type').value;
+  const disc=document.getElementById('disc').value;
+  const desc=document.getElementById('desc').value.replace(/\s+/g,'').slice(0,20)||'Description';
+  const rev=document.getElementById('rev').value;
+  const name=`${proj}-${orig}-${vol}-${lvl}-${type}-${disc}-${desc}-${rev}`;
+  document.getElementById('filename').textContent=name;
+  const parts=[
+    ['Project',proj],['Originator',orig],['Volume/System',vol],['Level/Location',lvl],
+    ['Type',type],['Discipline',disc],['Description',desc],['Status',rev]
+  ];
+  document.getElementById('breakdown').innerHTML=parts.map(([k,v])=>`<span style="color:var(--tx);font-weight:600;">${k}:</span> <span style="color:var(--acc);">${v}</span> &nbsp;`).join('<br>');
+}
+gen();</script></body></html>

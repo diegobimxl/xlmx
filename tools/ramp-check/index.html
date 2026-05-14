@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ramp Slope Checker — XLMX</title><style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Ramp Slope Checker</h1><p class="sub">Architecture — Verify ADA, IBC, and local ramp requirements</p><div class="card">
+  <div class="g3">
+    <div><label>RISE (m)</label><input type="number" id="rise" value="0.75" step="0.01" oninput="calc()"></div>
+    <div><label>RUN (m)</label><input type="number" id="run" value="9.00" step="0.01" oninput="calc()"></div>
+    <div><label>WIDTH (m)</label><input type="number" id="width" value="1.50" step="0.01" oninput="calc()"></div>
+  </div>
+  <label>RAMP USE TYPE</label>
+  <select id="use" onchange="calc()">
+    <option value="acc">Accessible Route (ADA/ADAAG)</option>
+    <option value="vehicle">Vehicle Ramp</option>
+    <option value="service">Service / Loading Ramp</option>
+  </select>
+  <label>LANDING LENGTH AT BOTTOM AND TOP (m)</label>
+  <input type="number" id="landing" value="1.50" step="0.05" oninput="calc()">
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">SLOPE</div><div class="rv" id="slope">—</div></div>
+    <div class="res"><div class="rl">RATIO</div><div class="rv" id="ratio">—</div></div>
+    <div class="res"><div class="rl">ANGLE</div><div class="rv" id="angle">—</div><div class="rs">degrees</div></div>
+  </div>
+  <div id="checks" style="margin-top:12px;"></div>
+  <div class="note" id="note"></div>
+</div></div>
+<script>const LIMITS={
+  acc:{slope:0.0833,ratio:'1:12',minWidth:0.915,maxRise:0.76,landing:1.52,handrail:0.76},
+  vehicle:{slope:0.17,ratio:'1:6',minWidth:3.0,maxRise:99,landing:0.0,handrail:0},
+  service:{slope:0.125,ratio:'1:8',minWidth:1.2,maxRise:99,landing:0.0,handrail:1.0},
+};
+function row(label,val,pass,req){
+  const tag=pass?'<span class="pass">PASS</span>':'<span class="fail">FAIL</span>';
+  return `<tr><td>${label}</td><td style="text-align:right;">${val}</td><td style="text-align:right;color:var(--mu);">${req}</td><td>${tag}</td></tr>`;
+}
+function calc(){
+  const rise=+document.getElementById('rise').value;
+  const run=+document.getElementById('run').value;
+  const width=+document.getElementById('width').value;
+  const landing=+document.getElementById('landing').value;
+  const use=document.getElementById('use').value;
+  const lim=LIMITS[use];
+  const slope=run>0?rise/run:0;
+  const angle=(Math.atan(slope)*180/Math.PI).toFixed(2);
+  const ratio=slope>0?'1:'+(1/slope).toFixed(1):'—';
+  document.getElementById('slope').textContent=(slope*100).toFixed(2)+'%';
+  document.getElementById('ratio').textContent=ratio;
+  document.getElementById('angle').textContent=angle;
+  const rows=[
+    row('Max Slope',(slope*100).toFixed(2)+'%',slope<=lim.slope,'≤'+(lim.slope*100)+'% ('+lim.ratio+')'),
+    row('Min Width',width+' m',width>=lim.minWidth,'≥'+lim.minWidth+' m'),
+    row('Max Rise',rise+' m',lim.maxRise>=rise,'≤'+lim.maxRise+' m per run'),
+  ];
+  if(lim.landing>0)rows.push(row('Landing Length',landing+' m',landing>=lim.landing,'≥'+lim.landing+' m'));
+  document.getElementById('checks').innerHTML='<table class="tbl"><tr><th>CHECK</th><th style="text-align:right;">PROVIDED</th><th style="text-align:right;">REQUIRED</th><th>STATUS</th></tr>'+rows.join('')+'</table>';
+  const allPass=slope<=lim.slope&&width>=lim.minWidth&&rise<=lim.maxRise;
+  document.getElementById('note').textContent=`Slope: ${(slope*100).toFixed(2)}% (${ratio}), ${angle}°. ${allPass?'Ramp complies with '+document.getElementById('use').options[document.getElementById('use').selectedIndex].text+'.':'Non-compliant — slope or dimensions need adjustment.'} ADA max: 1:12 (8.33%) for accessible routes. Handrails required on both sides when slope >1:20 and rise >150mm.`;
+}
+calc();</script></body></html>

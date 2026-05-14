@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Room Area Calculator — XLMX</title><style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Room Area Calculator</h1><p class="sub">Architecture — Net, gross, and efficiency ratios for any building program</p><div class="card">
+  <div id="program-rows"></div>
+  <button onclick="addRoom()" style="background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--bd);">+ Add Space</button>
+  <label style="margin-top:16px;">GROSS-UP FACTOR</label>
+  <input type="number" id="gu" value="1.25" step="0.01" min="1" oninput="calc()">
+  <div style="font-size:11px;color:var(--mu);margin-top:4px;">Typical: 1.15–1.30 (walls, circulation, mechanical shafts)</div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">NET AREA</div><div class="rv" id="net">—</div><div class="rs">m²</div></div>
+    <div class="res"><div class="rl">GROSS AREA</div><div class="rv" id="gross">—</div><div class="rs">m² (with gross-up)</div></div>
+    <div class="res"><div class="rl">EFFICIENCY</div><div class="rv" id="eff">—</div><div class="rs">net / gross</div></div>
+  </div>
+  <div id="program-summary" style="margin-top:12px;"></div>
+  <div class="note" id="note"></div>
+</div></div>
+<script>let rooms=[
+  {cat:'Office',n:'Executive Offices',qty:4,area:25},
+  {cat:'Office',n:'Open Work Area',qty:1,area:200},
+  {cat:'Meeting',n:'Conference Room',qty:3,area:40},
+  {cat:'Support',n:'Break Room',qty:2,area:30},
+  {cat:'Support',n:'Storage',qty:2,area:15},
+  {cat:'Circulation',n:'Lobby / Reception',qty:1,area:60},
+];
+function addRoom(){rooms.push({cat:'Office',n:'New Space',qty:1,area:20});renderTable();}
+function renderTable(){
+  document.getElementById('program-rows').innerHTML=`<table class="tbl">
+    <tr><th>CATEGORY</th><th>SPACE NAME</th><th style="text-align:right;">QTY</th><th style="text-align:right;">UNIT AREA (m²)</th><th style="text-align:right;">TOTAL</th></tr>
+    ${rooms.map((r,i)=>`<tr>
+      <td><input value="${r.cat}" oninput="rooms[${i}].cat=this.value" style="padding:5px 8px;"></td>
+      <td><input value="${r.n}" oninput="rooms[${i}].n=this.value" style="padding:5px 8px;"></td>
+      <td style="text-align:right;"><input type="number" value="${r.qty}" min="1" oninput="rooms[${i}].qty=+this.value;calc()" style="padding:5px 8px;width:60px;text-align:right;"></td>
+      <td style="text-align:right;"><input type="number" value="${r.area}" min="1" step="0.5" oninput="rooms[${i}].area=+this.value;calc()" style="padding:5px 8px;width:80px;text-align:right;"></td>
+      <td style="text-align:right;color:var(--acc);font-weight:600;">${(r.qty*r.area).toFixed(1)}</td>
+    </tr>`).join('')}
+    </table>`;
+  calc();
+}
+function calc(){
+  const gu=+document.getElementById('gu').value||1.25;
+  const net=rooms.reduce((a,r)=>a+r.qty*r.area,0);
+  const gross=net*gu;
+  const eff=(net/gross*100).toFixed(1);
+  document.getElementById('net').textContent=net.toFixed(1);
+  document.getElementById('gross').textContent=gross.toFixed(1);
+  document.getElementById('eff').textContent=eff+'%';
+  // Category summary
+  const cats={};
+  rooms.forEach(r=>{cats[r.cat]=(cats[r.cat]||0)+r.qty*r.area;});
+  document.getElementById('program-summary').innerHTML='<div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:8px;">BY CATEGORY</div>'+
+    Object.entries(cats).map(([k,v])=>`<div style="display:flex;gap:10px;align-items:center;margin-bottom:4px;">
+      <span style="width:150px;font-size:12px;color:var(--tx);">${k}</span>
+      <div style="flex:1;background:rgba(255,255,255,.04);border-radius:3px;height:6px;overflow:hidden;">
+        <div style="width:${(v/net*100).toFixed(1)}%;height:100%;background:var(--acc);"></div>
+      </div>
+      <span style="font-size:12px;color:var(--mu);">${v.toFixed(1)} m² (${(v/net*100).toFixed(0)}%)</span>
+    </div>`).join('');
+  document.getElementById('note').textContent=`Net area: ${net.toFixed(1)} m². Gross-up factor ${gu}× → ${gross.toFixed(1)} m² gross. Efficiency: ${eff}% (target: 70–85% office, 65–75% healthcare). Use this to verify program fits site/zoning FAR.`;
+}
+renderTable();</script></body></html>

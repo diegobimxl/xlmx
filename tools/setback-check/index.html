@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Setback Compliance Checker — XLMX</title><style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Setback Compliance Checker</h1><p class="sub">Architecture — Verify front, rear, and side setback compliance</p><div class="card">
+  <div class="g2">
+    <div>
+      <label>LOT WIDTH (m)</label>
+      <input type="number" id="lot-w" value="30" oninput="calc()">
+    </div>
+    <div>
+      <label>LOT DEPTH (m)</label>
+      <input type="number" id="lot-d" value="40" oninput="calc()">
+    </div>
+  </div>
+  <div style="margin-top:16px;font-size:13px;font-weight:600;color:var(--tx);">REQUIRED SETBACKS (m)</div>
+  <div class="g2">
+    <div><label>FRONT SETBACK</label><input type="number" id="req-front" value="5" step="0.1" oninput="calc()"></div>
+    <div><label>REAR SETBACK</label><input type="number" id="req-rear" value="4" step="0.1" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div><label>SIDE SETBACK (each)</label><input type="number" id="req-side" value="2" step="0.1" oninput="calc()"></div>
+    <div><label>CORNER SIDE SETBACK</label><input type="number" id="req-corner" value="3" step="0.1" oninput="calc()"></div>
+  </div>
+  <div style="margin-top:16px;font-size:13px;font-weight:600;color:var(--tx);">PROPOSED SETBACKS (m)</div>
+  <div class="g2">
+    <div><label>PROPOSED FRONT</label><input type="number" id="prop-front" value="6" step="0.1" oninput="calc()"></div>
+    <div><label>PROPOSED REAR</label><input type="number" id="prop-rear" value="5" step="0.1" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div><label>PROPOSED SIDE</label><input type="number" id="prop-side" value="2.5" step="0.1" oninput="calc()"></div>
+    <div><label>PROPOSED CORNER SIDE</label><input type="number" id="prop-corner" value="2" step="0.1" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div id="results"></div>
+  <div class="g3" style="margin-top:12px;">
+    <div class="res"><div class="rl">BUILDABLE WIDTH</div><div class="rv" id="bw">—</div><div class="rs">m</div></div>
+    <div class="res"><div class="rl">BUILDABLE DEPTH</div><div class="rv" id="bd">—</div><div class="rs">m</div></div>
+    <div class="res"><div class="rl">BUILDABLE AREA</div><div class="rv" id="ba">—</div><div class="rs">m²</div></div>
+  </div>
+  <div class="note" id="note"></div>
+</div></div>
+<script>function check(prop, req, label){
+  const pass=prop>=req;
+  const tag=pass?`<span class="pass">PASS</span>`:`<span class="fail">FAIL — ${(req-prop).toFixed(1)}m short</span>`;
+  return `<tr><td>${label}</td><td style="text-align:right;">${req} m</td><td style="text-align:right;">${prop} m</td><td>${tag}</td></tr>`;
+}
+function calc(){
+  const lw=+document.getElementById('lot-w').value;
+  const ld=+document.getElementById('lot-d').value;
+  const rf=+document.getElementById('req-front').value,pf=+document.getElementById('prop-front').value;
+  const rr=+document.getElementById('req-rear').value,pr=+document.getElementById('prop-rear').value;
+  const rs=+document.getElementById('req-side').value,ps=+document.getElementById('prop-side').value;
+  const rc=+document.getElementById('req-corner').value,pc=+document.getElementById('prop-corner').value;
+  document.getElementById('results').innerHTML=`<table class="tbl">
+    <tr><th>SETBACK</th><th style="text-align:right;">REQUIRED</th><th style="text-align:right;">PROPOSED</th><th>STATUS</th></tr>
+    ${check(pf,rf,'Front Setback')}
+    ${check(pr,rr,'Rear Setback')}
+    ${check(ps,rs,'Side Setback')}
+    ${check(pc,rc,'Corner Side Setback')}
+    </table>`;
+  const bw=Math.max(0,lw-ps*2).toFixed(2);
+  const bdepth=Math.max(0,ld-pf-pr).toFixed(2);
+  const ba=(+bw*+bdepth).toFixed(1);
+  document.getElementById('bw').textContent=bw;
+  document.getElementById('bd').textContent=bdepth;
+  document.getElementById('ba').textContent=ba;
+  const allPass=[pf>=rf,pr>=rr,ps>=rs,pc>=rc].every(Boolean);
+  document.getElementById('note').textContent=`Lot: ${lw}×${ld}m = ${(lw*ld).toFixed(0)}m². Buildable envelope: ${bw}×${bdepth}m = ${ba}m². ${allPass?'All setbacks comply.':'One or more setbacks fail — variance or redesign required.'}`;
+}
+calc();</script></body></html>

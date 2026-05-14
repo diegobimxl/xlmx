@@ -1,0 +1,88 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pipe Sizing Reference — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Pipe Sizing Reference</h1><p class="sub">Engineering — Water supply pipe sizing by fixture unit count</p>
+<div class="card">
+  <div class="g2">
+    <div><label>TOTAL FIXTURE UNITS (FU)</label><input type="number" id="fu" value="50" oninput="calc()"></div>
+    <div>
+      <label>SYSTEM TYPE</label>
+      <select id="sys" onchange="calc()">
+        <option value="cold">Cold water supply</option><option value="hot">Hot water supply</option><option value="dw">Drain / waste</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div><label>AVAILABLE PRESSURE (psi)</label><input type="number" id="psi" value="60" oninput="calc()"></div>
+    <div><label>TOTAL PIPE LENGTH (ft)</label><input type="number" id="length" value="200" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">DEMAND FLOW</div><div class="rv" id="gpm">—</div><div class="rs">GPM (Hunter)</div></div>
+    <div class="res"><div class="rl">MIN PIPE SIZE</div><div class="rv" id="dia">—</div><div class="rs">inches</div></div>
+    <div class="res"><div class="rl">VELOCITY CHECK</div><div class="rv" id="vel">—</div><div class="rs">fps</div></div>
+  </div>
+  <div id="fixture-ref" style="margin-top:12px;"></div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>// Hunter's method GPM from FU (IPC Table 604.1 simplified)
+function hunterGPM(fu){
+  if(fu<=6)return fu*2;
+  if(fu<=25)return Math.sqrt(fu)*6;
+  if(fu<=100)return Math.pow(fu,0.55)*4.5;
+  return Math.pow(fu,0.5)*5.5;
+}
+// Common pipe sizes in inches
+const SIZES=[0.5,0.75,1,1.25,1.5,2,2.5,3,4];
+function calc(){
+  const fu=+document.getElementById('fu').value;
+  const psi=+document.getElementById('psi').value;
+  const length=+document.getElementById('length').value;
+  const gpm=hunterGPM(fu);
+  // Hazen-Williams C=100, friction pressure = 0.2 psi/ft (rough), find D
+  // Q = 0.432 × C × D^2.63 × (ΔP/L)^0.54, solve for D
+  const hL=psi*0.7/length; // allow 70% of pressure for friction
+  const D=Math.pow(gpm/(0.432*100*Math.pow(hL,0.54)),1/2.63);
+  const recSize=SIZES.find(s=>s>=D)||SIZES[SIZES.length-1];
+  const area=Math.PI*(recSize/2/12)**2; // sq ft
+  const vel=gpm/(7.48*area*60); // fps
+  document.getElementById('gpm').textContent=gpm.toFixed(1);
+  document.getElementById('dia').textContent=recSize+'" pipe';
+  document.getElementById('vel').textContent=vel.toFixed(1);
+  const velOk=vel<=8;
+  document.getElementById('vel').style.color=velOk?'var(--acc)':'#f87171';
+  document.getElementById('fixture-ref').innerHTML=`<div style="font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:6px;">COMMON FIXTURE UNIT VALUES</div>
+    <div class="g4" style="font-size:12px;">
+      ${[['WC (tank)','3'],['WC (flush)','6'],['Lavatory','1'],['Kitchen sink','2'],['Shower','2'],['Bathtub','4'],['Washing mach.','4'],['Hose bib','2.5']].map(([k,v])=>`<div style="background:rgba(255,255,255,.03);padding:6px 8px;border-radius:5px;"><span style="color:var(--mu);">${k}</span><br><span style="color:var(--acc);font-weight:700;">${v} FU</span></div>`).join('')}
+    </div>`;
+  document.getElementById('note').textContent=`Hunter's method. ${fu} FU → ${gpm.toFixed(1)} GPM. Recommended pipe: ${recSize}" (velocity ${vel.toFixed(1)} fps). IPC max: 8 fps supply, 4 fps DWV. Pipe length ${length}ft, available pressure ${psi} psi. Add fittings equivalent length: +50% typical.`;
+}
+calc();</script></body></html>

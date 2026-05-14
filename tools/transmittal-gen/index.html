@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transmittal Generator — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#818cf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>Transmittal Generator</h1><p class="sub">VDC — Create formal document transmittals with revision tracking</p>
+<div class="card">
+  <div class="g2">
+    <div><label>FROM (COMPANY)</label><input id="from" value="BIMXL / Urbiplus"></div>
+    <div><label>TO (COMPANY / RECIPIENT)</label><input id="to" value="Client Name"></div>
+  </div>
+  <div class="g3">
+    <div><label>PROJECT NAME</label><input id="proj" value="Project Name"></div>
+    <div><label>TRANSMITTAL NO.</label><input id="tnum" value="TR-001"></div>
+    <div><label>DATE</label><input type="date" id="date"></div>
+  </div>
+  <label>PURPOSE</label>
+  <select id="purpose">
+    <option>For Approval</option><option>For Information</option><option>For Construction</option>
+    <option>For Coordination</option><option>For Review & Comment</option><option>As Requested</option>
+  </select>
+  <label>NOTES / REMARKS</label>
+  <textarea id="notes" rows="2" placeholder="Optional remarks..."></textarea>
+  <div id="docs-section" style="margin-top:16px;">
+    <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:8px;">DOCUMENTS</div>
+    <div id="doc-rows"></div>
+    <button onclick="addDoc()" style="margin-top:8px;background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--bd);">+ Add Document</button>
+  </div>
+  <button onclick="genTransmittal()" style="margin-top:16px;">GENERATE TRANSMITTAL</button>
+</div>
+<div class="card" id="output" style="display:none;font-family:monospace;font-size:12px;line-height:1.8;color:var(--tx);white-space:pre;overflow-x:auto;"></div>
+</div><script>let docs=[{no:'A-DR-001',desc:'Ground Floor Plan',rev:'S3',sheets:'3'}];
+function addDoc(){docs.push({no:'',desc:'',rev:'S3',sheets:'1'});renderDocs();}
+function renderDocs(){
+  document.getElementById('doc-rows').innerHTML=docs.map((d,i)=>`
+    <div class="g4" style="margin-bottom:6px;">
+      <input placeholder="Doc No." value="${d.no}" oninput="docs[${i}].no=this.value" style="padding:7px 10px;">
+      <input placeholder="Description" value="${d.desc}" oninput="docs[${i}].desc=this.value" style="padding:7px 10px;">
+      <input placeholder="Revision" value="${d.rev}" oninput="docs[${i}].rev=this.value" style="padding:7px 10px;">
+      <input placeholder="Sheets" value="${d.sheets}" oninput="docs[${i}].sheets=this.value" style="padding:7px 10px;">
+    </div>`).join('');
+}
+function genTransmittal(){
+  const from=document.getElementById('from').value;
+  const to=document.getElementById('to').value;
+  const proj=document.getElementById('proj').value;
+  const tnum=document.getElementById('tnum').value;
+  const date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
+  const purpose=document.getElementById('purpose').value;
+  const notes=document.getElementById('notes').value;
+  const line='─'.repeat(60);
+  let txt=`${line}\nDOCUMENT TRANSMITTAL\n${line}\n`;
+  txt+=`Transmittal No.: ${tnum}\nDate:             ${date}\nFrom:             ${from}\nTo:               ${to}\nProject:          ${proj}\nPurpose:          ${purpose}\n${line}\n`;
+  txt+=`${'#'.padEnd(8)}${'DOCUMENT'.padEnd(25)}${'REVISION'.padEnd(12)}${'SHEETS'}\n${line}\n`;
+  docs.forEach((d,i)=>{
+    txt+=`${String(i+1).padEnd(8)}${d.no.padEnd(25)}${d.rev.padEnd(12)}${d.sheets}\n`;
+    if(d.desc)txt+=`         ${d.desc}\n`;
+  });
+  txt+=`${line}\n`;
+  if(notes)txt+=`Remarks: ${notes}\n${line}\n`;
+  txt+=`Transmitted by: _______________________     Date: ____________\nReceived by:    _______________________     Date: ____________\n${line}`;
+  const out=document.getElementById('output');
+  out.style.display='block';
+  out.textContent=txt;
+}
+document.getElementById('date').value=new Date().toISOString().slice(0,10);
+renderDocs();</script></body></html>

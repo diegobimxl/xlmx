@@ -1,0 +1,96 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cost per SF Benchmarker — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Cost per SF Benchmarker</h1><p class="sub">Engineering — Compare project cost/SF against type and region benchmarks</p>
+<div class="card">
+  <div class="g2">
+    <div><label>TOTAL CONSTRUCTION COST ($)</label><input type="number" id="cost" value="5000000" oninput="calc()"></div>
+    <div><label>GROSS FLOOR AREA (SF)</label><input type="number" id="area" value="25000" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div>
+      <label>BUILDING TYPE</label>
+      <select id="btype" onchange="calc()">
+        <option value="office_A">Office — Class A</option><option value="office_B">Office — Class B</option>
+        <option value="retail">Retail / Commercial</option><option value="multi">Multifamily / Residential</option>
+        <option value="hotel">Hotel / Hospitality</option><option value="hospital">Hospital / Healthcare</option>
+        <option value="school">School / Education</option><option value="industrial">Industrial / Warehouse</option>
+      </select>
+    </div>
+    <div>
+      <label>MARKET</label>
+      <select id="mkt" onchange="calc()">
+        <option value="tier1">Tier 1 (NYC, SF, Boston)</option>
+        <option value="tier2" selected>Tier 2 (Chicago, Dallas, Denver)</option>
+        <option value="tier3">Tier 3 (Midwest, South)</option>
+        <option value="mx">Mexico / LatAm</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">YOUR COST/SF</div><div class="rv" id="psf">—</div></div>
+    <div class="res"><div class="rl">BENCHMARK LOW</div><div class="rv" id="low">—</div><div class="rs">$/SF</div></div>
+    <div class="res"><div class="rl">BENCHMARK HIGH</div><div class="rv" id="high">—</div><div class="rs">$/SF</div></div>
+  </div>
+  <div class="res" style="margin-top:12px;">
+    <div class="rl">ASSESSMENT</div>
+    <div id="assessment" style="font-size:14px;color:var(--tx);margin-top:6px;line-height:1.6;"></div>
+  </div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>// $/SF ranges [low, mid, high] for tier2 baseline
+const BENCH={
+  office_A:[250,320,450],office_B:[180,230,300],retail:[120,175,250],multi:[150,200,280],
+  hotel:[200,280,420],hospital:[400,550,750],school:[180,240,320],industrial:[60,90,140]
+};
+const MKT={tier1:1.4,tier2:1.0,tier3:0.8,mx:0.35};
+function calc(){
+  const cost=+document.getElementById('cost').value;
+  const area=+document.getElementById('area').value;
+  const bt=document.getElementById('btype').value;
+  const mkt=document.getElementById('mkt').value;
+  const psf=(cost/area).toFixed(0);
+  const mult=MKT[mkt];
+  const [low,mid,high]=BENCH[bt].map(v=>(v*mult).toFixed(0));
+  document.getElementById('psf').textContent='$'+psf;
+  document.getElementById('low').textContent='$'+low;
+  document.getElementById('high').textContent='$'+high;
+  const psfN=+psf;
+  const lowN=+low,midN=+mid,highN=+high;
+  let assess,color;
+  if(psfN<lowN){assess=`Below market — verify scope completeness and inclusions. ${((1-psfN/midN)*100).toFixed(0)}% below midpoint.`;color='#fbbf24';}
+  else if(psfN<=highN){assess=`Within market range ($${low}–$${high}/SF for this type/market). ${psfN<=midN?'Below midpoint — competitive.':'Above midpoint — verify premium drivers.'}`;color='var(--acc)';}
+  else{assess=`Above market high — ${((psfN/highN-1)*100).toFixed(0)}% over benchmark. Identify cost drivers: spec, program, or complexity.`;color='#f87171';}
+  document.getElementById('assessment').innerHTML=`<span style="color:${color};">${assess}</span>`;
+  document.getElementById('note').textContent=`Benchmarks from RSMeans 2024 (tier2 baseline) × market factor ${mult}. Hard costs only — excludes soft costs, land, and financing. Construction cost inflation: verify with current ENR/RSMeans indices.`;
+}
+calc();</script></body></html>

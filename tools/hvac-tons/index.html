@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Tonnage Estimator — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>HVAC Tonnage Estimator</h1><p class="sub">Engineering — Quick cooling load estimate by area, use, and climate</p>
+<div class="card">
+  <div class="g2">
+    <div><label>GROSS FLOOR AREA (m²)</label><input type="number" id="area" value="1000" oninput="calc()"></div>
+    <div>
+      <label>BUILDING USE TYPE</label>
+      <select id="use" onchange="calc()">
+        <option value="office">Office (standard)</option><option value="retail">Retail / Commercial</option>
+        <option value="restaurant">Restaurant / Kitchen</option><option value="hospital">Hospital / Healthcare</option>
+        <option value="hotel">Hotel / Hospitality</option><option value="school">School / Education</option>
+        <option value="warehouse">Warehouse / Light Industrial</option><option value="data">Data Center</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div>
+      <label>CLIMATE ZONE</label>
+      <select id="climate" onchange="calc()">
+        <option value="hot">Hot / Humid (Zone 1-2)</option><option value="mixed" selected>Mixed / Moderate (Zone 3-4)</option>
+        <option value="cold">Cold / Dry (Zone 5-7)</option>
+      </select>
+    </div>
+    <div><label>OCCUPANCY (people)</label><input type="number" id="occ" value="100" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">COOLING LOAD</div><div class="rv" id="tons">—</div><div class="rs">tons of refrigeration</div></div>
+    <div class="res"><div class="rl">kW EQUIV.</div><div class="rv" id="kw">—</div><div class="rs">kW thermal</div></div>
+    <div class="res"><div class="rl">LOAD / AREA</div><div class="rv" id="wm2">—</div><div class="rs">W/m²</div></div>
+  </div>
+  <div class="g2" style="margin-top:12px;">
+    <div class="res"><div class="rl">PEOPLE LOAD</div><div class="rv" id="pload">—</div><div class="rs">kW</div></div>
+    <div class="res"><div class="rl">VENTILATION</div><div class="rv" id="vent">—</div><div class="rs">L/s</div></div>
+  </div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>// W/m² baseline cooling loads by use type (sensible + latent)
+const LOADS={office:80,retail:120,restaurant:250,hospital:160,hotel:100,school:90,warehouse:40,data:500};
+const CLM={hot:1.2,mixed:1.0,cold:0.8};
+// People load: sensible + latent (W/person)
+const PPL={office:130,retail:180,restaurant:350,hospital:130,hotel:130,school:160,warehouse:130,data:130};
+// Vent L/s per person
+const VENT={office:10,retail:8,restaurant:15,hospital:15,hotel:10,school:8,warehouse:5,data:10};
+function calc(){
+  const area=+document.getElementById('area').value;
+  const use=document.getElementById('use').value;
+  const clm=CLM[document.getElementById('climate').value];
+  const occ=+document.getElementById('occ').value;
+  const baseW=LOADS[use]*area*clm;
+  const pplW=PPL[use]*occ;
+  const total=(baseW+pplW)/1000; // kW
+  const tons=total/3.517;
+  const wm2=(baseW+pplW)/area;
+  const vent=VENT[use]*occ;
+  document.getElementById('tons').textContent=tons.toFixed(1);
+  document.getElementById('kw').textContent=total.toFixed(1);
+  document.getElementById('wm2').textContent=wm2.toFixed(0);
+  document.getElementById('pload').textContent=(pplW/1000).toFixed(1);
+  document.getElementById('vent').textContent=vent.toFixed(0);
+  const useName=document.getElementById('use').options[document.getElementById('use').selectedIndex].text;
+  document.getElementById('note').textContent=`Rule-of-thumb estimate only — not a substitute for Manual J / ASHRAE load calculation. ${useName}: ${LOADS[use]} W/m² base × ${clm} climate factor + ${PPL[use]} W/person × ${occ} people = ${total.toFixed(1)} kW (${tons.toFixed(1)} TR). 1 ton = 3.517 kW = 12,000 BTU/hr. Add 10–20% for supply duct heat gain and safety factor.`;
+}
+calc();</script></body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ceiling Height Optimizer — XLMX</title><style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Ceiling Height Optimizer</h1><p class="sub">Architecture — Compare structural depth options against floor-to-floor constraints</p><div class="card">
+  <div class="g2">
+    <div><label>FLOOR-TO-FLOOR HEIGHT (m)</label><input type="number" id="ftf" value="4.20" step="0.05" oninput="calc()"></div>
+    <div><label>SLAB THICKNESS (m)</label><input type="number" id="slab" value="0.25" step="0.025" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div><label>BEAM / STRUCTURAL DEPTH (m)</label><input type="number" id="beam" value="0.55" step="0.025" oninput="calc()"></div>
+    <div><label>MEP SERVICES ZONE (m)</label><input type="number" id="mep" value="0.45" step="0.025" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div><label>CEILING / TILE THICKNESS (m)</label><input type="number" id="ceil" value="0.05" step="0.025" oninput="calc()"></div>
+    <div><label>RAISED FLOOR / PLENUM (m)</label><input type="number" id="floor" value="0.0" step="0.025" oninput="calc()"></div>
+  </div>
+  <label>MINIMUM REQUIRED CLEAR HEIGHT (m)</label>
+  <input type="number" id="min-clr" value="2.70" step="0.05" oninput="calc()">
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">TOTAL CONSUMED</div><div class="rv" id="consumed">—</div><div class="rs">m</div></div>
+    <div class="res"><div class="rl">CLEAR HEIGHT</div><div class="rv" id="clear">—</div><div class="rs">m</div></div>
+    <div class="res"><div class="rl">STATUS</div><div class="rv" id="status" style="font-size:16px;">—</div></div>
+  </div>
+  <div id="breakdown" style="margin-top:12px;"></div>
+  <div class="note" id="note"></div>
+</div></div>
+<script>function calc(){
+  const ftf=+document.getElementById('ftf').value;
+  const slab=+document.getElementById('slab').value;
+  const beam=+document.getElementById('beam').value;
+  const mep=+document.getElementById('mep').value;
+  const ceil=+document.getElementById('ceil').value;
+  const flr=+document.getElementById('floor').value;
+  const minClr=+document.getElementById('min-clr').value;
+  const consumed=slab+beam+mep+ceil+flr;
+  const clear=ftf-consumed;
+  const pass=clear>=minClr;
+  document.getElementById('consumed').textContent=consumed.toFixed(3);
+  document.getElementById('clear').textContent=clear.toFixed(3);
+  document.getElementById('status').textContent=pass?'Compliant ✓':'Non-Compliant ✗';
+  document.getElementById('status').style.color=pass?'var(--acc)':'#f87171';
+  const layers=[
+    {n:'Slab',v:slab,c:'#38bdf8'},
+    {n:'Structure/Beam',v:beam,c:'#818cf8'},
+    {n:'MEP Zone',v:mep,c:'#fb923c'},
+    {n:'Ceiling/Tile',v:ceil,c:'#4ade80'},
+    {n:'Raised Floor',v:flr,c:'#fbbf24'},
+    {n:'Clear Height',v:clear,c:'#a78bfa'},
+  ];
+  document.getElementById('breakdown').innerHTML=layers.map(l=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+      <span style="width:130px;font-size:12px;color:var(--mu);">${l.n}</span>
+      <div style="flex:1;background:rgba(255,255,255,.04);border-radius:3px;height:10px;overflow:hidden;">
+        <div style="width:${(l.v/ftf*100).toFixed(1)}%;height:100%;background:${l.c};"></div>
+      </div>
+      <span style="width:50px;text-align:right;font-size:12px;font-weight:600;color:${l.c};">${l.v.toFixed(3)} m</span>
+    </div>`).join('');
+  document.getElementById('note').textContent=`F-to-F: ${ftf}m. Total overhead: ${consumed.toFixed(3)}m. Clear: ${clear.toFixed(3)}m vs min ${minClr}m. ${pass?'Meets requirement.':'Deficit of '+(minClr-clear).toFixed(3)+'m — reduce beam depth, integrate MEP into beam, or increase F-to-F.'} Office code minimum: 2.5m (IBC), premium: 2.7–3.0m.`;
+}
+calc();</script></body></html>

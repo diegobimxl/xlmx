@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Building Area Calculator — XLMX</title><style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Building Area Calculator</h1><p class="sub">Architecture — Gross, rentable, and usable areas with BOMA metrics</p><div class="card">
+  <div id="floors-list"></div>
+  <button onclick="addFloor()" style="background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--bd);">+ Add Floor</button>
+  <div class="g2" style="margin-top:16px;">
+    <div><label>EXTERIOR WALL THICKNESS (m)</label><input type="number" id="wall-t" value="0.3" step="0.05" oninput="calc()"></div>
+    <div><label>COMMON AREA FACTOR (BOMA)</label><input type="number" id="caf" value="1.12" step="0.01" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">GROSS FLOOR AREA</div><div class="rv" id="gfa">—</div><div class="rs">m²</div></div>
+    <div class="res"><div class="rl">RENTABLE AREA</div><div class="rv" id="rent">—</div><div class="rs">m² (gross × CAF)</div></div>
+    <div class="res"><div class="rl">USABLE AREA</div><div class="rv" id="use">—</div><div class="rs">m²</div></div>
+  </div>
+  <div class="g2" style="margin-top:12px;">
+    <div class="res"><div class="rl">LOAD FACTOR</div><div class="rv" id="lf">—</div><div class="rs">rentable / usable</div></div>
+    <div class="res"><div class="rl">EFFICIENCY RATIO</div><div class="rv" id="er">—</div><div class="rs">usable / gross</div></div>
+  </div>
+  <div class="note" id="note"></div>
+</div></div>
+<script>let floors=[{n:'B1',w:40,d:30,core:80},{n:'G',w:40,d:30,core:60},{n:'L1',w:40,d:30,core:60},{n:'L2',w:40,d:30,core:60},{n:'L3',w:40,d:30,core:60}];
+function addFloor(){floors.push({n:'L'+floors.length,w:40,d:30,core:60});renderFloors();}
+function renderFloors(){
+  document.getElementById('floors-list').innerHTML=`<table class="tbl">
+    <tr><th>FLOOR</th><th style="text-align:right;">WIDTH (m)</th><th style="text-align:right;">DEPTH (m)</th><th style="text-align:right;">CORE AREA (m²)</th><th style="text-align:right;">FLOOR GFA</th></tr>
+    ${floors.map((f,i)=>`<tr>
+      <td><input value="${f.n}" oninput="floors[${i}].n=this.value" style="padding:5px 8px;width:60px;"></td>
+      <td style="text-align:right;"><input type="number" value="${f.w}" oninput="floors[${i}].w=+this.value;calc()" style="padding:5px 8px;width:70px;text-align:right;"></td>
+      <td style="text-align:right;"><input type="number" value="${f.d}" oninput="floors[${i}].d=+this.value;calc()" style="padding:5px 8px;width:70px;text-align:right;"></td>
+      <td style="text-align:right;"><input type="number" value="${f.core}" oninput="floors[${i}].core=+this.value;calc()" style="padding:5px 8px;width:70px;text-align:right;"></td>
+      <td style="text-align:right;color:var(--acc);font-weight:600;">${(f.w*f.d).toFixed(0)}</td>
+    </tr>`).join('')}</table>`;
+  calc();
+}
+function calc(){
+  const wt=+document.getElementById('wall-t').value||0.3;
+  const caf=+document.getElementById('caf').value||1.12;
+  const gfa=floors.reduce((a,f)=>a+f.w*f.d,0);
+  const usable=floors.reduce((a,f)=>a+(f.w*f.d-f.core),0);
+  const rent=gfa*caf;
+  const lf=(rent/usable).toFixed(3);
+  const er=(usable/gfa*100).toFixed(1);
+  document.getElementById('gfa').textContent=gfa.toFixed(0);
+  document.getElementById('rent').textContent=rent.toFixed(0);
+  document.getElementById('use').textContent=usable.toFixed(0);
+  document.getElementById('lf').textContent=lf;
+  document.getElementById('er').textContent=er+'%';
+  document.getElementById('note').textContent=`${floors.length} floors. GFA: ${gfa.toFixed(0)} m². Rentable: ${rent.toFixed(0)} m² (×${caf} BOMA load factor). Usable: ${usable.toFixed(0)} m². Efficiency: ${er}% (target 85–92% for office). Load factor ${lf}× (typical 1.10–1.20 for multi-tenant office).`;
+}
+renderFloors();</script></body></html>

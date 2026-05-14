@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>4D Sequencing Planner — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#818cf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>4D Sequencing Planner</h1><p class="sub">VDC — Map model elements to construction sequence phases</p>
+<div class="card">
+  <div class="g2">
+    <div><label>PROJECT START DATE</label><input type="date" id="start"></div>
+    <div><label>WORKING DAYS/WEEK</label><input type="number" id="wpw" value="5" min="1" max="7" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">PHASE SEQUENCE</div>
+  <div id="phases-table"></div>
+  <button onclick="addPhase()">+ Add Phase</button>
+  <div class="g3" style="margin-top:16px;">
+    <div class="res"><div class="rl">TOTAL DURATION</div><div class="rv" id="total-dur">—</div><div class="rs">working days</div></div>
+    <div class="res"><div class="rl">CALENDAR WEEKS</div><div class="rv" id="total-wks">—</div></div>
+    <div class="res"><div class="rl">EST. COMPLETION</div><div class="rv" id="completion" style="font-size:14px;">—</div></div>
+  </div>
+</div>
+<div class="card">
+  <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:12px;">GANTT PREVIEW</div>
+  <div id="gantt" style="overflow-x:auto;"></div>
+</div>
+</div><script>let phases=[
+  {n:'Site Prep & Demo',dur:15,elem:'Site Elements, Existing'},
+  {n:'Foundations',dur:20,elem:'Footings, Piles, Grade Beams'},
+  {n:'Structural Frame',dur:40,elem:'Columns, Beams, Slabs'},
+  {n:'MEP Rough-In',dur:30,elem:'Ductwork, Piping, Conduit'},
+  {n:'Exterior Envelope',dur:25,elem:'Facade, Curtain Wall, Roof'},
+  {n:'Interior Build-Out',dur:35,elem:'Partitions, Ceilings, Finishes'},
+  {n:'MEP Finish & Fixtures',dur:20,elem:'Fixtures, Equipment, Controls'},
+  {n:'Commissioning & Closeout',dur:15,elem:'All Systems'},
+];
+function addPhase(){phases.push({n:'New Phase',dur:10,elem:'Elements'});renderTable();}
+const COLORS=['#38bdf8','#818cf8','#f472b6','#4ade80','#fb923c','#fbbf24','#a78bfa','#34d399'];
+function renderTable(){
+  document.getElementById('phases-table').innerHTML=`<table class="tbl"><tr><th>#</th><th>PHASE</th><th>ELEMENTS</th><th style="text-align:right;">DURATION (days)</th></tr>
+  ${phases.map((p,i)=>`<tr>
+    <td style="color:${COLORS[i%8]};font-weight:700;">${i+1}</td>
+    <td><input value="${p.n}" oninput="phases[${i}].n=this.value;calc()" style="padding:5px 8px;"></td>
+    <td><input value="${p.elem}" oninput="phases[${i}].elem=this.value" style="padding:5px 8px;font-size:12px;"></td>
+    <td style="text-align:right;"><input type="number" value="${p.dur}" min="1" oninput="phases[${i}].dur=+this.value;calc()" style="padding:5px 8px;width:80px;text-align:right;"></td>
+  </tr>`).join('')}</table>`;
+  calc();
+}
+function calc(){
+  const wpw=+document.getElementById('wpw').value||5;
+  const total=phases.reduce((a,p)=>a+p.dur,0);
+  const weeks=(total/wpw).toFixed(1);
+  const start=new Date(document.getElementById('start').value||Date.now());
+  const calDays=Math.round(total/wpw*7);
+  const end=new Date(start.getTime()+calDays*86400000);
+  document.getElementById('total-dur').textContent=total;
+  document.getElementById('total-wks').textContent=weeks;
+  document.getElementById('completion').textContent=end.toISOString().slice(0,10);
+  const maxDur=Math.max(...phases.map(p=>p.dur));
+  let gantt='<div style="min-width:500px;">';
+  phases.forEach((p,i)=>{
+    const w=Math.round((p.dur/total)*100);
+    gantt+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <div style="width:180px;font-size:12px;color:var(--mu);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">${p.n}</div>
+      <div style="flex:1;background:rgba(255,255,255,.04);border-radius:4px;height:18px;overflow:hidden;">
+        <div style="width:${w}%;height:100%;background:${COLORS[i%8]};border-radius:4px;opacity:.85;"></div>
+      </div>
+      <div style="width:40px;text-align:right;font-size:12px;color:var(--mu);">${p.dur}d</div>
+    </div>`;
+  });
+  document.getElementById('gantt').innerHTML=gantt+'</div>';
+}
+document.getElementById('start').value=new Date().toISOString().slice(0,10);
+renderTable();</script></body></html>

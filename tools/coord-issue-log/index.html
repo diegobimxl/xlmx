@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coordination Issue Log — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#818cf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>Coordination Issue Log</h1><p class="sub">VDC — Track RFIs and clash issues with priority and resolution</p>
+<div class="card">
+  <div class="g4">
+    <div><label>TITLE</label><input id="new-title" placeholder="Issue description"></div>
+    <div><label>ASSIGNEE</label><input id="new-assign" placeholder="Team member"></div>
+    <div><label>PRIORITY</label><select id="new-pri"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+    <div><label>DUE DATE</label><input type="date" id="new-due"></div>
+  </div>
+  <button onclick="addIssue()">+ Log Issue</button>
+</div>
+<div class="card">
+  <div class="g3" style="margin-bottom:12px;">
+    <div class="res"><div class="rl">OPEN</div><div class="rv" id="cnt-open">0</div></div>
+    <div class="res"><div class="rl">IN PROGRESS</div><div class="rv" id="cnt-ip">0</div></div>
+    <div class="res"><div class="rl">RESOLVED</div><div class="rv" id="cnt-res">0</div></div>
+  </div>
+  <div id="issue-table"></div>
+</div>
+</div><script>let issues=[
+  {id:'CI-001',title:'Duct penetrates beam at GL B-4 Level 3',assign:'MEP Lead',pri:'High',due:'2026-05-20',status:'Open'},
+  {id:'CI-002',title:'Sprinkler clearance conflict — East Core',assign:'FP Designer',pri:'Medium',due:'2026-05-25',status:'In Progress'},
+  {id:'CI-003',title:'Column shift — coordinates don't match arch grid',assign:'Structural',pri:'High',due:'2026-05-18',status:'Open'},
+];
+let nextId=4;
+function addIssue(){
+  const t=document.getElementById('new-title').value.trim();
+  if(!t)return;
+  issues.push({id:'CI-'+String(nextId++).padStart(3,'0'),title:t,assign:document.getElementById('new-assign').value||'Unassigned',pri:document.getElementById('new-pri').value,due:document.getElementById('new-due').value||'—',status:'Open'});
+  document.getElementById('new-title').value='';
+  render();
+}
+const PRI_CLR={High:'#f87171',Medium:'#fbbf24',Low:'#4ade80'};
+const STATUSES=['Open','In Progress','Resolved'];
+function render(){
+  const open=issues.filter(i=>i.status==='Open').length;
+  const ip=issues.filter(i=>i.status==='In Progress').length;
+  const res=issues.filter(i=>i.status==='Resolved').length;
+  document.getElementById('cnt-open').textContent=open;
+  document.getElementById('cnt-ip').textContent=ip;
+  document.getElementById('cnt-res').textContent=res;
+  document.getElementById('issue-table').innerHTML=`<table class="tbl">
+    <tr><th>ID</th><th>ISSUE</th><th>ASSIGNEE</th><th>PRIORITY</th><th>DUE</th><th>STATUS</th></tr>
+    ${issues.map((is,i)=>`<tr style="opacity:${is.status==='Resolved'?0.5:1}">
+      <td style="font-family:monospace;color:var(--mu);">${is.id}</td>
+      <td>${is.title}</td>
+      <td>${is.assign}</td>
+      <td><span style="color:${PRI_CLR[is.pri]};font-weight:600;">${is.pri}</span></td>
+      <td>${is.due}</td>
+      <td><select onchange="issues[${i}].status=this.value;render()" style="padding:4px 8px;width:auto;">
+        ${STATUSES.map(s=>`<option${s===is.status?' selected':''}>${s}</option>`).join('')}
+      </select></td>
+    </tr>`).join('')}
+    </table>`;
+}
+render();</script></body></html>

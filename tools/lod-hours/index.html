@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LOD Hour Estimator — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#38bdf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>LOD Hour Estimator</h1><p class="sub">BIM — Estimate modeling hours by LOD level and element count</p>
+<div class="card">
+  <div class="g2">
+    <div>
+      <label>DISCIPLINE</label>
+      <select id="disc" onchange="setDefaults()">
+        <option value="arch">Architecture</option>
+        <option value="struct">Structural</option>
+        <option value="mep">MEP</option>
+        <option value="civil">Civil/Site</option>
+      </select>
+    </div>
+    <div>
+      <label>TARGET LOD</label>
+      <select id="lod" onchange="calc()">
+        <option value="100">LOD 100 — Conceptual</option>
+        <option value="200">LOD 200 — Approximate</option>
+        <option value="300" selected>LOD 300 — Precise</option>
+        <option value="350">LOD 350 — Coordination</option>
+        <option value="400">LOD 400 — Fabrication</option>
+      </select>
+    </div>
+  </div>
+  <div id="elem-inputs" style="margin-top:16px;"></div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">TOTAL HOURS</div><div class="rv" id="total-h">—</div></div>
+    <div class="res"><div class="rl">WEEKS (40h)</div><div class="rv" id="weeks">—</div></div>
+    <div class="res"><div class="rl">FEE ESTIMATE</div><div class="rv" id="fee" style="font-size:18px;">—</div><div class="rs">at $75/hr</div></div>
+  </div>
+  <div id="breakdown" style="margin-top:12px;"></div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>const ELEMENTS={
+  arch:[{n:'Walls',u:0.5},{n:'Doors/Windows',u:0.25},{n:'Floors',u:0.4},{n:'Ceilings',u:0.3},{n:'Roofs',u:0.6},{n:'Stairs',u:1.5},{n:'Rooms/Spaces',u:0.15}],
+  struct:[{n:'Columns',u:0.5},{n:'Beams',u:0.4},{n:'Slabs',u:0.6},{n:'Foundations',u:0.8},{n:'Braces',u:0.5}],
+  mep:[{n:'Ducts',u:0.3},{n:'Pipes',u:0.25},{n:'Equipment',u:1.5},{n:'Fixtures',u:0.3},{n:'Conduit/Cable Tray',u:0.2}],
+  civil:[{n:'Grading Surfaces',u:2.0},{n:'Utilities',u:0.8},{n:'Paving',u:0.5},{n:'Site Features',u:0.4}]
+};
+// LOD multiplier vs LOD 300 baseline
+const LOD_MULT={100:0.3,200:0.6,300:1.0,350:1.4,400:2.2};
+const counts={};
+function setDefaults(){
+  const disc=document.getElementById('disc').value;
+  const elems=ELEMENTS[disc];
+  elems.forEach(e=>{counts[e.n]=counts[e.n]||10;});
+  document.getElementById('elem-inputs').innerHTML='<label>ELEMENT COUNTS</label>'+
+    '<div class="g2">'+elems.map(e=>`<div><label>${e.n.toUpperCase()}</label><input type="number" value="${counts[e.n]||10}" min="0" oninput="counts['${e.n}']=+this.value;calc()"></div>`).join('')+'</div>';
+  calc();
+}
+function calc(){
+  const disc=document.getElementById('disc').value;
+  const lod=+document.getElementById('lod').value;
+  const mult=LOD_MULT[lod];
+  const elems=ELEMENTS[disc];
+  let total=0;
+  const rows=elems.map(e=>{
+    const cnt=counts[e.n]||0;
+    const hrs=cnt*e.u*mult;
+    total+=hrs;
+    return {n:e.n,cnt,hrs};
+  });
+  const weeks=(total/40).toFixed(1);
+  const fee=(total*75).toLocaleString();
+  document.getElementById('total-h').textContent=total.toFixed(1);
+  document.getElementById('weeks').textContent=weeks;
+  document.getElementById('fee').textContent='$'+fee;
+  document.getElementById('breakdown').innerHTML='<table class="tbl"><tr><th>ELEMENT</th><th style="text-align:right;">COUNT</th><th style="text-align:right;">HOURS</th></tr>'+
+    rows.map(r=>`<tr><td>${r.n}</td><td style="text-align:right;">${r.cnt}</td><td style="text-align:right;color:var(--acc);">${r.hrs.toFixed(1)}</td></tr>`).join('')+'</table>';
+  document.getElementById('note').textContent=`LOD ${lod} multiplier: ${mult}× vs LOD 300 baseline. Total: ${total.toFixed(1)} hrs at $75/hr = $${fee}. Add 20% for coordination, QC, and management overhead. Parametric units (hrs/element) vary by project complexity.`;
+}
+setDefaults();</script></body></html>

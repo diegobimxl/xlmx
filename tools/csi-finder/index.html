@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSI Spec Section Finder — XLMX</title><style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#a78bfa;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>CSI Spec Section Finder</h1><p class="sub">Architecture — Find MasterFormat divisions by keyword or number</p><div class="card">
+  <label>SEARCH BY KEYWORD OR DIVISION NUMBER</label>
+  <input id="q" placeholder="e.g. concrete, 03 30, waterproofing, doors..." oninput="search()">
+</div>
+<div class="card">
+  <div id="results">
+    <div style="color:var(--mu);font-size:13px;">Type to search MasterFormat 2016 divisions…</div>
+  </div>
+  <div class="note">MasterFormat 2016 — 50 divisions organized in 5 sub-groups. Numbers are 6-digit: Division-Section (e.g., 03 30 00 = Cast-in-Place Concrete). Specifications follow CSI 3-part format: General · Products · Execution.</div>
+</div></div>
+<script>const SECTIONS=[
+  ['01 10 00','Summary of Work'],['01 20 00','Price and Payment Procedures'],['01 30 00','Administrative Requirements'],['01 40 00','Quality Requirements'],['01 50 00','Temporary Facilities and Controls'],['01 60 00','Product Requirements'],['01 70 00','Execution and Closeout'],
+  ['02 41 00','Demolition'],['02 50 00','Site Remediation'],
+  ['03 10 00','Concrete Forming and Accessories'],['03 20 00','Concrete Reinforcing'],['03 30 00','Cast-in-Place Concrete'],['03 40 00','Precast Concrete'],['03 50 00','Cast Decks and Underlayment'],
+  ['04 20 00','Unit Masonry'],['04 40 00','Stone Assemblies'],['04 50 00','Refractory Masonry'],
+  ['05 10 00','Structural Metal Framing'],['05 20 00','Metal Joists'],['05 30 00','Metal Decking'],['05 50 00','Metal Fabrications'],['05 70 00','Decorative Metal'],
+  ['06 10 00','Rough Carpentry'],['06 20 00','Finish Carpentry'],['06 40 00','Architectural Woodwork'],['06 60 00','Fiber Reinforced Composites'],
+  ['07 10 00','Dampproofing and Waterproofing'],['07 20 00','Thermal Insulation'],['07 30 00','Steep Slope Roofing'],['07 40 00','Roofing and Siding Panels'],['07 50 00','Membrane Roofing'],['07 60 00','Flashing and Sheet Metal'],['07 70 00','Roof and Wall Specialties'],['07 80 00','Fire and Smoke Protection'],['07 90 00','Joint Protection'],
+  ['08 10 00','Doors and Frames'],['08 30 00','Specialty Doors and Frames'],['08 40 00','Entrances, Storefronts, Curtain Walls'],['08 50 00','Windows'],['08 60 00','Roof Windows and Skylights'],['08 70 00','Hardware'],['08 80 00','Glazing'],['08 90 00','Louvers and Vents'],
+  ['09 20 00','Plaster and Gypsum Board'],['09 30 00','Tiling'],['09 50 00','Ceilings'],['09 60 00','Flooring'],['09 70 00','Wall Finishes'],['09 80 00','Acoustic Treatment'],['09 90 00','Paints and Coatings'],
+  ['10 10 00','Information Specialties'],['10 20 00','Interior Specialties'],['10 40 00','Safety Specialties'],['10 50 00','Storage Specialties'],
+  ['11 10 00','Vehicle and Pedestrian Equipment'],['11 20 00','Commercial Equipment'],['11 40 00','Foodservice Equipment'],['11 60 00','Laboratory Equipment'],
+  ['12 20 00','Window Treatments'],['12 30 00','Casework'],['12 40 00','Furnishings and Accessories'],['12 60 00','Multiple Seating'],['12 90 00','Other Furnishings'],
+  ['13 10 00','Special Use Rooms'],['13 20 00','Special Structures'],['13 30 00','Special Instrumented Structures'],
+  ['14 10 00','Conveyors'],['14 20 00','Elevators'],['14 30 00','Escalators and Moving Walks'],['14 40 00','Lifts'],
+  ['21 10 00','Water-Based Fire-Suppression'],['21 20 00','Fire-Extinguishing'],
+  ['22 10 00','Plumbing Piping and Pumps'],['22 40 00','Plumbing Fixtures'],['22 50 00','Pool and Fountain Plumbing'],
+  ['23 05 00','Common Work Results for HVAC'],['23 07 00','HVAC Insulation'],['23 09 00','Instrumentation and Controls'],['23 20 00','HVAC Piping and Pumps'],['23 30 00','HVAC Air Distribution'],['23 60 00','Central Cooling'],['23 70 00','Central HVAC'],['23 80 00','Decentralized HVAC'],
+  ['26 05 00','Common Work Results for Electrical'],['26 20 00','Low-Voltage Distribution'],['26 40 00','Electrical and Cathodic Protection'],['26 50 00','Lighting'],
+  ['27 10 00','Structured Cabling'],['27 20 00','Data Communications'],['27 30 00','Voice Communications'],['27 40 00','Audio-Video Communications'],
+  ['28 10 00','Electronic Access Control'],['28 20 00','Electronic Surveillance'],['28 30 00','Electronic Detection'],
+  ['31 10 00','Site Clearing'],['31 20 00','Earth Moving'],['31 30 00','Earthwork Methods'],['31 40 00','Shoring and Underpinning'],
+  ['32 10 00','Bases, Ballasts and Paving'],['32 30 00','Site Improvements'],['32 40 00','Planted Areas'],['32 80 00','Irrigation'],['32 90 00','Planting'],
+  ['33 10 00','Water Utilities'],['33 30 00','Sanitary Sewerage Utilities'],['33 40 00','Storm Drainage Utilities'],['33 50 00','Fuel Distribution Utilities'],
+];
+function search(){
+  const q=document.getElementById('q').value.toLowerCase().trim();
+  if(!q){document.getElementById('results').innerHTML='<div style="color:var(--mu);font-size:13px;">Type to search…</div>';return;}
+  const hits=SECTIONS.filter(([num,name])=>num.includes(q)||name.toLowerCase().includes(q));
+  if(!hits.length){document.getElementById('results').innerHTML='<div style="color:var(--mu);">No matches found.</div>';return;}
+  document.getElementById('results').innerHTML='<table class="tbl"><tr><th>SECTION NO.</th><th>TITLE</th></tr>'+
+    hits.map(([num,name])=>`<tr><td style="font-family:monospace;color:var(--acc);font-weight:600;">${num}</td><td>${name}</td></tr>`).join('')+'</table>';
+}</script></body></html>

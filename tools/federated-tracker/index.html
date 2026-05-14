@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Federated Model Tracker — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#38bdf8;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+btn,button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+</style></head>
+<body><div class="wrap">
+<a class="back" href="/tools/">← Library</a>
+<h1>Federated Model Tracker</h1><p class="sub">BIM — Track linked model versions and responsible parties</p>
+<div class="card">
+  <div id="models-list"></div>
+  <button onclick="addModel()">+ Add Model</button>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">TOTAL LINKS</div><div class="rv" id="t-links">—</div></div>
+    <div class="res"><div class="rl">UP TO DATE</div><div class="rv" id="t-current">—</div></div>
+    <div class="res"><div class="rl">STALE (>7 days)</div><div class="rv" id="t-stale">—</div></div>
+  </div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>const MODELS=[
+  {disc:'Architecture',file:'PRJ-ARCH-ZZ-ZZ-M3-A-Model.rvt',ver:'R2025',party:'BIMXL',date:'2026-05-10',status:'current'},
+  {disc:'Structural',file:'PRJ-STRUC-ZZ-ZZ-M3-S-Model.rvt',ver:'R2025',party:'Struct Inc',date:'2026-05-08',status:'current'},
+  {disc:'MEP',file:'PRJ-MEP-ZZ-ZZ-M3-M-Model.rvt',ver:'R2025',party:'MEP Co',date:'2026-04-30',status:'stale'},
+];
+let models=[...MODELS];
+function render(){
+  document.getElementById('models-list').innerHTML=`
+    <table class="tbl"><tr><th>DISCIPLINE</th><th>FILE</th><th>VERSION</th><th>PARTY</th><th>LAST UPDATED</th><th style="text-align:center;">STATUS</th></tr>
+    ${models.map((m,i)=>`<tr>
+      <td><input value="${m.disc}" style="padding:4px 8px;" oninput="models[${i}].disc=this.value"></td>
+      <td><input value="${m.file}" style="padding:4px 8px;font-family:monospace;font-size:12px;" oninput="models[${i}].file=this.value"></td>
+      <td><input value="${m.ver}" style="padding:4px 8px;width:80px;" oninput="models[${i}].ver=this.value"></td>
+      <td><input value="${m.party}" style="padding:4px 8px;" oninput="models[${i}].party=this.value"></td>
+      <td><input type="date" value="${m.date}" style="padding:4px 8px;" oninput="models[${i}].date=this.value;checkStale(${i})"></td>
+      <td style="text-align:center;">${getTag(m)}</td>
+    </tr>`).join('')}
+    </table>`;
+  updateSummary();
+}
+function getTag(m){
+  const days=(Date.now()-new Date(m.date))/(86400000);
+  const s=days>14?'<span class="tag fail">STALE</span>':days>7?'<span class="tag warn">AGING</span>':'<span class="tag pass">CURRENT</span>';
+  return s;
+}
+function checkStale(i){render();}
+function addModel(){models.push({disc:'New Discipline',file:'PRJ-ORIG-ZZ-ZZ-M3-X-Model.rvt',ver:'R2025',party:'Firm',date:new Date().toISOString().slice(0,10),status:'current'});render();}
+function updateSummary(){
+  const total=models.length;
+  const now=Date.now();
+  const current=models.filter(m=>(now-new Date(m.date))/(86400000)<=7).length;
+  const stale=models.filter(m=>(now-new Date(m.date))/(86400000)>7).length;
+  document.getElementById('t-links').textContent=total;
+  document.getElementById('t-current').textContent=current;
+  document.getElementById('t-stale').textContent=stale;
+  document.getElementById('note').textContent=`${total} federated models. ${stale>0?stale+' model(s) not updated in >7 days — request new issue from responsible party.':'All models current.'} BEP should specify maximum model age between coordination sessions (typically 2 weeks).`;
+}
+render();</script></body></html>

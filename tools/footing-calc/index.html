@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Footing Size Calculator — XLMX</title>
+<style>:root{--bg:#030307;--sf:rgba(255,255,255,.04);--bd:rgba(255,255,255,.08);--tx:#e2e8f0;--mu:#6b7280;--acc:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--tx);font-family:"Inter",system-ui,sans-serif;font-size:14px;min-height:100vh;padding:32px 24px;}
+.wrap{max-width:780px;margin:0 auto;}h1{font-size:20px;font-weight:700;color:var(--acc);margin-bottom:4px;}
+.sub{color:var(--mu);font-size:13px;margin-bottom:28px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px;}
+label{display:block;color:var(--mu);font-size:12px;font-weight:600;letter-spacing:.05em;margin-bottom:6px;margin-top:12px;}
+input,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;outline:none;}
+input:focus,select:focus{border-color:var(--acc);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.res{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;}
+.rl{font-size:11px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;}
+.rv{font-size:24px;font-weight:700;color:var(--acc);}
+.rs{font-size:11px;color:var(--mu);margin-top:2px;}
+a.back{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-size:12px;text-decoration:none;margin-bottom:24px;}
+a.back:hover{color:var(--tx);}
+.note{font-size:12px;color:var(--mu);line-height:1.7;padding:10px 14px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;margin-top:10px;}
+button{padding:10px 20px;background:var(--acc);color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;cursor:pointer;margin-top:12px;}
+button:hover{opacity:.85;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;color:var(--mu);font-size:11px;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--bd);}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pass{background:rgba(34,197,94,.12);color:#4ade80;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.fail{background:rgba(248,113,113,.12);color:#f87171;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+</style></head>
+<body><div class="wrap"><a class="back" href="/tools/">← Library</a>
+<h1>Footing Size Calculator</h1><p class="sub">Engineering — Size spread footings from column load and soil bearing</p>
+<div class="card">
+  <div class="g2">
+    <div><label>COLUMN LOAD P (kN)</label><input type="number" id="P" value="1000" oninput="calc()"></div>
+    <div><label>SOIL BEARING CAPACITY qa (kPa)</label><input type="number" id="qa" value="150" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div><label>FOOTING DEPTH Df (m)</label><input type="number" id="Df" value="1.2" step="0.1" oninput="calc()"></div>
+    <div><label>CONCRETE fc' (MPa)</label><input type="number" id="fc" value="21" oninput="calc()"></div>
+  </div>
+  <div class="g2">
+    <div><label>COLUMN SIZE (m × m)</label><input type="number" id="col" value="0.4" step="0.05" oninput="calc()"></div>
+    <div><label>SAFETY FACTOR</label><input type="number" id="sf" value="3.0" step="0.1" oninput="calc()"></div>
+  </div>
+</div>
+<div class="card">
+  <div class="g3">
+    <div class="res"><div class="rl">FOOTING AREA</div><div class="rv" id="A">—</div><div class="rs">m²</div></div>
+    <div class="res"><div class="rl">FOOTING SIZE</div><div class="rv" id="B">—</div><div class="rs">m × m (square)</div></div>
+    <div class="res"><div class="rl">FOOTING DEPTH</div><div class="rv" id="depth">—</div><div class="rs">m (min structural)</div></div>
+  </div>
+  <div class="g2" style="margin-top:12px;">
+    <div class="res"><div class="rl">NET PRESSURE</div><div class="rv" id="qnet">—</div><div class="rs">kPa</div></div>
+    <div class="res"><div class="rl">PUNCHING SHEAR</div><div class="rv" id="punch">—</div><div class="rs">kN/m (check)</div></div>
+  </div>
+  <div class="note" id="note"></div>
+</div>
+</div><script>function calc(){
+  const P=+document.getElementById('P').value;
+  const qa=+document.getElementById('qa').value;
+  const Df=+document.getElementById('Df').value;
+  const fc=+document.getElementById('fc').value;
+  const col=+document.getElementById('col').value;
+  const sf=+document.getElementById('sf').value;
+  // Net allowable bearing = qa / SF
+  const qallow=qa/sf;
+  // Footing self-weight approximation: 24 kN/m³ × Df × 0.8 m thickness est.
+  const sw=24*Df*0.8;
+  const qnet=qallow-sw;
+  const A=(P/qnet).toFixed(2);
+  const B=Math.ceil(Math.sqrt(+A)*10)/10; // round up to nearest 0.1m
+  // Min structural depth for punching shear (ACI 318 simplified)
+  const Vu=P-(B-col-2*0.3)*B*qnet; // approx
+  // d = Vu / (4 * 0.75 * 0.17 * sqrt(fc) * Bo)  — simplified
+  const Bo=4*(col+0.3);
+  const d=(P/(4*0.75*0.17*Math.sqrt(fc)*Bo*1000)).toFixed(3);
+  document.getElementById('A').textContent=A;
+  document.getElementById('B').textContent=B.toFixed(1)+'×'+B.toFixed(1);
+  document.getElementById('depth').textContent=Math.max(0.3,+d).toFixed(3);
+  document.getElementById('qnet').textContent=qnet.toFixed(1);
+  document.getElementById('punch').textContent=(P/Bo).toFixed(1);
+  document.getElementById('note').textContent=`Column load: ${P} kN. Allowable bearing: ${qa/sf} kPa (${qa} ÷ SF${sf}). Net bearing after self-weight: ${qnet.toFixed(1)} kPa. Required area: ${A} m² → ${B.toFixed(1)}×${B.toFixed(1)}m footing. Structural depth (punching shear ACI 318): ${Math.max(0.3,+d).toFixed(3)}m min. Confirm with EOR — this is preliminary sizing only.`;
+}
+calc();</script></body></html>
