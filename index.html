@@ -1000,35 +1000,95 @@ var _dragIdx=-1,_mX=0,_mY=0,_vX=0,_vY=0;
 var _impactTmr={},_arenaEl=null,_eventsAttached=false,_rafId=0;
 var _forceMode=false,_activeCatIdx=-1,_molIdx=-1;
 var CAT_TAGS={
-  'Architecture'    :{aec:1,   built:1,   design:0.8, structural:0.8, math:0.4, viz:0.6},
-  'BIM'             :{aec:1,   built:0.9, tech:1,     ops:0.5,        viz:0.6},
-  'Construction'    :{aec:1,   built:1,   structural:1,ops:0.4,       math:0.5},
-  'Engineering'     :{aec:0.9, built:0.9, structural:1,tech:0.8,      math:0.9},
-  'VDC & Coordination':{aec:0.9,built:0.8,tech:1,    ops:0.6,        viz:0.7},
-  'Facades'         :{aec:1,   built:1,   design:0.9, structural:0.8, viz:0.7, hospitality:0.3},
-  'Structural'      :{aec:1,   built:1,   structural:1,math:0.9,      tech:0.6},
-  'MEP'             :{aec:1,   built:1,   structural:0.6,tech:0.7,    math:0.6},
-  'Design'          :{design:1,art:0.8,   viz:1,      aec:0.4},
-  'Code Compliance' :{aec:0.7, built:0.8, legal:0.7,  structural:0.6, ops:0.5},
-  'Accessibility'   :{design:0.6,built:0.5,legal:0.5, ops:0.4},
-  'Finance'         :{financial:1,math:0.8,ops:0.4},
-  'Real Estate & Development':{financial:0.8,built:1, aec:0.6, geo:0.5, math:0.5, ops:0.3},
-  'Calculators'     :{math:1,  financial:0.6,aec:0.6, built:0.3,      structural:0.6,tech:0.5,ops:0.3},
-  'Project Management':{ops:1, aec:0.4,   financial:0.3,tech:0.3},
-  'Legal'           :{legal:1, ops:0.6,   financial:0.4},
-  'General Productivity':{ops:1,tech:0.4, math:0.2},
-  'Documentation'   :{ops:0.9, aec:0.3,   legal:0.4,  tech:0.3},
-  'Hospitality'     :{hospitality:1,design:0.6,financial:0.5,built:0.5,aec:0.3},
-  'GIS'             :{geo:1,   tech:0.8,  built:0.6,  aec:0.4,        math:0.5},
-  'Maps'            :{geo:1,   tech:0.7,  built:0.5,  aec:0.4,        math:0.3},
-  'Landscape'       :{aec:0.7, built:0.8, design:0.8, art:0.5,        geo:0.5},
-  'Interiors'       :{aec:0.8, built:0.9, design:1,   hospitality:0.5,viz:0.7},
-  'Urban Planning'  :{aec:0.8, built:1,   geo:0.9,    financial:0.3,  ops:0.4},
-  'Sustainability'  :{aec:0.6, built:0.7, structural:0.5,tech:0.5,    math:0.4},
-  'Leisure'         :{leisure:1,art:0.5}
+  // built environment cluster
+  'Architecture'        :{built:1,   design:0.8, creative:0.7, art:0.3,   quant:0.4, visual:0.6},
+  'BIM'                 :{built:1,   digital:1,  ops:0.5,      quant:0.4, visual:0.5},
+  'Civil/Site'          :{built:1,   quant:0.7,  earth:0.5,    ops:0.4,   urban:0.7},
+  'Construction'        :{built:1,   quant:0.5,  ops:0.5,      material:0.6},
+  'Facades'             :{built:1,   design:0.8, creative:0.6, material:0.5, visual:0.6},
+  'Structural'          :{built:1,   quant:0.8,  material:0.6, physics:0.4, science:0.3},
+  'VDC & Coordination'  :{built:0.9, digital:0.9,ops:0.5,      quant:0.3, visual:0.5},
+  'Urban Planning'      :{built:0.9, earth:0.7,  social:0.5,   quant:0.4, urban:1,   design:0.4},
+  'Walkability'         :{built:0.7, earth:0.5,  social:0.5,   urban:1,   design:0.4},
+  'Real Estate & Development':{built:0.9,business:0.7,finance:0.7,earth:0.4,quant:0.3},
+  'Code Compliance'     :{built:0.7, legal:0.8,  ops:0.5,      social:0.2},
+  // engineering & science
+  'Engineering'         :{built:0.8, quant:0.9,  science:0.6,  material:0.5, physics:0.6},
+  'Structural'          :{built:1,   quant:0.8,  material:0.6, science:0.3,  physics:0.4},
+  'Materials Science'   :{science:0.9,material:1, built:0.5,   quant:0.5,    physics:0.4},
+  'Mechanics'           :{science:0.7,quant:0.7,  material:0.6, built:0.4,   physics:0.8},
+  'Thermodynamics'      :{science:0.9,quant:0.8,  physics:0.9, material:0.5},
+  'Physics'             :{science:1,  quant:0.9,  math:0.6,    material:0.4, physics:1},
+  'Astronomy'           :{science:0.8,quant:0.8,  physics:0.7, earth:0.3,    math:0.4},
+  'Chemistry'           :{science:1,  life:0.5,   quant:0.6,   material:0.8},
+  'Renewables'          :{sustain:1,  science:0.6, built:0.4,   earth:0.6,   quant:0.4},
+  'Sustainability'      :{sustain:1,  science:0.5, built:0.5,   social:0.4,   earth:0.7},
+  // digital & computing
+  'Artificial Intelligence':{digital:1,quant:0.8, logic:0.9,   science:0.4},
+  'Algorithms'          :{quant:0.9, digital:0.9, logic:1,     math:0.7},
+  'Programming'         :{digital:1,  quant:0.6,  logic:0.9,   ops:0.4},
+  'Python'              :{digital:0.9,logic:0.7,  quant:0.5,   ops:0.4},
+  'Networking'          :{digital:0.9,security:0.5,ops:0.5,    business:0.3},
+  'Cybersecurity'       :{digital:1,  security:1,  ops:0.5,    legal:0.3,    logic:0.4},
+  'Cryptography'        :{digital:0.8,quant:0.7,  logic:0.9,   security:1},
+  'Robotics'            :{digital:0.8,quant:0.7,  science:0.5, material:0.3, physics:0.4},
+  // math & logic
+  'Math'                :{quant:1,    math:1,      science:0.4, logic:0.7},
+  'Calculators'         :{quant:1,    math:0.9,    finance:0.4, built:0.3,    science:0.3},
+  'Statistics'          :{quant:1,    math:0.8,    science:0.5, social:0.4,   digital:0.3},
+  'Geometry'            :{math:1,     quant:0.9,   visual:0.7,  built:0.4,    creative:0.3},
+  'Fractals'            :{math:0.9,   quant:0.8,   visual:0.7,  art:0.4,      creative:0.5},
+  // life sciences
+  'Genetics'            :{life:1,     science:0.9, quant:0.5,   history:0.2},
+  'Biotech'             :{life:1,     science:0.9, quant:0.4},
+  'Neuroscience'        :{life:0.9,   science:0.8, quant:0.4,   social:0.3},
+  'Health'              :{life:0.9,   science:0.7, social:0.4,  quant:0.3},
+  'Ecology'             :{earth:0.9,  life:0.8,    science:0.7, sustain:0.9},
+  'Agriculture'         :{earth:0.7,  science:0.6, life:0.5,    sustain:0.7,  social:0.3},
+  'Oceanography'        :{earth:0.9,  science:0.8, quant:0.4,   life:0.4},
+  // geography & earth
+  'GIS'                 :{earth:1,    digital:0.7, quant:0.6,   built:0.5,    geo:1},
+  'Maps'                :{earth:1,    digital:0.6, quant:0.4,   geo:1,        built:0.3},
+  'Travel'              :{earth:0.6,  social:0.5,  business:0.3, geo:0.7,     hospitality:0.5},
+  'Geopolitics'         :{social:0.7, people:0.8,  earth:0.5,   history:0.7},
+  // humanities & social
+  'History'             :{people:1,   social:0.6,  art:0.3,     history:1,    earth:0.3},
+  'Anthropology'        :{people:1,   social:0.8,  history:0.8, life:0.3,     earth:0.3},
+  'Archeology'          :{people:0.8, history:1,   earth:0.6,   science:0.4},
+  'Linguistics'         :{people:0.9, social:0.5,  digital:0.3, history:0.4},
+  'Sociology'           :{social:1,   people:0.7,  quant:0.4,   science:0.2},
+  'Psychology'          :{social:0.9, life:0.5,    people:0.6,  science:0.3},
+  'Demography'          :{social:0.9, quant:0.6,   people:0.7,  earth:0.4},
+  'Education'           :{social:0.8, people:0.6,  digital:0.3, life:0.2},
+  'Journalism'          :{people:0.8, social:0.6,  digital:0.4, creative:0.3},
+  'Philanthropy'        :{social:0.8, people:0.5,  legal:0.3,   business:0.3},
+  'Governance'          :{social:0.7, legal:0.8,   ops:0.6,     people:0.5},
+  // business & finance
+  'Finance'             :{business:0.9,quant:0.7,  finance:1,   legal:0.4,    ops:0.3},
+  'Accounting'          :{business:1,  finance:0.9, ops:0.7,    legal:0.4,    quant:0.5},
+  'Economics'           :{business:0.9,quant:0.6,  social:0.7,  finance:0.8},
+  'Business'            :{business:1,  ops:0.7,    social:0.3,  finance:0.6},
+  'Marketing'           :{business:0.8,digital:0.6, creative:0.5,social:0.5},
+  'E-commerce'          :{business:0.9,digital:0.7, finance:0.5, social:0.3},
+  'Logistics'           :{ops:0.9,     business:0.6, quant:0.4, earth:0.3},
+  'Hospitality'         :{business:0.6,creative:0.5, social:0.5, built:0.4,  design:0.4, hospitality:1},
+  // creative & design
+  'Design'              :{creative:1,  art:0.7,    visual:1,    built:0.4},
+  'Fine Arts'           :{art:1,       creative:1,  visual:0.8,  people:0.3},
+  'Leisure'             :{social:0.5,  creative:0.4, art:0.3,   hospitality:0.5, travel:0.8},
+  // operations
+  'Project Management'  :{ops:1,       business:0.5, built:0.3,  digital:0.3},
+  'General Productivity':{ops:1,       digital:0.4,  business:0.3},
+  'Documentation'       :{ops:0.9,     legal:0.4,    built:0.3,  digital:0.3},
+  'Legal'               :{legal:1,     ops:0.6,      business:0.4, social:0.3},
+  // easter egg
+  'The Meaning of Life' :{}
 };
 function catAffinity(a,b){
   var ta=CAT_TAGS[a]||{},tb=CAT_TAGS[b]||{},s=0;
+  Object.keys(ta).forEach(function(k){if(tb[k])s+=ta[k]*tb[k];});
+  return s;
+},tb=CAT_TAGS[b]||{},s=0;
   Object.keys(ta).forEach(function(k){if(tb[k])s+=ta[k]*tb[k];});
   return s;
 }
@@ -1088,6 +1148,34 @@ function _onUp(e){
 
 
 function setCat(c){
+  if(c==='The Meaning of Life'){
+    _forceMode=false;_activeCatIdx=-1;
+    _bubbleEls.forEach(function(el,i){
+      if(!el||i===_molIdx)return;
+      el.style.transition='opacity 1s, transform 1.2s';
+      el.style.opacity='0';el.style.transform+=' scale(0)';
+    });
+    var _me=(_molIdx>=0)?_bubbleEls[_molIdx]:null;
+    if(_me){
+      setTimeout(function(){
+        _me.style.transition='all 0.9s';
+        _me.style.background='rgba(250,204,21,.35)';
+        _me.style.borderColor='rgba(250,204,21,1)';
+        _me.style.boxShadow='0 0 80px rgba(250,204,21,.8),0 0 40px rgba(250,204,21,.5)';
+        _me.innerHTML='<span class="bic">&#10022;</span>'
+          +'<span class="bname" style="font-size:5px;line-height:1.15;letter-spacing:0">You found the meaning of life, now enjoy it!</span>';
+        Matter.Body.setVelocity(_physBodies[_molIdx],{x:0,y:0});
+      },500);
+      _molIdx=-1;
+    }
+    var grid=document.getElementById('toolGrid');
+    if(grid)grid.innerHTML="<div class='empty' style='padding:60px 0'>"
+      +"<div class='eb' style='font-size:28px;color:#facc15;letter-spacing:.04em'>&#10022; You found it.</div>"
+      +"<p style='color:#facc15;opacity:.65;margin-top:12px;font-size:15px'>The meaning of life is 42.&nbsp; Now go enjoy it.</p>"
+      +"<p style='color:var(--mu);margin-top:24px;font-size:11px;cursor:pointer' onclick='renderCats();setCat("All")'>&#8617; back to reality</p>"
+      +"</div>";
+    return;
+  }
   curCat=c;curQ="";
   var _hs=document.getElementById("heroSearch");if(_hs)_hs.value="";
   var _sc2=document.getElementById("srchClear");if(_sc2)_sc2.classList.remove("vis");
