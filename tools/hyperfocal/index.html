@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hyperfocal Distance | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+input[type=range]{padding:4px 0;border:none;background:transparent;accent-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.neutral{color:#94a3b8}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+.big{font-size:1.8rem;font-weight:800;color:#c8a96e;text-align:center;padding:12px 0}
+.stops-bar{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.stop-btn{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:4px 10px;font-size:.75rem;color:#ccc;cursor:pointer}
+.stop-btn:hover,.stop-btn.active{background:#c8a96e;color:#0d0d0d;border-color:#c8a96e}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Hyperfocal Distance</h1>
+</div>
+<div class="wrap">
+  <h2>Hyperfocal Distance Calculator</h2>
+  <p class="sub">Find the focus distance that maximizes depth of field from half that distance to infinity. Essential for landscape, architecture, and street photography.</p>
+
+  <div class="card">
+    <h3>Lens & Camera</h3>
+    <div class="row">
+      <div><label>Sensor Format</label>
+        <select id="sensor" onchange="updateCoC()">
+          <option value="0.029">Full Frame 35mm</option>
+          <option value="0.019">APS-C Crop 1.6x</option>
+          <option value="0.018">APS-C Crop 1.5x</option>
+          <option value="0.015">Micro Four Thirds</option>
+          <option value="0.011">1-inch sensor</option>
+          <option value="0.007">1/2.3" (compact)</option>
+          <option value="custom">Custom CoC</option>
+        </select>
+      </div>
+      <div id="customCoCDiv" style="display:none"><label>CoC (mm)</label><input id="customCoC" type="number" value="0.029" step="0.001"></div>
+    </div>
+    <div class="row">
+      <div><label>Focal Length (mm)</label><input id="fl" type="number" value="24" min="1"></div>
+      <div><label>Aperture (f/)</label>
+        <select id="ap">
+          <option value="1.4">f/1.4</option><option value="2">f/2.0</option><option value="2.8">f/2.8</option>
+          <option value="4">f/4.0</option><option value="5.6" selected>f/5.6</option><option value="8">f/8.0</option>
+          <option value="11">f/11</option><option value="16">f/16</option><option value="22">f/22</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcHF()">Calculate</button>
+    <div id="outHF"></div>
+  </div>
+
+  <div class="card">
+    <h3>Hyperfocal Table — Full Frame, Common Focal Lengths</h3>
+    <div id="outTable"></div>
+  </div>
+
+  <div class="card">
+    <h3>How to Use</h3>
+    <div class="mono">1. Set aperture to chosen f-stop
+2. Focus lens at hyperfocal distance
+3. Everything from H/2 to ∞ will be acceptably sharp
+4. For landscape: H/2 becomes your near DOF limit</div>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+function updateCoC(){
+  $('customCoCDiv').style.display = $('sensor').value==='custom'?'block':'none';
+}
+function getCoC(){
+  const v=$('sensor').value; return v==='custom'?parseFloat($('customCoC').value)||0.029:parseFloat(v)||0.029;
+}
+
+function hyperfocal(f,N,c){ return (f*f)/(N*c)+f; } // mm
+
+function fmtH(mm){
+  const m=mm/1000;
+  if(m>=10) return m.toFixed(1)+' m ('+m.toFixed(0)+'m)';
+  if(m>=1) return m.toFixed(2)+' m';
+  return (mm).toFixed(0)+' mm';
+}
+
+function calcHF(){
+  const f=parseFloat($('fl').value)||24;
+  const N=parseFloat($('ap').value)||5.6;
+  const c=getCoC();
+  const H=hyperfocal(f,N,c);
+  const Hm=H/1000;
+  const nearLimit=Hm/2;
+
+  $('outHF').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Hyperfocal Distance</span><span class="val hi">${fmtH(H)}</span></div>
+    <div class="kv"><span class="lbl">Near DOF Limit (H/2)</span><span class="val">${fmtH(H/2)}</span></div>
+    <div class="kv"><span class="lbl">Far Limit</span><span class="val">∞ (infinity)</span></div>
+    <div class="kv"><span class="lbl">Focus at H → sharp from</span><span class="val">${fmtH(H/2)} to ∞</span></div>
+    <div class="kv"><span class="lbl">Circle of Confusion</span><span class="val">${c.toFixed(3)} mm</span></div>
+    <p class="note" style="padding-top:8px">Tip: focusing slightly closer than H gives best overall sharpness for scenes with foreground subjects.</p>
+  </div>`;
+
+  // Table
+  const FLS=[14,18,24,28,35,50,85];
+  const APS=[2.8,4,5.6,8,11,16];
+  const cFF=0.029;
+  let head='<tr><th>f/→</th>'+APS.map(a=>`<th>f/${a}</th>`).join('')+'</tr>';
+  let rows=FLS.map(focal=>`<tr><td><b>${focal}mm</b></td>${APS.map(a=>{
+    const h=hyperfocal(focal,a,cFF)/1000;
+    return `<td>${h<1?(h*100).toFixed(0)+'cm':h.toFixed(1)+'m'}</td>`;
+  }).join('')}</tr>`).join('');
+  $('outTable').innerHTML=`<table><thead>${head}</thead><tbody>${rows}</tbody></table>
+  <p class="note" style="margin-top:6px">Values for Full Frame 35mm sensor (CoC=0.029mm).</p>`;
+}
+
+calcHF();
+</script></body></html>

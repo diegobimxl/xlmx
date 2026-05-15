@@ -1,0 +1,134 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contour Interval Calculator | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Contour Interval Calculator</h1>
+</div>
+<div class="wrap">
+  <h2>Contour Interval Calculator</h2>
+  <p class="sub">Select the right contour interval for your map scale, terrain relief, and purpose. Covers topographic mapping, site grading, and civil engineering applications.</p>
+
+  <div class="card">
+    <h3>Map Parameters</h3>
+    <div class="row">
+      <div><label>Map Scale (1 : N)</label><input id="scaleN" type="number" value="1000" min="100"></div>
+      <div><label>Map Purpose</label>
+        <select id="purpose">
+          <option value="topo">Topographic Survey</option>
+          <option value="site">Site Grading / Design</option>
+          <option value="civil">Civil Engineering</option>
+          <option value="urban">Urban Planning</option>
+          <option value="regional">Regional / GIS</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Total Relief (m) — max minus min elevation</label><input id="relief" type="number" value="40" step="1"></div>
+      <div><label>Terrain Type</label>
+        <select id="terrain">
+          <option value="flat">Flat (0–2% slopes)</option>
+          <option value="rolling">Rolling (2–10% slopes)</option>
+          <option value="hilly">Hilly (10–25% slopes)</option>
+          <option value="mountain">Mountainous (&gt;25% slopes)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcCI()">Recommend Contour Interval</button>
+    <div id="outCI"></div>
+  </div>
+
+  <div class="card">
+    <h3>USGS / Standard Reference</h3>
+    <table>
+      <thead><tr><th>Scale</th><th>Flat CI</th><th>Rolling CI</th><th>Mountain CI</th></tr></thead>
+      <tbody>
+        <tr><td>1:500</td><td>0.25 m</td><td>0.5 m</td><td>1 m</td></tr>
+        <tr><td>1:1,000</td><td>0.5 m</td><td>1 m</td><td>2 m</td></tr>
+        <tr><td>1:2,500</td><td>1 m</td><td>2 m</td><td>5 m</td></tr>
+        <tr><td>1:5,000</td><td>1 m</td><td>2 m</td><td>5 m</td></tr>
+        <tr><td>1:10,000</td><td>2 m</td><td>5 m</td><td>10 m</td></tr>
+        <tr><td>1:24,000</td><td>5 ft</td><td>10 ft</td><td>20 ft</td></tr>
+        <tr><td>1:50,000</td><td>10 m</td><td>20 m</td><td>50 m</td></tr>
+        <tr><td>1:100,000</td><td>20 m</td><td>50 m</td><td>100 m</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function fmt(n,d=2){return n.toLocaleString('en-US',{maximumFractionDigits:d});}
+
+// CI recommendations: base formula CI ≈ scale/2000 meters, adjusted by terrain
+const CI_TERRAIN = {flat:0.5, rolling:1.0, hilly:1.5, mountain:2.5};
+const CI_PURPOSE = {topo:1.0, site:0.5, civil:0.5, urban:0.75, regional:2.0};
+const NICE = [0.1,0.25,0.5,1,2,2.5,5,10,20,25,50,100];
+
+function snapNice(v){
+  for(let i=0;i<NICE.length;i++) if(NICE[i]>=v) return NICE[i];
+  return NICE[NICE.length-1];
+}
+
+function calcCI(){
+  const N = parseFloat($('scaleN').value)||1000;
+  const terrain = $('terrain').value;
+  const purpose = $('purpose').value;
+  const relief = parseFloat($('relief').value)||40;
+
+  const base = N / 2000;
+  const ci = base * CI_TERRAIN[terrain] * CI_PURPOSE[purpose];
+  const snapped = snapNice(ci);
+
+  // Count intervals across relief
+  const numIntervals = Math.ceil(relief / snapped);
+  const indexInterval = snapNice(snapped * 5);
+
+  $('outCI').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Recommended Contour Interval</span><span class="val hi">${snapped} m</span></div>
+    <div class="kv"><span class="lbl">Index Contour (every 5th)</span><span class="val">${indexInterval} m</span></div>
+    <div class="kv"><span class="lbl">Contours Across Relief</span><span class="val">~${numIntervals} lines</span></div>
+    <div class="kv"><span class="lbl">Map Scale</span><span class="val">1 : ${N.toLocaleString()}</span></div>
+    <div class="kv"><span class="lbl">1 mm on map</span><span class="val">${fmt(N/1000,2)} m on ground</span></div>
+    <div class="kv"><span class="lbl">Smallest readable feature</span><span class="val">~${fmt(N*0.5/1000,2)} m (0.5 mm)</span></div>
+    <p class="note" style="padding-top:8px">Rule of thumb: CI should be ≥ vertical accuracy of survey, and map should show 5–50 contour lines across the typical viewing area. For grading plans, 0.5 m CI is often sufficient.</p>
+  </div>`;
+}
+
+calcCI();
+</script></body></html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Depth of Field Calculator | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+input[type=range]{padding:4px 0;border:none;background:transparent;accent-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.neutral{color:#94a3b8}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+.big{font-size:1.8rem;font-weight:800;color:#c8a96e;text-align:center;padding:12px 0}
+.stops-bar{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.stop-btn{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:4px 10px;font-size:.75rem;color:#ccc;cursor:pointer}
+.stop-btn:hover,.stop-btn.active{background:#c8a96e;color:#0d0d0d;border-color:#c8a96e}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Depth of Field</h1>
+</div>
+<div class="wrap">
+  <h2>Depth of Field Calculator</h2>
+  <p class="sub">Calculate near limit, far limit, and total depth of field for any lens, aperture, and subject distance. Includes DOF bar visualization.</p>
+
+  <div class="card">
+    <h3>Camera & Lens</h3>
+    <div class="row">
+      <div><label>Sensor / Camera</label>
+        <select id="sensor" onchange="updateCoC()">
+          <option value="0.029">Full Frame 35mm (CoC 0.029mm)</option>
+          <option value="0.019">APS-C / Crop 1.6x (CoC 0.019mm)</option>
+          <option value="0.018">APS-C / Crop 1.5x (CoC 0.018mm)</option>
+          <option value="0.015">Micro Four Thirds (CoC 0.015mm)</option>
+          <option value="0.011">1-inch sensor (CoC 0.011mm)</option>
+          <option value="0.007">1/2.3" (phone/compact, CoC 0.007mm)</option>
+          <option value="0.058">Medium Format 645 (CoC 0.058mm)</option>
+          <option value="custom">Custom CoC</option>
+        </select>
+      </div>
+      <div><label>Focal Length (mm)</label><input id="fl" type="number" value="50" min="1" max="2000"></div>
+    </div>
+    <div class="row" id="customCoCRow" style="display:none">
+      <div><label>Custom Circle of Confusion (mm)</label><input id="customCoC" type="number" value="0.029" step="0.001" min="0.001"></div>
+    </div>
+    <div class="row">
+      <div><label>Aperture (f/)</label>
+        <select id="ap">
+          <option value="1">f/1.0</option><option value="1.2">f/1.2</option><option value="1.4">f/1.4</option>
+          <option value="1.8">f/1.8</option><option value="2">f/2.0</option><option value="2.8" selected>f/2.8</option>
+          <option value="4">f/4.0</option><option value="5.6">f/5.6</option><option value="8">f/8.0</option>
+          <option value="11">f/11</option><option value="16">f/16</option><option value="22">f/22</option>
+        </select>
+      </div>
+      <div><label>Subject Distance (m)</label><input id="dist" type="number" value="5" step="0.1" min="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcDOF()">Calculate DOF</button>
+    <div id="outDOF"></div>
+  </div>
+
+  <div class="card">
+    <h3>DOF vs Aperture (at current distance)</h3>
+    <div id="outTable"></div>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+function updateCoC(){
+  $('customCoCRow').style.display = $('sensor').value==='custom'?'grid':'none';
+}
+
+function getCoC(){
+  const v = $('sensor').value;
+  if(v==='custom') return parseFloat($('customCoC').value)||0.029;
+  return parseFloat(v)||0.029;
+}
+
+function dof(f, N, d, c){
+  // f=focal mm, N=f-number, d=distance meters, c=CoC mm
+  const fm = f; const dm = d*1000; // convert to mm
+  const H = (fm*fm)/(N*c) + fm; // hyperfocal (mm)
+  const near = dm * (H - fm) / (H + dm - 2*fm);
+  const far  = dm * (H - fm) / (H - dm);
+  const nearM = near/1000, farM = far/1000<0 ? Infinity : far/1000;
+  const dofTotal = farM===Infinity ? Infinity : farM - nearM;
+  return {H:H/1000, near:nearM, far:farM, dof:dofTotal};
+}
+
+function fmtD(m){
+  if(m===Infinity) return '∞ (to infinity)';
+  if(m>=1) return m.toFixed(2)+' m';
+  return (m*100).toFixed(1)+' cm';
+}
+
+function calcDOF(){
+  const f = parseFloat($('fl').value)||50;
+  const N = parseFloat($('ap').value)||2.8;
+  const d = parseFloat($('dist').value)||5;
+  const c = getCoC();
+  const r = dof(f,N,d,c);
+
+  const totalStr = r.dof===Infinity?'∞ (inf. DOF)':fmtD(r.dof);
+
+  $('outDOF').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Near Focus Limit</span><span class="val">${fmtD(r.near)}</span></div>
+    <div class="kv"><span class="lbl">Far Focus Limit</span><span class="val">${r.far===Infinity?'∞':fmtD(r.far)}</span></div>
+    <div class="kv"><span class="lbl">Total Depth of Field</span><span class="val hi">${totalStr}</span></div>
+    <div class="kv"><span class="lbl">Hyperfocal Distance</span><span class="val">${fmtD(r.H)}</span></div>
+    <div class="kv"><span class="lbl">Circle of Confusion</span><span class="val">${c.toFixed(3)} mm</span></div>
+    <div class="kv"><span class="lbl">DOF in front of subject</span><span class="val">${fmtD(d - r.near)}</span></div>
+    <div class="kv"><span class="lbl">DOF behind subject</span><span class="val">${r.far===Infinity?'∞':fmtD(r.far - d)}</span></div>
+  </div>`;
+
+  // Table
+  const APS = [1,1.4,2,2.8,4,5.6,8,11,16];
+  let rows = APS.map(a=>{
+    const rv = dof(f,a,d,c);
+    return `<tr><td>f/${a}</td><td>${fmtD(rv.near)}</td><td>${rv.far===Infinity?'∞':fmtD(rv.far)}</td><td class="${a===N?'hi':''}">${rv.dof===Infinity?'∞':fmtD(rv.dof)}</td><td>${fmtD(rv.H)}</td></tr>`;
+  }).join('');
+  $('outTable').innerHTML=`<table>
+    <thead><tr><th>f/</th><th>Near</th><th>Far</th><th>DOF</th><th>Hyperfocal</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+calcDOF();
+</script></body></html>

@@ -1,160 +1,170 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Map Scale Calculator</title>
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Map Scale Calculator | XLMX Tools</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
-h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
-.sub{color:#888;font-size:.85rem;margin-bottom:24px}
-.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
-.card h2{font-size:.95rem;font-weight:600;color:#06b6d4;margin-bottom:14px}
-label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
-input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.stat{background:#1a1a1a;border-radius:8px;padding:14px;text-align:center}
-.stat .v{font-size:1.2rem;font-weight:700;color:#06b6d4}
-.stat .l{font-size:.75rem;color:#888;margin-top:3px}
-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
-th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
-td{padding:6px 8px;border-bottom:1px solid #1a1a1a}
-.scale-bar{display:flex;align-items:center;gap:8px;margin-top:12px}
-.bar-outer{flex:1;height:20px;background:#1a1a1a;border:1px solid #333;border-radius:4px;overflow:hidden;position:relative}
-.bar-inner{height:100%;background:repeating-linear-gradient(90deg,#06b6d4 0,#06b6d4 10%,#1a1a1a 10%,#1a1a1a 20%);transition:width .4s}
-.note{background:#1a1a1a;border-radius:8px;padding:12px;font-size:.82rem;color:#aaa;line-height:1.6;margin-top:10px}
-</style>
-</head>
-<body>
-<h1>Map Scale Calculator</h1>
-<p class="sub">Convert between map measurements and real-world distances</p>
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Map Scale Calculator</h1>
+</div>
+<div class="wrap">
+  <h2>Map Scale Calculator</h2>
+  <p class="sub">Convert between map distance, real-world distance, and scale ratio — in metric or imperial.</p>
 
-<div class="card">
-  <h2>Scale & Measurement</h2>
-  <label>Map scale (1 : ___)</label>
-  <select id="scale" onchange="setScale()">
-    <option value="1000">1:1,000 (architectural site)</option>
-    <option value="2500">1:2,500 (urban detail)</option>
-    <option value="5000">1:5,000 (urban)</option>
-    <option value="10000" selected>1:10,000 (city)</option>
-    <option value="25000">1:25,000 (topo detail)</option>
-    <option value="50000">1:50,000 (USGS topo)</option>
-    <option value="100000">1:100,000 (regional)</option>
-    <option value="250000">1:250,000 (state)</option>
-    <option value="custom">Custom</option>
-  </select>
-  <input type="number" id="customScale" value="10000" min="1" placeholder="Custom denominator" oninput="calc()" style="margin-top:6px;display:none">
+  <div class="card">
+    <h3>Units & Scale</h3>
+    <div class="row">
+      <div><label>Scale Ratio (1 : N)</label><input id="scaleN" type="number" value="1000" min="1"></div>
+      <div><label>Unit System</label>
+        <select id="units">
+          <option value="m">Metric (m / cm)</option>
+          <option value="ft">Imperial (ft / in)</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
-  <div class="row2">
-    <div>
-      <label>Map distance (cm)</label>
-      <input type="number" id="mapDist" value="5.0" step="0.1" min="0" oninput="calc()">
+  <div class="card">
+    <h3>Mode A — Map → Ground</h3>
+    <div class="row">
+      <div><label id="lblMapDist">Map Distance (cm)</label><input id="mapDist" type="number" value="5.5" step="0.1"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="calcMapToGround()">Calculate</button></div>
     </div>
-    <div>
-      <label>Map distance (inches)</label>
-      <input type="number" id="mapIn" value="1.97" step="0.01" min="0" oninput="calcFromInch()">
+    <div id="outMapToGround"></div>
+  </div>
+
+  <div class="card">
+    <h3>Mode B — Ground → Map</h3>
+    <div class="row">
+      <div><label id="lblGroundDist">Ground Distance (m)</label><input id="groundDist" type="number" value="250" step="1"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="calcGroundToMap()">Calculate</button></div>
     </div>
+    <div id="outGroundToMap"></div>
+  </div>
+
+  <div class="card">
+    <h3>Common Scales Reference</h3>
+    <table>
+      <thead><tr><th>Scale</th><th>1 cm = (m)</th><th>1 in = (ft)</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>1:100</td><td>1 m</td><td>8.33 ft</td><td>Floor plans, details</td></tr>
+        <tr><td>1:200</td><td>2 m</td><td>16.7 ft</td><td>Floor plans</td></tr>
+        <tr><td>1:500</td><td>5 m</td><td>41.7 ft</td><td>Site plans</td></tr>
+        <tr><td>1:1,000</td><td>10 m</td><td>83.3 ft</td><td>Site / topo</td></tr>
+        <tr><td>1:2,500</td><td>25 m</td><td>208 ft</td><td>Cadastral / survey</td></tr>
+        <tr><td>1:5,000</td><td>50 m</td><td>417 ft</td><td>Urban plans</td></tr>
+        <tr><td>1:10,000</td><td>100 m</td><td>833 ft</td><td>City maps</td></tr>
+        <tr><td>1:25,000</td><td>250 m</td><td>2,083 ft</td><td>USGS Topo</td></tr>
+        <tr><td>1:50,000</td><td>500 m</td><td>4,167 ft</td><td>Regional</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
-
-<div class="card">
-  <h2>Real-World Distance</h2>
-  <div class="row3">
-    <div class="stat"><div class="v" id="r_m">--</div><div class="l">meters</div></div>
-    <div class="stat"><div class="v" id="r_km">--</div><div class="l">kilometers</div></div>
-    <div class="stat"><div class="v" id="r_ft">--</div><div class="l">feet</div></div>
-  </div>
-  <div class="row2" style="margin-top:8px">
-    <div class="stat"><div class="v" id="r_mi">--</div><div class="l">miles</div></div>
-    <div class="stat"><div class="v" id="r_nm">--</div><div class="l">nautical miles</div></div>
-  </div>
-
-  <div class="scale-bar">
-    <div style="font-size:.72rem;color:#888;width:20px">0</div>
-    <div class="bar-outer"><div class="bar-inner" id="scaleBarFill" style="width:80%"></div></div>
-    <div style="font-size:.72rem;color:#888;width:50px;text-align:right" id="scaleBarLabel">500m</div>
-  </div>
-</div>
-
-<div class="card">
-  <h2>Area Conversion</h2>
-  <div class="row2">
-    <div>
-      <label>Map area width (cm)</label>
-      <input type="number" id="aW" value="10" step="0.1" min="0" oninput="calcArea()">
-    </div>
-    <div>
-      <label>Map area height (cm)</label>
-      <input type="number" id="aH" value="8" step="0.1" min="0" oninput="calcArea()">
-    </div>
-  </div>
-  <div class="row3" style="margin-top:10px">
-    <div class="stat"><div class="v" id="a_m2">--</div><div class="l">m²</div></div>
-    <div class="stat"><div class="v" id="a_ha">--</div><div class="l">hectares</div></div>
-    <div class="stat"><div class="v" id="a_km2">--</div><div class="l">km²</div></div>
-  </div>
-
-  <table style="margin-top:16px">
-    <tr><th>Common Scale</th><th>1cm on map =</th><th>1in on map =</th><th>1cm² =</th></tr>
-    <tbody id="refTable"></tbody>
-  </table>
-</div>
-
 <script>
-let denom=10000;
-function setScale(){
-  const v=document.getElementById('scale').value;
-  const inp=document.getElementById('customScale');
-  if(v==='custom'){inp.style.display='block';denom=parseFloat(inp.value)||10000;}
-  else{inp.style.display='none';denom=parseInt(v);}
-  calc();calcArea();
+const $ = id => document.getElementById(id);
+function getScale(){ return parseFloat($('scaleN').value)||1000; }
+function isMetric(){ return $('units').value==='m'; }
+
+$('units').addEventListener('change', ()=>{
+  if(isMetric()){
+    $('lblMapDist').textContent='Map Distance (cm)';
+    $('lblGroundDist').textContent='Ground Distance (m)';
+  } else {
+    $('lblMapDist').textContent='Map Distance (in)';
+    $('lblGroundDist').textContent='Ground Distance (ft)';
+  }
+});
+
+function fmt(n, dec=2){ return n.toLocaleString('en-US',{maximumFractionDigits:dec}); }
+
+function calcMapToGround(){
+  const N = getScale();
+  const d = parseFloat($('mapDist').value)||0;
+  let ground, unit1, unit2;
+  if(isMetric()){
+    // d cm on map * N = ground cm → convert to m, km
+    const groundCm = d * N;
+    const groundM = groundCm / 100;
+    const groundKm = groundM / 1000;
+    $('outMapToGround').innerHTML = `<div class="out">
+      <div class="kv"><span class="lbl">Map distance</span><span class="val">${fmt(d)} cm</span></div>
+      <div class="kv"><span class="lbl">Ground distance (m)</span><span class="val">${fmt(groundM)} m</span></div>
+      <div class="kv"><span class="lbl">Ground distance (km)</span><span class="val">${fmt(groundKm,4)} km</span></div>
+      <div class="kv"><span class="lbl">Ground distance (cm)</span><span class="val">${fmt(groundCm)} cm</span></div>
+    </div>`;
+  } else {
+    // d in on map * N = ground in → convert to ft, miles
+    const groundIn = d * N;
+    const groundFt = groundIn / 12;
+    const groundMi = groundFt / 5280;
+    $('outMapToGround').innerHTML = `<div class="out">
+      <div class="kv"><span class="lbl">Map distance</span><span class="val">${fmt(d)} in</span></div>
+      <div class="kv"><span class="lbl">Ground distance (ft)</span><span class="val">${fmt(groundFt)} ft</span></div>
+      <div class="kv"><span class="lbl">Ground distance (miles)</span><span class="val">${fmt(groundMi,4)} mi</span></div>
+      <div class="kv"><span class="lbl">Ground distance (in)</span><span class="val">${fmt(groundIn)} in</span></div>
+    </div>`;
+  }
 }
-function calc(){
-  const cm=parseFloat(document.getElementById('mapDist').value)||0;
-  const realCm=cm*denom;
-  const m=realCm/100;
-  document.getElementById('r_m').textContent=m.toFixed(1);
-  document.getElementById('r_km').textContent=(m/1000).toFixed(3);
-  document.getElementById('r_ft').textContent=(m*3.28084).toFixed(1);
-  document.getElementById('r_mi').textContent=(m/1609.34).toFixed(4);
-  document.getElementById('r_nm').textContent=(m/1852).toFixed(4);
-  document.getElementById('scaleBarLabel').textContent=m>=1000?(m/1000).toFixed(2)+'km':m.toFixed(0)+'m';
-  // Sync inches
-  document.getElementById('mapIn').value=(cm/2.54).toFixed(3);
-  calcArea();buildRefTable();
+
+function calcGroundToMap(){
+  const N = getScale();
+  const d = parseFloat($('groundDist').value)||0;
+  if(isMetric()){
+    // d meters real → convert to cm / N = map cm; also mm
+    const groundCm = d * 100;
+    const mapCm = groundCm / N;
+    const mapMm = mapCm * 10;
+    $('outGroundToMap').innerHTML = `<div class="out">
+      <div class="kv"><span class="lbl">Ground distance</span><span class="val">${fmt(d)} m</span></div>
+      <div class="kv"><span class="lbl">Map distance (cm)</span><span class="val">${fmt(mapCm,3)} cm</span></div>
+      <div class="kv"><span class="lbl">Map distance (mm)</span><span class="val">${fmt(mapMm,2)} mm</span></div>
+    </div>`;
+  } else {
+    // d feet → inches / N = map in
+    const groundIn = d * 12;
+    const mapIn = groundIn / N;
+    const mapFt = mapIn / 12;
+    $('outGroundToMap').innerHTML = `<div class="out">
+      <div class="kv"><span class="lbl">Ground distance</span><span class="val">${fmt(d)} ft</span></div>
+      <div class="kv"><span class="lbl">Map distance (in)</span><span class="val">${fmt(mapIn,3)} in</span></div>
+      <div class="kv"><span class="lbl">Map distance (ft)</span><span class="val">${fmt(mapFt,4)} ft</span></div>
+    </div>`;
+  }
 }
-function calcFromInch(){
-  const inch=parseFloat(document.getElementById('mapIn').value)||0;
-  document.getElementById('mapDist').value=(inch*2.54).toFixed(3);
-  calc();
-}
-function calcArea(){
-  const w=(parseFloat(document.getElementById('aW').value)||0)*denom/100;
-  const h=(parseFloat(document.getElementById('aH').value)||0)*denom/100;
-  const m2=w*h;
-  document.getElementById('a_m2').textContent=m2.toFixed(0);
-  document.getElementById('a_ha').textContent=(m2/10000).toFixed(4);
-  document.getElementById('a_km2').textContent=(m2/1e6).toFixed(6);
-}
-function buildRefTable(){
-  const scales=[1000,2500,5000,10000,25000,50000,100000,250000];
-  const tbody=document.getElementById('refTable');
-  tbody.innerHTML=scales.map(s=>{
-    const mPerCm=s/100;
-    const mPerIn=s*0.0254;
-    const haPerCm2=s*s/1e8;
-    const c=s===denom?'color:#06b6d4;font-weight:700':'';
-    return`<tr style="${c}">
-      <td>1:${s.toLocaleString()}</td>
-      <td>${mPerCm>=1000?(mPerCm/1000).toFixed(2)+' km':mPerCm+' m'}</td>
-      <td>${mPerIn>=1000?(mPerIn/1000).toFixed(3)+' km':mPerIn.toFixed(1)+' m'}</td>
-      <td>${haPerCm2.toFixed(4)} ha</td>
-    </tr>`;
-  }).join('');
-}
-calc();
-</script>
-</body>
-</html>
+
+calcMapToGround(); calcGroundToMap();
+</script></body></html>

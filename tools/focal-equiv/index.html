@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Focal Length Equivalence | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+input[type=range]{padding:4px 0;border:none;background:transparent;accent-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.neutral{color:#94a3b8}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+.big{font-size:1.8rem;font-weight:800;color:#c8a96e;text-align:center;padding:12px 0}
+.stops-bar{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.stop-btn{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:4px 10px;font-size:.75rem;color:#ccc;cursor:pointer}
+.stop-btn:hover,.stop-btn.active{background:#c8a96e;color:#0d0d0d;border-color:#c8a96e}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Focal Length Equivalence</h1>
+</div>
+<div class="wrap">
+  <h2>Focal Length & Crop Factor</h2>
+  <p class="sub">Convert focal lengths between sensor formats. Find the full-frame equivalent of any lens, and compare field of view, depth of field, and angle of view across formats.</p>
+
+  <div class="card">
+    <h3>Your Lens & Sensor</h3>
+    <div class="row">
+      <div><label>Actual Focal Length (mm)</label><input id="fl" type="number" value="35" min="1" step="1"></div>
+      <div><label>Your Sensor Format</label>
+        <select id="sensor">
+          <option value="1.0">Full Frame 35mm (1.0×)</option>
+          <option value="1.3">Canon APS-H (1.3×)</option>
+          <option value="1.5">APS-C Nikon/Sony (1.5×)</option>
+          <option value="1.6" selected>APS-C Canon (1.6×)</option>
+          <option value="2.0">Micro Four Thirds (2.0×)</option>
+          <option value="2.7">1-inch sensor (2.7×)</option>
+          <option value="5.6">1/2.3" compact (5.6×)</option>
+          <option value="7.2">1/3.2" (7.2×)</option>
+          <option value="0.64">Medium Format 645 (0.64×)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Aperture (f/)</label>
+        <select id="ap">
+          <option value="1">f/1.0</option><option value="1.2">f/1.2</option><option value="1.4">f/1.4</option>
+          <option value="1.8">f/1.8</option><option value="2">f/2.0</option><option value="2.8" selected>f/2.8</option>
+          <option value="4">f/4.0</option><option value="5.6">f/5.6</option><option value="8">f/8.0</option>
+          <option value="11">f/11</option><option value="16">f/16</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn" onclick="calcEquiv()">Calculate</button>
+      </div>
+    </div>
+    <div id="outEquiv"></div>
+  </div>
+
+  <div class="card">
+    <h3>Full Frame Equivalence Table</h3>
+    <div id="outTable"></div>
+  </div>
+
+  <div class="card">
+    <h3>Common Focal Length Reference</h3>
+    <table>
+      <thead><tr><th>35mm Equiv.</th><th>Angle of View</th><th>Typical Use</th></tr></thead>
+      <tbody>
+        <tr><td>8–14mm</td><td>84°–114°+</td><td>Fisheye, extreme wide</td></tr>
+        <tr><td>14–24mm</td><td>74°–84°</td><td>Ultra-wide, architecture interiors</td></tr>
+        <tr><td>24–35mm</td><td>54°–74°</td><td>Wide, environmental portrait</td></tr>
+        <tr><td>35–50mm</td><td>46°–54°</td><td>Near-natural perspective</td></tr>
+        <tr><td>50mm</td><td>46°</td><td>Standard, "natural eye" view</td></tr>
+        <tr><td>85mm</td><td>28°</td><td>Portrait (flattering compression)</td></tr>
+        <tr><td>135mm</td><td>18°</td><td>Portrait, sports</td></tr>
+        <tr><td>200mm+</td><td>&lt;12°</td><td>Telephoto, wildlife</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+const SENSORS = [
+  {name:'Full Frame 35mm', crop:1.0, diagonal:43.3},
+  {name:'APS-H (Canon)', crop:1.3, diagonal:33.3},
+  {name:'APS-C (Nikon/Sony)', crop:1.5, diagonal:28.4},
+  {name:'APS-C (Canon)', crop:1.6, diagonal:26.8},
+  {name:'Micro Four Thirds', crop:2.0, diagonal:21.6},
+  {name:'1-inch', crop:2.7, diagonal:15.9},
+  {name:'1/2.3" (compact)', crop:5.6, diagonal:7.7},
+];
+
+function aov(f, diag){ return 2*Math.atan(diag/(2*f)) * 180/Math.PI; }
+function fmt(n,d=1){return n.toLocaleString('en-US',{maximumFractionDigits:d});}
+
+function calcEquiv(){
+  const fl = parseFloat($('fl').value)||35;
+  const crop = parseFloat($('sensor').value)||1.6;
+  const N = parseFloat($('ap').value)||2.8;
+
+  const ffEquiv = fl * crop;
+  // For AoV use FF diagonal 43.3mm
+  const aovActual = aov(fl, 43.3/crop);
+  const aovFF = aov(ffEquiv, 43.3);
+
+  // Equivalent aperture for same DOF on FF
+  const equivAp = N * crop;
+
+  $('outEquiv').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Actual Focal Length</span><span class="val">${fl}mm on ${SENSORS.find(s=>s.crop===crop)?.name||'sensor'}</span></div>
+    <div class="kv"><span class="lbl">Full Frame Equivalent</span><span class="val hi">${fmt(ffEquiv,1)}mm</span></div>
+    <div class="kv"><span class="lbl">Crop Factor</span><span class="val">${crop}×</span></div>
+    <div class="kv"><span class="lbl">Angle of View (diag)</span><span class="val">${fmt(aovActual,1)}°</span></div>
+    <div class="kv"><span class="lbl">Equiv. Aperture (FF DOF)</span><span class="val">${fmt(equivAp,1)} → f/${fmt(equivAp,1)}</span></div>
+    <p class="note" style="padding-top:8px">To get the same DOF as FF f/${N} at ${ffEquiv}mm, you need ${fl}mm at f/${N} on your sensor — but the bokeh character differs. AoV is identical.</p>
+  </div>`;
+
+  // Table: show this focal length across all sensors
+  let rows = SENSORS.map(s=>{
+    const equivFl = ffEquiv / s.crop; // actual fl needed on that sensor
+    const equivN  = N / s.crop;       // aperture for same DOF (as FF)
+    const aovS    = aov(equivFl, s.diagonal);
+    return `<tr>
+      <td>${s.name}</td>
+      <td>${fmt(equivFl,1)}mm</td>
+      <td>f/${fmt(equivN<1?1:equivN,1)}</td>
+      <td>${fmt(aovS,1)}°</td>
+      <td>${s.crop}×</td>
+    </tr>`;
+  });
+  $('outTable').innerHTML=`<p class="note" style="margin-bottom:8px">To replicate FF ${fmt(ffEquiv,0)}mm f/${N} on each sensor:</p>
+  <table>
+    <thead><tr><th>Sensor</th><th>Focal Length</th><th>f/ (same DOF)</th><th>AoV</th><th>Crop</th></tr></thead>
+    <tbody>${rows.join('')}</tbody></table>`;
+}
+
+calcEquiv();
+</script></body></html>

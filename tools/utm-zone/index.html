@@ -1,0 +1,146 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTM Zone Finder | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>UTM Zone Finder</h1>
+</div>
+<div class="wrap">
+  <h2>UTM Zone Finder</h2>
+  <p class="sub">Find the UTM zone, hemisphere, and central meridian from any latitude/longitude coordinate pair.</p>
+
+  <div class="card">
+    <h3>Coordinate Input</h3>
+    <div class="row">
+      <div><label>Latitude (decimal degrees)</label><input id="lat" type="number" value="25.6866" step="0.0001" min="-90" max="90"></div>
+      <div><label>Longitude (decimal degrees)</label><input id="lon" type="number" value="-100.3161" step="0.0001" min="-180" max="180"></div>
+    </div>
+    <div style="margin-bottom:8px">
+      <p class="note">Positive = N/E, Negative = S/W. Example: Monterrey, MX = 25.6866°N, -100.3161°W</p>
+    </div>
+    <button class="btn" onclick="findZone()">Find UTM Zone</button>
+    <div id="outZone"></div>
+  </div>
+
+  <div class="card">
+    <h3>Batch Lookup</h3>
+    <p class="note" style="margin-bottom:10px">Enter coordinates as comma-separated lat,lon pairs, one per line.</p>
+    <textarea id="batch" style="width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:10px;color:#e0e0e0;font-size:.82rem;height:90px;resize:vertical;outline:none;font-family:monospace">25.6866,-100.3161
+19.4326,-99.1332
+40.7128,-74.0060</textarea>
+    <button class="btn" style="margin-top:10px" onclick="batchLookup()">Process Batch</button>
+    <div id="outBatch"></div>
+  </div>
+
+  <div class="card">
+    <h3>UTM System Overview</h3>
+    <table>
+      <thead><tr><th>Zone Range</th><th>Longitude Range</th><th>Notable Coverage</th></tr></thead>
+      <tbody>
+        <tr><td>13N</td><td>-108° to -102°</td><td>North Mexico, Denver CO</td></tr>
+        <tr><td>14N</td><td>-102° to -96°</td><td>Monterrey, Dallas TX</td></tr>
+        <tr><td>15N</td><td>-96° to -90°</td><td>Mexico City, Houston TX</td></tr>
+        <tr><td>16N</td><td>-90° to -84°</td><td>Cancún, Nashville TN</td></tr>
+        <tr><td>17N</td><td>-84° to -78°</td><td>Atlanta GA, Toronto CA</td></tr>
+        <tr><td>18N</td><td>-78° to -72°</td><td>New York NY, DC</td></tr>
+        <tr><td>19N</td><td>-72° to -66°</td><td>Boston MA, Puerto Rico</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+function getZoneInfo(lat, lon){
+  if(lat<-90||lat>90) return null;
+  if(lon<-180||lon>180) return null;
+  let zone = Math.floor((lon+180)/6)+1;
+  // Special cases for Svalbard/Norway
+  if(lat>=56&&lat<64&&lon>=3&&lon<12) zone=32;
+  if(lat>=72&&lat<84){
+    if(lon>=0&&lon<9) zone=31;
+    else if(lon>=9&&lon<21) zone=33;
+    else if(lon>=21&&lon<33) zone=35;
+    else if(lon>=33&&lon<42) zone=37;
+  }
+  const hemi = lat>=0?'N':'S';
+  const cm = (zone-1)*6-180+3;
+  const band = latBand(lat);
+  return {zone, hemi, cm, band, full: zone+''+hemi};
+}
+
+function latBand(lat){
+  const bands='CDEFGHJKLMNPQRSTUVWX';
+  const idx = Math.floor((lat+80)/8);
+  return idx>=0&&idx<20?bands[idx]:'?';
+}
+
+function findZone(){
+  const lat=parseFloat($('lat').value), lon=parseFloat($('lon').value);
+  const z=getZoneInfo(lat,lon);
+  if(!z){$('outZone').innerHTML='<div class="out"><p class="warn">Invalid coordinates.</p></div>';return;}
+  $('outZone').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">UTM Zone</span><span class="val hi">${z.zone}${z.hemi}</span></div>
+    <div class="kv"><span class="lbl">MGRS Band</span><span class="val">${z.zone}${z.band}</span></div>
+    <div class="kv"><span class="lbl">Hemisphere</span><span class="val">${z.hemi==='N'?'Northern':'Southern'}</span></div>
+    <div class="kv"><span class="lbl">Central Meridian</span><span class="val">${z.cm}°</span></div>
+    <div class="kv"><span class="lbl">Zone Bounds (lon)</span><span class="val">${(z.zone-1)*6-180}° to ${(z.zone-1)*6-174}°</span></div>
+    <div class="kv"><span class="lbl">EPSG (WGS84)</span><span class="val">${z.hemi==='N'?32600+z.zone:32700+z.zone}</span></div>
+    <div class="mono">EPSG:${z.hemi==='N'?32600+z.zone:32700+z.zone}  →  WGS 84 / UTM zone ${z.zone}${z.hemi}</div>
+  </div>`;
+}
+
+function batchLookup(){
+  const lines=$('batch').value.trim().split('\n');
+  let rows='';
+  lines.forEach(line=>{
+    const parts=line.split(',');
+    if(parts.length<2){rows+=`<tr><td colspan="5" class="warn">Invalid: ${line}</td></tr>`;return;}
+    const lat=parseFloat(parts[0].trim()), lon=parseFloat(parts[1].trim());
+    const z=getZoneInfo(lat,lon);
+    if(!z){rows+=`<tr><td colspan="5" class="warn">OOB: ${lat},${lon}</td></tr>`;return;}
+    rows+=`<tr><td>${lat}</td><td>${lon}</td><td class="hi">${z.zone}${z.hemi}</td><td>${z.cm}°</td><td>${z.hemi==='N'?32600+z.zone:32700+z.zone}</td></tr>`;
+  });
+  $('outBatch').innerHTML=`<div class="out" style="padding:0"><table>
+    <thead><tr><th>Lat</th><th>Lon</th><th>Zone</th><th>C. Meridian</th><th>EPSG</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+findZone();
+</script></body></html>

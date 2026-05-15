@@ -1,210 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Coordinate Converter</title>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coordinate Converter | XLMX</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d0d;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:24px 16px}
-h1{font-size:1.3rem;font-weight:700;margin-bottom:4px}
-.sub{color:#888;font-size:.85rem;margin-bottom:24px}
-.card{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:16px}
-.card h2{font-size:.95rem;font-weight:600;color:#22c55e;margin-bottom:14px}
-label{display:block;font-size:.8rem;color:#aaa;margin-bottom:4px;margin-top:10px}
-input,select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#e5e5e5;padding:8px 10px;font-size:.9rem;font-family:monospace}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tabs{display:flex;gap:6px;margin-bottom:14px}
-.tab{flex:1;padding:8px;background:#1a1a1a;border:1px solid #333;border-radius:6px;text-align:center;cursor:pointer;font-size:.82rem;transition:all .2s}
-.tab.active{background:#22c55e;border-color:#22c55e;color:#000;font-weight:700}
-.pane{display:none}.pane.active{display:block}
-.result-card{background:#1a1a1a;border-radius:8px;padding:14px;margin-bottom:8px}
-.result-card .label{font-size:.75rem;color:#888;margin-bottom:6px}
-.result-card .value{font-family:monospace;font-size:.95rem;color:#22c55e;word-break:break-all}
-.copy-btn{float:right;background:none;border:1px solid #333;color:#888;border-radius:4px;padding:2px 8px;font-size:.72rem;cursor:pointer}
-.copy-btn:hover{border-color:#22c55e;color:#22c55e}
-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
-th{text-align:left;color:#888;padding:6px 8px;border-bottom:1px solid #222}
-td{padding:6px 8px;border-bottom:1px solid #1a1a1a;font-family:monospace}
-</style>
-</head>
-<body>
-<h1>Coordinate Converter</h1>
-<p class="sub">Convert between DD, DMS, DDM, UTM, MGRS and ECEF formats</p>
-
-<div class="card">
-  <h2>Input Format</h2>
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('dd')">DD</div>
-    <div class="tab" onclick="switchTab('dms')">DMS</div>
-    <div class="tab" onclick="switchTab('utm')">UTM</div>
-  </div>
-
-  <div class="pane active" id="pane-dd">
-    <div class="row2">
-      <div><label>Latitude (°) — N positive</label><input type="number" id="dd_lat" value="19.4326" step="any" oninput="fromDD()"></div>
-      <div><label>Longitude (°) — E positive</label><input type="number" id="dd_lon" value="-99.1332" step="any" oninput="fromDD()"></div>
-    </div>
-  </div>
-
-  <div class="pane" id="pane-dms">
-    <div class="row2">
-      <div>
-        <label>Latitude</label>
-        <div style="display:flex;gap:4px">
-          <input type="number" id="lat_d" value="19" style="width:50px" oninput="fromDMS()">
-          <input type="number" id="lat_m" value="25" style="width:50px" oninput="fromDMS()">
-          <input type="number" id="lat_s" value="57.6" step="any" style="flex:1" oninput="fromDMS()">
-          <select id="lat_dir" style="width:50px" onchange="fromDMS()"><option>N</option><option>S</option></select>
-        </div>
-      </div>
-      <div>
-        <label>Longitude</label>
-        <div style="display:flex;gap:4px">
-          <input type="number" id="lon_d" value="99" style="width:50px" oninput="fromDMS()">
-          <input type="number" id="lon_m" value="7" style="width:50px" oninput="fromDMS()">
-          <input type="number" id="lon_s" value="59.5" step="any" style="flex:1" oninput="fromDMS()">
-          <select id="lon_dir" style="width:50px" onchange="fromDMS()"><option>W</option><option>E</option></select>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="pane" id="pane-utm">
-    <div class="row2">
-      <div><label>Zone (1–60)</label><input type="number" id="utm_zone" value="14" min="1" max="60" oninput="fromUTM()"></div>
-      <div><label>Band (C–X)</label><input type="text" id="utm_band" value="Q" maxlength="1" oninput="fromUTM()"></div>
-    </div>
-    <div class="row2">
-      <div><label>Easting (m)</label><input type="number" id="utm_e" value="484400" oninput="fromUTM()"></div>
-      <div><label>Northing (m)</label><input type="number" id="utm_n" value="2150000" oninput="fromUTM()"></div>
-    </div>
-  </div>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+input[readonly]{border-color:#c8a96e;color:#c8a96e;font-weight:600}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px;width:auto}
+.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:16px;font-weight:700;color:#c8a96e;word-break:break-all}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}.kval.pur{color:#a78bfa}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid #161616}tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px;line-height:1.5}
+.mono{font-family:monospace;font-size:12px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;color:#a3e635;margin-top:10px}
+canvas{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;width:100%;display:block}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Coordinate Converter</h1></div>
+<div class="wrap"><p class="desc">Convert between Decimal Degrees, DMS, and UTM (WGS84). Copy-paste ready output.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Decimal Degrees → DMS + UTM</h2>
+<div class="field"><label>Latitude (DD, e.g. 25.6866)</label><input id="lat" type="number" step="any" placeholder="25.686600"></div>
+<div class="field"><label>Longitude (DD, e.g. -100.3161)</label><input id="lon" type="number" step="any" placeholder="-100.316100"></div>
+<button class="btn" onclick="ddToAll()">Convert</button>
 </div>
-
-<div class="card">
-  <h2>All Formats</h2>
-  <div id="results"></div>
+<div class="box"><h2>DMS → Decimal Degrees</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+<div class="field"><label>Deg</label><input id="dms_d" type="number" placeholder="25"></div>
+<div class="field"><label>Min</label><input id="dms_m" type="number" placeholder="41"></div>
+<div class="field"><label>Sec</label><input id="dms_s" type="number" step="any" placeholder="11.76"></div>
 </div>
-
+<div class="field"><label>Direction</label>
+<select id="dms_dir"><option>N</option><option>S</option><option>E</option><option>W</option></select></div>
+<button class="btn" onclick="dmsToDD()">→ Decimal</button>
+<input id="dms_out" type="text" readonly style="margin-top:8px" placeholder="Result">
+</div>
+</div>
+<div>
+<div class="box"><h2>Results</h2>
+<div id="results"><p style="color:#555;font-size:12px">Enter coordinates and convert.</p></div>
+</div>
+<div class="box"><h2>UTM Zone Reference</h2>
+<p class="note">UTM divides the world into 60 zones of 6° longitude each, numbered 1–60 west to east.<br>
+Mexico City ≈ Zone 14N | New York ≈ Zone 18N | London ≈ Zone 30U<br>
+Northing increases northward from equator (N hemisphere) or from 10,000,000m (S hemisphere).</p>
+</div>
+</div></div>
 <script>
-let _lat=19.4326,_lon=-99.1332;
-function switchTab(t){
-  ['dd','dms','utm'].forEach(x=>{
-    document.querySelector(`.tab:nth-child(${['dd','dms','utm'].indexOf(x)+1})`).classList.toggle('active',x===t);
-    document.getElementById('pane-'+x).classList.toggle('active',x===t);
-  });
-  if(t==='dd'){fromDD();}else if(t==='dms'){fromDMS();}else{fromUTM();}
+// WGS84 ellipsoid constants
+var a=6378137,f=1/298.257223563,b=a*(1-f),e2=1-(b*b)/(a*a),ep2=(a*a-b*b)/(b*b),k0=0.9996;
+function toRad(d){return d*Math.PI/180;}
+function toDeg(r){return r*180/Math.PI;}
+function ddToDMS(dd){var d=Math.floor(Math.abs(dd));var mf=(Math.abs(dd)-d)*60;var m=Math.floor(mf);var s=(mf-m)*60;return{d:d,m:m,s:s.toFixed(4)};}
+function ddToUTM(lat,lon){
+  var latR=toRad(lat),lonR=toRad(lon);
+  var zone=Math.floor((lon+180)/6)+1;
+  var lon0=toRad((zone-1)*6-180+3);
+  var N=a/Math.sqrt(1-e2*Math.sin(latR)*Math.sin(latR));
+  var T=Math.tan(latR)*Math.tan(latR);
+  var C=ep2*Math.cos(latR)*Math.cos(latR);
+  var A=Math.cos(latR)*(lonR-lon0);
+  var M=a*((1-e2/4-3*e2*e2/64-5*e2*e2*e2/256)*latR-(3*e2/8+3*e2*e2/32+45*e2*e2*e2/1024)*Math.sin(2*latR)+(15*e2*e2/256+45*e2*e2*e2/1024)*Math.sin(4*latR)-(35*e2*e2*e2/3072)*Math.sin(6*latR));
+  var x=k0*N*(A+(1-T+C)*A*A*A/6+(5-18*T+T*T+72*C-58*ep2)*A*A*A*A*A/120)+500000;
+  var y=k0*(M+N*Math.tan(latR)*(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24+(61-58*T+T*T+600*C-330*ep2)*A*A*A*A*A*A/720));
+  if(lat<0)y+=10000000;
+  var letters="CDEFGHJKLMNPQRSTUVWX";
+  var band=letters[Math.floor((lat+80)/8)];
+  return{zone:zone,band:band,easting:x,northing:y};
 }
-// Fix tab toggle by index — redo using named approach
-document.querySelectorAll('.tab').forEach((el,i)=>{
-  el.onclick=()=>switchTab(['dd','dms','utm'][i]);
-});
-function fromDD(){
-  _lat=parseFloat(document.getElementById('dd_lat').value)||0;
-  _lon=parseFloat(document.getElementById('dd_lon').value)||0;
-  showResults();
+function ddToAll(){
+  var lat=+document.getElementById("lat").value;
+  var lon=+document.getElementById("lon").value;
+  if(isNaN(lat)||isNaN(lon)){alert("Enter valid coordinates.");return;}
+  var latDMS=ddToDMS(lat);var lonDMS=ddToDMS(lon);
+  var latDir=lat>=0?"N":"S";var lonDir=lon>=0?"E":"W";
+  var utm=ddToUTM(lat,lon);
+  var latDMSstr=latDMS.d+"° "+latDMS.m+"' "+latDMS.s+'" '+latDir;
+  var lonDMSstr=lonDMS.d+"° "+lonDMS.m+"' "+lonDMS.s+'" '+lonDir;
+  var utmStr="Zone "+utm.zone+utm.band+" "+utm.easting.toFixed(2)+"E "+utm.northing.toFixed(2)+"N";
+  document.getElementById("results").innerHTML=
+  '<div class="kpi">'+
+  '<div class="kcard"><div class="klabel">Decimal Degrees</div><div class="kval sky">'+lat.toFixed(6)+'°, '+lon.toFixed(6)+'°</div></div>'+
+  '<div class="kcard"><div class="klabel">DMS Latitude</div><div class="kval">'+latDMSstr+'</div></div>'+
+  '<div class="kcard"><div class="klabel">DMS Longitude</div><div class="kval">'+lonDMSstr+'</div></div>'+
+  '<div class="kcard"><div class="klabel">UTM Zone</div><div class="kval pur">'+utm.zone+utm.band+'</div></div>'+
+  '<div class="kcard"><div class="klabel">UTM Easting</div><div class="kval grn">'+utm.easting.toFixed(3)+' m</div></div>'+
+  '<div class="kcard"><div class="klabel">UTM Northing</div><div class="kval grn">'+utm.northing.toFixed(3)+' m</div></div>'+
+  '</div>'+
+  '<div class="mono">DD:  '+lat.toFixed(6)+', '+lon.toFixed(6)+'
+DMS: '+latDMSstr+', '+lonDMSstr+'
+UTM: '+utmStr+'
+GMaps: https://maps.google.com/?q='+lat+','+lon+'</div>';
 }
-function fromDMS(){
-  const ld=parseFloat(document.getElementById('lat_d').value)||0;
-  const lm=parseFloat(document.getElementById('lat_m').value)||0;
-  const ls=parseFloat(document.getElementById('lat_s').value)||0;
-  const ldir=document.getElementById('lat_dir').value;
-  const od=parseFloat(document.getElementById('lon_d').value)||0;
-  const om=parseFloat(document.getElementById('lon_m').value)||0;
-  const os=parseFloat(document.getElementById('lon_s').value)||0;
-  const odir=document.getElementById('lon_dir').value;
-  _lat=(ld+lm/60+ls/3600)*(ldir==='S'?-1:1);
-  _lon=(od+om/60+os/3600)*(odir==='W'?-1:1);
-  showResults();
+function dmsToDD(){
+  var d=+document.getElementById("dms_d").value||0;
+  var m=+document.getElementById("dms_m").value||0;
+  var s=+document.getElementById("dms_s").value||0;
+  var dir=document.getElementById("dms_dir").value;
+  var dd=d+m/60+s/3600;
+  if(dir==="S"||dir==="W")dd=-dd;
+  document.getElementById("dms_out").value=dd.toFixed(8);
 }
-function toDMS(dec,isLat){
-  const d=Math.abs(dec)|0;
-  const mf=(Math.abs(dec)-d)*60;
-  const m=mf|0;
-  const s=((mf-m)*60).toFixed(4);
-  const dir=isLat?(dec>=0?'N':'S'):(dec>=0?'E':'W');
-  return`${d}° ${m}' ${s}" ${dir}`;
-}
-function toDDM(dec,isLat){
-  const d=Math.abs(dec)|0;
-  const m=((Math.abs(dec)-d)*60).toFixed(6);
-  const dir=isLat?(dec>=0?'N':'S'):(dec>=0?'E':'W');
-  return`${d}° ${m}' ${dir}`;
-}
-// UTM conversion (WGS84 simplified)
-function toUTM(lat,lon){
-  const a=6378137,f=1/298.257223563,b=a*(1-f);
-  const e2=1-(b/a)**2,e2p=e2/(1-e2);
-  const zone=Math.floor((lon+180)/6)+1;
-  const lon0=(zone-1)*6-180+3;
-  const k0=0.9996;
-  const N0=lat<0?10000000:0;
-  const E0=500000;
-  const phi=lat*Math.PI/180,lam=(lon-lon0)*Math.PI/180;
-  const N=a/Math.sqrt(1-e2*Math.sin(phi)**2);
-  const T=Math.tan(phi)**2,C=e2p*Math.cos(phi)**2;
-  const A=Math.cos(phi)*lam;
-  const e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
-  const M=a*((1-e2/4-3*e2**2/64-5*e2**3/256)*phi
-    -(3*e2/8+3*e2**2/32+45*e2**3/1024)*Math.sin(2*phi)
-    +(15*e2**2/256+45*e2**3/1024)*Math.sin(4*phi)
-    -(35*e2**3/3072)*Math.sin(6*phi));
-  const E=E0+k0*N*(A+(1-T+C)*A**3/6+(5-18*T+T**2+72*C-58*e2p)*A**5/120);
-  const north=N0+k0*(M+N*Math.tan(phi)*(A**2/2+(5-T+9*C+4*C**2)*A**4/24+(61-58*T+T**2+600*C-330*e2p)*A**6/720));
-  const bands='CDEFGHJKLMNPQRSTUVWX';
-  const bi=Math.floor((lat+80)/8);
-  const band=bands[Math.min(19,Math.max(0,bi))];
-  return{zone,band,E:Math.round(E),N:Math.round(north),str:`${zone}${band} ${Math.round(E)}E ${Math.round(north)}N`};
-}
-function fromUTM(){
-  // Simplified inverse UTM
-  const zone=parseInt(document.getElementById('utm_zone').value)||14;
-  const band=document.getElementById('utm_band').value.toUpperCase()||'Q';
-  const E=parseFloat(document.getElementById('utm_e').value)||500000;
-  const N=parseFloat(document.getElementById('utm_n').value)||0;
-  const isSouth='CDEFGHJKLM'.includes(band);
-  const lon0=(zone-1)*6-180+3;
-  const a=6378137,f=1/298.257223563,b=a*(1-f);
-  const e2=1-(b/a)**2,e2p=e2/(1-e2);
-  const k0=0.9996,E0=500000,N0=isSouth?10000000:0;
-  const M=(N-N0)/k0;
-  const mu=M/(a*(1-e2/4-3*e2**2/64-5*e2**3/256));
-  const e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
-  const phi1=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1**2/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu);
-  const Np=a/Math.sqrt(1-e2*Math.sin(phi1)**2);
-  const T=Math.tan(phi1)**2,C=e2p*Math.cos(phi1)**2;
-  const R=a*(1-e2)/(1-e2*Math.sin(phi1)**2)**1.5;
-  const D=(E-E0)/(Np*k0);
-  _lat=(phi1-(Np*Math.tan(phi1)/R)*(D**2/2-(5+3*T+10*C-4*C**2-9*e2p)*D**4/24+(61+90*T+298*C+45*T**2-252*e2p-3*C**2)*D**6/720))*180/Math.PI;
-  _lon=lon0+((D-(1+2*T+C)*D**3/6+(5-2*C+28*T-3*C**2+8*e2p+24*T**2)*D**5/120)/Math.cos(phi1))*180/Math.PI;
-  showResults();
-}
-function showResults(){
-  const utm=toUTM(_lat,_lon);
-  // ECEF
-  const a=6378137,f=1/298.257223563;
-  const e2=2*f-f**2;
-  const phi=_lat*Math.PI/180,lam=_lon*Math.PI/180;
-  const N=a/Math.sqrt(1-e2*Math.sin(phi)**2);
-  const X=(N)*Math.cos(phi)*Math.cos(lam);
-  const Y=(N)*Math.cos(phi)*Math.sin(lam);
-  const Z=(N*(1-e2))*Math.sin(phi);
-  const results=[
-    {label:'Decimal Degrees (DD)',value:`${_lat.toFixed(7)}, ${_lon.toFixed(7)}`},
-    {label:'Degrees Minutes Seconds (DMS)',value:`${toDMS(_lat,true)}, ${toDMS(_lon,false)}`},
-    {label:'Degrees Decimal Minutes (DDM)',value:`${toDDM(_lat,true)}, ${toDDM(_lon,false)}`},
-    {label:'UTM (WGS84)',value:utm.str},
-    {label:'ECEF (m)',value:`X: ${X.toFixed(2)}, Y: ${Y.toFixed(2)}, Z: ${Z.toFixed(2)}`},
-    {label:'Google Maps link',value:`https://maps.google.com/?q=${_lat.toFixed(6)},${_lon.toFixed(6)}`},
-  ];
-  document.getElementById('results').innerHTML=results.map(r=>`
-    <div class="result-card">
-      <div class="label">${r.label} <button class="copy-btn" onclick="navigator.clipboard.writeText('${r.value.replace(/'/g,"\\'")}')">Copy</button></div>
-      <div class="value">${r.value}</div>
-    </div>`).join('');
-}
-fromDD();
-</script>
-</body>
-</html>
+</script></div></body></html>

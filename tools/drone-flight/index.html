@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drone Survey Flight Plan | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+input[readonly]{border-color:#c8a96e;color:#c8a96e;font-weight:600}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px;width:auto}
+.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:16px;font-weight:700;color:#c8a96e;word-break:break-all}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}.kval.pur{color:#a78bfa}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid #161616}tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px;line-height:1.5}
+.mono{font-family:monospace;font-size:12px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;color:#a3e635;margin-top:10px}
+canvas{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;width:100%;display:block}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Drone Survey Flight Plan</h1></div>
+<div class="wrap"><p class="desc">GSD, flight altitude, overlap, image count, and mission area for photogrammetry surveys.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Camera</h2>
+<div class="field"><label>Sensor Width (mm)</label><input id="sw" type="number" step="any" placeholder="13.2" value="13.2"></div>
+<div class="field"><label>Sensor Height (mm)</label><input id="sh" type="number" step="any" placeholder="8.8" value="8.8"></div>
+<div class="field"><label>Image Width (px)</label><input id="iw" type="number" placeholder="4056" value="4056"></div>
+<div class="field"><label>Image Height (px)</label><input id="ih" type="number" placeholder="3040" value="3040"></div>
+<div class="field"><label>Focal Length (mm)</label><input id="fl" type="number" step="any" placeholder="8.8" value="8.8"></div>
+</div>
+<div class="box"><h2>Mission</h2>
+<div class="field"><label>Target GSD (cm/px)</label><input id="gsd" type="number" step="any" placeholder="3" value="3"></div>
+<div class="field"><label>Front Overlap (%)</label><input id="fo" type="number" placeholder="80" value="80"></div>
+<div class="field"><label>Side Overlap (%)</label><input id="so" type="number" placeholder="70" value="70"></div>
+<div class="field"><label>Survey Area (hectares)</label><input id="area" type="number" step="any" placeholder="10" value="10"></div>
+<div class="field"><label>Flight Speed (m/s)</label><input id="spd" type="number" step="any" placeholder="8" value="8"></div>
+<button class="btn" onclick="calc()">Plan Mission</button>
+</div></div>
+<div>
+<div class="box"><h2>Results</h2>
+<div id="res"><p style="color:#555;font-size:12px">Enter parameters and plan mission.</p></div>
+</div>
+<div class="box"><h2>GSD Quick Reference</h2>
+<table><thead><tr><th>Application</th><th>GSD</th></tr></thead><tbody>
+<tr><td>Inspection / detail</td><td>0.5–1 cm/px</td></tr>
+<tr><td>Engineering survey</td><td>1–3 cm/px</td></tr>
+<tr><td>Topographic survey</td><td>2–5 cm/px</td></tr>
+<tr><td>Agricultural / mapping</td><td>5–15 cm/px</td></tr>
+<tr><td>Large area overview</td><td>15–30 cm/px</td></tr>
+</tbody></table>
+</div></div></div>
+<script>
+function fmt(n,d){return n.toLocaleString("en-US",{maximumFractionDigits:d||1});}
+function calc(){
+  var sw=+document.getElementById("sw").value||13.2;
+  var sh=+document.getElementById("sh").value||8.8;
+  var iw=+document.getElementById("iw").value||4056;
+  var ih=+document.getElementById("ih").value||3040;
+  var fl=+document.getElementById("fl").value||8.8;
+  var gsd=+document.getElementById("gsd").value||3;
+  var fo=+document.getElementById("fo").value/100||0.8;
+  var so=+document.getElementById("so").value/100||0.7;
+  var area=+document.getElementById("area").value||10;
+  var spd=+document.getElementById("spd").value||8;
+  // Altitude from GSD: GSD(cm) = (H * sw) / (fl * iw) * 100
+  var H=(gsd/100*fl*iw)/sw; // meters
+  var actualGSD_W=(H*sw)/(fl*iw)*100;
+  var actualGSD_H=(H*sh)/(fl*ih)*100;
+  // Footprint
+  var fpW=(H*sw/fl); // meters
+  var fpH=(H*sh/fl);
+  // Spacing
+  var bX=fpW*(1-fo); // forward spacing (along track)
+  var bY=fpH*(1-so); // side spacing (across track)
+  // Strip count
+  var areaM2=area*10000;
+  var strips=Math.ceil(Math.sqrt(areaM2)/bY)+1;
+  var imgPerStrip=Math.ceil(Math.sqrt(areaM2)/bX)+1;
+  var totalImg=strips*imgPerStrip;
+  var totalDist=strips*Math.sqrt(areaM2)/1000; // km
+  var flightTime=totalDist*1000/spd/60; // minutes
+  document.getElementById("res").innerHTML=
+  '<div class="kpi">'+
+  '<div class="kcard"><div class="klabel">Flight Altitude</div><div class="kval sky">'+H.toFixed(1)+' m ('+( H*3.28084).toFixed(0)+' ft)</div></div>'+
+  '<div class="kcard"><div class="klabel">Actual GSD</div><div class="kval grn">'+actualGSD_W.toFixed(2)+' cm/px</div></div>'+
+  '<div class="kcard"><div class="klabel">Footprint W × H</div><div class="kval">'+fpW.toFixed(1)+'×'+fpH.toFixed(1)+' m</div></div>'+
+  '<div class="kcard"><div class="klabel">Strip Spacing</div><div class="kval">'+bY.toFixed(1)+' m</div></div>'+
+  '<div class="kcard"><div class="klabel">Image Spacing</div><div class="kval">'+bX.toFixed(1)+' m</div></div>'+
+  '<div class="kcard"><div class="klabel">Est. Images</div><div class="kval pur">'+fmt(totalImg,0)+'</div></div>'+
+  '<div class="kcard"><div class="klabel">Flight Distance</div><div class="kval">'+totalDist.toFixed(2)+' km</div></div>'+
+  '<div class="kcard"><div class="klabel">Est. Flight Time</div><div class="kval">'+flightTime.toFixed(0)+' min</div></div>'+
+  '</div>'+
+  '<p class="note">Estimates assume rectangular area. Add 10–20% buffer strips for actual missions. Verify airspace and local regulations.</p>';
+}
+calc();
+</script></div></body></html>

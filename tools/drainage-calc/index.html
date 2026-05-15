@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drainage Area Calculator | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Drainage Area Calculator</h1>
+</div>
+<div class="wrap">
+  <h2>Drainage Area Calculator</h2>
+  <p class="sub">Rational Method peak runoff (Q = CiA). Used for stormwater design, grading, and site drainage in AEC projects.</p>
+
+  <div class="card">
+    <h3>Drainage Basin</h3>
+    <div class="row">
+      <div><label>Drainage Area (acres)</label><input id="area" type="number" value="5.2" step="0.1"></div>
+      <div><label>Rainfall Intensity (in/hr)</label><input id="intensity" type="number" value="3.5" step="0.1"></div>
+    </div>
+    <div class="row">
+      <div><label>Return Period</label>
+        <select id="returnPd">
+          <option value="2">2-year storm</option>
+          <option value="5">5-year storm</option>
+          <option value="10" selected>10-year storm</option>
+          <option value="25">25-year storm</option>
+          <option value="50">50-year storm</option>
+          <option value="100">100-year storm</option>
+        </select>
+      </div>
+      <div><label>Land Use / Surface Type</label>
+        <select id="landUse" onchange="updateC()">
+          <option value="0.90">Rooftop / Impervious (C=0.90)</option>
+          <option value="0.85">Asphalt / Concrete (C=0.85)</option>
+          <option value="0.75">Dense Urban (C=0.75)</option>
+          <option value="0.65" selected>Commercial (C=0.65)</option>
+          <option value="0.55">Residential Dense (C=0.55)</option>
+          <option value="0.40">Residential Suburban (C=0.40)</option>
+          <option value="0.30">Lawn / Parks (C=0.30)</option>
+          <option value="0.25">Forest (C=0.25)</option>
+          <option value="0.15">Meadow / Pasture (C=0.15)</option>
+          <option value="custom">Custom C value</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" id="customCRow" style="display:none">
+      <div><label>Custom Runoff Coefficient C (0–1)</label><input id="customC" type="number" value="0.65" step="0.01" min="0" max="1"></div>
+    </div>
+    <button class="btn" onclick="calcDrainage()">Calculate Peak Flow</button>
+    <div id="outDrain"></div>
+  </div>
+
+  <div class="card">
+    <h3>Runoff Coefficient Reference</h3>
+    <table>
+      <thead><tr><th>Surface</th><th>C (typical)</th><th>C (range)</th></tr></thead>
+      <tbody>
+        <tr><td>Rooftops</td><td>0.90</td><td>0.75–0.95</td></tr>
+        <tr><td>Asphalt / Concrete</td><td>0.85</td><td>0.70–0.95</td></tr>
+        <tr><td>Commercial downtown</td><td>0.80</td><td>0.70–0.95</td></tr>
+        <tr><td>Residential (lots &lt;1/8 ac)</td><td>0.65</td><td>0.60–0.75</td></tr>
+        <tr><td>Residential (lots 1/4–1/2 ac)</td><td>0.40</td><td>0.30–0.50</td></tr>
+        <tr><td>Residential (lots &gt;1 ac)</td><td>0.30</td><td>0.25–0.40</td></tr>
+        <tr><td>Parks / Cemeteries</td><td>0.20</td><td>0.10–0.35</td></tr>
+        <tr><td>Forest / Woodland</td><td>0.18</td><td>0.10–0.30</td></tr>
+        <tr><td>Agricultural cultivated</td><td>0.35</td><td>0.25–0.50</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function fmt(n,d=2){return n.toLocaleString('en-US',{maximumFractionDigits:d});}
+
+function updateC(){
+  const val=$('landUse').value;
+  $('customCRow').style.display=val==='custom'?'grid':'none';
+}
+
+function getC(){
+  const val=$('landUse').value;
+  if(val==='custom') return parseFloat($('customC').value)||0.65;
+  return parseFloat(val)||0.65;
+}
+
+function calcDrainage(){
+  const A=parseFloat($('area').value)||5.2;
+  const i=parseFloat($('intensity').value)||3.5;
+  const C=getC();
+  const rp=$('returnPd').value;
+
+  // Q = CiA (cfs when area in acres, i in in/hr)
+  const Q = C*i*A;
+  // Convert to m³/s and L/s
+  const Q_m3s = Q * 0.028317;
+  const Q_Ls = Q_m3s * 1000;
+  const Q_gpm = Q * 448.83;
+
+  // Time of concentration (Kirpich approximation, assume slope 2%)
+  const L = Math.sqrt(A * 43560); // ft, approx square
+  const slope = 0.02;
+  const tc = 0.0195 * Math.pow(L, 0.77) * Math.pow(slope, -0.385); // minutes
+
+  const C_class = C<0.3?'Low':'Medium';
+
+  $('outDrain').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Runoff Coefficient C</span><span class="val hi">${fmt(C,2)}</span></div>
+    <div class="kv"><span class="lbl">Rainfall Intensity</span><span class="val">${fmt(i,2)} in/hr (${rp}-yr storm)</span></div>
+    <div class="kv"><span class="lbl">Drainage Area</span><span class="val">${fmt(A,2)} ac (${fmt(A*4046.86,0)} m²)</span></div>
+    <div class="kv"><span class="lbl">Peak Flow Q</span><span class="val hi">${fmt(Q,2)} cfs</span></div>
+    <div class="kv"><span class="lbl">Peak Flow (m³/s)</span><span class="val">${fmt(Q_m3s,3)} m³/s</span></div>
+    <div class="kv"><span class="lbl">Peak Flow (L/s)</span><span class="val">${fmt(Q_Ls,1)} L/s</span></div>
+    <div class="kv"><span class="lbl">Peak Flow (gpm)</span><span class="val">${fmt(Q_gpm,0)} gpm</span></div>
+    <div class="kv"><span class="lbl">Est. Time of Concentration</span><span class="val">${fmt(tc,1)} min</span></div>
+    <p class="note" style="padding-top:8px">Q = CiA. Rational Method valid for basins ≤ 200 acres / 80 ha. For larger areas use NRCS TR-55 or continuous simulation. Tc via Kirpich method assuming ~2% slope.</p>
+  </div>`;
+}
+
+calcDrainage();
+</script></body></html>

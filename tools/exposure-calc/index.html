@@ -1,0 +1,206 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exposure Calculator | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+input[type=range]{padding:4px 0;border:none;background:transparent;accent-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.neutral{color:#94a3b8}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+.big{font-size:1.8rem;font-weight:800;color:#c8a96e;text-align:center;padding:12px 0}
+.stops-bar{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.stop-btn{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:4px 10px;font-size:.75rem;color:#ccc;cursor:pointer}
+.stop-btn:hover,.stop-btn.active{background:#c8a96e;color:#0d0d0d;border-color:#c8a96e}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Exposure Calculator</h1>
+</div>
+<div class="wrap">
+  <h2>Exposure Calculator</h2>
+  <p class="sub">Balance the exposure triangle: aperture, shutter speed, and ISO. Calculate equivalent exposures and EV values.</p>
+
+  <div class="card">
+    <h3>Exposure Settings</h3>
+    <div class="row three">
+      <div>
+        <label>Aperture (f/)</label>
+        <select id="ap">
+          <option value="1">f/1.0</option><option value="1.2">f/1.2</option><option value="1.4">f/1.4</option>
+          <option value="1.8">f/1.8</option><option value="2">f/2.0</option><option value="2.8" selected>f/2.8</option>
+          <option value="4">f/4.0</option><option value="5.6">f/5.6</option><option value="8">f/8.0</option>
+          <option value="11">f/11</option><option value="16">f/16</option><option value="22">f/22</option>
+          <option value="32">f/32</option>
+        </select>
+      </div>
+      <div>
+        <label>Shutter Speed</label>
+        <select id="ss">
+          <option value="8000">1/8000</option><option value="4000">1/4000</option><option value="2000">1/2000</option>
+          <option value="1000">1/1000</option><option value="500">1/500</option><option value="250" selected>1/250</option>
+          <option value="125">1/125</option><option value="60">1/60</option><option value="30">1/30</option>
+          <option value="15">1/15</option><option value="8">1/8</option><option value="4">1/4</option>
+          <option value="2">1/2</option><option value="1">1 sec</option>
+          <option value="0.5">2 sec</option><option value="0.25">4 sec</option><option value="0.125">8 sec</option>
+          <option value="0.0333">30 sec</option>
+        </select>
+      </div>
+      <div>
+        <label>ISO</label>
+        <select id="iso">
+          <option value="50">ISO 50</option><option value="100" selected>ISO 100</option><option value="200">ISO 200</option>
+          <option value="400">ISO 400</option><option value="800">ISO 800</option><option value="1600">ISO 1600</option>
+          <option value="3200">ISO 3200</option><option value="6400">ISO 6400</option><option value="12800">ISO 12800</option>
+          <option value="25600">ISO 25600</option><option value="51200">ISO 51200</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Scene Luminance</label>
+        <select id="scene">
+          <option value="15">Bright snow / beach (+15 EV)</option>
+          <option value="14">Bright sunlight (+14 EV)</option>
+          <option value="13">Hazy sun (+13 EV)</option>
+          <option value="12" selected>Partly cloudy (+12 EV)</option>
+          <option value="11">Overcast (+11 EV)</option>
+          <option value="10">Open shade (+10 EV)</option>
+          <option value="8">Interior window light (+8 EV)</option>
+          <option value="6">Bright indoor (+6 EV)</option>
+          <option value="4">Indoor dim (+4 EV)</option>
+          <option value="0">Night street (+0 EV)</option>
+          <option value="-2">Full moon (-2 EV)</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn" onclick="calcEV()">Calculate EV</button>
+      </div>
+    </div>
+    <div id="outEV"></div>
+  </div>
+
+  <div class="card">
+    <h3>Equivalent Exposures</h3>
+    <p class="note" style="margin-bottom:10px">Same EV, different combinations — keeping total light constant.</p>
+    <div id="outEquiv"></div>
+  </div>
+
+  <div class="card">
+    <h3>EV Reference Chart</h3>
+    <table>
+      <thead><tr><th>EV</th><th>Conditions</th><th>Typical Settings</th></tr></thead>
+      <tbody>
+        <tr><td>15</td><td>Snow / beach in bright sun</td><td>f/16 1/250 ISO 100</td></tr>
+        <tr><td>14</td><td>Full sunlight</td><td>f/11 1/250 ISO 100</td></tr>
+        <tr><td>13</td><td>Hazy / slightly overcast</td><td>f/8 1/250 ISO 100</td></tr>
+        <tr><td>12</td><td>Overcast</td><td>f/5.6 1/250 ISO 100</td></tr>
+        <tr><td>11</td><td>Open shade / heavy overcast</td><td>f/4 1/250 ISO 100</td></tr>
+        <tr><td>8</td><td>Indoor window light</td><td>f/4 1/30 ISO 100</td></tr>
+        <tr><td>6</td><td>Bright interior</td><td>f/2.8 1/30 ISO 100</td></tr>
+        <tr><td>4</td><td>Dim interior</td><td>f/2 1/30 ISO 100</td></tr>
+        <tr><td>0</td><td>Night street scenes</td><td>f/2.8 1 sec ISO 400</td></tr>
+        <tr><td>-2</td><td>Moonlit landscape</td><td>f/2.8 30 sec ISO 800</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+function calcEV(){
+  const ap = parseFloat($('ap').value);
+  const ss = parseFloat($('ss').value); // denominator if < 1, value in seconds otherwise
+  const iso = parseFloat($('iso').value);
+  const scene = parseFloat($('scene').value);
+
+  // EV = log2(N²/t) at ISO 100; adjust for ISO: EV100
+  // Shutter in seconds: if select value is the denominator string, parse carefully
+  // We store 1/ss as seconds already for values > 1, or seconds for 1s+
+  let t = ss; // seconds when ss <= 1; when ss > 1 it's denominator
+  if(ss > 1) t = 1/ss;
+  // Actually in select: values > 1 are denominators (e.g. 250 = 1/250), values ≤ 1 are seconds
+  // Let's just treat values > 1 as 1/N, values <= 1 as actual seconds
+  const tSec = ss > 1 ? 1/ss : ss;
+
+  const ev100 = Math.log2( (ap*ap) / tSec );
+  const evISO = ev100 - Math.log2(iso/100);
+
+  const diff = evISO - scene;
+  let verdict, cls;
+  if(Math.abs(diff) < 0.5){ verdict='Correct exposure'; cls='ok'; }
+  else if(diff > 0){ verdict=`Overexposed by ${diff.toFixed(1)} stops`; cls='warn'; }
+  else { verdict=`Underexposed by ${Math.abs(diff).toFixed(1)} stops`; cls='warn'; }
+
+  const ssStr = ss > 1 ? '1/'+ss : ss+'s';
+
+  $('outEV').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">EV at ISO 100</span><span class="val">${ev100.toFixed(2)}</span></div>
+    <div class="kv"><span class="lbl">EV adjusted for ISO ${iso}</span><span class="val">${evISO.toFixed(2)}</span></div>
+    <div class="kv"><span class="lbl">Scene EV</span><span class="val">${scene}</span></div>
+    <div class="kv"><span class="lbl">Verdict</span><span class="val ${cls}">${verdict}</span></div>
+  </div>`;
+
+  // Equivalent exposures — same EV, vary aperture
+  const APS = [1,1.2,1.4,1.8,2,2.8,4,5.6,8,11,16,22];
+  const SS_STOPS = [8000,4000,2000,1000,500,250,125,60,30,15,8,4,2,1,0.5,0.25,0.125,0.0333];
+  const ISOs = [50,100,200,400,800,1600,3200,6400];
+
+  let rows='';
+  APS.forEach(a=>{
+    // Find shutter for same EV100, ISO 100
+    const tNeeded = (a*a) / Math.pow(2, ev100);
+    // snap to nearest SS
+    let best = SS_STOPS[0], bestD = Infinity;
+    SS_STOPS.forEach(s=>{
+      const secs = s>1?1/s:s;
+      const d = Math.abs(Math.log2(secs/tNeeded));
+      if(d<bestD){ bestD=d; best=s; }
+    });
+    const bestSec = best>1?1/best:best;
+    const evCheck = Math.log2(a*a/bestSec);
+    if(Math.abs(evCheck-ev100)<0.8){
+      const ssStr2 = best>1?'1/'+best:best+'s';
+      const isCurrent = (a===ap);
+      rows+=`<tr ${isCurrent?'style="background:#1a1600"':''}>
+        <td>f/${a}</td><td>${ssStr2}</td><td>ISO 100</td>
+        <td class="${isCurrent?'hi':'neutral'}">${evCheck.toFixed(1)}</td>
+      </tr>`;
+    }
+  });
+  $('outEquiv').innerHTML=`<table>
+    <thead><tr><th>Aperture</th><th>Shutter</th><th>ISO</th><th>EV</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+calcEV();
+</script></body></html>

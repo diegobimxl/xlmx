@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scan Station Planner | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Scan Station Planner</h1>
+</div>
+<div class="wrap">
+  <h2>Scan Station Planner</h2>
+  <p class="sub">Plan terrestrial LiDAR / 3D scan station placement for adequate coverage, overlap, and registration accuracy.</p>
+
+  <div class="card">
+    <h3>Scanner Specs</h3>
+    <div class="row">
+      <div><label>Max Range (m)</label><input id="range" type="number" value="80" step="5"></div>
+      <div><label>Scanner Type</label>
+        <select id="scannerType">
+          <option value="phase">Phase-Based (Faro, Z+F)</option>
+          <option value="tof">Time-of-Flight (Leica, Riegl)</option>
+          <option value="lidar360">360° LiDAR (Velodyne, Ouster)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Horizontal FOV (°)</label><input id="hfov" type="number" value="360" min="90" max="360"></div>
+      <div><label>Min. Required Overlap (%)</label><input id="overlapPct" type="number" value="30" min="10" max="80"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Space to Scan</h3>
+    <div class="row">
+      <div><label>Space Length (m)</label><input id="spaceL" type="number" value="60"></div>
+      <div><label>Space Width (m)</label><input id="spaceW" type="number" value="30"></div>
+    </div>
+    <div class="row">
+      <div><label>Ceiling Height (m)</label><input id="spaceH" type="number" value="4" step="0.5"></div>
+      <div><label>Environment</label>
+        <select id="env">
+          <option value="open">Open / Exterior</option>
+          <option value="interior">Interior / Office</option>
+          <option value="industrial">Industrial / Warehouse</option>
+          <option value="confined">Confined / Tunnel</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcScan()">Calculate Station Plan</button>
+    <div id="outScan"></div>
+  </div>
+
+  <div class="card">
+    <h3>Registration Methods</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Min. Overlap</th><th>Targets Needed</th><th>Accuracy</th></tr></thead>
+      <tbody>
+        <tr><td>Sphere targets</td><td>20%</td><td>3–6 per pair</td><td>±2–5 mm</td></tr>
+        <tr><td>Checkerboard targets</td><td>20%</td><td>3–6 per pair</td><td>±3–6 mm</td></tr>
+        <tr><td>Cloud-to-Cloud (ICP)</td><td>30%+</td><td>None required</td><td>±5–15 mm</td></tr>
+        <tr><td>Natural features</td><td>40%+</td><td>None required</td><td>±10–30 mm</td></tr>
+        <tr><td>Survey control (GNSS)</td><td>Any</td><td>3+ GCPs/scan</td><td>±5–10 mm</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function fmt(n,d=1){return n.toLocaleString('en-US',{maximumFractionDigits:d});}
+
+const ENV_FACTOR = {open:1.0, interior:0.7, industrial:0.8, confined:0.5};
+
+function calcScan(){
+  const R = parseFloat($('range').value)||80;
+  const hfov = parseFloat($('hfov').value)||360;
+  const overlapPct = parseFloat($('overlapPct').value)||30;
+  const L = parseFloat($('spaceL').value)||60;
+  const W = parseFloat($('spaceW').value)||30;
+  const H = parseFloat($('spaceH').value)||4;
+  const env = $('env').value;
+  const type = $('scannerType').value;
+
+  // Effective range in environment
+  const eff = R * ENV_FACTOR[env];
+
+  // Effective coverage radius per station (considering overlap)
+  const coverRad = eff * (1 - overlapPct/100);
+
+  // Number of stations needed
+  const stationsL = Math.ceil(L / (coverRad * 2)) + 1;
+  const stationsW = Math.ceil(W / (coverRad * 2)) + 1;
+  const totalStations = stationsL * stationsW;
+
+  const spacingL = stationsL>1 ? L/(stationsL-1) : L;
+  const spacingW = stationsW>1 ? W/(stationsW-1) : W;
+
+  // Time estimate: phase ~3–5 min, ToF ~10–15 min
+  const timePerScan = type==='phase' ? 4 : type==='tof' ? 12 : 2;
+  const totalTime = totalStations * timePerScan;
+
+  // Targets needed
+  const targets = Math.max(3, Math.ceil(totalStations * 3 * 0.6));
+
+  // Resolution at effective range
+  const angularRes = 0.036; // degrees (typical 10Mpt scanner)
+  const ptSpacing = eff * Math.tan(angularRes * Math.PI/180) * 1000; // mm
+
+  $('outScan').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Space Volume</span><span class="val">${fmt(L)}m × ${fmt(W)}m × ${fmt(H)}m</span></div>
+    <div class="kv"><span class="lbl">Effective Range (env.)</span><span class="val">${fmt(eff)} m</span></div>
+    <div class="kv"><span class="lbl">Station Grid</span><span class="val hi">${stationsL} × ${stationsW} = ${totalStations} stations</span></div>
+    <div class="kv"><span class="lbl">Station Spacing</span><span class="val">${fmt(spacingL)} m × ${fmt(spacingW)} m</span></div>
+    <div class="kv"><span class="lbl">Targets Required</span><span class="val">${targets} (sphere or checkerboard)</span></div>
+    <div class="kv"><span class="lbl">Time per Station</span><span class="val">~${timePerScan} min</span></div>
+    <div class="kv"><span class="lbl">Total Field Time</span><span class="val">~${fmt(totalTime)} min (${fmt(totalTime/60,1)} hr)</span></div>
+    <div class="kv"><span class="lbl">Pt Spacing @ Eff. Range</span><span class="val">~${fmt(ptSpacing,1)} mm</span></div>
+    <p class="note" style="padding-top:8px">Add corner stations for difficult sight lines. Place targets at varied heights (knee/eye/overhead). For confined spaces, reduce spacing by 30–40%. Always scan from a stable, level setup.</p>
+  </div>`;
+}
+
+calcScan();
+</script></body></html>

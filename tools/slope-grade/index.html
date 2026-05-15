@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slope, Grade & Aspect Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+input[readonly]{border-color:#c8a96e;color:#c8a96e;font-weight:600}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px;width:auto}
+.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:16px;font-weight:700;color:#c8a96e;word-break:break-all}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}.kval.pur{color:#a78bfa}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid #161616}tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px;line-height:1.5}
+.mono{font-family:monospace;font-size:12px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;color:#a3e635;margin-top:10px}
+canvas{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;width:100%;display:block}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Slope, Grade & Aspect Calculator</h1></div>
+<div class="wrap"><p class="desc">Convert slope between degrees, percent grade, and ratio. ADA, drainage, and road design thresholds.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Input — choose one</h2>
+<div class="field"><label>Rise (vertical change)</label><input id="rise" type="number" step="any" placeholder="3" oninput="fromRise()"></div>
+<div class="field"><label>Run (horizontal distance)</label><input id="run" type="number" step="any" placeholder="100" oninput="fromRise()"></div>
+<div style="text-align:center;color:#555;margin:8px 0;font-size:12px">— or enter directly —</div>
+<div class="field"><label>Degrees (°)</label><input id="deg" type="number" step="any" placeholder="1.718" oninput="fromDeg()"></div>
+<div class="field"><label>Percent Grade (%)</label><input id="pct" type="number" step="any" placeholder="3.0" oninput="fromPct()"></div>
+<div class="field"><label>Ratio (1:X)</label><input id="ratio" type="number" step="any" placeholder="33.3" oninput="fromRatio()"></div>
+</div>
+</div>
+<div>
+<div class="box"><h2>Results</h2>
+<div class="kpi" id="kpi"></div>
+<div id="verdict"></div>
+</div>
+<div class="box"><h2>Design Thresholds</h2>
+<table><thead><tr><th>Application</th><th>Max Slope</th></tr></thead><tbody>
+<tr><td>ADA accessible route</td><td>1:20 (5%)</td></tr>
+<tr><td>ADA ramp</td><td>1:12 (8.33%)</td></tr>
+<tr><td>Sidewalk cross-slope</td><td>1:50 (2%)</td></tr>
+<tr><td>Paved surface drainage</td><td>1–2%</td></tr>
+<tr><td>Lawn / turf</td><td>2–25%</td></tr>
+<tr><td>Road max grade (urban)</td><td>8–12%</td></tr>
+<tr><td>Mountain road max</td><td>15%</td></tr>
+<tr><td>Retaining wall trigger</td><td>> 33%</td></tr>
+</tbody></table>
+</div></div></div>
+<script>
+function fmt(n){return isNaN(n)||!isFinite(n)?"—":parseFloat(n.toPrecision(6)).toString();}
+function showAll(pct){
+  var deg=Math.atan(pct/100)*180/Math.PI;
+  var ratio=pct>0?100/pct:Infinity;
+  document.getElementById("deg").value=deg.toFixed(4);
+  document.getElementById("pct").value=pct.toFixed(4);
+  document.getElementById("ratio").value=isFinite(ratio)?ratio.toFixed(2):"∞";
+  var ada=pct<=5?"ADA accessible (≤5%)":pct<=8.33?"ADA ramp (≤8.33%)":"Not ADA accessible";
+  var drain=pct>=1&&pct<=2?"Good drainage slope":pct<1?"Too flat — drainage risk":"Steep — check application";
+  document.getElementById("kpi").innerHTML=
+  '<div class="kcard"><div class="klabel">Degrees</div><div class="kval sky">'+deg.toFixed(4)+'°</div></div>'+
+  '<div class="kcard"><div class="klabel">Percent Grade</div><div class="kval grn">'+pct.toFixed(4)+'%</div></div>'+
+  '<div class="kcard"><div class="klabel">Ratio</div><div class="kval">1 : '+(isFinite(ratio)?ratio.toFixed(2):"∞")+'</div></div>'+
+  '<div class="kcard"><div class="klabel">Rise / 100 ft run</div><div class="kval pur">'+pct.toFixed(2)+' ft</div></div>';
+  document.getElementById("verdict").innerHTML=
+  '<p class="note">ADA: <strong style="color:#c8a96e">'+ada+'</strong><br>Drainage: <strong style="color:#60a5fa">'+drain+'</strong></p>';
+}
+function fromRise(){var r=+document.getElementById("rise").value,ru=+document.getElementById("run").value;if(ru)showAll(r/ru*100);}
+function fromDeg(){var d=+document.getElementById("deg").value;showAll(Math.tan(d*Math.PI/180)*100);}
+function fromPct(){showAll(+document.getElementById("pct").value);}
+function fromRatio(){var r=+document.getElementById("ratio").value;if(r)showAll(100/r);}
+</script></div></body></html>

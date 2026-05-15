@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bearing & Distance Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+input[readonly]{border-color:#c8a96e;color:#c8a96e;font-weight:600}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px;width:auto}
+.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:16px;font-weight:700;color:#c8a96e;word-break:break-all}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}.kval.pur{color:#a78bfa}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid #161616}tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px;line-height:1.5}
+.mono{font-family:monospace;font-size:12px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;color:#a3e635;margin-top:10px}
+canvas{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;width:100%;display:block}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Bearing & Distance Calculator</h1></div>
+<div class="wrap"><p class="desc">Geodetic bearing and great-circle distance between two coordinates. Forward and back azimuth.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Point A</h2>
+<div class="field"><label>Latitude (DD)</label><input id="lat1" type="number" step="any" placeholder="25.6866"></div>
+<div class="field"><label>Longitude (DD)</label><input id="lon1" type="number" step="any" placeholder="-100.3161"></div>
+</div>
+<div class="box"><h2>Point B</h2>
+<div class="field"><label>Latitude (DD)</label><input id="lat2" type="number" step="any" placeholder="25.7500"></div>
+<div class="field"><label>Longitude (DD)</label><input id="lon2" type="number" step="any" placeholder="-100.4200"></div>
+</div>
+<button class="btn" onclick="calc()">Calculate</button>
+</div>
+<div>
+<div class="box"><h2>Results</h2>
+<div id="res"><p style="color:#555;font-size:12px">Enter coordinates and calculate.</p></div>
+</div>
+<div class="box"><h2>Bearing Reference</h2>
+<table><thead><tr><th>Cardinal</th><th>Degrees</th><th>Cardinal</th><th>Degrees</th></tr></thead><tbody>
+<tr><td>N</td><td>0° / 360°</td><td>S</td><td>180°</td></tr>
+<tr><td>NE</td><td>45°</td><td>SW</td><td>225°</td></tr>
+<tr><td>E</td><td>90°</td><td>W</td><td>270°</td></tr>
+<tr><td>SE</td><td>135°</td><td>NW</td><td>315°</td></tr>
+</tbody></table>
+</div></div></div>
+<script>
+function toRad(d){return d*Math.PI/180;}
+function toDeg(r){return r*180/Math.PI;}
+function bearingLabel(b){var dirs=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];return dirs[Math.round(b/22.5)%16];}
+function calc(){
+  var lat1=toRad(+document.getElementById("lat1").value||0);
+  var lon1=toRad(+document.getElementById("lon1").value||0);
+  var lat2=toRad(+document.getElementById("lat2").value||0);
+  var lon2=toRad(+document.getElementById("lon2").value||0);
+  var dLat=lat2-lat1,dLon=lon2-lon1;
+  // Haversine
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  var c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  var R=6371000;var dist=R*c;
+  // Forward bearing
+  var y=Math.sin(lon2-lon1)*Math.cos(lat2);
+  var x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon2-lon1);
+  var fwd=(toDeg(Math.atan2(y,x))+360)%360;
+  var back=(fwd+180)%360;
+  var dms=function(d){var deg=Math.floor(d);var mf=(d-deg)*60;var min=Math.floor(mf);var sec=((mf-min)*60).toFixed(1);return deg+"° "+min+"' "+sec+'"';};
+  document.getElementById("res").innerHTML=
+  '<div class="kpi">'+
+  '<div class="kcard"><div class="klabel">Distance</div><div class="kval sky">'+dist.toFixed(1)+' m</div></div>'+
+  '<div class="kcard"><div class="klabel">Distance</div><div class="kval sky">'+(dist/1000).toFixed(4)+' km</div></div>'+
+  '<div class="kcard"><div class="klabel">Distance (ft)</div><div class="kval">'+(dist*3.28084).toFixed(1)+' ft</div></div>'+
+  '<div class="kcard"><div class="klabel">Forward Bearing</div><div class="kval grn">'+fwd.toFixed(4)+'°</div></div>'+
+  '<div class="kcard"><div class="klabel">Bearing (DMS)</div><div class="kval">'+dms(fwd)+'</div></div>'+
+  '<div class="kcard"><div class="klabel">Cardinal</div><div class="kval pur">'+bearingLabel(fwd)+'</div></div>'+
+  '<div class="kcard"><div class="klabel">Back Azimuth</div><div class="kval">'+back.toFixed(4)+'°</div></div>'+
+  '</div>';
+}
+</script></div></body></html>

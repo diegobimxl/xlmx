@@ -281,7 +281,29 @@ var TOOLS=[
   {n:'BMI Calculator',d:'Body Mass Index with WHO category, ideal weight range in lb and kg. Imperial and metric modes.',c:'Health',u:'/tools/bmi-calc/',s:'live'},
   {n:'Roman Numeral Converter',d:'Convert integers to Roman numerals and back. Supports 1–3999 with full symbol reference table.',c:'Utilities',u:'/tools/roman-num/',s:'live'},
 
-  // -- BIM & VDC --------------------------------------------------
+  
+// -- GIS & Geo
+{n:'WGS84 Coord Converter',d:'Convert between decimal degrees, DMS, and UTM with full geodetic math.',c:'GIS',u:'/tools/coord-converter/',s:'live'},
+{n:'Bearing & Distance Calc',d:'Haversine great-circle distance, forward and back azimuth, cardinal compass.',c:'GIS',u:'/tools/bearing-calc/',s:'live'},
+{n:'Slope & Grade Converter',d:'Live-convert between degrees, percent grade, ratio, and rise:run. ADA thresholds included.',c:'Civil/Site',u:'/tools/slope-grade/',s:'live'},
+{n:'Earthwork Volume Calc',d:'Multi-section Average End Area method for cut/fill. CSV export.',c:'Civil/Site',u:'/tools/earthwork-vol/',s:'live'},
+{n:'Drone Survey Planner',d:'GSD, altitude, footprint, overlap spacing, image count, and flight time from camera specs.',c:'GIS',u:'/tools/drone-flight/',s:'live'},
+{n:'Map Scale Calculator',d:'Convert between map distance, ground distance, and scale ratio in metric or imperial.',c:'Maps',u:'/tools/map-scale/',s:'live'},
+{n:'Polygon Area Calculator',d:'Shoelace formula area for any polygon from XY / UTM / geographic coordinates.',c:'GIS',u:'/tools/polygon-area/',s:'live'},
+{n:'UTM Zone Finder',d:'Find UTM zone, hemisphere, central meridian, and EPSG code from lat/lon. Supports batch lookup.',c:'GIS',u:'/tools/utm-zone/',s:'live'},
+{n:'GCP Spacing Calculator',d:'Ground control point layout recommendations for drone surveys by area, accuracy class, and RTK mode.',c:'GIS',u:'/tools/gcp-spacing/',s:'live'},
+{n:'LiDAR Point Density',d:'Estimate point density, file size, flight strips, and scan time for aerial or terrestrial LiDAR.',c:'GIS',u:'/tools/lidar-density/',s:'live'},
+{n:'Drainage Area Calculator',d:'Rational Method peak runoff Q=CiA with runoff coefficient reference and Tc estimate.',c:'Civil/Site',u:'/tools/drainage-calc/',s:'live'},
+{n:'Contour Interval Selector',d:'Recommended contour interval by map scale, terrain type, and purpose with standard reference table.',c:'Maps',u:'/tools/contour-ci/',s:'live'},
+{n:'Scan Station Planner',d:'Terrestrial LiDAR station grid, overlap, targets needed, field time, and registration method guide.',c:'GIS',u:'/tools/scan-overlap/',s:'live'},
+
+// -- Photography
+{n:'Exposure Calculator',d:'EV calculator with exposure triangle, equivalent exposures table, and scene luminance reference.',c:'Photography',u:'/tools/exposure-calc/',s:'live'},
+{n:'Depth of Field Calc',d:'Near/far DOF limits, hyperfocal distance, and full aperture comparison table for any sensor.',c:'Photography',u:'/tools/depth-of-field/',s:'live'},
+{n:'Hyperfocal Distance',d:'Maximum DOF focus distance by focal length, aperture, and sensor format. Full reference table included.',c:'Photography',u:'/tools/hyperfocal/',s:'live'},
+{n:'Focal Length Equivalence',d:'Crop factor converter: full-frame equivalent, angle of view, equivalent aperture across all sensor formats.',c:'Photography',u:'/tools/focal-equiv/',s:'live'},
+
+// -- BIM & VDC --------------------------------------------------
   {n:'LOD Checker',d:'Validate Level of Development compliance across phases. Reference matrix + project gap report.',c:'BIM',u:'/lod-checker',s:'live'},
   {n:'Clash Matrix',d:'Track coordination clashes between 8 disciplines. Click-to-edit grid, sorted log, CSV/JSON export.',c:'VDC & Coordination',u:'/clash-matrix',s:'live'},
   {n:'BIM Execution Plan Checklist',d:'Interactive checklist verifying your BEP covers all ISO 19650 required elements.',c:'BIM',u:'/tools/bep-checklist/',s:'live'},

@@ -1,0 +1,153 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Polygon Area Calculator | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+
+#coordTable td input{background:#0d0d0d;border:1px solid #1e1e1e;border-radius:4px;padding:5px 8px;color:#e0e0e0;font-size:.82rem;width:100%}
+#coordTable td{padding:4px 6px}
+#coordTable tr:last-child td{border-bottom:1px solid #1a1a1a}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>Polygon Area Calculator</h1>
+</div>
+<div class="wrap">
+  <h2>Polygon Area Calculator</h2>
+  <p class="sub">Enter polygon vertices as X/Y coordinates (or Easting/Northing). Uses the Shoelace (Gauss) formula. Add as many points as needed.</p>
+
+  <div class="card">
+    <h3>Coordinate Input</h3>
+    <div class="row" style="margin-bottom:8px">
+      <div><label>Coordinate System</label>
+        <select id="csys">
+          <option value="m">Metric (m) — UTM / local grid</option>
+          <option value="ft">Imperial (ft) — survey feet</option>
+          <option value="deg">Geographic (decimal degrees)</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button class="btn-sm" onclick="addRow()">+ Point</button>
+        <button class="btn-sm" onclick="clearPts()">Clear</button>
+      </div>
+    </div>
+    <table id="coordTable">
+      <thead><tr><th>#</th><th id="xHead">X / Easting</th><th id="yHead">Y / Northing</th><th></th></tr></thead>
+      <tbody id="ptBody"></tbody>
+    </table>
+    <div style="margin-top:12px">
+      <button class="btn" onclick="calcArea()">Calculate Area</button>
+    </div>
+    <div id="outArea"></div>
+  </div>
+
+  <div class="card">
+    <h3>Formula Reference</h3>
+    <div class="mono">Shoelace: A = |Σ(xᵢ·yᵢ₊₁ − xᵢ₊₁·yᵢ)| / 2
+Perimeter: P = Σ √((xᵢ₊₁−xᵢ)² + (yᵢ₊₁−yᵢ)²)
+Note: closes automatically (last→first vertex)</div>
+    <p class="note">Works for any simple (non-self-intersecting) polygon. Input in projected coordinates (UTM, local grid) for accurate metric/imperial results. Geographic decimal degrees give approximate results only.</p>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let pts = [{x:'0',y:'0'},{x:'100',y:'0'},{x:'100',y:'80'},{x:'0',y:'80'}];
+
+function fmt(n,d=2){return n.toLocaleString('en-US',{maximumFractionDigits:d});}
+
+function render(){
+  const sys = $('csys').value;
+  $('xHead').textContent = sys==='deg'?'Longitude (°)':'X / Easting';
+  $('yHead').textContent = sys==='deg'?'Latitude (°)':'Y / Northing';
+  let html='';
+  pts.forEach((p,i)=>{
+    html+=`<tr>
+      <td style="color:#888;font-size:.78rem;text-align:center">${i+1}</td>
+      <td><input type="number" value="${p.x}" step="any" oninput="pts[${i}].x=this.value"></td>
+      <td><input type="number" value="${p.y}" step="any" oninput="pts[${i}].y=this.value"></td>
+      <td><button class="btn-sm" style="padding:4px 8px;font-size:.72rem" onclick="removeRow(${i})">✕</button></td>
+    </tr>`;
+  });
+  $('ptBody').innerHTML=html;
+}
+
+function addRow(){ pts.push({x:'0',y:'0'}); render(); }
+function removeRow(i){ if(pts.length>3){pts.splice(i,1);render();} }
+function clearPts(){ pts=[{x:'0',y:'0'},{x:'0',y:'0'},{x:'0',y:'0'}]; render(); }
+
+function calcArea(){
+  const coords = pts.map(p=>({x:parseFloat(p.x)||0, y:parseFloat(p.y)||0}));
+  const n = coords.length;
+  let area=0, perim=0;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    area += coords[i].x * coords[j].y;
+    area -= coords[j].x * coords[i].y;
+    const dx=coords[j].x-coords[i].x, dy=coords[j].y-coords[i].y;
+    perim += Math.sqrt(dx*dx+dy*dy);
+  }
+  area = Math.abs(area)/2;
+  const sys = $('csys').value;
+  let rows='';
+  if(sys==='m'){
+    rows=`<div class="kv"><span class="lbl">Area (m²)</span><span class="val">${fmt(area)} m²</span></div>
+          <div class="kv"><span class="lbl">Area (ha)</span><span class="val">${fmt(area/10000,4)} ha</span></div>
+          <div class="kv"><span class="lbl">Area (km²)</span><span class="val">${fmt(area/1e6,6)} km²</span></div>
+          <div class="kv"><span class="lbl">Area (acres)</span><span class="val">${fmt(area/4046.856,4)} ac</span></div>
+          <div class="kv"><span class="lbl">Perimeter (m)</span><span class="val">${fmt(perim)} m</span></div>`;
+  } else if(sys==='ft'){
+    rows=`<div class="kv"><span class="lbl">Area (ft²)</span><span class="val">${fmt(area)} ft²</span></div>
+          <div class="kv"><span class="lbl">Area (acres)</span><span class="val">${fmt(area/43560,4)} ac</span></div>
+          <div class="kv"><span class="lbl">Area (sq miles)</span><span class="val">${fmt(area/27878400,6)} mi²</span></div>
+          <div class="kv"><span class="lbl">Area (m²)</span><span class="val">${fmt(area*0.092903,2)} m²</span></div>
+          <div class="kv"><span class="lbl">Perimeter (ft)</span><span class="val">${fmt(perim)} ft</span></div>`;
+  } else {
+    // degrees — very rough approximation using local lat
+    const avgLat = coords.reduce((s,c)=>s+c.y,0)/n;
+    const mPerDeg = 111320;
+    const mPerDegLon = mPerDeg * Math.cos(avgLat*Math.PI/180);
+    const areaM2 = area * mPerDeg * mPerDegLon;
+    rows=`<div class="kv"><span class="lbl">Area (approx m²)</span><span class="val">${fmt(areaM2)} m²</span></div>
+          <div class="kv"><span class="lbl">Area (approx ha)</span><span class="val">${fmt(areaM2/10000,4)} ha</span></div>
+          <div class="kv"><span class="lbl">Area (approx acres)</span><span class="val">${fmt(areaM2/4046.856,4)} ac</span></div>
+          <div class="kv"><span class="lbl">Area (deg²)</span><span class="val">${fmt(area,8)} deg²</span></div>
+          <p class="note" style="padding:8px 0 4px">Geographic approximation based on avg latitude ${fmt(avgLat,4)}°</p>`;
+  }
+  $('outArea').innerHTML=`<div class="out"><div class="kv"><span class="lbl">Vertices</span><span class="val">${n} points</span></div>${rows}</div>`;
+}
+
+render(); calcArea();
+</script></body></html>

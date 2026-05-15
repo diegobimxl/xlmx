@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LiDAR Point Density Calculator | XLMX Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar a{color:#c8a96e;text-decoration:none;font-size:.85rem;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar span{color:#444;font-size:.85rem}
+.topbar h1{font-size:.95rem;font-weight:600;color:#e0e0e0}
+.wrap{max-width:680px;margin:0 auto;padding:32px 20px}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sub{color:#888;font-size:.85rem;margin-bottom:28px}
+.card{background:#161616;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:16px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#c8a96e;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+label{font-size:.78rem;color:#888;display:block;margin-bottom:4px}
+input,select{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:6px;padding:9px 11px;color:#e0e0e0;font-size:.88rem;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+.btn{background:#c8a96e;color:#0d0d0d;border:none;border-radius:6px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:4px}
+.btn:hover{background:#d4b87e}
+.btn-sm{background:#1e1e1e;color:#c8a96e;border:1px solid #2a2a2a;border-radius:6px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn-sm:hover{background:#252525}
+.out{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:18px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a}
+.kv:last-child{border-bottom:none}
+.kv .lbl{font-size:.82rem;color:#888}
+.kv .val{font-size:.9rem;font-weight:600;color:#c8a96e}
+.mono{font-family:monospace;font-size:.82rem;background:#111;padding:10px 12px;border-radius:6px;color:#aaa;margin-top:8px;line-height:1.6;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:7px 10px;color:#888;border-bottom:1px solid #222;font-weight:500}
+td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+tr:last-child td{border-bottom:none}
+.hi{color:#c8a96e;font-weight:700}
+.warn{color:#f87171}
+.ok{color:#4ade80}
+.note{color:#888;font-size:.78rem;margin-top:8px}
+</style></head><body>
+<div class="topbar">
+  <a href="/tools/">← Tools</a><span>/</span><h1>LiDAR Point Density</h1>
+</div>
+<div class="wrap">
+  <h2>LiDAR Point Density Calculator</h2>
+  <p class="sub">Estimate point density, file size, and coverage for aerial or terrestrial LiDAR surveys.</p>
+
+  <div class="card">
+    <h3>Scanner Parameters</h3>
+    <div class="row">
+      <div><label>Scan Rate (pts/sec)</label><input id="scanRate" type="number" value="500000" step="10000"></div>
+      <div><label>Scan Type</label>
+        <select id="scanType">
+          <option value="aerial">Aerial / UAV LiDAR</option>
+          <option value="mobile">Mobile Mapping</option>
+          <option value="terrestrial">Terrestrial (TLS)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" id="aerialRow">
+      <div><label>Flight Speed (m/s)</label><input id="speed" type="number" value="18" step="1"></div>
+      <div><label>Altitude AGL (m)</label><input id="alt" type="number" value="120" step="5"></div>
+    </div>
+    <div class="row">
+      <div><label>Swath Width (m) or FOV (°)</label><input id="swath" type="number" value="80" step="5"></div>
+      <div><label>Side Overlap (%)</label><input id="overlap" type="number" value="30" step="5" min="0" max="90"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Coverage Area</h3>
+    <div class="row">
+      <div><label>Area Width (m)</label><input id="aW" type="number" value="1000"></div>
+      <div><label>Area Height (m)</label><input id="aH" type="number" value="800"></div>
+    </div>
+    <button class="btn" onclick="calcLidar()">Calculate</button>
+    <div id="outLidar"></div>
+  </div>
+
+  <div class="card">
+    <h3>Density Standards</h3>
+    <table>
+      <thead><tr><th>Application</th><th>Min Density</th><th>Typical Use</th></tr></thead>
+      <tbody>
+        <tr><td>Corridor / Regional</td><td>0.5–1 pts/m²</td><td>Flood mapping, forestry</td></tr>
+        <tr><td>Topographic Mapping</td><td>2–4 pts/m²</td><td>DTM, 1m contours</td></tr>
+        <tr><td>Urban / Infrastructure</td><td>8–16 pts/m²</td><td>Buildings, roads</td></tr>
+        <tr><td>Engineering Survey</td><td>25–50 pts/m²</td><td>Site design, volume</td></tr>
+        <tr><td>Facade / Inspection</td><td>100–1000 pts/m²</td><td>BIM LOD 300+</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function fmt(n,d=1){return n.toLocaleString('en-US',{maximumFractionDigits:d});}
+function fmtBig(n){
+  if(n>=1e9) return fmt(n/1e9,2)+' B';
+  if(n>=1e6) return fmt(n/1e6,2)+' M';
+  if(n>=1e3) return fmt(n/1e3,1)+' K';
+  return fmt(n,0);
+}
+
+function calcLidar(){
+  const rate = parseFloat($('scanRate').value)||500000;
+  const speed = parseFloat($('speed').value)||18;
+  const alt = parseFloat($('alt').value)||120;
+  const swath = parseFloat($('swath').value)||80;
+  const overlap = parseFloat($('overlap').value)||30;
+  const W = parseFloat($('aW').value)||1000;
+  const H = parseFloat($('aH').value)||800;
+  const type = $('scanType').value;
+
+  const effectiveSwath = swath * (1 - overlap/100);
+  const strips = Math.ceil(W / effectiveSwath);
+  const totalFlightDist = strips * H;
+  const flightTimeSec = type==='aerial' ? totalFlightDist/speed : 0;
+  const flightTimeMin = flightTimeSec/60;
+
+  const totalArea = W * H;
+  const totalPts = type==='aerial'
+    ? (rate / speed) * (H / effectiveSwath * W) / W * W * H / totalArea * totalArea
+    : rate * 60 * 5; // terrestrial: 5 min scan estimate
+  const density = type==='aerial' ? (rate/speed) * (strips/H) * H / totalArea * (totalArea/(strips*effectiveSwath)) : rate*300/totalArea;
+
+  // more accurate aerial density
+  const ptsPerMeterAlong = rate / speed;   // pts per meter of flight
+  const ptsPerStrip = ptsPerMeterAlong * H;
+  const totalPtsAll = ptsPerStrip * strips;
+  const densityFinal = totalPtsAll / totalArea;
+
+  // File size estimate: ~20 bytes/pt LAS, ~15 bytes LAZ
+  const lasGB = totalPtsAll * 20 / 1e9;
+  const lazGB = totalPtsAll * 15 / 1e9;
+
+  const qual = densityFinal<1?'warn':densityFinal<4?'':densityFinal<16?'ok':'hi';
+
+  $('outLidar').innerHTML=`<div class="out">
+    <div class="kv"><span class="lbl">Coverage Area</span><span class="val">${fmt(totalArea)} m² (${fmt(totalArea/10000,2)} ha)</span></div>
+    <div class="kv"><span class="lbl">Flight Strips</span><span class="val">${strips}</span></div>
+    ${type==='aerial'?`<div class="kv"><span class="lbl">Flight Distance</span><span class="val">${fmt(totalFlightDist/1000,2)} km</span></div>
+    <div class="kv"><span class="lbl">Est. Flight Time</span><span class="val">${fmt(flightTimeMin,1)} min</span></div>`:''}
+    <div class="kv"><span class="lbl">Total Points</span><span class="val">${fmtBig(totalPtsAll)}</span></div>
+    <div class="kv"><span class="lbl">Point Density</span><span class="val ${qual}">${fmt(densityFinal,1)} pts/m²</span></div>
+    <div class="kv"><span class="lbl">Est. LAS File Size</span><span class="val">${fmt(lasGB,2)} GB</span></div>
+    <div class="kv"><span class="lbl">Est. LAZ (compressed)</span><span class="val">${fmt(lazGB,2)} GB</span></div>
+    <p class="note" style="padding-top:8px">LAS size ≈ 20 bytes/pt. LAZ ≈ 15 bytes/pt (25% compression typical). Actual varies by returns, intensity, RGB channels.</p>
+  </div>`;
+}
+
+calcLidar();
+</script></body></html>

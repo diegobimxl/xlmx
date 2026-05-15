@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earthwork Volume Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+input[readonly]{border-color:#c8a96e;color:#c8a96e;font-weight:600}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px;width:auto}
+.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:16px;font-weight:700;color:#c8a96e;word-break:break-all}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}.kval.pur{color:#a78bfa}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid #161616}tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px;line-height:1.5}
+.mono{font-family:monospace;font-size:12px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;color:#a3e635;margin-top:10px}
+canvas{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;width:100%;display:block}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Earthwork Volume Calculator</h1></div>
+<div class="wrap"><p class="desc">Cut & fill volumes using Average End Area and Prismatoid methods. Multi-section tabulation.</p>
+<div>
+<div class="box"><h2>Cross Sections</h2>
+<p class="note" style="margin-bottom:12px">Enter cross-section areas and station spacing. Add as many sections as needed.</p>
+<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+<button class="btn sm" onclick="addRow()">+ Add Section</button>
+<button class="btn sm ghost" onclick="clearAll()">Clear All</button>
+<button class="btn sm ghost" onclick="exportCSV()">Export CSV</button>
+</div>
+<div style="overflow-x:auto">
+<table id="tbl">
+<thead><tr><th>Station</th><th>Cut Area (ft²)</th><th>Fill Area (ft²)</th><th>Distance to Next (ft)</th><th></th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+<button class="btn" onclick="calc()" style="max-width:200px;margin-top:14px">Calculate Volumes</button>
+</div>
+<div class="kpi" id="kpi"></div>
+<div id="detail"></div>
+</div>
+<script>
+var rows=[];var stationN=0;
+function addRow(){rows.push({sta:"0+"+String(stationN*100).padStart(3,"0"),cut:0,fill:0,dist:100});stationN++;render();}
+function clearAll(){rows=[];stationN=0;document.getElementById("kpi").innerHTML="";document.getElementById("detail").innerHTML="";render();}
+function render(){
+  var tb=document.getElementById("tbody");
+  tb.innerHTML=rows.map(function(r,i){
+    return'<tr>'+
+    '<td><input value="'+r.sta+'" style="width:80px" onchange="rows['+i+'].sta=this.value"></td>'+
+    '<td><input type="number" value="'+r.cut+'" style="width:100px" onchange="rows['+i+'].cut=+this.value"></td>'+
+    '<td><input type="number" value="'+r.fill+'" style="width:100px" onchange="rows['+i+'].fill=+this.value"></td>'+
+    '<td><input type="number" value="'+r.dist+'" style="width:100px" onchange="rows['+i+'].dist=+this.value"></td>'+
+    '<td><button class="btn sm" style="background:#f87171;color:#000" onclick="rows.splice('+i+',1);render()">✕</button></td>'+
+    '</tr>';
+  }).join("");
+}
+function calc(){
+  if(rows.length<2){alert("Add at least 2 sections.");return;}
+  var totalCut=0,totalFill=0;
+  var detail='<div class="box"><h2>Section Summary</h2><div style="overflow-x:auto"><table><thead><tr><th>From</th><th>To</th><th>Dist (ft)</th><th>Cut Vol (CY)</th><th>Fill Vol (CY)</th></tr></thead><tbody>';
+  for(var i=0;i<rows.length-1;i++){
+    var r=rows[i],rn=rows[i+1];
+    var cutVol=(r.cut+rn.cut)/2*r.dist/27;
+    var fillVol=(r.fill+rn.fill)/2*r.dist/27;
+    totalCut+=cutVol;totalFill+=fillVol;
+    detail+='<tr><td>'+r.sta+'</td><td>'+rn.sta+'</td><td>'+r.dist+'</td><td style="color:#60a5fa">'+cutVol.toFixed(1)+'</td><td style="color:#34d399">'+fillVol.toFixed(1)+'</td></tr>';
+  }
+  detail+='<tr style="font-weight:700"><td colspan="3">Total</td><td style="color:#60a5fa">'+totalCut.toFixed(1)+' CY</td><td style="color:#34d399">'+totalFill.toFixed(1)+' CY</td></tr>';
+  detail+='</tbody></table></div></div>';
+  var net=totalCut-totalFill;
+  document.getElementById("kpi").innerHTML=
+  '<div class="kcard"><div class="klabel">Total Cut</div><div class="kval sky">'+totalCut.toFixed(1)+' CY</div></div>'+
+  '<div class="kcard"><div class="klabel">Total Fill</div><div class="kval grn">'+totalFill.toFixed(1)+' CY</div></div>'+
+  '<div class="kcard"><div class="klabel">Net (Cut−Fill)</div><div class="kval '+(net>0?"sky":"grn")+'">'+Math.abs(net).toFixed(1)+' CY '+(net>0?"surplus cut":"borrow needed")+'</div></div>'+
+  '<div class="kcard"><div class="klabel">Cut (tons @ 1.4)</div><div class="kval">'+(totalCut*1.4).toFixed(1)+' T</div></div>';
+  document.getElementById("detail").innerHTML=detail;
+}
+function exportCSV(){
+  var hdr="Station,Cut Area (sf),Fill Area (sf),Distance (ft)
+";
+  var body=rows.map(function(r){return[r.sta,r.cut,r.fill,r.dist].join(",");}).join("
+");
+  var blob=new Blob([hdr+body],{type:"text/csv"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="earthwork.csv";a.click();
+}
+// seed 3 rows
+rows=[{sta:"0+000",cut:120,fill:0,dist:100},{sta:"0+100",cut:80,fill:30,dist:100},{sta:"0+200",cut:0,fill:60,dist:0}];
+stationN=3;render();
+</script></div></body></html>
