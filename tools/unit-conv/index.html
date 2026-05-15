@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit Converter | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Unit Converter</h1></div>
+<div class="wrap">
+<p class="desc">Length, area, volume, weight, temperature, and pressure — all in one.</p>
+<div class="wrap" style="max-width:700px">
+<div class="box"><h2>Category</h2>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px" id="cats"></div>
+</div>
+<div class="box" id="convBox">
+<h2 id="catTitle">Length</h2>
+<div class="grid" style="grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
+<div>
+<div class="field"><label>From</label><select id="fromU" onchange="conv()"></select></div>
+<div class="field"><input id="fromV" type="number" placeholder="1" oninput="conv()"></div>
+</div>
+<div style="font-size:24px;color:#c8a96e;text-align:center">⇄</div>
+<div>
+<div class="field"><label>To</label><select id="toU" onchange="conv()"></select></div>
+<div class="field"><input id="toV" type="number" placeholder="" oninput="convBack()"></div>
+</div>
+</div>
+<div id="result" style="margin-top:8px"></div>
+</div>
+</div>
+<script>
+var UNITS={
+Length:{meter:1,kilometer:0.001,centimeter:100,millimeter:1000,inch:39.3701,foot:3.28084,yard:1.09361,mile:0.000621371,"nautical mile":0.000539957},
+Area:{"sq meter":1,"sq kilometer":1e-6,"sq centimeter":10000,"sq millimeter":1e6,"sq inch":1550.0031,"sq foot":10.7639,"sq yard":1.19599,"acre":0.000247105,"hectare":0.0001},
+Volume:{"liter":1,"milliliter":1000,"cubic meter":0.001,"cubic centimeter":1000,"cubic inch":61.0237,"cubic foot":0.0353147,"cubic yard":0.00130795,"gallon (US)":0.264172,"quart":1.05669,"pint":2.11338,"fl oz":33.814},
+Weight:{"kilogram":1,"gram":1000,"milligram":1e6,"metric ton":0.001,"pound":2.20462,"ounce":35.274,"stone":0.157473,"US ton":0.00110231},
+Temperature:{celsius:null,fahrenheit:null,kelvin:null},
+Pressure:{"pascal":1,"kilopascal":0.001,"megapascal":1e-6,"bar":1e-5,"psi":0.000145038,"atm":9.8692e-6,"mmHg":0.00750062}
+};
+var cats=Object.keys(UNITS);
+var curCat=cats[0];
+function setCat(c){curCat=c;document.querySelectorAll(".catbtn").forEach(function(b){b.style.background=b.dataset.c===c?"#c8a96e":"#1a1a1a";b.style.color=b.dataset.c===c?"#000":"#e8e8e8";});document.getElementById("catTitle").textContent=c;var units=Object.keys(UNITS[c]);var fromU=document.getElementById("fromU");var toU=document.getElementById("toU");fromU.innerHTML=units.map(function(u){return'<option>'+u+'</option>';}).join("");toU.innerHTML=units.map(function(u,i){return'<option'+(i===1?" selected":"")+'>'+u+'</option>';}).join("");document.getElementById("fromV").value="1";conv();}
+var catDiv=document.getElementById("cats");cats.forEach(function(c){var b=document.createElement("button");b.className="btn catbtn";b.dataset.c=c;b.textContent=c;b.style.width="auto";b.style.padding="6px 14px";b.onclick=function(){setCat(c);};catDiv.appendChild(b);});
+function toBase(val,unit,cat){if(cat==="Temperature"){if(unit==="celsius")return val;if(unit==="fahrenheit")return(val-32)*5/9;if(unit==="kelvin")return val-273.15;}return val/UNITS[cat][unit];}
+function fromBase(val,unit,cat){if(cat==="Temperature"){if(unit==="celsius")return val;if(unit==="fahrenheit")return val*9/5+32;if(unit==="kelvin")return val+273.15;}return val*UNITS[cat][unit];}
+function fmt(n){if(Math.abs(n)>=1e6||Math.abs(n)<0.0001&&n!==0)return n.toExponential(6);return parseFloat(n.toPrecision(8)).toString();}
+function conv(){var v=+document.getElementById("fromV").value||0;var base=toBase(v,document.getElementById("fromU").value,curCat);var res=fromBase(base,document.getElementById("toU").value,curCat);document.getElementById("toV").value=fmt(res);document.getElementById("result").innerHTML='<p class="note">'+v+" "+document.getElementById("fromU").value+" = <strong style="color:#c8a96e">"+fmt(res)+"</strong> "+document.getElementById("toU").value+"</p>";}
+function convBack(){var v=+document.getElementById("toV").value||0;var base=toBase(v,document.getElementById("toU").value,curCat);var res=fromBase(base,document.getElementById("fromU").value,curCat);document.getElementById("fromV").value=fmt(res);}
+setCat("Length");
+</script></div></body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Date Difference Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Date Difference Calculator</h1></div>
+<div class="wrap">
+<p class="desc">Calendar days, working days, weeks, and months between any two dates.</p>
+<div class="wrap" style="max-width:700px">
+<div class="box"><h2>Dates</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="field"><label>Start Date</label><input type="date" id="d1"></div>
+<div class="field"><label>End Date</label><input type="date" id="d2"></div>
+</div>
+<div class="field"><label>Exclude Weekends</label>
+<select id="wknd"><option value="1">Yes — working days only</option><option value="0">No — calendar days</option></select></div>
+<button class="btn" onclick="calc()" style="max-width:200px;margin-top:8px">Calculate</button>
+</div>
+<div class="kpi" id="kpi"></div>
+<div class="box" id="addBox" style="display:none"><h2>Add Days to a Date</h2>
+<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end">
+<div class="field"><label>Start Date</label><input type="date" id="addD"></div>
+<div class="field"><label>Days to Add</label><input type="number" id="addN" placeholder="30"></div>
+<button class="btn" onclick="addDays()" style="width:auto;padding:8px 16px">Add</button>
+</div>
+<div id="addR" style="margin-top:8px"></div>
+</div>
+</div>
+<script>
+var today=new Date();today.setHours(0,0,0,0);
+document.getElementById("d1").value=today.toISOString().slice(0,10);
+var d2=new Date(today);d2.setDate(d2.getDate()+30);
+document.getElementById("d2").value=d2.toISOString().slice(0,10);
+document.getElementById("addD").value=today.toISOString().slice(0,10);
+document.getElementById("addBox").style.display="block";
+function workingDays(start,end){var count=0;var cur=new Date(start);while(cur<end){cur.setDate(cur.getDate()+1);var d=cur.getDay();if(d!==0&&d!==6)count++;}return count;}
+function calc(){
+var d1=new Date(document.getElementById("d1").value);
+var d2=new Date(document.getElementById("d2").value);
+if(isNaN(d1)||isNaN(d2)){alert("Select both dates.");return;}
+var excWknd=document.getElementById("wknd").value==="1";
+var diff=Math.round((d2-d1)/(1000*60*60*24));
+var wdays=workingDays(d1,d2);
+var weeks=(diff/7).toFixed(1);
+var months=(diff/30.4375).toFixed(1);
+document.getElementById("kpi").innerHTML=
+'<div class="kcard"><div class="klabel">Calendar Days</div><div class="kval sky">'+diff+'</div></div>'+
+'<div class="kcard"><div class="klabel">Working Days</div><div class="kval grn">'+wdays+'</div></div>'+
+'<div class="kcard"><div class="klabel">Weeks</div><div class="kval">'+weeks+'</div></div>'+
+'<div class="kcard"><div class="klabel">Months (approx)</div><div class="kval">'+months+'</div></div>'+
+'<div class="kcard"><div class="klabel">Weekends</div><div class="kval">'+((diff-wdays))+'</div></div>';
+}
+function addDays(){
+var d=new Date(document.getElementById("addD").value);
+var n=+document.getElementById("addN").value||0;
+var res=new Date(d);res.setDate(res.getDate()+n);
+var opts={weekday:"long",year:"numeric",month:"long",day:"numeric"};
+document.getElementById("addR").innerHTML='<p style="color:#c8a96e;font-size:14px;font-weight:600">'+res.toLocaleDateString("en-US",opts)+'</p>';
+}
+calc();
+</script></div></body></html>

@@ -251,6 +251,36 @@ window.onerror=function(msg,src,line,col,err){var el=document.getElementById("to
 
 var TOOLS=[
 
+
+  // -- Real Estate & Finance ------------------------------------------
+  {n:'Cap Rate Calculator',d:'NOI divided by property value. Instantly benchmark any acquisition with EGI, expense ratio, and GRM.',c:'Real Estate',u:'/tools/cap-rate/',s:'live'},
+  {n:'Cash-on-Cash Return',d:'Annual pre-tax cash flow divided by total cash invested. Full acquisition cost and mortgage breakdown.',c:'Real Estate',u:'/tools/cash-on-cash/',s:'live'},
+  {n:'DSCR Calculator',d:'Debt Service Coverage Ratio with full income and expense breakdown. Lender threshold verdict included.',c:'Real Estate',u:'/tools/dscr-calc/',s:'live'},
+  {n:'NOI Calculator',d:'Net Operating Income with vacancy, PGI, EGI, operating expense ratio, and monthly NOI.',c:'Real Estate',u:'/tools/noi-calc/',s:'live'},
+  {n:'GRM Calculator',d:'Gross Rent Multiplier: calculate from price+rent, or estimate value from GRM target. Market benchmarks table.',c:'Real Estate',u:'/tools/grm-calc/',s:'live'},
+  {n:'Rent vs Buy Analysis',d:'True 5-year cost comparison with equity, appreciation, opportunity cost, and net position.',c:'Real Estate',u:'/tools/rent-vs-buy/',s:'live'},
+  {n:'IRR & NPV Calculator',d:'Internal Rate of Return and Net Present Value for up to 5-year investment hold. Hurdle rate check.',c:'Finance',u:'/tools/irr-npv/',s:'live'},
+  {n:'FAR & Zoning Calculator',d:'Floor Area Ratio, maximum GFA, buildable footprint from setbacks, and compliance check.',c:'Architecture',u:'/tools/far-calc/',s:'live'},
+
+  // -- AEC / Structural -----------------------------------------------
+  {n:'Stair Rise/Run Calculator',d:'IBC-compliant riser and tread design. 2R+T check, headroom, total run, and code compliance table.',c:'Architecture',u:'/tools/stair-calc/',s:'live'},
+  {n:'Concrete Volume Calculator',d:'Slabs, footings, pad footings, columns, and walls in cubic yards. Waste factor and bag count.',c:'Structural',u:'/tools/concrete-vol/',s:'live'},
+  {n:'Parking Count Calculator',d:'Required parking spaces by use type and GFA. Multi-use aggregation with ITE ratios.',c:'Architecture',u:'/tools/parking-count/',s:'live'},
+  {n:'Rebar Quantity Estimator',d:'Linear feet and weight for slabs, beams, columns, and walls. Bar size selector with 20-ft bar count.',c:'Structural',u:'/tools/rebar-qty/',s:'live'},
+
+  // -- Construction Management ----------------------------------------
+  {n:'Change Order Log',d:'Track COs by number, description, amount, and approval status. Approved and pending totals. CSV export.',c:'Construction Management',u:'/tools/change-order-log/',s:'live'},
+  {n:'Submittal Log Builder',d:'Build a construction submittal log with spec section, dates, status, and reviewer. CSV export.',c:'Construction Management',u:'/tools/submittal-log/',s:'live'},
+  {n:'Punch List Builder',d:'Create, sort by priority, and export a project punch list with location, assignee, and status.',c:'Construction Management',u:'/tools/punch-list/',s:'live'},
+
+  // -- Utilities ------------------------------------------------------
+  {n:'Unit Converter',d:'Length, area, volume, weight, temperature, and pressure conversions. All categories in one tool.',c:'Utilities',u:'/tools/unit-conv/',s:'live'},
+  {n:'Percentage Calculator',d:'Three modes: find %, find value, find total. Plus percentage change calculator.',c:'Utilities',u:'/tools/percentage/',s:'live'},
+  {n:'Date Difference Calculator',d:'Calendar days, working days, weeks, and months between any two dates. Add-days calculator included.',c:'Utilities',u:'/tools/date-diff/',s:'live'},
+  {n:'Tip & Bill Splitter',d:'Split any bill with custom tip and up to 20 guests. Preset tip buttons and per-person breakdown.',c:'Utilities',u:'/tools/tip-calc/',s:'live'},
+  {n:'BMI Calculator',d:'Body Mass Index with WHO category, ideal weight range in lb and kg. Imperial and metric modes.',c:'Health',u:'/tools/bmi-calc/',s:'live'},
+  {n:'Roman Numeral Converter',d:'Convert integers to Roman numerals and back. Supports 1–3999 with full symbol reference table.',c:'Utilities',u:'/tools/roman-num/',s:'live'},
+
   // -- BIM & VDC --------------------------------------------------
   {n:'LOD Checker',d:'Validate Level of Development compliance across phases. Reference matrix + project gap report.',c:'BIM',u:'/lod-checker',s:'live'},
   {n:'Clash Matrix',d:'Track coordination clashes between 8 disciplines. Click-to-edit grid, sorted log, CSV/JSON export.',c:'VDC & Coordination',u:'/clash-matrix',s:'live'},

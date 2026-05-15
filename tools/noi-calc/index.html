@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DSCR Calculator | XLMX</title>
+<title>NOI Calculator | XLMX</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
 .topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
@@ -28,56 +28,74 @@ tr:hover td{background:#151515}
 .note{font-size:11px;color:#666;margin-top:10px}
 @media(max-width:640px){.grid{grid-template-columns:1fr}}
 </style></head><body>
-<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>DSCR Calculator</h1></div>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>NOI Calculator</h1></div>
 <div class="wrap">
-<p class="desc">Debt Service Coverage Ratio — lenders require ≥1.20×. Check before you apply.</p>
+<p class="desc">Net Operating Income with detailed income and expense breakdown. Foundation of every RE valuation.</p>
 <div class="grid">
 <div>
 <div class="box"><h2>Income</h2>
-<div class="field"><label>Gross Rental Income ($/yr)</label><input id="gri" type="number" placeholder="120000"></div>
-<div class="field"><label>Vacancy Rate (%)</label><input id="vac" type="number" placeholder="5" value="5"></div>
+<div class="field"><label>Base Rental Income ($/yr)</label><input id="base" type="number" placeholder="180000"></div>
+<div class="field"><label>Parking Income ($/yr)</label><input id="park" type="number" placeholder="0" value="0"></div>
 <div class="field"><label>Other Income ($/yr)</label><input id="oth" type="number" placeholder="0" value="0"></div>
+<div class="field"><label>Vacancy & Credit Loss (%)</label><input id="vac" type="number" placeholder="5" value="5"></div>
 </div>
-<div class="box"><h2>Expenses (annual)</h2>
-<div class="field"><label>Property Taxes ($)</label><input id="tax" type="number" placeholder="12000"></div>
-<div class="field"><label>Insurance ($)</label><input id="ins" type="number" placeholder="4000"></div>
-<div class="field"><label>Maintenance & Repairs ($)</label><input id="mnt" type="number" placeholder="6000"></div>
-<div class="field"><label>Management Fee ($)</label><input id="mgmt" type="number" placeholder="8000"></div>
-<div class="field"><label>Other Expenses ($)</label><input id="oth2" type="number" placeholder="0" value="0"></div>
-</div>
-<div class="box"><h2>Debt Service</h2>
-<div class="field"><label>Annual Mortgage Payment ($)</label><input id="ds" type="number" placeholder="54000"></div>
-<button class="btn" onclick="calc()">Calculate DSCR</button>
+<div class="box"><h2>Operating Expenses</h2>
+<div class="field"><label>Property Taxes ($/yr)</label><input id="tax" type="number" placeholder="18000"></div>
+<div class="field"><label>Insurance ($/yr)</label><input id="ins" type="number" placeholder="6000"></div>
+<div class="field"><label>Utilities ($/yr)</label><input id="util" type="number" placeholder="4000"></div>
+<div class="field"><label>Repairs & Maintenance ($/yr)</label><input id="rep" type="number" placeholder="9000"></div>
+<div class="field"><label>Management Fee ($/yr)</label><input id="mgmt" type="number" placeholder="14000"></div>
+<div class="field"><label>Reserves ($/yr)</label><input id="rsv" type="number" placeholder="5000"></div>
+<div class="field"><label>Other Expenses ($/yr)</label><input id="oth2" type="number" placeholder="0" value="0"></div>
+<button class="btn" onclick="calc()">Calculate NOI</button>
 </div></div>
 <div>
 <div class="box"><h2>Results</h2>
 <div class="kpi" id="kpi"><p style="color:#555;font-size:12px">Enter inputs and calculate.</p></div>
-<div id="verdict" style="margin-top:12px"></div>
+<div id="detail"></div>
 </div></div></div>
 <script>
 function fm(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fp(n){return n.toFixed(1)+"%"}
+function row(label,val,cls){return'<tr><td>'+label+'</td><td style="text-align:right;color:'+(cls||"#e8e8e8")+'">'+fm(val)+'</td></tr>'}
 function calc(){
-var gri=+document.getElementById("gri").value||0;
-var vac=+document.getElementById("vac").value/100||0.05;
+var base=+document.getElementById("base").value||0;
+var park=+document.getElementById("park").value||0;
 var oth=+document.getElementById("oth").value||0;
+var vac=+document.getElementById("vac").value/100||0.05;
 var tax=+document.getElementById("tax").value||0;
 var ins=+document.getElementById("ins").value||0;
-var mnt=+document.getElementById("mnt").value||0;
+var util=+document.getElementById("util").value||0;
+var rep=+document.getElementById("rep").value||0;
 var mgmt=+document.getElementById("mgmt").value||0;
+var rsv=+document.getElementById("rsv").value||0;
 var oth2=+document.getElementById("oth2").value||0;
-var ds=+document.getElementById("ds").value||1;
-var egi=gri*(1-vac)+oth;
-var exp=tax+ins+mnt+mgmt+oth2;
+var pgi=base+park+oth;
+var vacLoss=pgi*vac;
+var egi=pgi-vacLoss;
+var exp=tax+ins+util+rep+mgmt+rsv+oth2;
 var noi=egi-exp;
-var dscr=noi/ds;
-var color=dscr>=1.25?"grn":dscr>=1.0?"":"red";
-var verdict=dscr>=1.35?"Strong — most lenders will approve":dscr>=1.25?"Acceptable — meets standard threshold":dscr>=1.15?"Marginal — some lenders, higher rate":"Below threshold — loan likely declined";
+var oer=exp/egi*100;
 document.getElementById("kpi").innerHTML=
+'<div class="kcard"><div class="klabel">PGI</div><div class="kval sky">'+fm(pgi)+'</div></div>'+
 '<div class="kcard"><div class="klabel">EGI</div><div class="kval sky">'+fm(egi)+'</div></div>'+
 '<div class="kcard"><div class="klabel">Total Expenses</div><div class="kval red">'+fm(exp)+'</div></div>'+
 '<div class="kcard"><div class="klabel">NOI</div><div class="kval grn">'+fm(noi)+'</div></div>'+
-'<div class="kcard"><div class="klabel">Debt Service</div><div class="kval">'+fm(ds)+'</div></div>'+
-'<div class="kcard" style="border-color:'+(dscr>=1.25?"#34d399":dscr>=1?"#c8a96e":"#f87171")+'"><div class="klabel">DSCR</div><div class="kval '+color+'">'+dscr.toFixed(3)+'×</div></div>';
-document.getElementById("verdict").innerHTML='<p class="note"><strong style="color:#c8a96e">'+verdict+'</strong></p>';
+'<div class="kcard"><div class="klabel">OER</div><div class="kval">'+fp(oer)+'</div></div>'+
+'<div class="kcard"><div class="klabel">NOI / mo</div><div class="kval">'+fm(noi/12)+'</div></div>';
+document.getElementById("detail").innerHTML='<table>'+
+row("Potential Gross Income",pgi,"#60a5fa")+
+row("Vacancy Loss",-vacLoss,"#f87171")+
+row("Effective Gross Income",egi,"#60a5fa")+
+'<tr><td colspan="2" style="padding:4px 8px;font-size:10px;color:#666;text-transform:uppercase">Operating Expenses</td></tr>'+
+row("Property Taxes",-tax,"#f87171")+
+row("Insurance",-ins,"#f87171")+
+row("Utilities",-util,"#f87171")+
+row("Repairs & Maintenance",-rep,"#f87171")+
+row("Management Fee",-mgmt,"#f87171")+
+row("Reserves",-rsv,"#f87171")+
+(oth2?row("Other",-oth2,"#f87171"):"")+
+'<tr style="font-weight:700"><td>NOI</td><td style="text-align:right;color:'+(noi>=0?"#34d399":"#f87171")+'">'+fm(noi)+'</td></tr>'+
+'</table>';
 }
 </script></div></body></html>

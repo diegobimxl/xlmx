@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tip & Bill Splitter | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Tip & Bill Splitter</h1></div>
+<div class="wrap">
+<p class="desc">Split any bill with custom tip percentage and up to 20 guests.</p>
+<div class="wrap" style="max-width:580px">
+<div class="box"><h2>Bill Details</h2>
+<div class="field"><label>Bill Total ($)</label><input id="bill" type="number" placeholder="148.50" oninput="calc()"></div>
+<div class="field"><label>Tip (%)</label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px" id="tipBtns"></div>
+<input id="tip" type="number" placeholder="18" value="18" oninput="calc()">
+</div>
+<div class="field"><label>Number of People</label><input id="people" type="number" placeholder="4" value="1" min="1" oninput="calc()"></div>
+</div>
+<div class="kpi" id="kpi"></div>
+<div class="box" id="splitBox" style="display:none"><h2>Per Person</h2><div id="split"></div></div>
+</div>
+<script>
+var tipPresets=[10,15,18,20,25];
+var tb=document.getElementById("tipBtns");
+tipPresets.forEach(function(t){
+var b=document.createElement("button");b.className="btn";b.style.width="auto";b.style.padding="5px 12px";b.style.fontSize="12px";b.textContent=t+"%";
+b.onclick=function(){document.getElementById("tip").value=t;calc();};
+tb.appendChild(b);
+});
+function fm(n){return"$"+n.toFixed(2)}
+function calc(){
+var bill=+document.getElementById("bill").value||0;
+var tip=+document.getElementById("tip").value/100||0.18;
+var people=Math.max(1,+document.getElementById("people").value||1);
+var tipAmt=bill*tip;
+var total=bill+tipAmt;
+var pp=total/people;
+var tipPP=tipAmt/people;
+document.getElementById("kpi").innerHTML=
+'<div class="kcard"><div class="klabel">Tip Amount</div><div class="kval grn">'+fm(tipAmt)+'</div></div>'+
+'<div class="kcard"><div class="klabel">Total Bill</div><div class="kval">'+fm(total)+'</div></div>'+
+'<div class="kcard"><div class="klabel">Per Person</div><div class="kval sky">'+fm(pp)+'</div></div>'+
+'<div class="kcard"><div class="klabel">Tip Per Person</div><div class="kval">'+fm(tipPP)+'</div></div>';
+if(people>1){
+document.getElementById("splitBox").style.display="block";
+var rows="";
+for(var i=1;i<=people;i++)rows+='<tr><td>Person '+i+'</td><td style="text-align:right;color:#c8a96e;font-weight:600">'+fm(pp)+'</td></tr>';
+document.getElementById("split").innerHTML='<table><thead><tr><th>Guest</th><th style="text-align:right">Amount</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}else{document.getElementById("splitBox").style.display="none";}
+}
+calc();
+</script></div></body></html>

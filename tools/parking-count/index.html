@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parking Count Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select,textarea{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px}
+.btn.red{background:#f87171;color:#000}.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500;white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid #161616;font-size:12px;vertical-align:top}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px}
+.tag{display:inline-block;background:#1e1e1e;border:1px solid #333;border-radius:4px;padding:2px 7px;font-size:10px;color:#888;margin:2px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Parking Count Calculator</h1></div>
+<div class="wrap"><p class="desc">Required parking spaces by use type, GFA, and local ratio. Multi-use aggregation included.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Add Use</h2>
+<div class="field"><label>Use Type</label>
+<select id="useType">
+<option value="Office">Office</option>
+<option value="Retail">Retail</option>
+<option value="Restaurant">Restaurant</option>
+<option value="Residential">Residential (units)</option>
+<option value="Hotel">Hotel (rooms)</option>
+<option value="Medical Office">Medical Office</option>
+<option value="Industrial/Warehouse">Industrial / Warehouse</option>
+<option value="Assembly">Assembly / Church</option>
+</select></div>
+<div class="field"><label id="unitLabel">GFA (sq ft)</label><input id="area" type="number" placeholder="10000"></div>
+<button class="btn" onclick="addUse()" style="width:auto">Add Use</button>
+</div>
+</div>
+<div>
+<div class="box"><h2>Uses</h2>
+<table><thead><tr><th>Use</th><th>Size</th><th>Ratio</th><th>Spaces</th><th></th></tr></thead>
+<tbody id="useBody"></tbody>
+<tfoot><tr><td colspan="3" style="padding:6px 8px;color:#888">Total</td><td id="total" style="padding:6px 8px;color:#c8a96e;font-weight:700"></td><td></td></tr></tfoot>
+</table>
+<p class="note">Ratios are typical ITE/local code values. Verify with AHJ.</p>
+</div></div></div>
+<script>
+var RATIO={Office:3.3,Retail:4,Restaurant:10,Residential:1.5,Hotel:1,Medical:4,Industrial:1,Assembly:0.33};
+var UNIT={Office:"GFA (sf)",Retail:"GFA (sf)",Restaurant:"GFA (sf)",Residential:"Units",Hotel:"Rooms","Medical Office":"GFA (sf)","Industrial/Warehouse":"GFA (sf)",Assembly:"GFA (sf)"};
+var RATIO_MAP={Office:[3.3,"/1000 sf"],Retail:[4,"/1000 sf"],Restaurant:[10,"/1000 sf"],Residential:[1.5,"/ unit"],Hotel:[1,"/ room"],"Medical Office":[4,"/1000 sf"],"Industrial/Warehouse":[1,"/1000 sf"],Assembly:[0.33,"/seat (est)"]};
+document.getElementById("useType").addEventListener("change",function(){var u=this.value;document.getElementById("unitLabel").textContent=(UNIT[u]||"GFA (sf)");});
+var uses=[];
+function addUse(){
+var type=document.getElementById("useType").value;
+var area=+document.getElementById("area").value||0;
+if(!area)return;
+var rm=RATIO_MAP[type]||[3.3,"/1000 sf"];
+var spaces;
+if(type==="Residential"||type==="Hotel")spaces=area*rm[0];
+else spaces=(area/1000)*rm[0];
+uses.push({type:type,area:area,ratio:rm[0],ratioLabel:rm[1],spaces:Math.ceil(spaces)});
+render();
+}
+function render(){
+var tb=document.getElementById("useBody");
+var total=0;
+tb.innerHTML=uses.map(function(u,i){
+total+=u.spaces;
+return'<tr><td>'+u.type+'</td><td>'+u.area.toLocaleString()+'</td><td>'+u.ratio+u.ratioLabel+'</td><td style="color:#c8a96e;font-weight:600">'+u.spaces+'</td><td><button class="btn red sm" onclick="uses.splice('+i+',1);render()">✕</button></td></tr>';
+}).join("");
+document.getElementById("total").textContent=total+" spaces";
+}
+</script></div></body></html>

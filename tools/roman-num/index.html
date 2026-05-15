@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roman Numeral Converter | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Roman Numeral Converter</h1></div>
+<div class="wrap">
+<p class="desc">Convert integers to Roman numerals and back. Supports 1–3,999.</p>
+<div class="wrap" style="max-width:560px">
+<div class="box"><h2>Integer → Roman</h2>
+<div style="display:flex;gap:10px;align-items:flex-end">
+<div class="field" style="flex:1"><label>Integer (1–3999)</label><input id="int" type="number" min="1" max="3999" placeholder="2024" oninput="toRoman()"></div>
+<div class="field" style="flex:1"><label>Roman Numeral</label><input id="rom_out" style="color:#c8a96e;font-size:18px;font-weight:700;border-color:#c8a96e" readonly></div>
+</div></div>
+<div class="box"><h2>Roman → Integer</h2>
+<div style="display:flex;gap:10px;align-items:flex-end">
+<div class="field" style="flex:1"><label>Roman Numeral</label><input id="rom_in" placeholder="MMXXIV" oninput="fromRoman()" style="text-transform:uppercase"></div>
+<div class="field" style="flex:1"><label>Integer</label><input id="int_out" style="color:#c8a96e;font-size:18px;font-weight:700;border-color:#c8a96e" readonly></div>
+</div>
+<div id="err" style="color:#f87171;font-size:11px;margin-top:4px"></div>
+</div>
+<div class="box"><h2>Reference</h2>
+<table><thead><tr><th>Symbol</th><th>Value</th><th>Symbol</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>I</td><td>1</td><td>D</td><td>500</td></tr>
+<tr><td>V</td><td>5</td><td>M</td><td>1000</td></tr>
+<tr><td>X</td><td>10</td><td>IV</td><td>4</td></tr>
+<tr><td>L</td><td>50</td><td>IX</td><td>9</td></tr>
+<tr><td>C</td><td>100</td><td>XL</td><td>40</td></tr>
+</tbody></table>
+</div>
+</div>
+<script>
+var vals=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
+var syms=["M","CM","D","CD","C","XC","L","XL","X","IX","V","IV","I"];
+function toRoman(){var n=+document.getElementById("int").value;if(!n||n<1||n>3999){document.getElementById("rom_out").value="";return;}var res="",i=0;while(n>0){while(n>=vals[i]){res+=syms[i];n-=vals[i];}i++;}document.getElementById("rom_out").value=res;}
+function fromRoman(){
+var s=document.getElementById("rom_in").value.toUpperCase().trim();
+document.getElementById("err").textContent="";
+if(!s){document.getElementById("int_out").value="";return;}
+var map={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+var result=0,prev=0;
+for(var i=s.length-1;i>=0;i--){var cur=map[s[i]];if(!cur){document.getElementById("err").textContent="Invalid character: "+s[i];document.getElementById("int_out").value="";return;}if(cur<prev)result-=cur;else result+=cur;prev=cur;}
+document.getElementById("int_out").value=result;
+}
+</script></div></body></html>

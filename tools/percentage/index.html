@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Percentage Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Percentage Calculator</h1></div>
+<div class="wrap">
+<p class="desc">Three modes: find %, find the value, find the total. Plus change and difference.</p>
+<div class="wrap" style="max-width:640px">
+<div class="box"><h2>What is X% of Y?</h2>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<div class="field" style="flex:1;min-width:100px"><label>%</label><input id="p1" type="number" placeholder="15" oninput="m1()"></div>
+<span style="color:#888;padding-top:18px">% of</span>
+<div class="field" style="flex:1;min-width:100px"><label>Value</label><input id="v1" type="number" placeholder="200" oninput="m1()"></div>
+<span style="color:#888;padding-top:18px">=</span>
+<div class="field" style="flex:1;min-width:100px"><label>Result</label><input id="r1" type="number" style="border-color:#c8a96e" readonly></div>
+</div></div>
+<div class="box"><h2>X is what % of Y?</h2>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<div class="field" style="flex:1;min-width:100px"><label>Value X</label><input id="p2" type="number" placeholder="30" oninput="m2()"></div>
+<span style="color:#888;padding-top:18px">is</span>
+<div class="field" style="flex:1;min-width:100px"><label>Result (%)</label><input id="r2" type="number" style="border-color:#c8a96e" readonly></div>
+<span style="color:#888;padding-top:18px">% of</span>
+<div class="field" style="flex:1;min-width:100px"><label>Total Y</label><input id="v2" type="number" placeholder="200" oninput="m2()"></div>
+</div></div>
+<div class="box"><h2>X% of what equals Y?</h2>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<div class="field" style="flex:1;min-width:100px"><label>%</label><input id="p3" type="number" placeholder="15" oninput="m3()"></div>
+<span style="color:#888;padding-top:18px">% of</span>
+<div class="field" style="flex:1;min-width:100px"><label>Result (Total)</label><input id="r3" type="number" style="border-color:#c8a96e" readonly></div>
+<span style="color:#888;padding-top:18px">= </span>
+<div class="field" style="flex:1;min-width:100px"><label>Value Y</label><input id="v3" type="number" placeholder="30" oninput="m3()"></div>
+</div></div>
+<div class="box"><h2>Percentage Change</h2>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<span style="color:#888;padding-top:18px">From</span>
+<div class="field" style="flex:1;min-width:100px"><label>Original</label><input id="pc_from" type="number" placeholder="100" oninput="mChange()"></div>
+<span style="color:#888;padding-top:18px">to</span>
+<div class="field" style="flex:1;min-width:100px"><label>New Value</label><input id="pc_to" type="number" placeholder="125" oninput="mChange()"></div>
+<span style="color:#888;padding-top:18px">=</span>
+<div class="field" style="flex:1;min-width:100px"><label>Change (%)</label><input id="pc_r" type="number" style="border-color:#c8a96e" readonly></div>
+</div></div>
+</div>
+<script>
+function fmt(n){return isNaN(n)||!isFinite(n)?"—":parseFloat(n.toPrecision(8)).toString()}
+function m1(){var p=+document.getElementById("p1").value,v=+document.getElementById("v1").value;document.getElementById("r1").value=fmt(p/100*v);}
+function m2(){var x=+document.getElementById("p2").value,y=+document.getElementById("v2").value;document.getElementById("r2").value=fmt(x/y*100);}
+function m3(){var p=+document.getElementById("p3").value,y=+document.getElementById("v3").value;document.getElementById("r3").value=fmt(y/(p/100));}
+function mChange(){var f=+document.getElementById("pc_from").value,t=+document.getElementById("pc_to").value;document.getElementById("pc_r").value=fmt((t-f)/Math.abs(f||1)*100);}
+</script></div></body></html>

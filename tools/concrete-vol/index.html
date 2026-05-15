@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Concrete Volume Calculator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Concrete Volume Calculator</h1></div>
+<div class="wrap">
+<p class="desc">Slabs, footings, columns, and walls — cubic yards with waste factor.</p>
+<div class="wrap" style="max-width:700px">
+<div class="box"><h2>Element Type</h2>
+<div class="field"><label>Select Element</label>
+<select id="type" onchange="updateFields()">
+<option value="slab">Slab</option>
+<option value="footing">Strip Footing</option>
+<option value="pad">Pad Footing</option>
+<option value="column">Column</option>
+<option value="wall">Wall</option>
+</select></div>
+<div id="fields"></div>
+<div class="field"><label>Waste Factor (%)</label><input id="waste" type="number" value="8"></div>
+<button class="btn" onclick="calc()" style="max-width:200px">Calculate</button>
+</div>
+<div class="kpi" id="kpi"></div>
+<div class="box" id="info" style="display:none"><h2>Note</h2><div id="note"></div></div>
+</div>
+<script>
+var defs={
+slab:'<div class="field"><label>Length (ft)</label><input id="L" type="number" placeholder="40"></div><div class="field"><label>Width (ft)</label><input id="W" type="number" placeholder="30"></div><div class="field"><label>Thickness (in)</label><input id="T" type="number" placeholder="5"></div>',
+footing:'<div class="field"><label>Length (ft)</label><input id="L" type="number" placeholder="60"></div><div class="field"><label>Width (ft)</label><input id="W" type="number" placeholder="2"></div><div class="field"><label>Depth (in)</label><input id="T" type="number" placeholder="18"></div>',
+pad:'<div class="field"><label>Length (ft)</label><input id="L" type="number" placeholder="4"></div><div class="field"><label>Width (ft)</label><input id="W" type="number" placeholder="4"></div><div class="field"><label>Depth (in)</label><input id="T" type="number" placeholder="18"></div><div class="field"><label>Quantity</label><input id="Q" type="number" placeholder="1" value="1"></div>',
+column:'<div class="field"><label>Diameter (in) or Side (in)</label><input id="L" type="number" placeholder="18"></div><div class="field"><label>Height (ft)</label><input id="T" type="number" placeholder="12"></div><div class="field"><label>Quantity</label><input id="Q" type="number" placeholder="1" value="1"></div><div class="field"><label>Shape</label><select id="shape"><option value="round">Round</option><option value="square">Square</option></select></div>',
+wall:'<div class="field"><label>Length (ft)</label><input id="L" type="number" placeholder="80"></div><div class="field"><label>Height (ft)</label><input id="T" type="number" placeholder="10"></div><div class="field"><label>Thickness (in)</label><input id="W" type="number" placeholder="8"></div>'
+};
+function updateFields(){document.getElementById("fields").innerHTML=defs[document.getElementById("type").value];}
+updateFields();
+function v(id){return+(document.getElementById(id)||{value:0}).value||0;}
+function calc(){
+var type=document.getElementById("type").value;
+var waste=1+(v("waste")/100||0.08);
+var cf=0;
+if(type==="slab"||type==="footing")cf=v("L")*v("W")*(v("T")/12);
+else if(type==="pad")cf=v("L")*v("W")*(v("T")/12)*(v("Q")||1);
+else if(type==="column"){
+var side=v("L")/12;var ht=v("T");var q=v("Q")||1;
+var shape=(document.getElementById("shape")||{value:"round"}).value;
+cf=shape==="round"?Math.PI*(side/2)*(side/2)*ht*q:side*side*ht*q;
+}else if(type==="wall")cf=v("L")*v("T")*(v("W")/12);
+var cy=cf/27;var cyWaste=cy*waste;
+var bags60=Math.ceil(cyWaste*45.6);// ~45.6 60lb bags per CY
+var bags80=Math.ceil(cyWaste*34.2);
+document.getElementById("kpi").innerHTML=
+'<div class="kcard"><div class="klabel">Volume (CF)</div><div class="kval sky">'+cf.toFixed(2)+' ft³</div></div>'+
+'<div class="kcard"><div class="klabel">Volume (CY)</div><div class="kval">'+cy.toFixed(2)+' yd³</div></div>'+
+'<div class="kcard"><div class="klabel">With Waste</div><div class="kval grn">'+cyWaste.toFixed(2)+' yd³</div></div>'+
+'<div class="kcard"><div class="klabel">60-lb Bags</div><div class="kval sky">'+bags60+'</div></div>'+
+'<div class="kcard"><div class="klabel">80-lb Bags</div><div class="kval sky">'+bags80+'</div></div>';
+document.getElementById("info").style.display="block";
+document.getElementById("note").innerHTML='<p class="note">Ready-mix concrete typically ordered in increments of 0.25 CY. Min load ≈ 1 CY.</p>';
+}
+</script></div></body></html>

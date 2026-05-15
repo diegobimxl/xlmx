@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DSCR Calculator | XLMX</title>
+<title>Cap Rate Calculator | XLMX</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
 .topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
@@ -28,56 +28,42 @@ tr:hover td{background:#151515}
 .note{font-size:11px;color:#666;margin-top:10px}
 @media(max-width:640px){.grid{grid-template-columns:1fr}}
 </style></head><body>
-<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>DSCR Calculator</h1></div>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Cap Rate Calculator</h1></div>
 <div class="wrap">
-<p class="desc">Debt Service Coverage Ratio — lenders require ≥1.20×. Check before you apply.</p>
+<p class="desc">Net Operating Income ÷ property value. Instantly benchmark any acquisition.</p>
 <div class="grid">
 <div>
-<div class="box"><h2>Income</h2>
+<div class="box"><h2>Inputs</h2>
 <div class="field"><label>Gross Rental Income ($/yr)</label><input id="gri" type="number" placeholder="120000"></div>
 <div class="field"><label>Vacancy Rate (%)</label><input id="vac" type="number" placeholder="5" value="5"></div>
-<div class="field"><label>Other Income ($/yr)</label><input id="oth" type="number" placeholder="0" value="0"></div>
-</div>
-<div class="box"><h2>Expenses (annual)</h2>
-<div class="field"><label>Property Taxes ($)</label><input id="tax" type="number" placeholder="12000"></div>
-<div class="field"><label>Insurance ($)</label><input id="ins" type="number" placeholder="4000"></div>
-<div class="field"><label>Maintenance & Repairs ($)</label><input id="mnt" type="number" placeholder="6000"></div>
-<div class="field"><label>Management Fee ($)</label><input id="mgmt" type="number" placeholder="8000"></div>
-<div class="field"><label>Other Expenses ($)</label><input id="oth2" type="number" placeholder="0" value="0"></div>
-</div>
-<div class="box"><h2>Debt Service</h2>
-<div class="field"><label>Annual Mortgage Payment ($)</label><input id="ds" type="number" placeholder="54000"></div>
-<button class="btn" onclick="calc()">Calculate DSCR</button>
+<div class="field"><label>Operating Expenses ($/yr)</label><input id="exp" type="number" placeholder="30000"></div>
+<div class="field"><label>Property Value ($)</label><input id="val" type="number" placeholder="1500000"></div>
+<button class="btn" onclick="calc()">Calculate</button>
 </div></div>
 <div>
 <div class="box"><h2>Results</h2>
 <div class="kpi" id="kpi"><p style="color:#555;font-size:12px">Enter inputs and calculate.</p></div>
-<div id="verdict" style="margin-top:12px"></div>
+<div id="bench"></div>
 </div></div></div>
 <script>
 function fm(n){return"$"+n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fp(n){return n.toFixed(2)+"%"}
 function calc(){
 var gri=+document.getElementById("gri").value||0;
 var vac=+document.getElementById("vac").value/100||0.05;
-var oth=+document.getElementById("oth").value||0;
-var tax=+document.getElementById("tax").value||0;
-var ins=+document.getElementById("ins").value||0;
-var mnt=+document.getElementById("mnt").value||0;
-var mgmt=+document.getElementById("mgmt").value||0;
-var oth2=+document.getElementById("oth2").value||0;
-var ds=+document.getElementById("ds").value||1;
-var egi=gri*(1-vac)+oth;
-var exp=tax+ins+mnt+mgmt+oth2;
+var exp=+document.getElementById("exp").value||0;
+var val=+document.getElementById("val").value||1;
+var egi=gri*(1-vac);
 var noi=egi-exp;
-var dscr=noi/ds;
-var color=dscr>=1.25?"grn":dscr>=1.0?"":"red";
-var verdict=dscr>=1.35?"Strong — most lenders will approve":dscr>=1.25?"Acceptable — meets standard threshold":dscr>=1.15?"Marginal — some lenders, higher rate":"Below threshold — loan likely declined";
+var cap=noi/val*100;
+var grm=val/(gri||1);
 document.getElementById("kpi").innerHTML=
 '<div class="kcard"><div class="klabel">EGI</div><div class="kval sky">'+fm(egi)+'</div></div>'+
-'<div class="kcard"><div class="klabel">Total Expenses</div><div class="kval red">'+fm(exp)+'</div></div>'+
 '<div class="kcard"><div class="klabel">NOI</div><div class="kval grn">'+fm(noi)+'</div></div>'+
-'<div class="kcard"><div class="klabel">Debt Service</div><div class="kval">'+fm(ds)+'</div></div>'+
-'<div class="kcard" style="border-color:'+(dscr>=1.25?"#34d399":dscr>=1?"#c8a96e":"#f87171")+'"><div class="klabel">DSCR</div><div class="kval '+color+'">'+dscr.toFixed(3)+'×</div></div>';
-document.getElementById("verdict").innerHTML='<p class="note"><strong style="color:#c8a96e">'+verdict+'</strong></p>';
+'<div class="kcard"><div class="klabel">Cap Rate</div><div class="kval">'+fp(cap)+'</div></div>'+
+'<div class="kcard"><div class="klabel">GRM</div><div class="kval sky">'+grm.toFixed(1)+'x</div></div>'+
+'<div class="kcard"><div class="klabel">Expense Ratio</div><div class="kval red">'+fp(exp/(egi||1)*100)+'</div></div>';
+var bench=cap<4?"Below market (core/trophy)":cap<6?"Market rate (stabilized)":cap<8?"Above market (value-add)":"High yield (risk premium)";
+document.getElementById("bench").innerHTML='<p class="note">Benchmark: <strong style="color:#c8a96e">'+bench+'</strong></p>';
 }
 </script></div></body></html>

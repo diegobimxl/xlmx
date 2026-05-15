@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rebar Quantity Estimator | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select,textarea{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{background:#d4b87a}.btn.sm{padding:5px 12px;font-size:11px}
+.btn.red{background:#f87171;color:#000}.btn.ghost{background:#1e1e1e;color:#e8e8e8;border:1px solid #333}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:7px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500;white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid #161616;font-size:12px;vertical-align:top}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:8px}
+.tag{display:inline-block;background:#1e1e1e;border:1px solid #333;border-radius:4px;padding:2px 7px;font-size:10px;color:#888;margin:2px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Rebar Quantity Estimator</h1></div>
+<div class="wrap"><p class="desc">Weight and linear feet for slabs, beams, columns, and walls. Multiple bar sizes.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Element</h2>
+<div class="field"><label>Element Type</label>
+<select id="etype" onchange="showFields()">
+<option value="slab">Slab (two-way)</option>
+<option value="beam">Beam</option>
+<option value="column">Column (tied)</option>
+<option value="wall">Shear Wall</option>
+</select></div>
+<div id="fields"></div>
+<div class="field"><label>Bar Size</label>
+<select id="barSize">
+<option value="3">#3 (0.376 lb/ft)</option>
+<option value="4">#4 (0.668 lb/ft)</option>
+<option value="5" selected>#5 (1.043 lb/ft)</option>
+<option value="6">#6 (1.502 lb/ft)</option>
+<option value="7">#7 (2.044 lb/ft)</option>
+<option value="8">#8 (2.670 lb/ft)</option>
+<option value="10">#10 (4.303 lb/ft)</option>
+</select></div>
+<div class="field"><label>Waste Factor (%)</label><input id="waste" type="number" value="10"></div>
+<button class="btn" onclick="calc()">Estimate</button>
+</div></div>
+<div>
+<div class="box"><h2>Results</h2>
+<div class="kpi" id="kpi"><p style="color:#555;font-size:12px">Enter inputs and estimate.</p></div>
+</div>
+<div class="box"><h2>Bar Weight Reference</h2>
+<table><thead><tr><th>Bar</th><th>Dia (in)</th><th>lb/ft</th><th>Area (in²)</th></tr></thead>
+<tbody>
+<tr><td>#3</td><td>0.375</td><td>0.376</td><td>0.11</td></tr>
+<tr><td>#4</td><td>0.500</td><td>0.668</td><td>0.20</td></tr>
+<tr><td>#5</td><td>0.625</td><td>1.043</td><td>0.31</td></tr>
+<tr><td>#6</td><td>0.750</td><td>1.502</td><td>0.44</td></tr>
+<tr><td>#7</td><td>0.875</td><td>2.044</td><td>0.60</td></tr>
+<tr><td>#8</td><td>1.000</td><td>2.670</td><td>0.79</td></tr>
+<tr><td>#10</td><td>1.270</td><td>4.303</td><td>1.27</td></tr>
+</tbody></table>
+</div></div></div>
+<script>
+var WLBS={3:0.376,4:0.668,5:1.043,6:1.502,7:2.044,8:2.670,10:4.303};
+var FDEFS={
+slab:'<div class="field"><label>Slab Length (ft)</label><input id="L" type="number" placeholder="40"></div><div class="field"><label>Slab Width (ft)</label><input id="W" type="number" placeholder="30"></div><div class="field"><label>Bar Spacing (in)</label><input id="sp" type="number" placeholder="12" value="12"></div>',
+beam:'<div class="field"><label>Beam Length (ft)</label><input id="L" type="number" placeholder="24"></div><div class="field"><label>Bottom Bars</label><input id="nb" type="number" placeholder="3" value="3"></div><div class="field"><label>Top Bars</label><input id="nt" type="number" placeholder="2" value="2"></div><div class="field"><label>Stirrup Spacing (in)</label><input id="sp" type="number" placeholder="8" value="8"></div>',
+column:'<div class="field"><label>Column Height (ft)</label><input id="L" type="number" placeholder="12"></div><div class="field"><label>Vertical Bars</label><input id="nb" type="number" placeholder="8" value="8"></div><div class="field"><label>Tie Spacing (in)</label><input id="sp" type="number" placeholder="12" value="12"></div><div class="field"><label>Column Width (in)</label><input id="W" type="number" placeholder="18" value="18"></div>',
+wall:'<div class="field"><label>Wall Length (ft)</label><input id="L" type="number" placeholder="60"></div><div class="field"><label>Wall Height (ft)</label><input id="W" type="number" placeholder="10"></div><div class="field"><label>Horiz. Spacing (in)</label><input id="sp" type="number" placeholder="12" value="12"></div><div class="field"><label>Vert. Spacing (in)</label><input id="sp2" type="number" placeholder="12" value="12"></div>'
+};
+function showFields(){document.getElementById("fields").innerHTML=FDEFS[document.getElementById("etype").value];}
+showFields();
+function v(id){return+(document.getElementById(id)||{value:0}).value||0;}
+function calc(){
+var etype=document.getElementById("etype").value;
+var bar=+document.getElementById("barSize").value||5;
+var waste=1+(v("waste")/100||0.1);
+var wlb=WLBS[bar]||1.043;
+var lf=0;
+if(etype==="slab"){var L=v("L"),W=v("W"),sp=v("sp")/12||1;lf=(Math.ceil(W/sp)+1)*L+(Math.ceil(L/sp)+1)*W;}
+else if(etype==="beam"){var L=v("L"),nb=v("nb"),nt=v("nt"),sp=v("sp")/12||0.67;var stirrups=Math.ceil(L/sp)+1;var stirrupPerim=((v("W")||18)/12*2+(18/12)*2)||2;lf=(nb+nt)*L+stirrups*stirrupPerim;}
+else if(etype==="column"){var ht=v("L"),nb=v("nb"),sp=v("sp")/12||1,cw=(v("W")||18)/12;lf=nb*ht+Math.ceil(ht/sp)*cw*4;}
+else if(etype==="wall"){var wl=v("L"),wh=v("W")||v("W"),hsp=v("sp")/12||1,vsp=(v("sp2")||12)/12||1;lf=(Math.ceil(wh/hsp)+1)*wl*2+(Math.ceil(wl/vsp)+1)*wh*2;}
+var lfWaste=lf*waste;
+var weightLb=lfWaste*wlb;
+var weightTon=weightLb/2000;
+var bars20=Math.ceil(lfWaste/20);
+document.getElementById("kpi").innerHTML=
+'<div class="kcard"><div class="klabel">Linear Feet</div><div class="kval sky">'+Math.round(lf)+' lf</div></div>'+
+'<div class="kcard"><div class="klabel">LF with Waste</div><div class="kval">'+Math.round(lfWaste)+' lf</div></div>'+
+'<div class="kcard"><div class="klabel">Weight</div><div class="kval grn">'+Math.round(weightLb).toLocaleString()+' lb</div></div>'+
+'<div class="kcard"><div class="klabel">Tons</div><div class="kval">'+weightTon.toFixed(2)+' T</div></div>'+
+'<div class="kcard"><div class="klabel">20-ft Bars</div><div class="kval sky">'+bars20+'</div></div>';
+}
+</script></div></body></html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rent vs Buy Analysis | XLMX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0d0d0d;color:#e8e8e8;font-family:system-ui,sans-serif;min-height:100vh}
+.topbar{background:#111;border-bottom:1px solid #222;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.back{color:#c8a96e;text-decoration:none;font-size:13px}.topbar h1{font-size:15px;font-weight:600;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px}
+.desc{color:#888;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.box{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:14px}
+.box h2{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.field{margin-bottom:11px}label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input,select{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#e8e8e8;font-size:13px;padding:8px 10px;width:100%}
+input:focus,select:focus{outline:none;border-color:#c8a96e}
+.btn{background:#c8a96e;color:#000;border:none;border-radius:6px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.btn:hover{background:#d4b87a}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kcard{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px}
+.klabel{font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:700;color:#c8a96e}
+.kval.grn{color:#34d399}.kval.red{color:#f87171}.kval.sky{color:#60a5fa}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #222;text-transform:uppercase;font-weight:500}
+td{padding:5px 8px;border-bottom:1px solid #161616;font-size:12px}
+tr:hover td{background:#151515}
+.note{font-size:11px;color:#666;margin-top:10px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="topbar"><a href="/tools/" class="back">&#8592; Tools</a><h1>Rent vs Buy Analysis</h1></div>
+<div class="wrap">
+<p class="desc">True 5-year cost comparison — equity, appreciation, and opportunity cost included.</p>
+<div class="grid">
+<div>
+<div class="box"><h2>Buy Scenario</h2>
+<div class="field"><label>Home Price ($)</label><input id="hp" type="number" placeholder="500000"></div>
+<div class="field"><label>Down Payment (%)</label><input id="dpct" type="number" placeholder="20" value="20"></div>
+<div class="field"><label>Mortgage Rate (%)</label><input id="mrate" type="number" placeholder="6.75" step="0.125"></div>
+<div class="field"><label>Term (years)</label><input id="mterm" type="number" placeholder="30" value="30"></div>
+<div class="field"><label>Annual Appreciation (%)</label><input id="appr" type="number" placeholder="3" value="3"></div>
+<div class="field"><label>Property Tax Rate (%)</label><input id="ptax" type="number" placeholder="1.2" value="1.2"></div>
+<div class="field"><label>Annual HOA / Maintenance ($)</label><input id="hoa" type="number" placeholder="4000" value="4000"></div>
+</div>
+<div class="box"><h2>Rent Scenario</h2>
+<div class="field"><label>Monthly Rent ($)</label><input id="rent" type="number" placeholder="2800"></div>
+<div class="field"><label>Annual Rent Increase (%)</label><input id="rinc" type="number" placeholder="3" value="3"></div>
+<div class="field"><label>Investment Return on Down Payment (%)</label><input id="inv" type="number" placeholder="7" value="7"></div>
+</div>
+<div class="box"><h2>Horizon</h2>
+<div class="field"><label>Analysis Period (years)</label><input id="yrs" type="number" placeholder="5" value="5" min="1" max="30"></div>
+<button class="btn" onclick="calc()">Compare</button>
+</div></div>
+<div>
+<div class="box"><h2>Results</h2>
+<div id="out"><p style="color:#555;font-size:12px">Enter inputs and compare.</p></div>
+</div></div></div>
+<script>
+function fm(n){return"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
+function calc(){
+var hp=+document.getElementById("hp").value||0;
+var dpct=+document.getElementById("dpct").value/100||0.20;
+var mrate=+document.getElementById("mrate").value/100/12||0.005;
+var mterm=+document.getElementById("mterm").value*12||360;
+var appr=+document.getElementById("appr").value/100||0.03;
+var ptax=+document.getElementById("ptax").value/100||0.012;
+var hoa=+document.getElementById("hoa").value||4000;
+var rent=+document.getElementById("rent").value||0;
+var rinc=+document.getElementById("rinc").value/100||0.03;
+var inv=+document.getElementById("inv").value/100||0.07;
+var yrs=+document.getElementById("yrs").value||5;
+var months=yrs*12;
+var dp=hp*dpct;
+var loan=hp-dp;
+var pmt=mrate===0?loan/mterm:loan*mrate*Math.pow(1+mrate,mterm)/(Math.pow(1+mrate,mterm)-1);
+// Buy costs
+var totalBuyCost=dp;// initial outlay
+var bal=loan;
+for(var i=0;i<months;i++){var interest=bal*mrate;var principal=pmt-interest;bal-=principal;totalBuyCost+=pmt;}
+totalBuyCost+=hoa*yrs+hp*ptax*yrs;
+var homeVal=hp*Math.pow(1+appr,yrs);
+var equity=homeVal-bal;
+var netBuy=totalBuyCost-equity+dp*0; // equity is already in home val
+// Rent costs
+var totalRentCost=0;var r=rent;
+for(var j=0;j<yrs;j++){totalRentCost+=r*12;r*=(1+rinc);}
+// Opportunity cost: invested down payment
+var investedDP=dp*Math.pow(1+inv,yrs);
+var oppCost=investedDP-dp;
+var netRent=totalRentCost+oppCost;
+// Buy net position: paid out - home value gained
+var buyNetOut=totalBuyCost-(homeVal-loan-bal+loan)-dp;// simplify
+// Simpler framing
+var buyTotalOut=dp+(pmt*months)+(hoa*yrs)+(hp*ptax*yrs);
+var buyGain=homeVal-Math.max(0,bal);
+var rentTotalOut=totalRentCost;
+var rentGain=investedDP-dp;
+var buyNet=buyTotalOut-buyGain;
+var rentNet=rentTotalOut-rentGain;
+var winner=buyNet<rentNet?"Buying":"Renting";
+var diff=Math.abs(buyNet-rentNet);
+document.getElementById("out").innerHTML=
+'<div class="kpi">'+
+'<div class="kcard" style="border-color:#34d399"><div class="klabel">Winner ('+yrs+' yr)</div><div class="kval grn">'+winner+'</div></div>'+
+'<div class="kcard"><div class="klabel">Advantage</div><div class="kval sky">'+fm(diff)+'</div></div>'+
+'</div>'+
+'<table><thead><tr><th></th><th>Buy</th><th>Rent</th></tr></thead><tbody>'+
+'<tr><td>Total Paid Out</td><td style="color:#f87171">'+fm(buyTotalOut)+'</td><td style="color:#f87171">'+fm(rentTotalOut)+'</td></tr>'+
+'<tr><td>Equity / Investment Gain</td><td style="color:#34d399">'+fm(buyGain)+'</td><td style="color:#34d399">'+fm(rentGain)+'</td></tr>'+
+'<tr><td>Home Value in '+yrs+' yrs</td><td style="color:#60a5fa">'+fm(homeVal)+'</td><td>—</td></tr>'+
+'<tr><td>Mortgage Balance</td><td style="color:#888">'+fm(bal)+'</td><td>—</td></tr>'+
+'<tr style="font-weight:700"><td>Net Cost</td><td style="color:'+(buyNet<rentNet?"#34d399":"#f87171")+'">'+fm(buyNet)+'</td><td style="color:'+(rentNet<buyNet?"#34d399":"#f87171")+'">'+fm(rentNet)+'</td></tr>'+
+'</tbody></table>'+
+'<p class="note">Buy net = total paid − home equity. Rent net = total paid − invested down payment growth.</p>';
+}
+</script></div></body></html>
